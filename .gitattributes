@@ -1,0 +1,17 @@
+# Normaliza as quebras de linha para LF no repo e no working tree.
+# Sem isso, o core.autocrlf=true do Git for Windows converte tudo para CRLF
+# no checkout e o `prettier --check` falha em todos os arquivos.
+* text=auto eol=lf
+
+# Binários
+*.ico binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.node binary
+*.db binary

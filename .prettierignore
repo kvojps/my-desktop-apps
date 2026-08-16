@@ -1,0 +1,10 @@
+node_modules
+dist
+out
+build
+uploads
+*.db
+*.db-shm
+*.db-wal
+*.tsbuildinfo
+package-lock.json

@@ -1,0 +1,17 @@
+export const IPC_CHANNELS = {
+  productsGetAll: 'products:getAll',
+  productsAdd: 'products:add',
+  productsUpdate: 'products:update',
+  productsDelete: 'products:delete',
+  ordersGetAll: 'orders:getAll',
+  ordersAdd: 'orders:add',
+  ordersUpdate: 'orders:update',
+  ordersSetStatus: 'orders:setStatus',
+  ordersSetPaymentAmount: 'orders:setPaymentAmount',
+  ordersDelete: 'orders:delete',
+  settingsGet: 'settings:get',
+  settingsUpdate: 'settings:update',
+  appGetInfo: 'app:getInfo',
+  dataExport: 'data:export',
+  dataImport: 'data:import',
+} as const;

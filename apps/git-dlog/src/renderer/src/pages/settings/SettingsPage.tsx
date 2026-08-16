@@ -1,0 +1,243 @@
+import { CheckCircle, DeleteOutline, RadioButtonUnchecked, Refresh } from '@mui/icons-material';
+import {
+  Alert,
+  Button,
+  Card,
+  CardContent,
+  CircularProgress,
+  Divider,
+  Link,
+  Stack,
+  TextField,
+  Typography,
+} from '@mui/material';
+import { useCallback, useEffect, useState } from 'react';
+import type { PrIntegrationStatus, PrProviderKind } from '@shared/types/pullRequest';
+import { call, getErrorMessage } from '@/api/client';
+import { useSnackbar } from '@/contexts/SnackbarContext';
+import { openExternal } from '@/utils/pullRequest';
+
+const APP_VERSION = '2.0.0';
+
+const TOKEN_DOCS_URL = 'https://github.com/settings/tokens';
+
+const PROVIDER_LABELS: Record<PrProviderKind, string> = {
+  'gh-cli': 'GitHub CLI (gh)',
+  'github-token': 'Token do GitHub',
+  'glab-cli': 'GitLab CLI (glab)',
+  none: 'Nenhum',
+};
+
+function InfoRow({ label, value }: { label: string; value: string }) {
+  return (
+    <Stack direction="row" spacing={2}>
+      <Typography variant="body2" color="text.secondary" sx={{ width: 120, flexShrink: 0 }}>
+        {label}
+      </Typography>
+      <Typography variant="body2">{value}</Typography>
+    </Stack>
+  );
+}
+
+function ProviderRow({
+  label,
+  available,
+  detail,
+}: {
+  label: string;
+  available: boolean;
+  detail: string;
+}) {
+  return (
+    <Stack direction="row" spacing={1.5} alignItems="flex-start">
+      {available ? (
+        <CheckCircle color="success" fontSize="small" sx={{ mt: 0.25 }} />
+      ) : (
+        <RadioButtonUnchecked color="disabled" fontSize="small" sx={{ mt: 0.25 }} />
+      )}
+      <Stack>
+        <Typography variant="body2" sx={{ fontWeight: 600 }}>
+          {label}
+        </Typography>
+        <Typography variant="caption" color="text.secondary">
+          {detail}
+        </Typography>
+      </Stack>
+    </Stack>
+  );
+}
+
+export function SettingsPage() {
+  const { showSnackbar } = useSnackbar();
+  const [status, setStatus] = useState<PrIntegrationStatus | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [token, setToken] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+
+  const loadStatus = useCallback(
+    async (redetect = false) => {
+      setIsLoading(true);
+      try {
+        setStatus(
+          await call(() => (redetect ? window.api.prs.redetect() : window.api.prs.getStatus())),
+        );
+      } catch (err) {
+        showSnackbar(getErrorMessage(err, 'Erro ao verificar a integração de PRs.'), 'error');
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [showSnackbar],
+  );
+
+  useEffect(() => {
+    void loadStatus();
+  }, [loadStatus]);
+
+  async function handleSaveToken() {
+    setIsSaving(true);
+    try {
+      const login = await call(() => window.api.prs.saveToken(token));
+      setToken('');
+      showSnackbar(`Token salvo e validado como "${login}".`);
+      await loadStatus();
+    } catch (err) {
+      showSnackbar(getErrorMessage(err, 'Erro ao salvar o token.'), 'error');
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  async function handleDeleteToken() {
+    try {
+      await call(() => window.api.prs.deleteToken());
+      showSnackbar('Token removido.');
+      await loadStatus();
+    } catch (err) {
+      showSnackbar(getErrorMessage(err, 'Erro ao remover o token.'), 'error');
+    }
+  }
+
+  return (
+    <Stack spacing={2}>
+      <Stack>
+        <Typography variant="h5">Configurações</Typography>
+        <Typography variant="body2" color="text.secondary">
+          Integração com pull requests e informações do aplicativo
+        </Typography>
+      </Stack>
+
+      <Card variant="outlined">
+        <CardContent>
+          <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
+            <Typography variant="h6">Pull requests</Typography>
+            <Button
+              size="small"
+              startIcon={isLoading ? <CircularProgress size={14} /> : <Refresh />}
+              onClick={() => loadStatus(true)}
+              disabled={isLoading}
+            >
+              Redetectar
+            </Button>
+          </Stack>
+
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Para mostrar PRs, o app usa uma ferramenta que já esteja autenticada na sua máquina. Se
+            nenhuma estiver disponível, use um token do GitHub como alternativa.
+          </Typography>
+
+          {status && !status.anyAvailable && (
+            <Alert severity="info" variant="outlined" sx={{ mb: 2 }}>
+              Nenhuma integração ativa — os repositórios continuam funcionando normalmente, apenas
+              sem a coluna de PRs. A opção mais simples é instalar o GitHub CLI e rodar{' '}
+              <code>gh auth login</code>.
+            </Alert>
+          )}
+
+          <Stack spacing={1.5}>
+            {status?.providers.map((provider) => (
+              <ProviderRow
+                key={provider.kind}
+                label={PROVIDER_LABELS[provider.kind]}
+                available={provider.available}
+                detail={provider.detail}
+              />
+            ))}
+          </Stack>
+
+          <Divider sx={{ my: 2.5 }} />
+
+          <Typography variant="subtitle2" sx={{ mb: 1 }}>
+            Token do GitHub
+          </Typography>
+
+          {status?.hasGithubToken ? (
+            <Stack direction="row" spacing={1} alignItems="center">
+              <Typography variant="body2" color="text.secondary" sx={{ flex: 1 }}>
+                Há um token salvo, cifrado pelo cofre de credenciais do sistema.
+              </Typography>
+              <Button
+                size="small"
+                color="error"
+                startIcon={<DeleteOutline />}
+                onClick={handleDeleteToken}
+              >
+                Remover
+              </Button>
+            </Stack>
+          ) : (
+            <Stack spacing={1}>
+              <Stack direction="row" spacing={1} alignItems="flex-start">
+                <TextField
+                  size="small"
+                  fullWidth
+                  type="password"
+                  placeholder="ghp_..."
+                  label="Personal access token"
+                  value={token}
+                  onChange={(event) => setToken(event.target.value)}
+                  autoComplete="off"
+                  helperText="Precisa do escopo repo (ou read-only equivalente em tokens fine-grained)."
+                />
+                <Button
+                  variant="contained"
+                  onClick={handleSaveToken}
+                  disabled={isSaving || token.trim().length < 8}
+                  sx={{ mt: 0.25 }}
+                >
+                  {isSaving ? 'Validando...' : 'Salvar'}
+                </Button>
+              </Stack>
+              <Typography variant="caption" color="text.secondary">
+                O token é validado antes de ser salvo e nunca volta para a interface.{' '}
+                <Link
+                  component="button"
+                  variant="caption"
+                  onClick={() => openExternal(TOKEN_DOCS_URL)}
+                >
+                  Gerar um token no GitHub
+                </Link>
+              </Typography>
+            </Stack>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card variant="outlined">
+        <CardContent>
+          <Typography variant="h6" sx={{ mb: 2 }}>
+            Sobre
+          </Typography>
+          <Stack spacing={1}>
+            <InfoRow label="Aplicativo" value="Git Dlog" />
+            <InfoRow label="Versão" value={APP_VERSION} />
+            <InfoRow
+              label="Finalidade"
+              value="Mostra, para todos os seus repositórios de uma vez, o que está fora de sincronia, o que só existe localmente e quais PRs estão abertos"
+            />
+          </Stack>
+        </CardContent>
+      </Card>
+    </Stack>
+  );
+}

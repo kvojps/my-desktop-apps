@@ -1,0 +1,14 @@
+export const IPC_CHANNELS = {
+  scanPathsGetAll: 'scanPaths:getAll',
+  scanPathsAdd: 'scanPaths:add',
+  scanPathsDelete: 'scanPaths:delete',
+  reposScan: 'repos:scan',
+  reposFetch: 'repos:fetch',
+  reposFetchProgress: 'repos:fetchProgress',
+  prsGetStatus: 'prs:getStatus',
+  prsSaveToken: 'prs:saveToken',
+  prsDeleteToken: 'prs:deleteToken',
+  prsRedetect: 'prs:redetect',
+  dialogSelectDirectory: 'dialog:selectDirectory',
+  shellOpenExternal: 'shell:openExternal',
+} as const;

@@ -1,0 +1,34 @@
+{
+  "name": "my-desktop-apps",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "postinstall": "install-electron && electron-rebuild -f -w better-sqlite3",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "npm run typecheck --workspaces",
+    "build": "npm run build --workspaces",
+    "dev:dinheiro": "npm run dev -w meu-dinheiro-app",
+    "dev:negocio": "npm run dev -w meu-negocio-app",
+    "dev:dlog": "npm run dev -w git-dlog",
+    "dist:dinheiro": "npm run dist:win -w meu-dinheiro-app",
+    "dist:negocio": "npm run dist:win -w meu-negocio-app",
+    "dist:dlog": "npm run dist:win -w git-dlog"
+  },
+  "devDependencies": {
+    "@electron/rebuild": "^4.1.0",
+    "@eslint/js": "^10.0.1",
+    "@trivago/prettier-plugin-sort-imports": "^6.0.2",
+    "eslint": "^10.6.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.7.0",
+    "prettier": "^3.9.4",
+    "typescript": "^5.8.0",
+    "typescript-eslint": "^8.63.0"
+  }
+}
