@@ -45,6 +45,19 @@ ou reescrito.
 **Renderer.** `HashRouter`, MUI com tema em `src/renderer/src/theme`, imports por
 alias (`@/` e `@shared/`) sempre que saírem da própria pasta.
 
+- `api/client.ts` é uma fachada tipada com um método por operação. `window.api`
+  não aparece em nenhum outro arquivo.
+- Domínio consumido por mais de uma tela vira context em `contexts/`, com um
+  hook fino em `hooks/<domínio>/` que só o repassa. Estado de uma tela só
+  continua no próprio hook da tela. Quem altera um domínio de fora do context
+  precisa chamar o `reload` dele.
+- Avisos pelo `useSnackbar`: `showSnackbar` para mensagem própria, `showError`
+  para erro vindo do IPC. As mensagens entram numa fila, uma por vez.
+- Falha de carregamento de tela usa `components/ErrorState`, que oferece tentar
+  de novo e abrir a pasta de dados.
+- `pages/<tela>/components/` guarda os componentes de uma tela só; o que serve a
+  mais de uma sobe para `components/`.
+
 **Dev.** `electron-vite` define `ELECTRON_RENDERER_URL` ao subir o dev server; é
 essa a variável que o `main/index.ts` testa para escolher entre `loadURL` e
 `loadFile`.

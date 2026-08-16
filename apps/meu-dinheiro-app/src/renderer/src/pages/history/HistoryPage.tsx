@@ -26,7 +26,7 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Bar,
@@ -43,16 +43,14 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import { Month } from '@shared/types/month';
-import { api } from '@/api/client';
 import { ErrorState } from '@/components/ErrorState';
-import { useSnackbar } from '@/contexts/SnackbarContext';
 import { useCategoryTotals } from '@/hooks/categories/useCategoryTotals';
 import {
   BALANCE_LABELS,
   computeMonthBalance,
   sumMonthBalances,
 } from '@/hooks/months/useMonthBalance';
+import { useMonths } from '@/hooks/months/useMonths';
 import { monthDetailPath } from '@/routes';
 import { tabularNums } from '@/theme';
 import { formatCurrencyBRL } from '@/utils/format';
@@ -87,39 +85,11 @@ const MONTH_ABBR = [
 type TabValue = 'comparativo' | 'categories';
 
 export function HistoryPage() {
-  const [data, setData] = useState<Month[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<unknown>(null);
   const [tab, setTab] = useState<TabValue>('comparativo');
   const [view, setView] = useState<'chart' | 'table'>('chart');
-  const { showError } = useSnackbar();
+  const { months: data, loading, error, retry } = useMonths();
   const theme = useTheme();
   const navigate = useNavigate();
-
-  function loadMonths() {
-    api
-      .getMonths()
-      .then((months) => {
-        setData(months);
-        setError(null);
-      })
-      .catch((err) => {
-        setError(err);
-        showError(err);
-      })
-      .finally(() => setLoading(false));
-  }
-
-  useEffect(() => {
-    loadMonths();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  function retry() {
-    setLoading(true);
-    setError(null);
-    loadMonths();
-  }
 
   const years = useMemo(() => {
     const set = new Set(data.map((m) => m.year));

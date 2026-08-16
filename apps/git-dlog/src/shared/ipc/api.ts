@@ -39,10 +39,16 @@ export interface ShellApi {
   openExternal: (url: string) => Promise<void>;
 }
 
+export interface DataApi {
+  /** Abre a pasta de dados do app no explorador de arquivos. */
+  openFolder: () => Promise<void>;
+}
+
 export interface ElectronApi {
   scanPaths: ScanPathsApi;
   repos: ReposApi;
   prs: PrsApi;
   dialog: DialogApi;
   shell: ShellApi;
+  data: DataApi;
 }

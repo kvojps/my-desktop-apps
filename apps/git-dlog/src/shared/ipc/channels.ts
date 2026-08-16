@@ -11,4 +11,5 @@ export const IPC_CHANNELS = {
   prsRedetect: 'prs:redetect',
   dialogSelectDirectory: 'dialog:selectDirectory',
   shellOpenExternal: 'shell:openExternal',
+  dataOpenFolder: 'data:openFolder',
 } as const;

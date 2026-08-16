@@ -1,5 +1,5 @@
 import { useContext } from 'react';
-import { ThemeModeContext } from '../theme/themeModeContext';
+import { ThemeModeContext } from '@/theme/themeModeContext';
 
 export function useThemeMode() {
   const ctx = useContext(ThemeModeContext);

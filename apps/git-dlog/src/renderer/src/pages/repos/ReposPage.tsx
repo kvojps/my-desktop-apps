@@ -21,12 +21,13 @@ import {
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { RepoScanResult, RepoSeverity } from '@shared/types/repoScan';
+import { ErrorState } from '@/components/ErrorState';
 import { useRepos } from '@/hooks/repos/useRepos';
 import { useScanPaths } from '@/hooks/scanPaths/useScanPaths';
 import { formatDateTime } from '@/utils/format';
 import { getOpenPrs, needsAction } from '@/utils/pullRequest';
 import { ROUTES } from '../../routes';
-import { RepoCard } from './RepoCard';
+import { RepoCard } from './components/RepoCard';
 
 type Filter = 'all' | RepoSeverity | 'error' | 'prAction' | 'prOpen';
 
@@ -61,7 +62,7 @@ function matches(repo: RepoScanResult, filter: Filter): boolean {
 
 export function ReposPage() {
   const { scanPaths } = useScanPaths();
-  const { results, isScanning, isFetching, fetchProgress, lastScanAt, scan, fetchRemote } =
+  const { results, isScanning, isFetching, error, fetchProgress, lastScanAt, scan, fetchRemote } =
     useRepos();
   const navigate = useNavigate();
   const [filter, setFilter] = useState<Filter>('all');
@@ -85,6 +86,16 @@ export function ReposPage() {
 
   const busy = isScanning || isFetching;
   const hasNoPaths = scanPaths.length === 0;
+
+  if (error && !busy) {
+    return (
+      <ErrorState
+        title="Não foi possível ler os repositórios"
+        error={error}
+        onRetry={() => void scan()}
+      />
+    );
+  }
 
   return (
     <Stack spacing={2}>

@@ -13,7 +13,7 @@ import {
 } from '@mui/material';
 import { useCallback, useEffect, useState } from 'react';
 import type { PrIntegrationStatus, PrProviderKind } from '@shared/types/pullRequest';
-import { call, getErrorMessage } from '@/api/client';
+import { api } from '@/api/client';
 import { useSnackbar } from '@/contexts/SnackbarContext';
 import { openExternal } from '@/utils/pullRequest';
 
@@ -68,7 +68,7 @@ function ProviderRow({
 }
 
 export function SettingsPage() {
-  const { showSnackbar } = useSnackbar();
+  const { showSnackbar, showError } = useSnackbar();
   const [status, setStatus] = useState<PrIntegrationStatus | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [token, setToken] = useState('');
@@ -78,16 +78,14 @@ export function SettingsPage() {
     async (redetect = false) => {
       setIsLoading(true);
       try {
-        setStatus(
-          await call(() => (redetect ? window.api.prs.redetect() : window.api.prs.getStatus())),
-        );
+        setStatus(await (redetect ? api.redetectPrProviders() : api.getPrStatus()));
       } catch (err) {
-        showSnackbar(getErrorMessage(err, 'Erro ao verificar a integração de PRs.'), 'error');
+        showError(err, 'Erro ao verificar a integração de PRs.');
       } finally {
         setIsLoading(false);
       }
     },
-    [showSnackbar],
+    [showError],
   );
 
   useEffect(() => {
@@ -97,12 +95,12 @@ export function SettingsPage() {
   async function handleSaveToken() {
     setIsSaving(true);
     try {
-      const login = await call(() => window.api.prs.saveToken(token));
+      const login = await api.savePrToken(token);
       setToken('');
       showSnackbar(`Token salvo e validado como "${login}".`);
       await loadStatus();
     } catch (err) {
-      showSnackbar(getErrorMessage(err, 'Erro ao salvar o token.'), 'error');
+      showError(err, 'Erro ao salvar o token.');
     } finally {
       setIsSaving(false);
     }
@@ -110,11 +108,11 @@ export function SettingsPage() {
 
   async function handleDeleteToken() {
     try {
-      await call(() => window.api.prs.deleteToken());
+      await api.deletePrToken();
       showSnackbar('Token removido.');
       await loadStatus();
     } catch (err) {
-      showSnackbar(getErrorMessage(err, 'Erro ao remover o token.'), 'error');
+      showError(err, 'Erro ao remover o token.');
     }
   }
 

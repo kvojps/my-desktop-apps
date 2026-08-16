@@ -1,11 +1,10 @@
 import { useState } from 'react';
 import type { Product } from '@shared/types/product';
-import { getErrorMessage } from '@/api/client';
-import { useToast } from '@/contexts/ToastContext';
+import { useSnackbar } from '@/contexts/SnackbarContext';
 
 export function useProductConfirm(deleteProduct: (id: string) => Promise<void>) {
   const [deleteTarget, setDeleteTarget] = useState<Product | null>(null);
-  const { showToast } = useToast();
+  const { showSnackbar, showError } = useSnackbar();
 
   function buildProps() {
     return {
@@ -20,10 +19,10 @@ export function useProductConfirm(deleteProduct: (id: string) => Promise<void>) 
     if (!deleteTarget) return;
     try {
       await deleteProduct(deleteTarget.id);
-      showToast(`Produto "${deleteTarget.name}" excluído.`, 'info');
+      showSnackbar(`Produto "${deleteTarget.name}" excluído.`, 'info');
       setDeleteTarget(null);
     } catch (err) {
-      showToast(getErrorMessage(err, 'Erro ao excluir o produto.'), 'error');
+      showError(err, 'Erro ao excluir o produto.');
     }
   }
 

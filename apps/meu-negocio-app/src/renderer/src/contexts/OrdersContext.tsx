@@ -1,12 +1,14 @@
-import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import type { CreateOrderData, Order, OrderStatus, UpdateOrderData } from '@shared/types/order';
-import { call } from '@/api/client';
+import { api } from '@/api/client';
 import { useProductsContext } from './ProductsContext';
-import { useToast } from './ToastContext';
+import { useSnackbar } from './SnackbarContext';
 
 export interface OrdersContextValue {
   orders: Order[];
   isLoading: boolean;
+  error: unknown;
+  retry: () => void;
   addOrder: (data: CreateOrderData) => Promise<Order>;
   updateOrder: (id: string, data: UpdateOrderData) => Promise<void>;
   setOrderStatus: (id: string, newStatus: OrderStatus) => Promise<void>;
@@ -27,26 +29,45 @@ function sortByCreatedAt(orders: Order[]): Order[] {
 
 export function OrdersProvider({ children }: { children: React.ReactNode }) {
   const { refreshProducts } = useProductsContext();
-  const { showToast } = useToast();
+  const { showSnackbar } = useSnackbar();
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<unknown>(null);
+
+  function load() {
+    api
+      .getOrders()
+      .then((all) => {
+        setOrders(all);
+        setError(null);
+      })
+      .catch((err) => {
+        setError(err);
+        showSnackbar('Erro ao carregar os pedidos.', 'error');
+      })
+      .finally(() => setIsLoading(false));
+  }
 
   useEffect(() => {
-    call(() => window.api.orders.getAll())
-      .then(setOrders)
-      .catch(() => showToast('Erro ao carregar os pedidos.', 'error'))
-      .finally(() => setIsLoading(false));
+    load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const retry = useCallback(() => {
+    setIsLoading(true);
+    setError(null);
+    load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function addOrder(data: CreateOrderData) {
-    const order = await call(() => window.api.orders.add(data));
+    const order = await api.addOrder(data);
     setOrders((prev) => sortByCreatedAt([...prev, order]));
     return order;
   }
 
   async function setOrderStatus(id: string, newStatus: OrderStatus) {
-    const { order, updatedProducts } = await call(() => window.api.orders.setStatus(id, newStatus));
+    const { order, updatedProducts } = await api.setOrderStatus(id, newStatus);
     setOrders((prev) => prev.map((o) => (o.id === id ? order : o)));
     if (updatedProducts.length > 0) {
       await refreshProducts();
@@ -54,17 +75,17 @@ export function OrdersProvider({ children }: { children: React.ReactNode }) {
   }
 
   async function setOrderPaymentAmount(id: string, amountPaid: number) {
-    const order = await call(() => window.api.orders.setPaymentAmount(id, amountPaid));
+    const order = await api.setOrderPaymentAmount(id, amountPaid);
     setOrders((prev) => prev.map((o) => (o.id === id ? order : o)));
   }
 
   async function updateOrder(id: string, data: UpdateOrderData) {
-    const updated = await call(() => window.api.orders.update(id, data));
+    const updated = await api.updateOrder(id, data);
     setOrders((prev) => sortByCreatedAt(prev.map((o) => (o.id === id ? updated : o))));
   }
 
   async function deleteOrder(id: string) {
-    const { updatedProducts } = await call(() => window.api.orders.delete(id));
+    const { updatedProducts } = await api.deleteOrder(id);
     setOrders((prev) => prev.filter((o) => o.id !== id));
     if (updatedProducts.length > 0) {
       await refreshProducts();
@@ -75,13 +96,15 @@ export function OrdersProvider({ children }: { children: React.ReactNode }) {
     () => ({
       orders,
       isLoading,
+      error,
+      retry,
       addOrder,
       updateOrder,
       setOrderStatus,
       setOrderPaymentAmount,
       deleteOrder,
     }),
-    [orders, isLoading],
+    [orders, isLoading, error, retry],
   );
 
   return <OrdersContext.Provider value={value}>{children}</OrdersContext.Provider>;

@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { decodeAppError } from '@shared/errors/appError';
 import { MonthDetail } from '@shared/types/month';
 import { api } from '@/api/client';
+import { useMonthsContext } from '@/contexts/MonthsContext';
 import { useSnackbar } from '@/contexts/SnackbarContext';
 
 export function useMonth(id: string | undefined) {
@@ -9,23 +10,29 @@ export function useMonth(id: string | undefined) {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [error, setError] = useState<unknown>(null);
-  const [prevMonthId, setPrevMonthId] = useState<number | null>(null);
-  const [nextMonthId, setNextMonthId] = useState<number | null>(null);
   const [deleting, setDeleting] = useState(false);
   const { showSnackbar, showError } = useSnackbar();
+  const { months, reload: reloadMonths } = useMonthsContext();
+
+  // A navegação entre meses sai da lista global: se ela ainda estiver
+  // carregando quando a tela abre, os vizinhos aparecem assim que chegar.
+  const { prevMonthId, nextMonthId } = useMemo(() => {
+    if (!month) return { prevMonthId: null, nextMonthId: null };
+    const sorted = [...months].sort((a, b) => a.year - b.year || a.month - b.month);
+    const index = sorted.findIndex((m) => m.id === month.id);
+    return {
+      prevMonthId: index > 0 ? sorted[index - 1].id : null,
+      nextMonthId: index >= 0 && index < sorted.length - 1 ? sorted[index + 1].id : null,
+    };
+  }, [months, month]);
 
   async function reload() {
     if (!id) return;
     try {
-      const [data, allMonths] = await Promise.all([api.getMonth(Number(id)), api.getMonths()]);
+      const data = await api.getMonth(Number(id));
       setMonth(data);
       setNotFound(false);
       setError(null);
-
-      const sorted = [...allMonths].sort((a, b) => a.year - b.year || a.month - b.month);
-      const index = sorted.findIndex((m) => m.id === data.id);
-      setPrevMonthId(index > 0 ? sorted[index - 1].id : null);
-      setNextMonthId(index >= 0 && index < sorted.length - 1 ? sorted[index + 1].id : null);
     } catch (err) {
       if (decodeAppError(err).code === 'not-found') {
         setNotFound(true);
@@ -216,6 +223,7 @@ export function useMonth(id: string | undefined) {
     setDeleting(true);
     try {
       await api.deleteMonth(Number(id));
+      await reloadMonths();
       return true;
     } catch (err) {
       showError(err);

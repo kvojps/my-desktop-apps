@@ -32,6 +32,9 @@ const api: ElectronApi = {
   shell: {
     openExternal: (url: string) => ipcRenderer.invoke(IPC_CHANNELS.shellOpenExternal, url),
   },
+  data: {
+    openFolder: () => ipcRenderer.invoke(IPC_CHANNELS.dataOpenFolder),
+  },
 };
 
 contextBridge.exposeInMainWorld('api', api);

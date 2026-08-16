@@ -7,10 +7,9 @@ import {
   getOrderPaymentStatus,
   getOrderTotal,
 } from '@shared/types/order';
-import { getErrorMessage } from '@/api/client';
 import { Modal } from '@/components/Modal';
 import { StatusChip } from '@/components/StatusChip';
-import { useToast } from '@/contexts/ToastContext';
+import { useSnackbar } from '@/contexts/SnackbarContext';
 import { formatCurrency } from '@/utils/format';
 
 interface PaymentModalProps {
@@ -22,7 +21,7 @@ interface PaymentModalProps {
 export function PaymentModal({ order, onClose, onSave }: PaymentModalProps) {
   const [amount, setAmount] = useState('0');
   const [isSaving, setIsSaving] = useState(false);
-  const { showToast } = useToast();
+  const { showSnackbar, showError } = useSnackbar();
 
   useEffect(() => {
     if (order) setAmount(String(order.amountPaid));
@@ -39,10 +38,10 @@ export function PaymentModal({ order, onClose, onSave }: PaymentModalProps) {
     setIsSaving(true);
     try {
       await onSave(order.id, parsedAmount);
-      showToast('Pagamento atualizado.');
+      showSnackbar('Pagamento atualizado.');
       onClose();
     } catch (err) {
-      showToast(getErrorMessage(err, 'Erro ao registrar o pagamento.'), 'error');
+      showError(err, 'Erro ao registrar o pagamento.');
     } finally {
       setIsSaving(false);
     }

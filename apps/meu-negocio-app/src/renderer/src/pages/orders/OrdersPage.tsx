@@ -6,6 +6,7 @@ import { ActionsMenu } from '@/components/ActionsMenu';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { DataTable } from '@/components/DataTable';
 import type { Column } from '@/components/DataTable';
+import { ErrorState } from '@/components/ErrorState';
 import { OrderIcon, PlusIcon } from '@/components/Icons';
 import { PageHeader } from '@/components/PageHeader';
 import { useOrderConfirm } from '@/hooks/orders/useOrderConfirm';
@@ -29,6 +30,8 @@ export function OrdersPage() {
     filters,
     sort,
     isLoading,
+    error,
+    retry,
     setFilters,
     toggleSort,
     addOrder,
@@ -95,6 +98,12 @@ export function OrdersPage() {
     ],
     [handleStatusChange],
   );
+
+  if (error && !isLoading) {
+    return (
+      <ErrorState title="Não foi possível carregar os pedidos" error={error} onRetry={retry} />
+    );
+  }
 
   return (
     <Stack spacing={2}>
@@ -182,12 +191,11 @@ export function OrdersPage() {
               open
               title={title}
               onConfirm={confirm.handleAction}
-              onCancel={() => confirm.setConfirmTarget(null)}
+              onClose={() => confirm.setConfirmTarget(null)}
               confirmLabel={confirmLabel}
-              danger={danger}
-            >
-              {message}
-            </ConfirmDialog>
+              confirmColor={danger ? 'error' : 'primary'}
+              message={message}
+            />
           );
         })()}
     </Stack>

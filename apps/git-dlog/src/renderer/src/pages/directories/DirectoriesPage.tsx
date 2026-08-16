@@ -15,14 +15,15 @@ import {
 } from '@mui/material';
 import { useState } from 'react';
 import type { ScanPath } from '@shared/types/scanPath';
-import { getErrorMessage } from '@/api/client';
+import { api } from '@/api/client';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
+import { ErrorState } from '@/components/ErrorState';
 import { useSnackbar } from '@/contexts/SnackbarContext';
 import { useScanPaths } from '@/hooks/scanPaths/useScanPaths';
 
 export function DirectoriesPage() {
-  const { scanPaths, isLoading, addScanPath, deleteScanPath } = useScanPaths();
-  const { showSnackbar } = useSnackbar();
+  const { scanPaths, isLoading, error, retry, addScanPath, deleteScanPath } = useScanPaths();
+  const { showSnackbar, showError } = useSnackbar();
 
   const [isAdding, setIsAdding] = useState(false);
   const [deleting, setDeleting] = useState<ScanPath | null>(null);
@@ -31,12 +32,12 @@ export function DirectoriesPage() {
   async function handleAdd() {
     setIsAdding(true);
     try {
-      const path = await window.api.dialog.selectDirectory();
+      const path = await api.selectDirectory();
       if (!path) return;
       await addScanPath(path);
       showSnackbar('Diretório adicionado com sucesso.');
     } catch (err) {
-      showSnackbar(getErrorMessage(err, 'Erro ao adicionar o diretório.'), 'error');
+      showError(err, 'Erro ao adicionar o diretório.');
     } finally {
       setIsAdding(false);
     }
@@ -50,10 +51,16 @@ export function DirectoriesPage() {
       showSnackbar('Diretório removido com sucesso.');
       setDeleting(null);
     } catch (err) {
-      showSnackbar(getErrorMessage(err, 'Erro ao remover o diretório.'), 'error');
+      showError(err, 'Erro ao remover o diretório.');
     } finally {
       setIsDeleting(false);
     }
+  }
+
+  if (error && !isLoading) {
+    return (
+      <ErrorState title="Não foi possível carregar os diretórios" error={error} onRetry={retry} />
+    );
   }
 
   return (

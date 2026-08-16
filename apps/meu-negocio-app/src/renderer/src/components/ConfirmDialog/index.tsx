@@ -1,52 +1,50 @@
-import { Button, Stack, Typography } from '@mui/material';
-import { AlertTriangleIcon, CheckIcon } from '@/components/Icons';
-import { Modal } from '@/components/Modal';
+import {
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+} from '@mui/material';
+import { ReactNode } from 'react';
 
 interface ConfirmDialogProps {
   open: boolean;
   title: string;
-  onConfirm: () => void;
-  onCancel: () => void;
+  message: ReactNode;
   confirmLabel?: string;
-  cancelLabel?: string;
-  danger?: boolean;
-  children: React.ReactNode;
+  loadingLabel?: string;
+  confirmColor?: 'error' | 'warning' | 'primary';
+  loading?: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
 }
 
 export function ConfirmDialog({
   open,
   title,
+  message,
+  confirmLabel = 'Excluir',
+  loadingLabel,
+  confirmColor = 'error',
+  loading = false,
+  onClose,
   onConfirm,
-  onCancel,
-  confirmLabel = 'Confirmar',
-  cancelLabel = 'Cancelar',
-  danger = false,
-  children,
 }: ConfirmDialogProps) {
   return (
-    <Modal
-      open={open}
-      onClose={onCancel}
-      title={title}
-      footer={
-        <>
-          <Button onClick={onCancel} color="inherit">
-            {cancelLabel}
-          </Button>
-          <Button onClick={onConfirm} color={danger ? 'error' : 'primary'} variant="contained">
-            {confirmLabel}
-          </Button>
-        </>
-      }
-    >
-      <Stack direction="row" spacing={1.5} alignItems="flex-start">
-        <Stack sx={{ color: danger ? 'error.main' : 'success.main', pt: 0.25 }}>
-          {danger ? <AlertTriangleIcon size={20} /> : <CheckIcon size={20} />}
-        </Stack>
-        <Typography variant="body2" color="text.secondary">
-          {children}
-        </Typography>
-      </Stack>
-    </Modal>
+    <Dialog open={open} onClose={() => !loading && onClose()}>
+      <DialogTitle>{title}</DialogTitle>
+      <DialogContent>
+        <DialogContentText>{message}</DialogContentText>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose} disabled={loading}>
+          Cancelar
+        </Button>
+        <Button onClick={onConfirm} color={confirmColor} variant="contained" disabled={loading}>
+          {loading ? (loadingLabel ?? `${confirmLabel}...`) : confirmLabel}
+        </Button>
+      </DialogActions>
+    </Dialog>
   );
 }

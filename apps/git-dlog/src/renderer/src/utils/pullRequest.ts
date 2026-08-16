@@ -1,5 +1,6 @@
 import type { PullRequest } from '@shared/types/pullRequest';
 import type { RepoScanResult } from '@shared/types/repoScan';
+import { api } from '@/api/client';
 
 export function getOpenPrs(repo: RepoScanResult): PullRequest[] {
   return repo.prs.filter((pr) => pr.state === 'open');
@@ -27,5 +28,5 @@ export function countOpenPrs(repos: RepoScanResult[]): number {
 }
 
 export function openExternal(url: string): void {
-  if (url) void window.api.shell.openExternal(url);
+  if (url) void api.openExternal(url);
 }

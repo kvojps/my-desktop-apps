@@ -26,6 +26,7 @@ import {
 } from '@mui/material';
 import { useState } from 'react';
 import { Expense } from '@shared/types/expense';
+import { api } from '@/api/client';
 import { CategoryTag } from '@/components/CategoryTag';
 import { formatDateOnlyBR, formatPaidDateBR, todayDateString } from '@/utils/date';
 import { formatCurrencyBRLOrFallback } from '@/utils/format';
@@ -140,7 +141,7 @@ export function ExpenseCard({
               <Button
                 size="small"
                 startIcon={<AttachFile fontSize="small" />}
-                onClick={() => window.api.receipts.open(expense.receipt!)}
+                onClick={() => api.openReceipt(expense.receipt!)}
                 sx={{ minWidth: 0, px: 0.5 }}
               >
                 Ver

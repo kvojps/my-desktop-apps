@@ -9,11 +9,11 @@ import { SettingsPage } from './pages/settings/SettingsPage';
 import { Layout } from './components/Layout';
 import { OrdersProvider } from './contexts/OrdersContext';
 import { ProductsProvider } from './contexts/ProductsContext';
-import { ToastProvider } from './contexts/ToastContext';
+import { SnackbarProvider } from './contexts/SnackbarContext';
 
 export function App() {
   return (
-    <ToastProvider>
+    <SnackbarProvider>
       <ProductsProvider>
         <OrdersProvider>
           <Layout>
@@ -29,6 +29,6 @@ export function App() {
           </Layout>
         </OrdersProvider>
       </ProductsProvider>
-    </ToastProvider>
+    </SnackbarProvider>
   );
 }

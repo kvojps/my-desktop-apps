@@ -2,8 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import type { Product } from '@shared/types/product';
-import { getErrorMessage } from '@/api/client';
-import { useToast } from '@/contexts/ToastContext';
+import { useSnackbar } from '@/contexts/SnackbarContext';
 import { type ProductFormValues, emptyProductFormValues, productFormSchema } from './productSchema';
 
 export function useProductForm(
@@ -13,7 +12,7 @@ export function useProductForm(
   const [isOpen, setIsOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-  const { showToast } = useToast();
+  const { showSnackbar, showError } = useSnackbar();
 
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productFormSchema),
@@ -63,15 +62,15 @@ export function useProductForm(
 
       if (editingId) {
         await updateProduct(editingId, data);
-        showToast('Produto atualizado com sucesso.');
+        showSnackbar('Produto atualizado com sucesso.');
       } else {
         await addProduct(data);
-        showToast('Produto criado com sucesso.');
+        showSnackbar('Produto criado com sucesso.');
       }
 
       close();
     } catch (err) {
-      showToast(getErrorMessage(err, 'Erro ao salvar o produto.'), 'error');
+      showError(err, 'Erro ao salvar o produto.');
     } finally {
       setIsSaving(false);
     }

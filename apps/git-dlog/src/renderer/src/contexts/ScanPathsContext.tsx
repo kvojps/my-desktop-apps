@@ -1,11 +1,21 @@
-import { ReactNode, createContext, useContext, useEffect, useMemo, useState } from 'react';
+import {
+  ReactNode,
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import type { ScanPath } from '@shared/types/scanPath';
-import { call } from '@/api/client';
+import { api } from '@/api/client';
 import { useSnackbar } from './SnackbarContext';
 
 export interface ScanPathsContextValue {
   scanPaths: ScanPath[];
   isLoading: boolean;
+  error: unknown;
+  retry: () => void;
   addScanPath: (path: string) => Promise<ScanPath>;
   deleteScanPath: (id: string) => Promise<void>;
   refreshScanPaths: () => Promise<void>;
@@ -17,27 +27,43 @@ export function ScanPathsProvider({ children }: { children: ReactNode }) {
   const { showSnackbar } = useSnackbar();
   const [scanPaths, setScanPaths] = useState<ScanPath[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<unknown>(null);
 
   async function refreshScanPaths() {
-    const all = await call(() => window.api.scanPaths.getAll());
+    const all = await api.getScanPaths();
     setScanPaths(all);
+    setError(null);
+  }
+
+  function load() {
+    refreshScanPaths()
+      .catch((err) => {
+        setError(err);
+        showSnackbar('Erro ao carregar os diretórios.', 'error');
+      })
+      .finally(() => setIsLoading(false));
   }
 
   useEffect(() => {
-    refreshScanPaths()
-      .catch(() => showSnackbar('Erro ao carregar os diretórios.', 'error'))
-      .finally(() => setIsLoading(false));
+    load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const retry = useCallback(() => {
+    setIsLoading(true);
+    setError(null);
+    load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function addScanPath(path: string) {
-    const scanPath = await call(() => window.api.scanPaths.add(path));
+    const scanPath = await api.addScanPath(path);
     setScanPaths((prev) => [...prev, scanPath]);
     return scanPath;
   }
 
   async function deleteScanPath(id: string) {
-    await call(() => window.api.scanPaths.delete(id));
+    await api.deleteScanPath(id);
     setScanPaths((prev) => prev.filter((s) => s.id !== id));
   }
 
@@ -45,11 +71,13 @@ export function ScanPathsProvider({ children }: { children: ReactNode }) {
     () => ({
       scanPaths,
       isLoading,
+      error,
+      retry,
       addScanPath,
       deleteScanPath,
       refreshScanPaths,
     }),
-    [scanPaths, isLoading],
+    [scanPaths, isLoading, error, retry],
   );
 
   return <ScanPathsContext.Provider value={value}>{children}</ScanPathsContext.Provider>;

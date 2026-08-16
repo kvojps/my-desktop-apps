@@ -6,6 +6,7 @@ import { ActionsMenu } from '@/components/ActionsMenu';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { DataTable } from '@/components/DataTable';
 import type { Column } from '@/components/DataTable';
+import { ErrorState } from '@/components/ErrorState';
 import { PlusIcon, ProductIcon } from '@/components/Icons';
 import { PageHeader } from '@/components/PageHeader';
 import { StockBadge } from '@/components/StockBadge';
@@ -26,6 +27,8 @@ export function ProductsPage() {
     filters,
     sort,
     isLoading,
+    error,
+    retry,
     setFilters,
     toggleSort,
     addProduct,
@@ -126,6 +129,12 @@ export function ProductsPage() {
     [],
   );
 
+  if (error && !isLoading) {
+    return (
+      <ErrorState title="Não foi possível carregar os produtos" error={error} onRetry={retry} />
+    );
+  }
+
   return (
     <Stack spacing={2}>
       <PageHeader
@@ -194,12 +203,11 @@ export function ProductsPage() {
               open
               title={title}
               onConfirm={confirm.handleAction}
-              onCancel={() => confirm.setDeleteTarget(null)}
+              onClose={() => confirm.setDeleteTarget(null)}
               confirmLabel={confirmLabel}
-              danger={danger}
-            >
-              {message}
-            </ConfirmDialog>
+              confirmColor={danger ? 'error' : 'primary'}
+              message={message}
+            />
           );
         })()}
     </Stack>

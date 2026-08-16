@@ -1,5 +1,5 @@
 import type Database from 'better-sqlite3';
-import { BrowserWindow, type IpcMainInvokeEvent, dialog } from 'electron';
+import { BrowserWindow, type IpcMainInvokeEvent, app, dialog, shell } from 'electron';
 import fs from 'node:fs/promises';
 import type { BackupData, ExportResult, ImportResult } from '@shared/ipc/api';
 import { IPC_CHANNELS } from '@shared/ipc/channels';
@@ -65,5 +65,9 @@ export function registerBackupHandlers(db: Database.Database): void {
 
     importData(db, validated.data as BackupData);
     return { success: true };
+  });
+
+  handle(IPC_CHANNELS.dataOpenFolder, async () => {
+    await shell.openPath(app.getPath('userData'));
   });
 }

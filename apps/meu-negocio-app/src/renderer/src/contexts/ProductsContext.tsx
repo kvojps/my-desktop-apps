@@ -1,11 +1,13 @@
-import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import type { Product } from '@shared/types/product';
-import { call } from '@/api/client';
-import { useToast } from './ToastContext';
+import { api } from '@/api/client';
+import { useSnackbar } from './SnackbarContext';
 
 export interface ProductsContextValue {
   products: Product[];
   isLoading: boolean;
+  error: unknown;
+  retry: () => void;
   addProduct: (data: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>) => Promise<Product>;
   updateProduct: (id: string, data: Partial<Product>) => Promise<void>;
   deleteProduct: (id: string) => Promise<void>;
@@ -16,35 +18,51 @@ export interface ProductsContextValue {
 const ProductsContext = createContext<ProductsContextValue | null>(null);
 
 export function ProductsProvider({ children }: { children: React.ReactNode }) {
-  const { showToast } = useToast();
+  const { showSnackbar } = useSnackbar();
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<unknown>(null);
 
   async function refreshProducts() {
-    const all = await call(() => window.api.products.getAll());
+    const all = await api.getProducts();
     setProducts(all);
+    setError(null);
+  }
+
+  function load() {
+    refreshProducts()
+      .catch((err) => {
+        setError(err);
+        showSnackbar('Erro ao carregar os produtos.', 'error');
+      })
+      .finally(() => setIsLoading(false));
   }
 
   useEffect(() => {
-    refreshProducts()
-      .catch(() => showToast('Erro ao carregar os produtos.', 'error'))
-      .finally(() => setIsLoading(false));
+    load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const retry = useCallback(() => {
+    setIsLoading(true);
+    setError(null);
+    load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function addProduct(data: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>) {
-    const product = await call(() => window.api.products.add(data));
+    const product = await api.addProduct(data);
     setProducts((prev) => [...prev, product]);
     return product;
   }
 
   async function updateProduct(id: string, data: Partial<Product>) {
-    const updated = await call(() => window.api.products.update(id, data));
+    const updated = await api.updateProduct(id, data);
     setProducts((prev) => prev.map((p) => (p.id === id ? updated : p)));
   }
 
   async function deleteProduct(id: string) {
-    await call(() => window.api.products.delete(id));
+    await api.deleteProduct(id);
     setProducts((prev) => prev.filter((p) => p.id !== id));
   }
 
@@ -56,13 +74,15 @@ export function ProductsProvider({ children }: { children: React.ReactNode }) {
     () => ({
       products,
       isLoading,
+      error,
+      retry,
       addProduct,
       updateProduct,
       deleteProduct,
       getProductById,
       refreshProducts,
     }),
-    [products, isLoading],
+    [products, isLoading, error, retry],
   );
 
   return <ProductsContext.Provider value={value}>{children}</ProductsContext.Provider>;

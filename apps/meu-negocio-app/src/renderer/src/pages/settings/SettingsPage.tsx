@@ -69,13 +69,16 @@ export function SettingsPage() {
         open={confirmOpen}
         title="Importar dados"
         onConfirm={confirmImport}
-        onCancel={cancelImport}
+        onClose={cancelImport}
         confirmLabel="Importar"
-        danger
-      >
-        Importar um arquivo de backup substituirá todos os produtos e pedidos atuais. Essa ação não
-        pode ser desfeita. Deseja continuar?
-      </ConfirmDialog>
+        message={
+          <>
+            Importar um arquivo de backup substituirá todos os produtos e pedidos atuais. Essa ação
+            não pode ser desfeita. Deseja continuar?
+          </>
+        }
+        confirmColor="error"
+      />
     </Stack>
   );
 }

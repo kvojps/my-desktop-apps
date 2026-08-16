@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { api } from '@/api/client';
+import { useMonthsContext } from '@/contexts/MonthsContext';
 import { useSnackbar } from '@/contexts/SnackbarContext';
 
 export const MAX_BATCH_MONTHS = 60;
@@ -17,6 +18,7 @@ function monthIndex(year: number, month: number) {
 
 export function useMonthRangeCreator() {
   const { showSnackbar, showError } = useSnackbar();
+  const { reload: reloadMonths } = useMonthsContext();
   const currentYear = new Date().getFullYear();
   const [range, setRangeState] = useState<MonthRange>({
     fromYear: currentYear,
@@ -56,6 +58,7 @@ export function useMonthRangeCreator() {
       const msgs = [`${result.created.length} mes(es) adicionado(s)!`];
       if (result.errors.length > 0) msgs.push(...result.errors);
       showSnackbar(msgs.join(' | '), result.errors.length > 0 ? 'warning' : 'success');
+      await reloadMonths();
     } catch (err) {
       showError(err);
     } finally {

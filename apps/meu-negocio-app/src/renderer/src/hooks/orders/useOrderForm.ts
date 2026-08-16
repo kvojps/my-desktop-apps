@@ -3,8 +3,7 @@ import { useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import type { CreateOrderData, Order, UpdateOrderData } from '@shared/types/order';
 import type { Product } from '@shared/types/product';
-import { getErrorMessage } from '@/api/client';
-import { useToast } from '@/contexts/ToastContext';
+import { useSnackbar } from '@/contexts/SnackbarContext';
 import { dateInputToISO, toDateInputValue } from '@/utils/date';
 import {
   type OrderFormValues,
@@ -21,7 +20,7 @@ export function useOrderForm(
   const [isOpen, setIsOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<Order | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-  const { showToast } = useToast();
+  const { showSnackbar, showError } = useSnackbar();
 
   const form = useForm<OrderFormValues>({
     resolver: zodResolver(orderFormSchema),
@@ -113,15 +112,15 @@ export function useOrderForm(
           ...data,
           amountPaid: editTarget.amountPaid,
         });
-        showToast('Pedido atualizado com sucesso.');
+        showSnackbar('Pedido atualizado com sucesso.');
       } else {
         await addOrder({ ...data, status: 'pending', amountPaid: 0 });
-        showToast('Pedido criado com sucesso.');
+        showSnackbar('Pedido criado com sucesso.');
       }
 
       close();
     } catch (err) {
-      showToast(getErrorMessage(err, 'Erro ao salvar o pedido.'), 'error');
+      showError(err, 'Erro ao salvar o pedido.');
     } finally {
       setIsSaving(false);
     }

@@ -2,8 +2,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import type { CompanySettings } from '@shared/types/settings';
-import { call, getErrorMessage } from '@/api/client';
-import { useToast } from '@/contexts/ToastContext';
+import { api } from '@/api/client';
+import { useSnackbar } from '@/contexts/SnackbarContext';
 import {
   type SettingsFormValues,
   emptySettingsFormValues,
@@ -15,7 +15,7 @@ import {
 export type { CompanySettings };
 
 export function useSettings() {
-  const { showToast } = useToast();
+  const { showSnackbar, showError } = useSnackbar();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -29,11 +29,12 @@ export function useSettings() {
   useEffect(() => {
     let active = true;
 
-    call(() => window.api.settings.get())
+    api
+      .getSettings()
       .then((settings) => {
         if (active) reset(settings);
       })
-      .catch(() => showToast('Erro ao carregar os dados da empresa.', 'error'))
+      .catch(() => showSnackbar('Erro ao carregar os dados da empresa.', 'error'))
       .finally(() => {
         if (active) setIsLoading(false);
       });
@@ -41,7 +42,7 @@ export function useSettings() {
     return () => {
       active = false;
     };
-  }, [reset, showToast]);
+  }, [reset, showSnackbar]);
 
   const onSubmit = form.handleSubmit(async (values) => {
     setIsSaving(true);
@@ -53,13 +54,13 @@ export function useSettings() {
         address: values.address.trim(),
       };
 
-      const saved = await call(() => window.api.settings.update(data));
+      const saved = await api.updateSettings(data);
       // Repõe o formulário com o que foi gravado: mostra a máscara aplicada e
       // zera o isDirty, para o botão de salvar voltar a ficar desabilitado.
       reset(saved);
-      showToast('Dados da empresa salvos com sucesso.');
+      showSnackbar('Dados da empresa salvos com sucesso.');
     } catch (err) {
-      showToast(getErrorMessage(err, 'Erro ao salvar os dados da empresa.'), 'error');
+      showError(err, 'Erro ao salvar os dados da empresa.');
     } finally {
       setIsSaving(false);
     }

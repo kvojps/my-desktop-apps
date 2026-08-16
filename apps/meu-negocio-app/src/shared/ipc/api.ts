@@ -50,6 +50,8 @@ export type ImportResult =
 export interface DataApi {
   export: () => Promise<ExportResult>;
   import: () => Promise<ImportResult>;
+  /** Abre a pasta de dados do app no explorador de arquivos. */
+  openFolder: () => Promise<void>;
 }
 
 export interface AppInfoApi {

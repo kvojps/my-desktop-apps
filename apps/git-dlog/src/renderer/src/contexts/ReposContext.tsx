@@ -9,7 +9,7 @@ import {
   useState,
 } from 'react';
 import type { RepoFetchProgress, RepoScanResult } from '@shared/types/repoScan';
-import { call, getErrorMessage } from '@/api/client';
+import { api } from '@/api/client';
 import { pluralize } from '@/utils/format';
 import { useScanPathsContext } from './ScanPathsContext';
 import { useSnackbar } from './SnackbarContext';
@@ -18,6 +18,8 @@ export interface ReposContextValue {
   results: RepoScanResult[];
   isScanning: boolean;
   isFetching: boolean;
+  /** Falha da última varredura; a busca no remoto reporta pelo snackbar. */
+  error: unknown;
   fetchProgress: RepoFetchProgress | null;
   lastScanAt: string | null;
   /** Varredura local, sem rede. */
@@ -29,28 +31,31 @@ export interface ReposContextValue {
 const ReposContext = createContext<ReposContextValue | null>(null);
 
 export function ReposProvider({ children }: { children: ReactNode }) {
-  const { showSnackbar } = useSnackbar();
+  const { showSnackbar, showError } = useSnackbar();
   const { scanPaths, isLoading: isLoadingScanPaths } = useScanPathsContext();
   const [results, setResults] = useState<RepoScanResult[]>([]);
   const [isScanning, setIsScanning] = useState(false);
+  const [error, setError] = useState<unknown>(null);
   const [isFetching, setIsFetching] = useState(false);
   const [fetchProgress, setFetchProgress] = useState<RepoFetchProgress | null>(null);
   const [lastScanAt, setLastScanAt] = useState<string | null>(null);
 
-  useEffect(() => window.api.repos.onFetchProgress(setFetchProgress), []);
+  useEffect(() => api.onReposFetchProgress(setFetchProgress), []);
 
   const scan = useCallback(async () => {
     setIsScanning(true);
     try {
-      const scanResults = await call(() => window.api.repos.scan());
+      const scanResults = await api.scanRepos();
       setResults(scanResults);
       setLastScanAt(new Date().toISOString());
+      setError(null);
     } catch (err) {
-      showSnackbar(getErrorMessage(err, 'Erro ao escanear os repositórios.'), 'error');
+      setError(err);
+      showError(err, 'Erro ao escanear os repositórios.');
     } finally {
       setIsScanning(false);
     }
-  }, [showSnackbar]);
+  }, [showError]);
 
   /**
    * A varredura é local e instantânea, então não faz sentido abrir o app numa
@@ -69,11 +74,7 @@ export function ReposProvider({ children }: { children: ReactNode }) {
     setIsFetching(true);
     setFetchProgress(null);
     try {
-      const {
-        results: scanResults,
-        failures,
-        prFailures,
-      } = await call(() => window.api.repos.fetch());
+      const { results: scanResults, failures, prFailures } = await api.fetchRepos();
       setResults(scanResults);
       setLastScanAt(new Date().toISOString());
 
@@ -97,16 +98,25 @@ export function ReposProvider({ children }: { children: ReactNode }) {
         showSnackbar('Repositórios e pull requests atualizados.');
       }
     } catch (err) {
-      showSnackbar(getErrorMessage(err, 'Erro ao buscar dos remotos.'), 'error');
+      showError(err, 'Erro ao buscar dos remotos.');
     } finally {
       setIsFetching(false);
       setFetchProgress(null);
     }
-  }, [showSnackbar]);
+  }, [showSnackbar, showError]);
 
   const value = useMemo<ReposContextValue>(
-    () => ({ results, isScanning, isFetching, fetchProgress, lastScanAt, scan, fetchRemote }),
-    [results, isScanning, isFetching, fetchProgress, lastScanAt, scan, fetchRemote],
+    () => ({
+      results,
+      isScanning,
+      isFetching,
+      error,
+      fetchProgress,
+      lastScanAt,
+      scan,
+      fetchRemote,
+    }),
+    [results, isScanning, isFetching, error, fetchProgress, lastScanAt, scan, fetchRemote],
   );
 
   return <ReposContext.Provider value={value}>{children}</ReposContext.Provider>;

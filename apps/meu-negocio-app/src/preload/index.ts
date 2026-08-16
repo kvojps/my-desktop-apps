@@ -32,6 +32,7 @@ const api: ElectronApi = {
   data: {
     export: () => ipcRenderer.invoke(IPC_CHANNELS.dataExport),
     import: () => ipcRenderer.invoke(IPC_CHANNELS.dataImport),
+    openFolder: () => ipcRenderer.invoke(IPC_CHANNELS.dataOpenFolder),
   },
   app: {
     getInfo: () => ipcRenderer.invoke(IPC_CHANNELS.appGetInfo),

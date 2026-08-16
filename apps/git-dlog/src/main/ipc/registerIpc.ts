@@ -1,5 +1,5 @@
 import type Database from 'better-sqlite3';
-import { shell } from 'electron';
+import { app, shell } from 'electron';
 import { IPC_CHANNELS } from '@shared/ipc/channels';
 import type { PrIntegrationStatus } from '@shared/types/pullRequest';
 import type { RepoFetchResult } from '@shared/types/repoScan';
@@ -104,5 +104,9 @@ export function registerIpcHandlers(db: Database.Database): void {
 
   handle(IPC_CHANNELS.shellOpenExternal, async (_event, data: unknown) => {
     await shell.openExternal(parseOrThrow(externalUrlSchema, data));
+  });
+
+  handle(IPC_CHANNELS.dataOpenFolder, async () => {
+    await shell.openPath(app.getPath('userData'));
   });
 }

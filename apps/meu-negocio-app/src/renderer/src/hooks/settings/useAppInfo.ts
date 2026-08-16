@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { AppInfo } from '@shared/types/appInfo';
-import { call } from '@/api/client';
+import { api } from '@/api/client';
 
 /** Versão do app e caminho do banco em disco — o que o suporte precisa saber. */
 export function useAppInfo(): AppInfo | null {
@@ -9,7 +9,8 @@ export function useAppInfo(): AppInfo | null {
   useEffect(() => {
     let active = true;
 
-    call(() => window.api.app.getInfo())
+    api
+      .getAppInfo()
       .then((result) => {
         if (active) setInfo(result);
       })

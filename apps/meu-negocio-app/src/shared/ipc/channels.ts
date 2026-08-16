@@ -14,4 +14,5 @@ export const IPC_CHANNELS = {
   appGetInfo: 'app:getInfo',
   dataExport: 'data:export',
   dataImport: 'data:import',
+  dataOpenFolder: 'data:openFolder',
 } as const;

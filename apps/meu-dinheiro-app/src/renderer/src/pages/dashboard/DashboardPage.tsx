@@ -17,15 +17,13 @@ import {
   Stack,
   Typography,
 } from '@mui/material';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Month } from '@shared/types/month';
-import { api } from '@/api/client';
 import { ErrorState } from '@/components/ErrorState';
 import { MonthBalanceBreakdown, MonthBalanceHeadline } from '@/components/MonthBalance';
-import { useSnackbar } from '@/contexts/SnackbarContext';
 import { useBankAccounts } from '@/hooks/bank-accounts/useBankAccounts';
 import { computeMonthBalance, useMonthsBalance } from '@/hooks/months/useMonthBalance';
+import { useMonths } from '@/hooks/months/useMonths';
 import { ROUTES, monthDetailPath } from '@/routes';
 import { cardGrid, tabularNums } from '@/theme';
 import { formatCurrencyBRL } from '@/utils/format';
@@ -39,44 +37,17 @@ function monthKey(year: number, month: number) {
 }
 
 export function DashboardPage() {
-  const [months, setMonths] = useState<Month[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<unknown>(null);
   const [fromOverride, setFromOverride] = useState('');
   const [toOverride, setToOverride] = useState('');
   const [visibleCount, setVisibleCount] = useState(INITIAL_VISIBLE);
   const [defaultYearApplied, setDefaultYearApplied] = useState(false);
   const navigate = useNavigate();
-  const { showError } = useSnackbar();
+  const { months, loading, error, retry: handleRetry } = useMonths();
   const { bankAccounts } = useBankAccounts();
   const totalBankBalance = useMemo(
     () => bankAccounts.reduce((sum, a) => sum + a.balance, 0),
     [bankAccounts],
   );
-
-  const loadMonths = useCallback(() => {
-    api
-      .getMonths()
-      .then((data) => {
-        setMonths(data);
-        setError(null);
-      })
-      .catch((err) => {
-        setError(err);
-        showError(err);
-      })
-      .finally(() => setLoading(false));
-  }, [showError]);
-
-  useEffect(() => {
-    loadMonths();
-  }, [loadMonths]);
-
-  function handleRetry() {
-    setLoading(true);
-    setError(null);
-    loadMonths();
-  }
 
   const monthOptions = useMemo(() => {
     return [...months]

@@ -10,6 +10,7 @@ import {
   Typography,
 } from '@mui/material';
 import { Expense } from '@shared/types/expense';
+import { api } from '@/api/client';
 import { CategoryTag } from '@/components/CategoryTag';
 import { formatDateOnlyBR, formatPaidDateBR } from '@/utils/date';
 import { formatCurrencyBRLOrFallback } from '@/utils/format';
@@ -91,7 +92,7 @@ export function ExpenseDetailDialog({ open, expense, onClose }: ExpenseDetailDia
                   <Button
                     size="small"
                     startIcon={<AttachFile />}
-                    onClick={() => window.api.receipts.open(expense.receipt!)}
+                    onClick={() => api.openReceipt(expense.receipt!)}
                   >
                     Abrir comprovante
                   </Button>

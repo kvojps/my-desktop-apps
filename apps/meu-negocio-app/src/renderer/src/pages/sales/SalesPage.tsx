@@ -186,12 +186,11 @@ export function SalesPage() {
               open
               title={title}
               onConfirm={confirm.handleAction}
-              onCancel={() => confirm.setConfirmTarget(null)}
+              onClose={() => confirm.setConfirmTarget(null)}
               confirmLabel={confirmLabel}
-              danger={danger}
-            >
-              {message}
-            </ConfirmDialog>
+              confirmColor={danger ? 'error' : 'primary'}
+              message={message}
+            />
           );
         })()}
     </Stack>

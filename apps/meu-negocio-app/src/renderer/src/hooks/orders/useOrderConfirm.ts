@@ -2,8 +2,7 @@ import { useState } from 'react';
 import type { OrderStatus } from '@shared/types/order';
 import { ORDER_STATUS_LABELS } from '@shared/types/order';
 import type { Order } from '@shared/types/order';
-import { getErrorMessage } from '@/api/client';
-import { useToast } from '@/contexts/ToastContext';
+import { useSnackbar } from '@/contexts/SnackbarContext';
 
 interface ConfirmTarget {
   type: 'advance' | 'cancel' | 'reopen' | 'delete' | 'status_change';
@@ -30,7 +29,7 @@ export function useOrderConfirm(
   deleteOrder: (id: string) => Promise<void>,
 ): UseOrderConfirmReturn {
   const [confirmTarget, setConfirmTarget] = useState<ConfirmTarget | null>(null);
-  const { showToast } = useToast();
+  const { showSnackbar, showError } = useSnackbar();
 
   function buildProps(): ConfirmProps {
     const { type, order } = confirmTarget!;
@@ -91,31 +90,31 @@ export function useOrderConfirm(
         case 'advance':
           if (order.status === 'pending') await setOrderStatus(order.id, 'in_progress');
           else if (order.status === 'in_progress') await setOrderStatus(order.id, 'completed');
-          showToast('Status do pedido atualizado.');
+          showSnackbar('Status do pedido atualizado.');
           break;
         case 'cancel':
           await setOrderStatus(order.id, 'cancelled');
-          showToast('Pedido cancelado.', 'info');
+          showSnackbar('Pedido cancelado.', 'info');
           break;
         case 'reopen':
           // Volta como pendente, e não "em andamento", porque quem reabre uma
           // venda quase sempre quer corrigi-la — e só pendentes são editáveis.
           await setOrderStatus(order.id, 'pending');
-          showToast('Pedido reaberto.');
+          showSnackbar('Pedido reaberto.');
           break;
         case 'delete':
           await deleteOrder(order.id);
-          showToast('Pedido excluído.', 'info');
+          showSnackbar('Pedido excluído.', 'info');
           break;
         case 'status_change':
           await setOrderStatus(order.id, confirmTarget.newStatus!);
-          showToast('Status do pedido atualizado.');
+          showSnackbar('Status do pedido atualizado.');
           break;
       }
 
       setConfirmTarget(null);
     } catch (err) {
-      showToast(getErrorMessage(err, 'Erro ao atualizar o pedido.'), 'error');
+      showError(err, 'Erro ao atualizar o pedido.');
     }
   }
 
