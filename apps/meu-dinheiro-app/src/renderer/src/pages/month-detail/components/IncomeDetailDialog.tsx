@@ -9,8 +9,8 @@ import {
   Typography,
 } from '@mui/material';
 import { Income } from '@shared/types/income';
-import { formatDateOnlyBR, formatPaidDateBR } from '@/utils/date';
-import { formatCurrencyBRLOrFallback } from '@/utils/format';
+import { formatDateOnly, formatPaidDate } from '@/utils/date';
+import { formatCurrencyOrFallback } from '@/utils/format';
 
 interface IncomeDetailDialogProps {
   open: boolean;
@@ -29,14 +29,14 @@ export function IncomeDetailDialog({ open, income, onClose }: IncomeDetailDialog
               <Typography variant="caption" color="text.secondary">
                 Valor
               </Typography>
-              <Typography>{formatCurrencyBRLOrFallback(income.amount)}</Typography>
+              <Typography>{formatCurrencyOrFallback(income.amount)}</Typography>
             </Box>
-            {income.expected_date && (
+            {income.expectedDate && (
               <Box>
                 <Typography variant="caption" color="text.secondary">
                   Previsto
                 </Typography>
-                <Typography>{formatDateOnlyBR(income.expected_date)}</Typography>
+                <Typography>{formatDateOnly(income.expectedDate)}</Typography>
               </Box>
             )}
             <Box>
@@ -46,26 +46,26 @@ export function IncomeDetailDialog({ open, income, onClose }: IncomeDetailDialog
                 Status
               </Typography>
               <Chip
-                label={income.is_received ? 'Recebida' : 'Pendente'}
-                color={income.is_received ? 'success' : 'default'}
+                label={income.isReceived ? 'Recebida' : 'Pendente'}
+                color={income.isReceived ? 'success' : 'default'}
                 size="small"
                 sx={{ mt: 0.5 }}
               />
             </Box>
-            {income.received_at && (
+            {income.receivedAt && (
               <Box>
                 <Typography variant="caption" color="text.secondary">
                   Recebido em
                 </Typography>
-                <Typography>{formatPaidDateBR(income.received_at)}</Typography>
+                <Typography>{formatPaidDate(income.receivedAt)}</Typography>
               </Box>
             )}
-            {income.bank_account_name && (
+            {income.bankAccountName && (
               <Box>
                 <Typography variant="caption" color="text.secondary">
-                  {income.is_received ? 'Conta' : 'Conta prevista'}
+                  {income.isReceived ? 'Conta' : 'Conta prevista'}
                 </Typography>
-                <Typography>{income.bank_account_name}</Typography>
+                <Typography>{income.bankAccountName}</Typography>
               </Box>
             )}
             {income.notes && (

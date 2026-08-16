@@ -24,7 +24,7 @@ import type { RepoScanResult, RepoSeverity } from '@shared/types/repoScan';
 import { ErrorState } from '@/components/ErrorState';
 import { useRepos } from '@/hooks/repos/useRepos';
 import { useScanPaths } from '@/hooks/scanPaths/useScanPaths';
-import { formatDateTime } from '@/utils/format';
+import { formatDateTime } from '@/utils/date';
 import { getOpenPrs, needsAction } from '@/utils/pullRequest';
 import { ROUTES } from '../../routes';
 import { RepoCard } from './components/RepoCard';

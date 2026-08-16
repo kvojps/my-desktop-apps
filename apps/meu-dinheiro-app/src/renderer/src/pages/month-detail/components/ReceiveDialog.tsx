@@ -13,8 +13,8 @@ import { useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { BankAccount } from '@shared/types/bank-account';
 import { Income } from '@shared/types/income';
-import { formatDateOnlyBR, todayDateString } from '@/utils/date';
-import { formatCurrencyBRL } from '@/utils/format';
+import { formatDateOnly, todayDateString } from '@/utils/date';
+import { formatCurrency } from '@/utils/format';
 import { ReceiveFormValues, receiveFormSchema } from './formSchemas';
 
 interface ReceiveDialogProps {
@@ -41,7 +41,7 @@ export function ReceiveDialog({
     if (open) {
       reset({
         receivedAt: todayDateString(),
-        bankAccountId: income?.bank_account_id ? String(income.bank_account_id) : '',
+        bankAccountId: income?.bankAccountId ? String(income.bankAccountId) : '',
         notes: '',
       });
     }
@@ -72,11 +72,11 @@ export function ReceiveDialog({
           {income.name}
         </Typography>
         <Typography variant="body1" color="text.secondary" gutterBottom>
-          Valor: {formatCurrencyBRL(income.amount)}
+          Valor: {formatCurrency(income.amount)}
         </Typography>
-        {income.expected_date && (
+        {income.expectedDate && (
           <Typography variant="body2" color="text.secondary" gutterBottom>
-            Previsto: {formatDateOnlyBR(income.expected_date)}
+            Previsto: {formatDateOnly(income.expectedDate)}
           </Typography>
         )}
 
@@ -100,7 +100,7 @@ export function ReceiveDialog({
               </MenuItem>
               {bankAccounts.map((account) => (
                 <MenuItem key={account.id} value={String(account.id)}>
-                  {account.name} ({formatCurrencyBRL(account.balance)})
+                  {account.name} ({formatCurrency(account.balance)})
                 </MenuItem>
               ))}
             </TextField>

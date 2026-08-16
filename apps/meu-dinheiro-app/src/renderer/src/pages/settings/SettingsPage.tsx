@@ -45,7 +45,7 @@ import { useDefaultExpenses } from '@/hooks/default-expenses/useDefaultExpenses'
 import { useDefaultIncomes } from '@/hooks/default-incomes/useDefaultIncomes';
 import { MAX_BATCH_MONTHS, useMonthRangeCreator } from '@/hooks/months/useMonthRangeCreator';
 import { useDataTransfer } from '@/hooks/settings/useDataTransfer';
-import { formatCurrencyBRL, formatCurrencyBRLOrFallback } from '@/utils/format';
+import { formatCurrency, formatCurrencyOrFallback } from '@/utils/format';
 import { BankAccountForm } from './components/BankAccountForm';
 import { CategoryForm } from './components/CategoryForm';
 import { DefaultExpenseForm } from './components/DefaultExpenseForm';
@@ -188,9 +188,9 @@ export function SettingsPage() {
 
   function handleSaveDefault(data: {
     name: string;
-    due_day?: number;
+    dueDay?: number;
     amount: number;
-    category_id?: number | null;
+    categoryId?: number | null;
   }) {
     save(data, editingExpense?.id).then((success) => {
       if (success) {
@@ -214,9 +214,9 @@ export function SettingsPage() {
 
   function handleSaveDefaultIncome(data: {
     name: string;
-    expected_day?: number;
+    expectedDay?: number;
     amount: number;
-    bank_account_id?: number | null;
+    bankAccountId?: number | null;
   }) {
     saveDefaultIncome(data, editingIncome?.id).then((success) => {
       if (success) {
@@ -295,7 +295,7 @@ export function SettingsPage() {
               <Chip label={bankAccounts.length} size="small" />
               {bankAccounts.length > 0 && (
                 <Chip
-                  label={`Total: ${formatCurrencyBRL(totalBankBalance)}`}
+                  label={`Total: ${formatCurrency(totalBankBalance)}`}
                   size="small"
                   variant="outlined"
                   color={
@@ -347,7 +347,7 @@ export function SettingsPage() {
                     <ListItemText
                       primary={account.name}
                       primaryTypographyProps={{ fontWeight: 600 }}
-                      secondary={`Saldo: ${formatCurrencyBRL(account.balance)}`}
+                      secondary={`Saldo: ${formatCurrency(account.balance)}`}
                     />
                     <ListItemSecondaryAction>
                       <IconButton
@@ -494,7 +494,7 @@ export function SettingsPage() {
                     <ListItemText
                       primary={acc.name}
                       primaryTypographyProps={{ fontWeight: 600 }}
-                      secondary={`${formatCurrencyBRLOrFallback(acc.amount, 'Valor variável')}${acc.due_day ? ` - Vencimento dia ${acc.due_day}` : ''}${acc.category_name ? ` - ${acc.category_name}` : ''}`}
+                      secondary={`${formatCurrencyOrFallback(acc.amount, 'Valor variável')}${acc.dueDay ? ` - Vencimento dia ${acc.dueDay}` : ''}${acc.categoryName ? ` - ${acc.categoryName}` : ''}`}
                     />
                     <ListItemSecondaryAction>
                       <IconButton edge="end" onClick={() => openEdit(acc)} sx={{ mr: 1 }}>
@@ -568,7 +568,7 @@ export function SettingsPage() {
                     <ListItemText
                       primary={inc.name}
                       primaryTypographyProps={{ fontWeight: 600 }}
-                      secondary={`${formatCurrencyBRLOrFallback(inc.amount, 'Valor variável')}${inc.expected_day ? ` - Previsto dia ${inc.expected_day}` : ''}${inc.bank_account_name ? ` - Conta: ${inc.bank_account_name}` : ''}`}
+                      secondary={`${formatCurrencyOrFallback(inc.amount, 'Valor variável')}${inc.expectedDay ? ` - Previsto dia ${inc.expectedDay}` : ''}${inc.bankAccountName ? ` - Conta: ${inc.bankAccountName}` : ''}`}
                     />
                     <ListItemSecondaryAction>
                       <IconButton edge="end" onClick={() => openEditIncome(inc)} sx={{ mr: 1 }}>

@@ -28,8 +28,8 @@ import { useState } from 'react';
 import { Expense } from '@shared/types/expense';
 import { api } from '@/api/client';
 import { CategoryTag } from '@/components/CategoryTag';
-import { formatDateOnlyBR, formatPaidDateBR, todayDateString } from '@/utils/date';
-import { formatCurrencyBRLOrFallback } from '@/utils/format';
+import { formatDateOnly, formatPaidDate, todayDateString } from '@/utils/date';
+import { formatCurrencyOrFallback } from '@/utils/format';
 
 interface ExpenseCardProps {
   expense: Expense;
@@ -50,10 +50,10 @@ export function ExpenseCard({
 }: ExpenseCardProps) {
   const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
 
-  const isOverdue = !expense.is_paid && !!expense.due_date && expense.due_date < todayDateString();
+  const isOverdue = !expense.isPaid && !!expense.dueDate && expense.dueDate < todayDateString();
 
   let borderColor: string = 'warning.main';
-  if (expense.is_paid) borderColor = 'success.main';
+  if (expense.isPaid) borderColor = 'success.main';
   else if (isOverdue) borderColor = 'error.main';
 
   function closeMenu() {
@@ -83,7 +83,7 @@ export function ExpenseCard({
             )}
           </Stack>
           <Stack direction="row" spacing={0.5}>
-            {expense.is_paid ? (
+            {expense.isPaid ? (
               <Chip label="Paga" color="success" size="small" icon={<CheckCircle />} />
             ) : isOverdue ? (
               <Chip label="Vencida" color="error" size="small" />
@@ -93,7 +93,7 @@ export function ExpenseCard({
           </Stack>
         </Box>
         <Typography variant="h5" sx={{ fontWeight: 700 }} gutterBottom>
-          {formatCurrencyBRLOrFallback(expense.amount)}
+          {formatCurrencyOrFallback(expense.amount)}
         </Typography>
         <Divider sx={{ mb: 1 }} />
         {/* Duas colunas só quando cabem: num card de ~280px (janela mínima, três
@@ -112,8 +112,8 @@ export function ExpenseCard({
               Categoria
             </Typography>
             <CategoryTag
-              name={expense.category_name}
-              color={expense.category_color}
+              name={expense.categoryName}
+              color={expense.categoryColor}
               sx={{ mt: 0.5 }}
             />
           </Box>
@@ -122,7 +122,7 @@ export function ExpenseCard({
               Vencimento
             </Typography>
             <Typography variant="body2">
-              {expense.due_date ? formatDateOnlyBR(expense.due_date) : '—'}
+              {expense.dueDate ? formatDateOnly(expense.dueDate) : '—'}
             </Typography>
           </Box>
           <Box>
@@ -130,7 +130,7 @@ export function ExpenseCard({
               Pago em
             </Typography>
             <Typography variant="body2">
-              {expense.paid_at ? formatPaidDateBR(expense.paid_at) : '—'}
+              {expense.paidAt ? formatPaidDate(expense.paidAt) : '—'}
             </Typography>
           </Box>
           <Box>
@@ -153,7 +153,7 @@ export function ExpenseCard({
         </Box>
       </CardContent>
       <CardActions sx={{ justifyContent: 'space-between' }}>
-        {expense.is_paid ? (
+        {expense.isPaid ? (
           <Button size="small" color="warning" onClick={onUnpay}>
             Desmarcar
           </Button>

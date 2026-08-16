@@ -1,28 +1,29 @@
 export interface Expense {
   id: number;
-  month_id: number;
+  monthId: number;
   name: string;
-  due_date: string | null;
+  dueDate: string | null;
   amount: number;
-  is_paid: number;
-  paid_at: string | null;
+  isPaid: boolean;
+  paidAt: string | null;
   receipt: string | null;
   notes: string | null;
-  bank_account_id: number | null;
-  bank_account_name?: string | null;
-  category_id: number | null;
-  category_name?: string | null;
-  category_color?: string | null;
-  created_at: string;
+  bankAccountId: number | null;
+  /** Vem do JOIN com bank_accounts; ausente nas consultas que não fazem o JOIN. */
+  bankAccountName?: string | null;
+  categoryId: number | null;
+  categoryName?: string | null;
+  categoryColor?: string | null;
+  createdAt: string;
 }
 
 export interface DefaultExpense {
   id: number;
   name: string;
-  due_day: number | null;
+  dueDay: number | null;
   amount: number;
-  category_id: number | null;
-  category_name?: string | null;
-  category_color?: string | null;
-  created_at: string;
+  categoryId: number | null;
+  categoryName?: string | null;
+  categoryColor?: string | null;
+  createdAt: string;
 }

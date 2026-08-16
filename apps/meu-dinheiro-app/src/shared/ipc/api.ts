@@ -37,13 +37,13 @@ export interface DefaultExpensesApi {
   list: () => Promise<DefaultExpense[]>;
   create: (data: {
     name: string;
-    due_day?: number;
+    dueDay?: number;
     amount: number;
-    category_id?: number | null;
+    categoryId?: number | null;
   }) => Promise<DefaultExpense>;
   update: (
     id: number,
-    data: { name?: string; due_day?: number; amount?: number; category_id?: number | null },
+    data: { name?: string; dueDay?: number; amount?: number; categoryId?: number | null },
   ) => Promise<DefaultExpense>;
   delete: (id: number) => Promise<{ message: string }>;
 }
@@ -59,17 +59,17 @@ export interface DefaultIncomesApi {
   list: () => Promise<DefaultIncome[]>;
   create: (data: {
     name: string;
-    expected_day?: number;
+    expectedDay?: number;
     amount: number;
-    bank_account_id?: number | null;
+    bankAccountId?: number | null;
   }) => Promise<DefaultIncome>;
   update: (
     id: number,
     data: {
       name?: string;
-      expected_day?: number;
+      expectedDay?: number;
       amount?: number;
-      bank_account_id?: number | null;
+      bankAccountId?: number | null;
     },
   ) => Promise<DefaultIncome>;
   delete: (id: number) => Promise<{ message: string }>;
@@ -86,16 +86,16 @@ export interface ExpensesApi {
   listForMonth: (monthId: number) => Promise<Expense[]>;
   create: (
     monthId: number,
-    data: { name: string; due_date?: string; amount: number; category_id?: number | null },
+    data: { name: string; dueDate?: string; amount: number; categoryId?: number | null },
   ) => Promise<Expense>;
   update: (
     id: number,
     data: {
       name?: string;
-      due_date?: string;
+      dueDate?: string;
       amount?: number;
       notes?: string;
-      category_id?: number | null;
+      categoryId?: number | null;
     },
   ) => Promise<Expense>;
   delete: (id: number) => Promise<{ message: string }>;
@@ -104,8 +104,8 @@ export interface ExpensesApi {
     payload: {
       receipt?: ReceiptPayload;
       notes?: string;
-      paid_at?: string;
-      bank_account_id?: number;
+      paidAt?: string;
+      bankAccountId?: number;
     },
   ) => Promise<Expense>;
   unpay: (id: number) => Promise<Expense>;
@@ -115,16 +115,16 @@ export interface IncomesApi {
   listForMonth: (monthId: number) => Promise<Income[]>;
   create: (
     monthId: number,
-    data: { name: string; expected_date?: string; amount: number; bank_account_id?: number | null },
+    data: { name: string; expectedDate?: string; amount: number; bankAccountId?: number | null },
   ) => Promise<Income>;
   update: (
     id: number,
     data: {
       name?: string;
-      expected_date?: string;
+      expectedDate?: string;
       amount?: number;
       notes?: string;
-      bank_account_id?: number | null;
+      bankAccountId?: number | null;
     },
   ) => Promise<Income>;
   delete: (id: number) => Promise<{ message: string }>;

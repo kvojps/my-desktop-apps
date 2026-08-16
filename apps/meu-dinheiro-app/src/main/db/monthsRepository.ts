@@ -1,7 +1,10 @@
 import Database from 'better-sqlite3';
+import type { Month, MonthDetail } from '@shared/types/month';
 import { formatDueDate, monthLabel } from '../constants/monthNames';
 import { AppError } from '../errors/AppError';
 import { getAppSetting, setAppSetting } from './appSettingsRepository';
+import { rowToExpense } from './expensesRepository';
+import { rowToIncome } from './incomesRepository';
 
 /**
  * Última competência (AAAA-MM) que o app já tratou como "mês corrente".
@@ -26,12 +29,57 @@ function rememberCurrentCompetency(db: Database.Database, year: number, month: n
   }
 }
 
+/** Colunas cruas da tabela; o banco continua em snake_case. */
 export interface MonthRow {
   id: number;
   label: string;
   year: number;
   month: number;
   created_at: string;
+}
+
+/** Agregados que só a listagem calcula, somados pelo próprio SQL. */
+interface MonthTotalsRow {
+  total_expenses: number;
+  paid_expenses: number;
+  paid_amount: number;
+  unpaid_amount: number;
+  total_amount: number;
+  overdue_expenses: number;
+  overdue_amount: number;
+  total_incomes: number;
+  received_incomes: number;
+  received_income: number;
+  pending_income: number;
+  total_income: number;
+}
+
+export function rowToMonth(row: MonthRow): Month {
+  return {
+    id: row.id,
+    label: row.label,
+    year: row.year,
+    month: row.month,
+    createdAt: row.created_at,
+  };
+}
+
+function rowToMonthWithTotals(row: MonthRow & MonthTotalsRow): Month {
+  return {
+    ...rowToMonth(row),
+    totalExpenses: row.total_expenses,
+    paidExpenses: row.paid_expenses,
+    paidAmount: row.paid_amount,
+    unpaidAmount: row.unpaid_amount,
+    totalAmount: row.total_amount,
+    overdueExpenses: row.overdue_expenses,
+    overdueAmount: row.overdue_amount,
+    totalIncomes: row.total_incomes,
+    receivedIncomes: row.received_incomes,
+    receivedIncome: row.received_income,
+    pendingIncome: row.pending_income,
+    totalIncome: row.total_income,
+  };
 }
 
 interface DefaultExpenseRow {
@@ -97,11 +145,7 @@ export function findMonthByYearMonth(db: Database.Database, year: number, month:
     { id: number } | undefined;
 }
 
-export function createMonthWithDefaults(
-  db: Database.Database,
-  year: number,
-  month: number,
-): MonthRow {
+export function createMonthWithDefaults(db: Database.Database, year: number, month: number): Month {
   const label = monthLabel(year, month);
 
   const create = db.transaction(() => {
@@ -116,7 +160,7 @@ export function createMonthWithDefaults(
 
   const monthId = create();
   rememberCurrentCompetency(db, year, month);
-  return db.prepare('SELECT * FROM months WHERE id = ?').get(monthId) as MonthRow;
+  return rowToMonth(db.prepare('SELECT * FROM months WHERE id = ?').get(monthId) as MonthRow);
 }
 
 /**
@@ -124,7 +168,7 @@ export function createMonthWithDefaults(
  * (não a cada listagem), então excluir o mês corrente não o traz de volta.
  * Retorna o mês criado, ou null quando nada foi feito.
  */
-export function ensureCurrentMonthExists(db: Database.Database): MonthRow | null {
+export function ensureCurrentMonthExists(db: Database.Database): Month | null {
   const { year, month } = currentCompetency();
   const key = competencyKey(year, month);
 
@@ -138,8 +182,8 @@ export function ensureCurrentMonthExists(db: Database.Database): MonthRow | null
   return createMonthWithDefaults(db, year, month);
 }
 
-export function listMonths(db: Database.Database) {
-  return db
+export function listMonths(db: Database.Database): Month[] {
+  const rows = db
     .prepare(
       `
     SELECT m.*,
@@ -159,13 +203,15 @@ export function listMonths(db: Database.Database) {
     ORDER BY m.year DESC, m.month DESC
   `,
     )
-    .all();
+    .all() as (MonthRow & MonthTotalsRow)[];
+
+  return rows.map(rowToMonthWithTotals);
 }
 
-export function getMonthWithExpenses(db: Database.Database, id: number) {
+export function getMonthWithExpenses(db: Database.Database, id: number): MonthDetail {
   const month = db.prepare('SELECT * FROM months WHERE id = ?').get(id) as MonthRow | undefined;
   if (!month) {
-    throw new AppError(404, 'Month not found');
+    throw new AppError(404, 'Mês não encontrado');
   }
 
   const expenses = db
@@ -177,7 +223,7 @@ export function getMonthWithExpenses(db: Database.Database, id: number) {
        WHERE e.month_id = ?
        ORDER BY e.due_date, e.name`,
     )
-    .all(id);
+    .all(id) as Parameters<typeof rowToExpense>[0][];
 
   const incomes = db
     .prepare(
@@ -187,19 +233,23 @@ export function getMonthWithExpenses(db: Database.Database, id: number) {
        WHERE i.month_id = ?
        ORDER BY i.expected_date, i.name`,
     )
-    .all(id);
+    .all(id) as Parameters<typeof rowToIncome>[0][];
 
-  return { ...month, expenses, incomes };
+  return {
+    ...rowToMonth(month),
+    expenses: expenses.map(rowToExpense),
+    incomes: incomes.map(rowToIncome),
+  };
 }
 
-export function createNextMonth(db: Database.Database, year?: number, month?: number): MonthRow {
+export function createNextMonth(db: Database.Database, year?: number, month?: number): Month {
   if (!year || !month) {
     const lastMonth = db
       .prepare('SELECT * FROM months ORDER BY year DESC, month DESC LIMIT 1')
       .get() as { year: number; month: number } | undefined;
 
     if (!lastMonth) {
-      throw new AppError(400, 'No months exist. Use setup first.');
+      throw new AppError(400, 'Nenhum mês existe ainda. Cadastre o primeiro nas Configurações.');
     }
 
     year = lastMonth.year;
@@ -211,7 +261,7 @@ export function createNextMonth(db: Database.Database, year?: number, month?: nu
   }
 
   if (findMonthByYearMonth(db, year, month)) {
-    throw new AppError(400, 'Month already exists');
+    throw new AppError(400, 'Esse mês já existe');
   }
 
   return createMonthWithDefaults(db, year, month);
@@ -221,7 +271,7 @@ export function deleteMonth(db: Database.Database, id: number) {
   const existing = db.prepare('SELECT id, year, month FROM months WHERE id = ?').get(id) as
     { id: number; year: number; month: number } | undefined;
   if (!existing) {
-    throw new AppError(404, 'Month not found');
+    throw new AppError(404, 'Mês não encontrado');
   }
   db.prepare('DELETE FROM months WHERE id = ?').run(id);
   // Exclusão do mês corrente é intencional: marca a competência para o boot não recriá-la.
@@ -235,7 +285,7 @@ export function createMonthsBatch(
   toYear: number,
   toMonth: number,
 ) {
-  const created: MonthRow[] = [];
+  const created: Month[] = [];
   const errors: string[] = [];
   let year = fromYear;
   let month = fromMonth;

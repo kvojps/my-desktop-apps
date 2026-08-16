@@ -1,7 +1,9 @@
 import Database from 'better-sqlite3';
+import type { Income } from '@shared/types/income';
 import { AppError } from '../errors/AppError';
-import * as bankAccountsRepository from './bankAccountsRepository';
+import { creditBankAccount, debitBankAccount } from './bankAccountsRepository';
 
+/** Colunas cruas da tabela; o banco continua em snake_case. */
 export interface IncomeRow {
   id: number;
   month_id: number;
@@ -15,24 +17,50 @@ export interface IncomeRow {
   created_at: string;
 }
 
-export function listIncomesForMonth(db: Database.Database, monthId: number) {
-  return db
-    .prepare(
-      `SELECT i.*, ba.name as bank_account_name
-       FROM incomes i
-       LEFT JOIN bank_accounts ba ON ba.id = i.bank_account_id
-       WHERE i.month_id = ?
-       ORDER BY i.expected_date, i.name`,
-    )
-    .all(monthId) as (IncomeRow & { bank_account_name: string | null })[];
+/** Coluna extra que só existe nas consultas com JOIN. */
+interface IncomeJoinRow extends IncomeRow {
+  bank_account_name: string | null;
 }
 
-export function getIncomeById(db: Database.Database, id: number): IncomeRow {
+export function rowToIncome(row: IncomeRow | IncomeJoinRow): Income {
+  const joined = row as IncomeJoinRow;
+  return {
+    id: row.id,
+    monthId: row.month_id,
+    name: row.name,
+    expectedDate: row.expected_date,
+    amount: row.amount,
+    // SQLite guarda 0/1; o domínio fala booleano.
+    isReceived: row.is_received === 1,
+    receivedAt: row.received_at,
+    notes: row.notes,
+    bankAccountId: row.bank_account_id,
+    bankAccountName: joined.bank_account_name,
+    createdAt: row.created_at,
+  };
+}
+
+const WITH_JOINS = `SELECT i.*, ba.name as bank_account_name
+   FROM incomes i
+   LEFT JOIN bank_accounts ba ON ba.id = i.bank_account_id`;
+
+export function listIncomesForMonth(db: Database.Database, monthId: number): Income[] {
+  const rows = db
+    .prepare(`${WITH_JOINS} WHERE i.month_id = ? ORDER BY i.expected_date, i.name`)
+    .all(monthId) as IncomeJoinRow[];
+  return rows.map(rowToIncome);
+}
+
+function getIncomeRow(db: Database.Database, id: number): IncomeRow {
   const income = db.prepare('SELECT * FROM incomes WHERE id = ?').get(id) as IncomeRow | undefined;
   if (!income) {
-    throw new AppError(404, 'Income not found');
+    throw new AppError(404, 'Entrada não encontrada');
   }
   return income;
+}
+
+export function getIncomeById(db: Database.Database, id: number): Income {
+  return rowToIncome(getIncomeRow(db, id));
 }
 
 export function createIncome(
@@ -40,14 +68,14 @@ export function createIncome(
   monthId: number,
   data: {
     name: string;
-    expected_date?: string | null;
+    expectedDate?: string | null;
     amount?: number;
-    bank_account_id?: number | null;
+    bankAccountId?: number | null;
   },
-): IncomeRow {
+): Income {
   const month = db.prepare('SELECT id FROM months WHERE id = ?').get(monthId);
   if (!month) {
-    throw new AppError(404, 'Month not found');
+    throw new AppError(404, 'Mês não encontrado');
   }
 
   const result = db
@@ -57,12 +85,12 @@ export function createIncome(
     .run(
       monthId,
       data.name,
-      data.expected_date || null,
+      data.expectedDate || null,
       data.amount || 0,
-      data.bank_account_id || null,
+      data.bankAccountId || null,
     );
 
-  return db.prepare('SELECT * FROM incomes WHERE id = ?').get(result.lastInsertRowid) as IncomeRow;
+  return getIncomeById(db, result.lastInsertRowid as number);
 }
 
 export function updateIncome(
@@ -70,22 +98,22 @@ export function updateIncome(
   id: number,
   data: {
     name?: string;
-    expected_date?: string | null;
+    expectedDate?: string | null;
     amount?: number;
     notes?: string | null;
-    bank_account_id?: number | null;
+    bankAccountId?: number | null;
   },
-): IncomeRow {
-  const existing = getIncomeById(db, id);
+): Income {
+  const existing = getIncomeRow(db, id);
 
   db.prepare(
     'UPDATE incomes SET name = ?, expected_date = ?, amount = ?, notes = ?, bank_account_id = ? WHERE id = ?',
   ).run(
     data.name ?? existing.name,
-    data.expected_date !== undefined ? data.expected_date : existing.expected_date,
+    data.expectedDate !== undefined ? data.expectedDate : existing.expected_date,
     data.amount !== undefined ? data.amount : existing.amount,
     data.notes !== undefined ? data.notes : existing.notes,
-    data.bank_account_id !== undefined ? data.bank_account_id : existing.bank_account_id,
+    data.bankAccountId !== undefined ? data.bankAccountId : existing.bank_account_id,
     id,
   );
 
@@ -93,7 +121,7 @@ export function updateIncome(
 }
 
 export function deleteIncome(db: Database.Database, id: number) {
-  getIncomeById(db, id);
+  getIncomeRow(db, id);
   db.prepare('DELETE FROM incomes WHERE id = ?').run(id);
 }
 
@@ -110,12 +138,12 @@ export function receiveIncome(
   notes: string | undefined,
   receivedAt: string | undefined,
   bankAccountId: number | undefined,
-): IncomeRow {
-  const existing = getIncomeById(db, id);
+): Income {
+  const existing = getIncomeRow(db, id);
 
   const run = db.transaction(() => {
     if (bankAccountId) {
-      bankAccountsRepository.creditBankAccount(db, bankAccountId, existing.amount);
+      creditBankAccount(db, bankAccountId, existing.amount);
     }
     db.prepare(
       'UPDATE incomes SET is_received = 1, received_at = ?, notes = ?, bank_account_id = ? WHERE id = ?',
@@ -131,12 +159,12 @@ export function receiveIncome(
   return getIncomeById(db, id);
 }
 
-export function unreceiveIncome(db: Database.Database, id: number): IncomeRow {
-  const existing = getIncomeById(db, id);
+export function unreceiveIncome(db: Database.Database, id: number): Income {
+  const existing = getIncomeRow(db, id);
 
   const run = db.transaction(() => {
     if (existing.bank_account_id) {
-      bankAccountsRepository.debitBankAccount(db, existing.bank_account_id, existing.amount);
+      debitBankAccount(db, existing.bank_account_id, existing.amount);
     }
     // bank_account_id não é limpo: representa a conta associada à entrada,
     // não só a conta que recebeu o crédito, e serve de sugestão no próximo recebimento.

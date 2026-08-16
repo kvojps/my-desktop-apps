@@ -15,8 +15,8 @@ import { Controller, useForm } from 'react-hook-form';
 import { BankAccount } from '@shared/types/bank-account';
 import { Expense } from '@shared/types/expense';
 import { FileUploadButton } from '@/components/FileUploadButton';
-import { formatDateOnlyBR, todayDateString } from '@/utils/date';
-import { formatCurrencyBRL } from '@/utils/format';
+import { formatDateOnly, todayDateString } from '@/utils/date';
+import { formatCurrency } from '@/utils/format';
 import { PayFormValues, payFormSchema } from './formSchemas';
 
 interface PayDialogProps {
@@ -67,11 +67,11 @@ export function PayDialog({ open, expense, bankAccounts, onClose, onConfirm }: P
           {expense.name}
         </Typography>
         <Typography variant="body1" color="text.secondary" gutterBottom>
-          Valor: {formatCurrencyBRL(expense.amount)}
+          Valor: {formatCurrency(expense.amount)}
         </Typography>
-        {expense.due_date && (
+        {expense.dueDate && (
           <Typography variant="body2" color="text.secondary" gutterBottom>
-            Vencimento: {formatDateOnlyBR(expense.due_date)}
+            Vencimento: {formatDateOnly(expense.dueDate)}
           </Typography>
         )}
 
@@ -95,7 +95,7 @@ export function PayDialog({ open, expense, bankAccounts, onClose, onConfirm }: P
               </MenuItem>
               {bankAccounts.map((account) => (
                 <MenuItem key={account.id} value={String(account.id)}>
-                  {account.name} ({formatCurrencyBRL(account.balance)})
+                  {account.name} ({formatCurrency(account.balance)})
                 </MenuItem>
               ))}
             </TextField>

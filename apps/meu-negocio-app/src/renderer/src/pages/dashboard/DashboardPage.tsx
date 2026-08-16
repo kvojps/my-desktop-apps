@@ -1,4 +1,4 @@
-import { ChevronRight } from '@mui/icons-material';
+import { ChevronRight, DashboardOutlined } from '@mui/icons-material';
 import {
   Box,
   Button,
@@ -34,18 +34,18 @@ import {
   getOrderTotal,
 } from '@shared/types/order';
 import type { Order, OrderStatus } from '@shared/types/order';
-import { DashboardIcon } from '@/components/Icons';
 import { PageHeader } from '@/components/PageHeader';
 import { useOrders } from '@/hooks/orders/useOrders';
 import { useProducts } from '@/hooks/products/useProducts';
 import {
   enumerateMonthKeys,
+  formatDate,
   monthDiff,
   monthKeyOf,
   monthKeyToDate,
   parseLocalDate,
 } from '@/utils/date';
-import { formatCurrency, formatCurrencyCompact, formatDate } from '@/utils/format';
+import { formatCurrency, formatCurrencyCompact } from '@/utils/format';
 import { ROUTES } from '../../routes';
 import { AccountsReceivable } from './components/AccountsReceivable';
 import { DashboardCards } from './components/DashboardCards';
@@ -376,7 +376,7 @@ export function DashboardPage() {
   return (
     <Stack spacing={2}>
       <PageHeader
-        icon={<DashboardIcon />}
+        icon={<DashboardOutlined />}
         title="Dashboard"
         subtitle="Visão geral do seu negócio"
       />

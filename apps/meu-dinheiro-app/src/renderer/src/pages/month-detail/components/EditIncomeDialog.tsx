@@ -11,7 +11,7 @@ import {
 import { Controller, useForm } from 'react-hook-form';
 import { BankAccount } from '@shared/types/bank-account';
 import { Income } from '@shared/types/income';
-import { formatCurrencyBRL } from '@/utils/format';
+import { formatCurrency } from '@/utils/format';
 import { IncomeFormValues, incomeFormSchema } from './formSchemas';
 
 interface EditIncomeDialogProps {
@@ -22,9 +22,9 @@ interface EditIncomeDialogProps {
   onSubmit: (data: {
     name: string;
     amount: number;
-    expected_date?: string;
+    expectedDate?: string;
     notes?: string;
-    bank_account_id?: number | null;
+    bankAccountId?: number | null;
   }) => Promise<boolean>;
 }
 
@@ -45,8 +45,8 @@ export function EditIncomeDialog({
     defaultValues: {
       name: income.name,
       amount: income.amount ? String(income.amount) : '',
-      expectedDate: income.expected_date || '',
-      bankAccountId: income.bank_account_id ? String(income.bank_account_id) : '',
+      expectedDate: income.expectedDate || '',
+      bankAccountId: income.bankAccountId ? String(income.bankAccountId) : '',
       notes: income.notes || '',
     },
   });
@@ -55,9 +55,9 @@ export function EditIncomeDialog({
     const success = await onSubmit({
       name: values.name,
       amount: values.amount ? Number(values.amount) : 0,
-      expected_date: values.expectedDate || undefined,
+      expectedDate: values.expectedDate || undefined,
       notes: values.notes || undefined,
-      bank_account_id: values.bankAccountId ? Number(values.bankAccountId) : null,
+      bankAccountId: values.bankAccountId ? Number(values.bankAccountId) : null,
     });
     if (success) onClose();
   });
@@ -102,7 +102,7 @@ export function EditIncomeDialog({
               </MenuItem>
               {bankAccounts.map((account) => (
                 <MenuItem key={account.id} value={String(account.id)}>
-                  {account.name} ({formatCurrencyBRL(account.balance)})
+                  {account.name} ({formatCurrency(account.balance)})
                 </MenuItem>
               ))}
             </TextField>

@@ -12,8 +12,8 @@ import {
 import { Expense } from '@shared/types/expense';
 import { api } from '@/api/client';
 import { CategoryTag } from '@/components/CategoryTag';
-import { formatDateOnlyBR, formatPaidDateBR } from '@/utils/date';
-import { formatCurrencyBRLOrFallback } from '@/utils/format';
+import { formatDateOnly, formatPaidDate } from '@/utils/date';
+import { formatCurrencyOrFallback } from '@/utils/format';
 
 interface ExpenseDetailDialogProps {
   open: boolean;
@@ -32,26 +32,26 @@ export function ExpenseDetailDialog({ open, expense, onClose }: ExpenseDetailDia
               <Typography variant="caption" color="text.secondary">
                 Valor
               </Typography>
-              <Typography>{formatCurrencyBRLOrFallback(expense.amount)}</Typography>
+              <Typography>{formatCurrencyOrFallback(expense.amount)}</Typography>
             </Box>
-            {expense.category_name && (
+            {expense.categoryName && (
               <Box>
                 <Typography variant="caption" color="text.secondary">
                   Categoria
                 </Typography>
                 <CategoryTag
-                  name={expense.category_name}
-                  color={expense.category_color}
+                  name={expense.categoryName}
+                  color={expense.categoryColor}
                   sx={{ mt: 0.5 }}
                 />
               </Box>
             )}
-            {expense.due_date && (
+            {expense.dueDate && (
               <Box>
                 <Typography variant="caption" color="text.secondary">
                   Vencimento
                 </Typography>
-                <Typography>{formatDateOnlyBR(expense.due_date)}</Typography>
+                <Typography>{formatDateOnly(expense.dueDate)}</Typography>
               </Box>
             )}
             <Box>
@@ -61,26 +61,26 @@ export function ExpenseDetailDialog({ open, expense, onClose }: ExpenseDetailDia
                 Status
               </Typography>
               <Chip
-                label={expense.is_paid ? 'Paga' : 'Pendente'}
-                color={expense.is_paid ? 'success' : 'default'}
+                label={expense.isPaid ? 'Paga' : 'Pendente'}
+                color={expense.isPaid ? 'success' : 'default'}
                 size="small"
                 sx={{ mt: 0.5 }}
               />
             </Box>
-            {expense.paid_at && (
+            {expense.paidAt && (
               <Box>
                 <Typography variant="caption" color="text.secondary">
                   Pago em
                 </Typography>
-                <Typography>{formatPaidDateBR(expense.paid_at)}</Typography>
+                <Typography>{formatPaidDate(expense.paidAt)}</Typography>
               </Box>
             )}
-            {expense.bank_account_name && (
+            {expense.bankAccountName && (
               <Box>
                 <Typography variant="caption" color="text.secondary">
                   Conta
                 </Typography>
-                <Typography>{expense.bank_account_name}</Typography>
+                <Typography>{expense.bankAccountName}</Typography>
               </Box>
             )}
             {expense.receipt && (

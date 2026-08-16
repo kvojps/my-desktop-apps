@@ -1,6 +1,6 @@
+import { Download, SettingsOutlined, Upload } from '@mui/icons-material';
 import { Button, Card, CardContent, Stack, Typography } from '@mui/material';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
-import { DownloadIcon, SettingIcon, UploadIcon } from '@/components/Icons';
 import { PageHeader } from '@/components/PageHeader';
 import { useAppInfo } from '@/hooks/settings/useAppInfo';
 import { useDataTransfer } from '@/hooks/settings/useDataTransfer';
@@ -24,7 +24,7 @@ export function SettingsPage() {
   return (
     <Stack spacing={2}>
       <PageHeader
-        icon={<SettingIcon />}
+        icon={<SettingsOutlined />}
         title="Configurações"
         subtitle="Dados da empresa, backup e informações do aplicativo"
       />
@@ -44,7 +44,7 @@ export function SettingsPage() {
           <Stack direction="row" spacing={1.5}>
             <Button
               variant="contained"
-              startIcon={<DownloadIcon size={16} />}
+              startIcon={<Download sx={{ fontSize: 16 }} />}
               onClick={handleExport}
               disabled={exporting}
             >
@@ -53,7 +53,7 @@ export function SettingsPage() {
 
             <Button
               variant="outlined"
-              startIcon={<UploadIcon size={16} />}
+              startIcon={<Upload sx={{ fontSize: 16 }} />}
               onClick={requestImport}
               disabled={importing}
             >

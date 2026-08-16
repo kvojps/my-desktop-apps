@@ -1,3 +1,4 @@
+import { SellOutlined } from '@mui/icons-material';
 import { Button, Stack, Typography } from '@mui/material';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -7,13 +8,13 @@ import { ActionsMenu } from '@/components/ActionsMenu';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { DataTable } from '@/components/DataTable';
 import type { Column } from '@/components/DataTable';
-import { SaleIcon } from '@/components/Icons';
 import { PageHeader } from '@/components/PageHeader';
 import { useOrderConfirm } from '@/hooks/orders/useOrderConfirm';
 import type { OrderSortKey } from '@/hooks/orders/useOrders';
 import { useOrders } from '@/hooks/orders/useOrders';
 import { usePagination } from '@/hooks/usePagination';
-import { formatCurrency, formatDate, formatPercent } from '@/utils/format';
+import { formatDate } from '@/utils/date';
+import { formatCurrency, formatPercent } from '@/utils/format';
 import { ROUTES } from '../../routes';
 import { MonthRangeFilter } from '../dashboard/components/MonthRangeFilter';
 import { OrderFilters } from '../orders/components/OrderFilters';
@@ -114,7 +115,7 @@ export function SalesPage() {
   return (
     <Stack spacing={2}>
       <PageHeader
-        icon={<SaleIcon />}
+        icon={<SellOutlined />}
         title="Vendas"
         subtitle="Indicadores e histórico de pedidos concluídos"
       />
@@ -143,7 +144,7 @@ export function SalesPage() {
         getRowKey={(order) => order.id}
         footerLabel="vendas"
         isLoading={isLoading}
-        emptyIcon={<SaleIcon size={32} />}
+        emptyIcon={<SellOutlined sx={{ fontSize: 32 }} />}
         emptyMessage={
           hasAnySale
             ? 'Nenhuma venda corresponde aos filtros.'

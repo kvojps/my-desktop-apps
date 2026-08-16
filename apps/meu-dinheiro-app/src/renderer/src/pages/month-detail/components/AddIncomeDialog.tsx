@@ -10,7 +10,7 @@ import {
 } from '@mui/material';
 import { Controller, useForm } from 'react-hook-form';
 import { BankAccount } from '@shared/types/bank-account';
-import { formatCurrencyBRL } from '@/utils/format';
+import { formatCurrency } from '@/utils/format';
 import { IncomeFormValues, incomeFormSchema } from './formSchemas';
 
 const emptyValues: IncomeFormValues = {
@@ -28,8 +28,8 @@ interface AddIncomeDialogProps {
   onSubmit: (data: {
     name: string;
     amount: number;
-    expected_date?: string;
-    bank_account_id?: number;
+    expectedDate?: string;
+    bankAccountId?: number;
   }) => Promise<boolean>;
 }
 
@@ -54,8 +54,8 @@ export function AddIncomeDialog({ open, bankAccounts, onClose, onSubmit }: AddIn
     const success = await onSubmit({
       name: values.name,
       amount: Number(values.amount) || 0,
-      expected_date: values.expectedDate || undefined,
-      bank_account_id: values.bankAccountId ? Number(values.bankAccountId) : undefined,
+      expectedDate: values.expectedDate || undefined,
+      bankAccountId: values.bankAccountId ? Number(values.bankAccountId) : undefined,
     });
     if (success) handleClose();
   });
@@ -100,7 +100,7 @@ export function AddIncomeDialog({ open, bankAccounts, onClose, onSubmit }: AddIn
               </MenuItem>
               {bankAccounts.map((account) => (
                 <MenuItem key={account.id} value={String(account.id)}>
-                  {account.name} ({formatCurrencyBRL(account.balance)})
+                  {account.name} ({formatCurrency(account.balance)})
                 </MenuItem>
               ))}
             </TextField>

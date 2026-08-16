@@ -2,11 +2,11 @@ export interface Category {
   id: number;
   name: string;
   color: string;
-  created_at: string;
+  createdAt: string;
 }
 
 export interface CategoryTotal {
-  category_id: number | null;
+  categoryId: number | null;
   name: string | null;
   color: string | null;
   total: number;

@@ -1,3 +1,4 @@
+import { Search } from '@mui/icons-material';
 import {
   InputAdornment,
   MenuItem,
@@ -9,7 +10,6 @@ import {
 } from '@mui/material';
 import type { OrderStatus, PaymentStatus } from '@shared/types/order';
 import { ORDER_STATUS_LABELS, PAYMENT_STATUS_LABELS } from '@shared/types/order';
-import { SearchIcon } from '@/components/Icons';
 import type { OrderFilterState } from '@/hooks/orders/useOrders';
 
 const ALL_STATUS_OPTIONS: OrderStatus[] = ['pending', 'in_progress', 'completed', 'cancelled'];
@@ -60,7 +60,7 @@ export function OrderFilters({
                 input: {
                   startAdornment: (
                     <InputAdornment position="start">
-                      <SearchIcon size={16} />
+                      <Search sx={{ fontSize: 16 }} />
                     </InputAdornment>
                   ),
                 },

@@ -1,6 +1,8 @@
 import Database from 'better-sqlite3';
+import type { Category, CategoryTotal } from '@shared/types/category';
 import { AppError } from '../errors/AppError';
 
+/** Colunas cruas da tabela; o banco continua em snake_case. */
 export interface CategoryRow {
   id: number;
   name: string;
@@ -8,23 +10,37 @@ export interface CategoryRow {
   created_at: string;
 }
 
-export function listCategories(db: Database.Database) {
-  return db.prepare('SELECT * FROM categories ORDER BY name').all() as CategoryRow[];
+export function rowToCategory(row: CategoryRow): Category {
+  return {
+    id: row.id,
+    name: row.name,
+    color: row.color,
+    createdAt: row.created_at,
+  };
 }
 
-export function getCategoryById(db: Database.Database, id: number): CategoryRow {
+export function listCategories(db: Database.Database): Category[] {
+  const rows = db.prepare('SELECT * FROM categories ORDER BY name').all() as CategoryRow[];
+  return rows.map(rowToCategory);
+}
+
+function getCategoryRow(db: Database.Database, id: number): CategoryRow {
   const existing = db.prepare('SELECT * FROM categories WHERE id = ?').get(id) as
     CategoryRow | undefined;
   if (!existing) {
-    throw new AppError(404, 'Category not found');
+    throw new AppError(404, 'Categoria não encontrada');
   }
   return existing;
+}
+
+export function getCategoryById(db: Database.Database, id: number): Category {
+  return rowToCategory(getCategoryRow(db, id));
 }
 
 export function createCategory(
   db: Database.Database,
   data: { name: string; color: string },
-): CategoryRow {
+): Category {
   const result = db
     .prepare('INSERT INTO categories (name, color) VALUES (?, ?)')
     .run(data.name, data.color);
@@ -35,8 +51,8 @@ export function updateCategory(
   db: Database.Database,
   id: number,
   data: { name?: string; color?: string },
-): CategoryRow {
-  const existing = getCategoryById(db, id);
+): Category {
+  const existing = getCategoryRow(db, id);
 
   db.prepare('UPDATE categories SET name = ?, color = ? WHERE id = ?').run(
     data.name ?? existing.name,
@@ -47,7 +63,7 @@ export function updateCategory(
   return getCategoryById(db, id);
 }
 
-export interface CategoryTotalRow {
+interface CategoryTotalRow {
   category_id: number | null;
   name: string | null;
   color: string | null;
@@ -55,8 +71,8 @@ export interface CategoryTotalRow {
   count: number;
 }
 
-export function getCategoryTotalsForYear(db: Database.Database, year: number) {
-  return db
+export function getCategoryTotalsForYear(db: Database.Database, year: number): CategoryTotal[] {
+  const rows = db
     .prepare(
       `SELECT c.id as category_id, c.name as name, c.color as color,
               COALESCE(SUM(e.amount), 0) as total, COUNT(e.id) as count
@@ -68,10 +84,18 @@ export function getCategoryTotalsForYear(db: Database.Database, year: number) {
        ORDER BY total DESC`,
     )
     .all(year) as CategoryTotalRow[];
+
+  return rows.map((row) => ({
+    categoryId: row.category_id,
+    name: row.name,
+    color: row.color,
+    total: row.total,
+    count: row.count,
+  }));
 }
 
 export function deleteCategory(db: Database.Database, id: number) {
-  getCategoryById(db, id);
+  getCategoryRow(db, id);
   const run = db.transaction(() => {
     db.prepare('UPDATE expenses SET category_id = NULL WHERE category_id = ?').run(id);
     db.prepare('UPDATE default_expenses SET category_id = NULL WHERE category_id = ?').run(id);

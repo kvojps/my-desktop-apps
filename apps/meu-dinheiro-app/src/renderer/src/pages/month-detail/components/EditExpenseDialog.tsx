@@ -20,9 +20,9 @@ interface EditExpenseDialogProps {
   onSubmit: (data: {
     name: string;
     amount: number;
-    due_date?: string;
+    dueDate?: string;
     notes?: string;
-    category_id?: number | null;
+    categoryId?: number | null;
   }) => Promise<boolean>;
 }
 
@@ -38,9 +38,9 @@ export function EditExpenseDialog({ open, expense, onClose, onSubmit }: EditExpe
     defaultValues: {
       name: expense.name,
       amount: expense.amount ? String(expense.amount) : '',
-      dueDate: expense.due_date || '',
+      dueDate: expense.dueDate || '',
       notes: expense.notes || '',
-      categoryId: expense.category_id ? String(expense.category_id) : '',
+      categoryId: expense.categoryId ? String(expense.categoryId) : '',
     },
   });
 
@@ -48,9 +48,9 @@ export function EditExpenseDialog({ open, expense, onClose, onSubmit }: EditExpe
     const success = await onSubmit({
       name: values.name,
       amount: values.amount ? Number(values.amount) : 0,
-      due_date: values.dueDate || undefined,
+      dueDate: values.dueDate || undefined,
       notes: values.notes || undefined,
-      category_id: values.categoryId ? Number(values.categoryId) : null,
+      categoryId: values.categoryId ? Number(values.categoryId) : null,
     });
     if (success) onClose();
   });

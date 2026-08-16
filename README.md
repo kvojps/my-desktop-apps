@@ -38,6 +38,16 @@ numerada de migrações, aplicada uma única vez por banco e gravada em
 toda migração precisa ser idempotente e nenhum `id` publicado pode ser reordenado
 ou reescrito.
 
+**Nomes na fronteira.** O banco é snake_case e para nele. Tudo que atravessa o
+IPC — tipos de domínio em `src/shared/types/`, payloads e schemas zod — é
+camelCase, e a conversão acontece num único lugar: a função `rowToX` do
+repositório, que também traduz o 0/1 do SQLite para booleano. Nenhum objeto que
+sai de um repositório carrega chave snake_case.
+
+Uma exceção deliberada: o backup exporta e importa as linhas cruas das tabelas,
+então o arquivo de backup é snake_case. É o que mantém os backups antigos
+importáveis.
+
 **IPC.** Canais em `src/shared/ipc/channels.ts`, contrato tipado em
 `src/shared/ipc/api.ts`, implementação no preload. Toda entrada passa por zod
 (`parseOrThrow`) e todo id por `parseId`.
@@ -57,6 +67,13 @@ alias (`@/` e `@shared/`) sempre que saírem da própria pasta.
   de novo e abrir a pasta de dados.
 - `pages/<tela>/components/` guarda os componentes de uma tela só; o que serve a
   mais de uma sobe para `components/`.
+- Ícones vêm de `@mui/icons-material`. Não há conjunto de SVG próprio.
+- `utils/date.ts` para datas, `utils/format.ts` para moeda, números e texto. A
+  mesma função tem o mesmo nome nos três apps (`formatCurrency`, `formatDate`,
+  `formatDateTime`).
+- O schema zod de um formulário fica ao lado da lógica desse formulário — junto
+  do hook, onde a lógica está num hook; junto dos componentes, onde ela está nos
+  componentes.
 
 **Dev.** `electron-vite` define `ELECTRON_RENDERER_URL` ao subir o dev server; é
 essa a variável que o `main/index.ts` testa para escolher entre `loadURL` e

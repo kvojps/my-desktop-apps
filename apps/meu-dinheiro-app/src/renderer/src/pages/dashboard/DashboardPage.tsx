@@ -26,7 +26,7 @@ import { computeMonthBalance, useMonthsBalance } from '@/hooks/months/useMonthBa
 import { useMonths } from '@/hooks/months/useMonths';
 import { ROUTES, monthDetailPath } from '@/routes';
 import { cardGrid, tabularNums } from '@/theme';
-import { formatCurrencyBRL } from '@/utils/format';
+import { formatCurrency } from '@/utils/format';
 import { FirstRunGuide } from './components/FirstRunGuide';
 
 const INITIAL_VISIBLE = 12;
@@ -175,7 +175,7 @@ export function DashboardPage() {
               sx={{ fontWeight: 800 }}
               color={totalBankBalance < 0 ? 'error.main' : 'text.primary'}
             >
-              {formatCurrencyBRL(totalBankBalance)}
+              {formatCurrency(totalBankBalance)}
             </Typography>
             <Divider sx={{ my: 2.5 }} />
           </>
@@ -271,9 +271,9 @@ export function DashboardPage() {
           em duas linhas ao lado do chip de vencidas. */}
       <Box sx={{ ...cardGrid(300), gap: 3 }}>
         {visibleMonths.map((month) => {
-          const total = month.total_expenses ?? 0;
-          const paid = month.paid_expenses ?? 0;
-          const overdue = month.overdue_expenses ?? 0;
+          const total = month.totalExpenses ?? 0;
+          const paid = month.paidExpenses ?? 0;
+          const overdue = month.overdueExpenses ?? 0;
           const allPaid = total > 0 && paid === total;
           const isCurrent = monthKey(month.year, month.month) === currentKey;
           const balance = computeMonthBalance(month);
@@ -334,10 +334,10 @@ export function DashboardPage() {
                   {(balance.totalExpense > 0 || balance.totalIncome > 0) && (
                     <Stack direction="row" spacing={2} flexWrap="wrap" useFlexGap sx={{ mt: 0.5 }}>
                       <Typography variant="body2" color="text.secondary" sx={tabularNums}>
-                        Entradas: {formatCurrencyBRL(balance.totalIncome)}
+                        Entradas: {formatCurrency(balance.totalIncome)}
                       </Typography>
                       <Typography variant="body2" color="text.secondary" sx={tabularNums}>
-                        Despesas: {formatCurrencyBRL(balance.totalExpense)}
+                        Despesas: {formatCurrency(balance.totalExpense)}
                       </Typography>
                     </Stack>
                   )}

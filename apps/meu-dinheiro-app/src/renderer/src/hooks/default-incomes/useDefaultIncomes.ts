@@ -35,7 +35,7 @@ export function useDefaultIncomes() {
   }
 
   async function save(
-    data: { name: string; expected_day?: number; amount: number; bank_account_id?: number | null },
+    data: { name: string; expectedDay?: number; amount: number; bankAccountId?: number | null },
     editingId?: number,
   ) {
     try {

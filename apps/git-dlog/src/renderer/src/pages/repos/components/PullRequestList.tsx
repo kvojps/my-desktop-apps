@@ -8,7 +8,7 @@ import {
 } from '@mui/icons-material';
 import { Box, Chip, Link, Stack, Tooltip, Typography } from '@mui/material';
 import type { ChecksState, PullRequest, ReviewDecision } from '@shared/types/pullRequest';
-import { formatRelativeDate } from '@/utils/format';
+import { formatRelativeDate } from '@/utils/date';
 import { needsAction, openExternal } from '@/utils/pullRequest';
 
 function ChecksChip({ checks }: { checks: ChecksState }) {

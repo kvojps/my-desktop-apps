@@ -35,7 +35,7 @@ export function useDefaultExpenses() {
   }
 
   async function save(
-    data: { name: string; due_day?: number; amount: number; category_id?: number | null },
+    data: { name: string; dueDay?: number; amount: number; categoryId?: number | null },
     editingId?: number,
   ) {
     try {

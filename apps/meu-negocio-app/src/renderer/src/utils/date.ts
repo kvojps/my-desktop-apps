@@ -66,3 +66,10 @@ export function enumerateMonthKeys(start: Date, end: Date): string[] {
   }
   return keys;
 }
+
+const dateFormatter = new Intl.DateTimeFormat('pt-BR');
+
+/** Data de um timestamp ISO no formato curto brasileiro, ex. `15/08/2026`. */
+export function formatDate(value: string): string {
+  return dateFormatter.format(new Date(value));
+}

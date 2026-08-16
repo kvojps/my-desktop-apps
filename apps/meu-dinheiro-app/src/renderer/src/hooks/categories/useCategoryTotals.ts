@@ -17,7 +17,7 @@ export interface CategoryTotalRow {
 
 function toRow(item: CategoryTotal, total: number): CategoryTotalRow {
   return {
-    key: item.category_id ? String(item.category_id) : 'uncategorized',
+    key: item.categoryId ? String(item.categoryId) : 'uncategorized',
     name: item.name ?? 'Sem categoria',
     color: item.color ?? NEUTRAL_CATEGORY_COLOR,
     total: item.total,

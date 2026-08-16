@@ -17,8 +17,6 @@ const integerFormatter = new Intl.NumberFormat('pt-BR', {
   maximumFractionDigits: 0,
 });
 
-const dateFormatter = new Intl.DateTimeFormat('pt-BR');
-
 /** Valor monetário completo, ex. `R$ 1.500,50`. */
 export function formatCurrency(value: number): string {
   return currencyFormatter.format(value);
@@ -45,9 +43,4 @@ export function formatPercent(value: number, fractionDigits = 1): string {
     minimumFractionDigits: fractionDigits,
     maximumFractionDigits: fractionDigits,
   }).format(value)}%`;
-}
-
-/** Data de um timestamp ISO no formato curto brasileiro, ex. `15/08/2026`. */
-export function formatDate(value: string): string {
-  return dateFormatter.format(new Date(value));
 }

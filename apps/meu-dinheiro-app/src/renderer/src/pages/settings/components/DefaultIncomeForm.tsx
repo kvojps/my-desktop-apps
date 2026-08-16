@@ -11,7 +11,7 @@ import {
 import { Controller, useForm } from 'react-hook-form';
 import { BankAccount } from '@shared/types/bank-account';
 import { DefaultIncome } from '@shared/types/income';
-import { formatCurrencyBRL } from '@/utils/format';
+import { formatCurrency } from '@/utils/format';
 import { DefaultIncomeFormValues, defaultIncomeFormSchema } from './formSchemas';
 
 interface DefaultIncomeFormProps {
@@ -20,9 +20,9 @@ interface DefaultIncomeFormProps {
   onClose: () => void;
   onSave: (data: {
     name: string;
-    expected_day?: number;
+    expectedDay?: number;
     amount: number;
-    bank_account_id?: number | null;
+    bankAccountId?: number | null;
   }) => void;
   initial?: DefaultIncome | null;
 }
@@ -44,17 +44,17 @@ export function DefaultIncomeForm({
     defaultValues: {
       name: initial?.name ?? '',
       amount: initial ? String(initial.amount) : '',
-      expectedDay: initial?.expected_day ? String(initial.expected_day) : '',
-      bankAccountId: initial?.bank_account_id ? String(initial.bank_account_id) : '',
+      expectedDay: initial?.expectedDay ? String(initial.expectedDay) : '',
+      bankAccountId: initial?.bankAccountId ? String(initial.bankAccountId) : '',
     },
   });
 
   const onSubmit = handleSubmit((values) => {
     onSave({
       name: values.name,
-      expected_day: values.expectedDay ? Number(values.expectedDay) : undefined,
+      expectedDay: values.expectedDay ? Number(values.expectedDay) : undefined,
       amount: Number(values.amount) || 0,
-      bank_account_id: values.bankAccountId ? Number(values.bankAccountId) : null,
+      bankAccountId: values.bankAccountId ? Number(values.bankAccountId) : null,
     });
   });
 
@@ -102,7 +102,7 @@ export function DefaultIncomeForm({
               </MenuItem>
               {bankAccounts.map((account) => (
                 <MenuItem key={account.id} value={String(account.id)}>
-                  {account.name} ({formatCurrencyBRL(account.balance)})
+                  {account.name} ({formatCurrency(account.balance)})
                 </MenuItem>
               ))}
             </TextField>

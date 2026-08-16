@@ -24,8 +24,8 @@ import {
 } from '@mui/material';
 import { useState } from 'react';
 import { Income } from '@shared/types/income';
-import { formatDateOnlyBR, formatPaidDateBR } from '@/utils/date';
-import { formatCurrencyBRLOrFallback } from '@/utils/format';
+import { formatDateOnly, formatPaidDate } from '@/utils/date';
+import { formatCurrencyOrFallback } from '@/utils/format';
 
 interface IncomeCardProps {
   income: Income;
@@ -46,7 +46,7 @@ export function IncomeCard({
 }: IncomeCardProps) {
   const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
 
-  const borderColor = income.is_received ? 'success.main' : 'warning.main';
+  const borderColor = income.isReceived ? 'success.main' : 'warning.main';
 
   function closeMenu() {
     setMenuAnchor(null);
@@ -75,7 +75,7 @@ export function IncomeCard({
             )}
           </Stack>
           <Stack direction="row" spacing={0.5}>
-            {income.is_received ? (
+            {income.isReceived ? (
               <Chip label="Recebida" color="success" size="small" icon={<CheckCircle />} />
             ) : (
               <Chip label="Pendente" color="warning" size="small" />
@@ -83,26 +83,26 @@ export function IncomeCard({
           </Stack>
         </Box>
         <Typography variant="h5" sx={{ fontWeight: 700 }} gutterBottom>
-          {formatCurrencyBRLOrFallback(income.amount)}
+          {formatCurrencyOrFallback(income.amount)}
         </Typography>
-        {income.expected_date && (
+        {income.expectedDate && (
           <Typography variant="body2" color="text.secondary">
-            Previsto: {formatDateOnlyBR(income.expected_date)}
+            Previsto: {formatDateOnly(income.expectedDate)}
           </Typography>
         )}
-        {income.received_at && (
+        {income.receivedAt && (
           <Typography variant="body2" color="text.secondary">
-            Recebido em: {formatPaidDateBR(income.received_at)}
+            Recebido em: {formatPaidDate(income.receivedAt)}
           </Typography>
         )}
-        {income.bank_account_name && (
+        {income.bankAccountName && (
           <Typography variant="body2" color="text.secondary">
-            {income.is_received ? 'Conta' : 'Conta prevista'}: {income.bank_account_name}
+            {income.isReceived ? 'Conta' : 'Conta prevista'}: {income.bankAccountName}
           </Typography>
         )}
       </CardContent>
       <CardActions sx={{ justifyContent: 'space-between' }}>
-        {income.is_received ? (
+        {income.isReceived ? (
           <Button size="small" color="warning" onClick={onUnreceive}>
             Desmarcar
           </Button>

@@ -1,4 +1,13 @@
-import { Brightness4, Brightness7, Menu as MenuIcon } from '@mui/icons-material';
+import {
+  Brightness4,
+  Brightness7,
+  DashboardOutlined,
+  Inventory2Outlined,
+  Menu as MenuIcon,
+  ReceiptLongOutlined,
+  SellOutlined,
+  SettingsOutlined,
+} from '@mui/icons-material';
 import {
   AppBar,
   Box,
@@ -17,7 +26,6 @@ import {
 import { ReactNode, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import logo from '@/assets/logo-128x128.png';
-import { DashboardIcon, OrderIcon, ProductIcon, SaleIcon, SettingIcon } from '@/components/Icons';
 import { useThemeMode } from '@/hooks/useThemeMode';
 import { ROUTES } from '../../routes';
 
@@ -29,15 +37,15 @@ const NAV_ITEMS = [
   {
     label: 'Dashboard',
     path: ROUTES.DASHBOARD,
-    icon: <DashboardIcon size={18} />,
+    icon: <DashboardOutlined sx={{ fontSize: 18 }} />,
   },
-  { label: 'Produtos', path: ROUTES.PRODUCTS, icon: <ProductIcon size={18} /> },
-  { label: 'Pedidos', path: ROUTES.ORDERS, icon: <OrderIcon size={18} /> },
-  { label: 'Vendas', path: ROUTES.SALES, icon: <SaleIcon size={18} /> },
+  { label: 'Produtos', path: ROUTES.PRODUCTS, icon: <Inventory2Outlined sx={{ fontSize: 18 }} /> },
+  { label: 'Pedidos', path: ROUTES.ORDERS, icon: <ReceiptLongOutlined sx={{ fontSize: 18 }} /> },
+  { label: 'Vendas', path: ROUTES.SALES, icon: <SellOutlined sx={{ fontSize: 18 }} /> },
   {
     label: 'Configurações',
     path: ROUTES.SETTINGS,
-    icon: <SettingIcon size={18} />,
+    icon: <SettingsOutlined sx={{ fontSize: 18 }} />,
   },
 ];
 

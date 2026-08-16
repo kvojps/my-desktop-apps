@@ -3,13 +3,13 @@ const currencyFormatter = new Intl.NumberFormat('pt-BR', {
   currency: 'BRL',
 });
 
-export function formatCurrencyBRL(amount: number): string {
+export function formatCurrency(amount: number): string {
   return currencyFormatter.format(amount);
 }
 
-export function formatCurrencyBRLOrFallback(
+export function formatCurrencyOrFallback(
   amount: number | null | undefined,
   fallback = 'Valor não definido',
 ): string {
-  return amount ? formatCurrencyBRL(amount) : fallback;
+  return amount ? formatCurrency(amount) : fallback;
 }

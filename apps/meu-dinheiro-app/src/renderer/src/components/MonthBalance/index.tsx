@@ -2,7 +2,7 @@ import { Box, Stack, Typography } from '@mui/material';
 import type { TypographyProps } from '@mui/material';
 import { BALANCE_LABELS, MonthBalance } from '@/hooks/months/useMonthBalance';
 import { tabularNums } from '@/theme';
-import { formatCurrencyBRL } from '@/utils/format';
+import { formatCurrency } from '@/utils/format';
 
 interface MonthBalanceHeadlineProps {
   balance: MonthBalance;
@@ -40,13 +40,13 @@ export function MonthBalanceHeadline({
         sx={{ fontWeight: 800 }}
         color={balance.realized >= 0 ? 'success.main' : 'error.main'}
       >
-        {formatCurrencyBRL(balance.realized)}
+        {formatCurrency(balance.realized)}
       </Typography>
       {showProjected && (
         <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
           {BALANCE_LABELS.projected}:{' '}
           <Box component="strong" sx={tabularNums}>
-            {formatCurrencyBRL(balance.projected)}
+            {formatCurrency(balance.projected)}
           </Box>
           {showHints && ` (${BALANCE_LABELS.projectedHint})`}
         </Typography>
@@ -78,7 +78,7 @@ export function MonthBalanceBreakdown({ balance }: MonthBalanceBreakdownProps) {
           <Typography variant="body2" color="text.secondary">
             {item.label}:{' '}
             <Box component="strong" sx={tabularNums}>
-              {formatCurrencyBRL(item.value)}
+              {formatCurrency(item.value)}
             </Box>
           </Typography>
         </Stack>

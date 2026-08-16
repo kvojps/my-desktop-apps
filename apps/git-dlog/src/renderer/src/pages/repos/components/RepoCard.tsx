@@ -27,7 +27,7 @@ import {
 import { ReactNode, useState } from 'react';
 import type { RepoScanResult, RepoSeverity } from '@shared/types/repoScan';
 import { isWorktreeDirty } from '@shared/types/repoScan';
-import { formatDateTime, formatRelativeDate, formatRelativeSeconds } from '@/utils/format';
+import { formatDateTime, formatRelativeDate, formatRelativeSeconds } from '@/utils/date';
 import { getCurrentBranchPr, getOpenPrs, openExternal } from '@/utils/pullRequest';
 import { PullRequestRow } from './PullRequestList';
 

@@ -1,13 +1,6 @@
+import { Check, DeleteOutline, Edit, MoreVert, Replay, Visibility } from '@mui/icons-material';
 import { IconButton, ListItemIcon, ListItemText, Menu, MenuItem } from '@mui/material';
 import { useState } from 'react';
-import {
-  CheckIcon,
-  DeleteIcon,
-  EditIcon,
-  OptionsIcon,
-  ReopenIcon,
-  ViewIcon,
-} from '@/components/Icons';
 
 interface ActionsMenuProps {
   onView?: () => void;
@@ -33,13 +26,13 @@ export function ActionsMenu({ onView, onEdit, onPayment, onReopen, onDelete }: A
   return (
     <>
       <IconButton size="small" aria-label="Ações" onClick={(e) => setAnchorEl(e.currentTarget)}>
-        <OptionsIcon />
+        <MoreVert />
       </IconButton>
       <Menu anchorEl={anchorEl} open={open} onClose={close}>
         {onView && (
           <MenuItem onClick={() => handle(onView)}>
             <ListItemIcon>
-              <ViewIcon size={16} />
+              <Visibility sx={{ fontSize: 16 }} />
             </ListItemIcon>
             <ListItemText>Ver</ListItemText>
           </MenuItem>
@@ -47,7 +40,7 @@ export function ActionsMenu({ onView, onEdit, onPayment, onReopen, onDelete }: A
         {onEdit && (
           <MenuItem onClick={() => handle(onEdit)}>
             <ListItemIcon>
-              <EditIcon size={16} />
+              <Edit sx={{ fontSize: 16 }} />
             </ListItemIcon>
             <ListItemText>Editar</ListItemText>
           </MenuItem>
@@ -55,7 +48,7 @@ export function ActionsMenu({ onView, onEdit, onPayment, onReopen, onDelete }: A
         {onPayment && (
           <MenuItem onClick={() => handle(onPayment)}>
             <ListItemIcon>
-              <CheckIcon size={16} />
+              <Check sx={{ fontSize: 16 }} />
             </ListItemIcon>
             <ListItemText>Registrar pagamento</ListItemText>
           </MenuItem>
@@ -63,7 +56,7 @@ export function ActionsMenu({ onView, onEdit, onPayment, onReopen, onDelete }: A
         {onReopen && (
           <MenuItem onClick={() => handle(onReopen)}>
             <ListItemIcon>
-              <ReopenIcon size={16} />
+              <Replay sx={{ fontSize: 16 }} />
             </ListItemIcon>
             <ListItemText>Reabrir pedido</ListItemText>
           </MenuItem>
@@ -71,7 +64,7 @@ export function ActionsMenu({ onView, onEdit, onPayment, onReopen, onDelete }: A
         {onDelete && (
           <MenuItem onClick={() => handle(onDelete)} sx={{ color: 'error.main' }}>
             <ListItemIcon sx={{ color: 'error.main' }}>
-              <DeleteIcon size={16} />
+              <DeleteOutline sx={{ fontSize: 16 }} />
             </ListItemIcon>
             <ListItemText>Excluir</ListItemText>
           </MenuItem>

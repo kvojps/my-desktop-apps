@@ -1,23 +1,24 @@
 export interface Income {
   id: number;
-  month_id: number;
+  monthId: number;
   name: string;
-  expected_date: string | null;
+  expectedDate: string | null;
   amount: number;
-  is_received: number;
-  received_at: string | null;
+  isReceived: boolean;
+  receivedAt: string | null;
   notes: string | null;
-  bank_account_id: number | null;
-  bank_account_name?: string | null;
-  created_at: string;
+  bankAccountId: number | null;
+  /** Vem do JOIN com bank_accounts; ausente nas consultas que não fazem o JOIN. */
+  bankAccountName?: string | null;
+  createdAt: string;
 }
 
 export interface DefaultIncome {
   id: number;
   name: string;
-  expected_day: number | null;
+  expectedDay: number | null;
   amount: number;
-  bank_account_id: number | null;
-  bank_account_name?: string | null;
-  created_at: string;
+  bankAccountId: number | null;
+  bankAccountName?: string | null;
+  createdAt: string;
 }

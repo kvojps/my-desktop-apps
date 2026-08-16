@@ -1,3 +1,4 @@
+import { Add, Inventory2Outlined } from '@mui/icons-material';
 import { Button, Stack, Typography } from '@mui/material';
 import { useMemo } from 'react';
 import type { Product } from '@shared/types/product';
@@ -7,7 +8,6 @@ import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { DataTable } from '@/components/DataTable';
 import type { Column } from '@/components/DataTable';
 import { ErrorState } from '@/components/ErrorState';
-import { PlusIcon, ProductIcon } from '@/components/Icons';
 import { PageHeader } from '@/components/PageHeader';
 import { StockBadge } from '@/components/StockBadge';
 import { useProductConfirm } from '@/hooks/products/useProductConfirm';
@@ -138,11 +138,15 @@ export function ProductsPage() {
   return (
     <Stack spacing={2}>
       <PageHeader
-        icon={<ProductIcon />}
+        icon={<Inventory2Outlined />}
         title="Produtos"
         subtitle="Cadastro e controle de estoque do seu catálogo"
         actions={
-          <Button variant="contained" startIcon={<PlusIcon size={16} />} onClick={form.openNew}>
+          <Button
+            variant="contained"
+            startIcon={<Add sx={{ fontSize: 16 }} />}
+            onClick={form.openNew}
+          >
             Novo Produto
           </Button>
         }
@@ -173,7 +177,7 @@ export function ProductsPage() {
         getRowKey={(product) => product.id}
         footerLabel="produtos"
         isLoading={isLoading}
-        emptyIcon={<ProductIcon size={32} />}
+        emptyIcon={<Inventory2Outlined sx={{ fontSize: 32 }} />}
         emptyMessage={
           filtered.length === 0 && products.length > 0
             ? 'Nenhum produto corresponde aos filtros.'
@@ -181,7 +185,11 @@ export function ProductsPage() {
         }
         emptyAction={
           products.length === 0 ? (
-            <Button variant="contained" startIcon={<PlusIcon size={16} />} onClick={form.openNew}>
+            <Button
+              variant="contained"
+              startIcon={<Add sx={{ fontSize: 16 }} />}
+              onClick={form.openNew}
+            >
               Cadastrar primeiro produto
             </Button>
           ) : (

@@ -54,14 +54,14 @@ function fromItems(month: MonthDetail): BalanceTotals {
   for (const income of month.incomes) {
     const amount = income.amount ?? 0;
     totals.totalIncome += amount;
-    if (income.is_received) totals.received += amount;
+    if (income.isReceived) totals.received += amount;
     else totals.pendingIncome += amount;
   }
 
   for (const expense of month.expenses) {
     const amount = expense.amount ?? 0;
     totals.totalExpense += amount;
-    if (expense.is_paid) totals.paid += amount;
+    if (expense.isPaid) totals.paid += amount;
     else totals.pendingExpense += amount;
   }
 
@@ -70,12 +70,12 @@ function fromItems(month: MonthDetail): BalanceTotals {
 
 function fromAggregates(month: Month): BalanceTotals {
   return {
-    received: month.received_income ?? 0,
-    pendingIncome: month.pending_income ?? 0,
-    totalIncome: month.total_income ?? 0,
-    paid: month.paid_amount ?? 0,
-    pendingExpense: month.unpaid_amount ?? 0,
-    totalExpense: month.total_amount ?? 0,
+    received: month.receivedIncome ?? 0,
+    pendingIncome: month.pendingIncome ?? 0,
+    totalIncome: month.totalIncome ?? 0,
+    paid: month.paidAmount ?? 0,
+    pendingExpense: month.unpaidAmount ?? 0,
+    totalExpense: month.totalAmount ?? 0,
   };
 }
 

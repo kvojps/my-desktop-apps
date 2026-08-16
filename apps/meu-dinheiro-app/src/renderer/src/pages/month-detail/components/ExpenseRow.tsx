@@ -1,7 +1,7 @@
 import { CheckCircle, ReportProblemOutlined, ScheduleOutlined } from '@mui/icons-material';
 import { Expense } from '@shared/types/expense';
 import { CategoryTag } from '@/components/CategoryTag';
-import { formatDateOnlyBR, todayDateString } from '@/utils/date';
+import { formatDateOnly, todayDateString } from '@/utils/date';
 import { ItemRow, ItemRowAction, ItemRowStatus } from './ItemRow';
 
 interface ExpenseRowProps {
@@ -22,20 +22,20 @@ export function ExpenseRow({
   onEdit,
   onDelete,
 }: ExpenseRowProps) {
-  const isOverdue = !expense.is_paid && !!expense.due_date && expense.due_date < todayDateString();
+  const isOverdue = !expense.isPaid && !!expense.dueDate && expense.dueDate < todayDateString();
 
   let status: ItemRowStatus = {
     color: 'warning',
     label: 'Pendente',
     icon: <ScheduleOutlined fontSize="small" />,
   };
-  if (expense.is_paid) {
+  if (expense.isPaid) {
     status = { color: 'success', label: 'Paga', icon: <CheckCircle fontSize="small" /> };
   } else if (isOverdue) {
     status = { color: 'error', label: 'Vencida', icon: <ReportProblemOutlined fontSize="small" /> };
   }
 
-  const action: ItemRowAction = expense.is_paid
+  const action: ItemRowAction = expense.isPaid
     ? { label: 'Desmarcar', onClick: onUnpay, variant: 'text', color: 'warning' }
     : { label: 'Pagar', onClick: onPay, variant: 'contained', color: 'primary' };
 
@@ -45,9 +45,9 @@ export function ExpenseRow({
       hasNotes={!!expense.notes}
       hasReceipt={!!expense.receipt}
       status={status}
-      secondary={<CategoryTag name={expense.category_name} color={expense.category_color} />}
+      secondary={<CategoryTag name={expense.categoryName} color={expense.categoryColor} />}
       metaLabel="Vencimento"
-      metaValue={expense.due_date ? formatDateOnlyBR(expense.due_date) : '—'}
+      metaValue={expense.dueDate ? formatDateOnly(expense.dueDate) : '—'}
       metaHighlight={isOverdue}
       amount={expense.amount}
       action={action}

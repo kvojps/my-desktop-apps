@@ -49,8 +49,8 @@ const api: ElectronApi = {
       payload: {
         receipt?: ReceiptPayload;
         notes?: string;
-        paid_at?: string;
-        bank_account_id?: number;
+        paidAt?: string;
+        bankAccountId?: number;
       },
     ) => ipcRenderer.invoke(IPC_CHANNELS.expensesPay, id, payload),
     unpay: (id) => ipcRenderer.invoke(IPC_CHANNELS.expensesUnpay, id),

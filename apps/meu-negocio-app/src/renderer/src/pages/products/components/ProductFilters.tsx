@@ -1,3 +1,4 @@
+import { Search, WarningAmber } from '@mui/icons-material';
 import {
   Badge,
   InputAdornment,
@@ -9,7 +10,6 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
-import { AlertTriangleIcon, SearchIcon } from '@/components/Icons';
 import type { FilterState } from '@/hooks/products/useProducts';
 
 interface ProductFiltersProps {
@@ -45,7 +45,7 @@ export function ProductFilters({
               input: {
                 startAdornment: (
                   <InputAdornment position="start">
-                    <SearchIcon size={16} />
+                    <Search sx={{ fontSize: 16 }} />
                   </InputAdornment>
                 ),
               },
@@ -87,7 +87,7 @@ export function ProductFilters({
             size="small"
             color="warning"
           >
-            <AlertTriangleIcon size={16} />
+            <WarningAmber sx={{ fontSize: 16 }} />
             <Stack component="span" sx={{ ml: 1, mr: 1.5 }}>
               Estoque baixo
             </Stack>

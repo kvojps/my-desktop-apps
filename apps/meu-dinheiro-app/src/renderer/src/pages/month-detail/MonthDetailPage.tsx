@@ -60,8 +60,8 @@ import { useItemActions } from './hooks/useItemActions';
 
 type ExpenseStatus = 'all' | 'pending' | 'paid' | 'overdue';
 type IncomeStatus = 'all' | 'pending' | 'received';
-type ExpenseSort = 'due_date' | 'name' | 'amount';
-type IncomeSort = 'expected_date' | 'name' | 'amount';
+type ExpenseSort = 'dueDate' | 'name' | 'amount';
+type IncomeSort = 'expectedDate' | 'name' | 'amount';
 
 const EXPENSE_STATUS_OPTIONS: { value: ExpenseStatus; label: string }[] = [
   { value: 'all', label: 'Todas' },
@@ -71,7 +71,7 @@ const EXPENSE_STATUS_OPTIONS: { value: ExpenseStatus; label: string }[] = [
 ];
 
 const EXPENSE_SORT_OPTIONS: { value: ExpenseSort; label: string }[] = [
-  { value: 'due_date', label: 'Vencimento' },
+  { value: 'dueDate', label: 'Vencimento' },
   { value: 'name', label: 'Nome' },
   { value: 'amount', label: 'Valor' },
 ];
@@ -83,7 +83,7 @@ const INCOME_STATUS_OPTIONS: { value: IncomeStatus; label: string }[] = [
 ];
 
 const INCOME_SORT_OPTIONS: { value: IncomeSort; label: string }[] = [
-  { value: 'expected_date', label: 'Data prevista' },
+  { value: 'expectedDate', label: 'Data prevista' },
   { value: 'name', label: 'Nome' },
   { value: 'amount', label: 'Valor' },
 ];
@@ -130,38 +130,38 @@ export function MonthDetailPage() {
   const expenseFilter = useItemsFilter<Expense, ExpenseStatus, ExpenseSort>({
     items: month?.expenses ?? [],
     defaultStatus: 'all',
-    defaultSort: 'due_date',
+    defaultSort: 'dueDate',
     searchText: (expense) => expense.name,
     matchesStatus: (expense, status) => {
       if (status === 'all') return true;
-      if (status === 'paid') return !!expense.is_paid;
+      if (status === 'paid') return expense.isPaid;
       if (status === 'overdue') {
-        return !expense.is_paid && !!expense.due_date && expense.due_date < today;
+        return !expense.isPaid && !!expense.dueDate && expense.dueDate < today;
       }
-      return !expense.is_paid;
+      return !expense.isPaid;
     },
-    matchesExtra: (expense, categoryId) => String(expense.category_id ?? '') === categoryId,
+    matchesExtra: (expense, categoryId) => String(expense.categoryId ?? '') === categoryId,
     compare: (a, b, sort) => {
       if (sort === 'name') return a.name.localeCompare(b.name, 'pt-BR');
       if (sort === 'amount') return (b.amount ?? 0) - (a.amount ?? 0);
-      return (a.due_date || NO_DATE).localeCompare(b.due_date || NO_DATE);
+      return (a.dueDate || NO_DATE).localeCompare(b.dueDate || NO_DATE);
     },
   });
 
   const incomeFilter = useItemsFilter<Income, IncomeStatus, IncomeSort>({
     items: month?.incomes ?? [],
     defaultStatus: 'all',
-    defaultSort: 'expected_date',
+    defaultSort: 'expectedDate',
     searchText: (income) => income.name,
     matchesStatus: (income, status) => {
       if (status === 'all') return true;
-      if (status === 'received') return !!income.is_received;
-      return !income.is_received;
+      if (status === 'received') return income.isReceived;
+      return !income.isReceived;
     },
     compare: (a, b, sort) => {
       if (sort === 'name') return a.name.localeCompare(b.name, 'pt-BR');
       if (sort === 'amount') return (b.amount ?? 0) - (a.amount ?? 0);
-      return (a.expected_date || NO_DATE).localeCompare(b.expected_date || NO_DATE);
+      return (a.expectedDate || NO_DATE).localeCompare(b.expectedDate || NO_DATE);
     },
   });
 
@@ -204,8 +204,8 @@ export function MonthDetailPage() {
     );
   }
 
-  const paidCount = month.expenses.filter((e) => e.is_paid).length;
-  const receivedCount = month.incomes.filter((i) => i.is_received).length;
+  const paidCount = month.expenses.filter((e) => e.isPaid).length;
+  const receivedCount = month.incomes.filter((i) => i.isReceived).length;
   const balance = computeMonthBalance(month);
 
   const settlingExpense = expenseActions.settling;

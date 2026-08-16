@@ -192,15 +192,15 @@ export function registerIpcHandlers(db: Database.Database): void {
       payload: {
         receipt?: ReceiptPayload;
         notes?: string;
-        paid_at?: string;
-        bank_account_id?: number;
+        paidAt?: string;
+        bankAccountId?: number;
       },
     ) => {
       const expenseId = parseId(id);
       const body = parseOrThrow(payExpenseSchema, {
         notes: payload?.notes,
-        paid_at: payload?.paid_at,
-        bank_account_id: payload?.bank_account_id,
+        paidAt: payload?.paidAt,
+        bankAccountId: payload?.bankAccountId,
       });
 
       let receiptFilename: string | undefined;
@@ -222,8 +222,8 @@ export function registerIpcHandlers(db: Database.Database): void {
         expenseId,
         receiptFilename,
         body.notes,
-        body.paid_at,
-        body.bank_account_id,
+        body.paidAt,
+        body.bankAccountId,
       );
     },
   );
@@ -249,15 +249,15 @@ export function registerIpcHandlers(db: Database.Database): void {
     (_e, id: number, notes?: string, receivedAt?: string, bankAccountId?: number) => {
       const body = parseOrThrow(receiveIncomeSchema, {
         notes,
-        received_at: receivedAt,
-        bank_account_id: bankAccountId,
+        receivedAt: receivedAt,
+        bankAccountId: bankAccountId,
       });
       return receiveIncome(
         db,
         parseId(id),
         body.notes ?? undefined,
-        body.received_at,
-        body.bank_account_id,
+        body.receivedAt,
+        body.bankAccountId,
       );
     },
   );

@@ -90,8 +90,8 @@ export function useMonth(id: string | undefined) {
   async function addExpense(data: {
     name: string;
     amount: number;
-    due_date?: string;
-    category_id?: number | null;
+    dueDate?: string;
+    categoryId?: number | null;
   }) {
     if (!id) return false;
     try {
@@ -110,9 +110,9 @@ export function useMonth(id: string | undefined) {
     data: {
       name: string;
       amount: number;
-      due_date?: string;
+      dueDate?: string;
       notes?: string;
-      category_id?: number | null;
+      categoryId?: number | null;
     },
   ) {
     try {
@@ -170,8 +170,8 @@ export function useMonth(id: string | undefined) {
   async function addIncome(data: {
     name: string;
     amount: number;
-    expected_date?: string;
-    bank_account_id?: number | null;
+    expectedDate?: string;
+    bankAccountId?: number | null;
   }) {
     if (!id) return false;
     try {
@@ -190,9 +190,9 @@ export function useMonth(id: string | undefined) {
     data: {
       name: string;
       amount: number;
-      expected_date?: string;
+      expectedDate?: string;
       notes?: string;
-      bank_account_id?: number | null;
+      bankAccountId?: number | null;
     },
   ) {
     try {

@@ -26,8 +26,8 @@ interface AddExpenseDialogProps {
   onSubmit: (data: {
     name: string;
     amount: number;
-    due_date?: string;
-    category_id?: number | null;
+    dueDate?: string;
+    categoryId?: number | null;
   }) => Promise<boolean>;
 }
 
@@ -53,8 +53,8 @@ export function AddExpenseDialog({ open, onClose, onSubmit }: AddExpenseDialogPr
     const success = await onSubmit({
       name: values.name,
       amount: Number(values.amount) || 0,
-      due_date: values.dueDate || undefined,
-      category_id: values.categoryId ? Number(values.categoryId) : null,
+      dueDate: values.dueDate || undefined,
+      categoryId: values.categoryId ? Number(values.categoryId) : null,
     });
     if (success) handleClose();
   });

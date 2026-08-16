@@ -21,7 +21,8 @@ import {
 } from '@shared/types/order';
 import { Modal } from '@/components/Modal';
 import { StatusChip } from '@/components/StatusChip';
-import { formatCurrency, formatDate } from '@/utils/format';
+import { formatDate } from '@/utils/date';
+import { formatCurrency } from '@/utils/format';
 
 interface OrderViewModalProps {
   viewTarget: Order | null;

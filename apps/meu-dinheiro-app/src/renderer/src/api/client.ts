@@ -54,16 +54,16 @@ export const api = {
 
   createDefaultExpense(data: {
     name: string;
-    due_day?: number;
+    dueDay?: number;
     amount: number;
-    category_id?: number | null;
+    categoryId?: number | null;
   }) {
     return call(() => window.api.defaultExpenses.create(data));
   },
 
   updateDefaultExpense(
     id: number,
-    data: { name?: string; due_day?: number; amount?: number; category_id?: number | null },
+    data: { name?: string; dueDay?: number; amount?: number; categoryId?: number | null },
   ) {
     return call(() => window.api.defaultExpenses.update(id, data));
   },
@@ -106,7 +106,7 @@ export const api = {
 
   createExpense(
     monthId: number,
-    data: { name: string; due_date?: string; amount: number; category_id?: number | null },
+    data: { name: string; dueDate?: string; amount: number; categoryId?: number | null },
   ) {
     return call<Expense>(() => window.api.expenses.create(monthId, data));
   },
@@ -115,10 +115,10 @@ export const api = {
     id: number,
     data: {
       name?: string;
-      due_date?: string;
+      dueDate?: string;
       amount?: number;
       notes?: string;
-      category_id?: number | null;
+      categoryId?: number | null;
     },
   ) {
     return call<Expense>(() => window.api.expenses.update(id, data));
@@ -142,8 +142,8 @@ export const api = {
       window.api.expenses.pay(id, {
         receipt,
         notes,
-        paid_at: paidAt,
-        bank_account_id: bankAccountId,
+        paidAt,
+        bankAccountId,
       }),
     );
   },
@@ -158,9 +158,9 @@ export const api = {
 
   createDefaultIncome(data: {
     name: string;
-    expected_day?: number;
+    expectedDay?: number;
     amount: number;
-    bank_account_id?: number | null;
+    bankAccountId?: number | null;
   }) {
     return call(() => window.api.defaultIncomes.create(data));
   },
@@ -169,9 +169,9 @@ export const api = {
     id: number,
     data: {
       name?: string;
-      expected_day?: number;
+      expectedDay?: number;
       amount?: number;
-      bank_account_id?: number | null;
+      bankAccountId?: number | null;
     },
   ) {
     return call(() => window.api.defaultIncomes.update(id, data));
@@ -183,7 +183,7 @@ export const api = {
 
   createIncome(
     monthId: number,
-    data: { name: string; expected_date?: string; amount: number; bank_account_id?: number | null },
+    data: { name: string; expectedDate?: string; amount: number; bankAccountId?: number | null },
   ) {
     return call<Income>(() => window.api.incomes.create(monthId, data));
   },
@@ -192,10 +192,10 @@ export const api = {
     id: number,
     data: {
       name?: string;
-      expected_date?: string;
+      expectedDate?: string;
       amount?: number;
       notes?: string;
-      bank_account_id?: number | null;
+      bankAccountId?: number | null;
     },
   ) {
     return call<Income>(() => window.api.incomes.update(id, data));

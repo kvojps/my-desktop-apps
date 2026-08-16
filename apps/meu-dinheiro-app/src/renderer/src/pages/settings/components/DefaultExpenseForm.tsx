@@ -18,9 +18,9 @@ interface DefaultExpenseFormProps {
   onClose: () => void;
   onSave: (data: {
     name: string;
-    due_day?: number;
+    dueDay?: number;
     amount: number;
-    category_id?: number | null;
+    categoryId?: number | null;
   }) => void;
   initial?: DefaultExpense | null;
 }
@@ -37,17 +37,17 @@ export function DefaultExpenseForm({ open, onClose, onSave, initial }: DefaultEx
     defaultValues: {
       name: initial?.name ?? '',
       amount: initial ? String(initial.amount) : '',
-      dueDay: initial?.due_day ? String(initial.due_day) : '',
-      categoryId: initial?.category_id ? String(initial.category_id) : '',
+      dueDay: initial?.dueDay ? String(initial.dueDay) : '',
+      categoryId: initial?.categoryId ? String(initial.categoryId) : '',
     },
   });
 
   const onSubmit = handleSubmit((values) => {
     onSave({
       name: values.name,
-      due_day: values.dueDay ? Number(values.dueDay) : undefined,
+      dueDay: values.dueDay ? Number(values.dueDay) : undefined,
       amount: Number(values.amount) || 0,
-      category_id: values.categoryId ? Number(values.categoryId) : null,
+      categoryId: values.categoryId ? Number(values.categoryId) : null,
     });
   });
 

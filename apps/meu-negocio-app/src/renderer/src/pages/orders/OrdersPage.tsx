@@ -1,3 +1,4 @@
+import { Add, ReceiptLongOutlined } from '@mui/icons-material';
 import { Button, Stack } from '@mui/material';
 import { useCallback, useMemo, useState } from 'react';
 import type { Order, OrderStatus } from '@shared/types/order';
@@ -7,7 +8,6 @@ import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { DataTable } from '@/components/DataTable';
 import type { Column } from '@/components/DataTable';
 import { ErrorState } from '@/components/ErrorState';
-import { OrderIcon, PlusIcon } from '@/components/Icons';
 import { PageHeader } from '@/components/PageHeader';
 import { useOrderConfirm } from '@/hooks/orders/useOrderConfirm';
 import { useOrderForm } from '@/hooks/orders/useOrderForm';
@@ -15,7 +15,8 @@ import type { OrderSortKey } from '@/hooks/orders/useOrders';
 import { useOrders } from '@/hooks/orders/useOrders';
 import { useProducts } from '@/hooks/products/useProducts';
 import { usePagination } from '@/hooks/usePagination';
-import { formatCurrency, formatDate } from '@/utils/format';
+import { formatDate } from '@/utils/date';
+import { formatCurrency } from '@/utils/format';
 import { MonthRangeFilter } from '../dashboard/components/MonthRangeFilter';
 import { OrderFilters } from './components/OrderFilters';
 import { OrderFormModal } from './components/OrderFormModal';
@@ -108,11 +109,11 @@ export function OrdersPage() {
   return (
     <Stack spacing={2}>
       <PageHeader
-        icon={<OrderIcon />}
+        icon={<ReceiptLongOutlined />}
         title="Pedidos"
         subtitle="Registro e acompanhamento de pedidos"
         actions={
-          <Button variant="contained" startIcon={<PlusIcon size={16} />} onClick={form.open}>
+          <Button variant="contained" startIcon={<Add sx={{ fontSize: 16 }} />} onClick={form.open}>
             Novo Pedido
           </Button>
         }
@@ -149,7 +150,7 @@ export function OrdersPage() {
         getRowKey={(order) => order.id}
         footerLabel="pedidos"
         isLoading={isLoading}
-        emptyIcon={<OrderIcon size={32} />}
+        emptyIcon={<ReceiptLongOutlined sx={{ fontSize: 32 }} />}
         emptyMessage={
           hasOpenOrders
             ? 'Nenhum pedido corresponde aos filtros.'
@@ -171,7 +172,11 @@ export function OrdersPage() {
               Limpar filtros
             </Button>
           ) : (
-            <Button variant="contained" startIcon={<PlusIcon size={16} />} onClick={form.open}>
+            <Button
+              variant="contained"
+              startIcon={<Add sx={{ fontSize: 16 }} />}
+              onClick={form.open}
+            >
               Criar primeiro pedido
             </Button>
           )

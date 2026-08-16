@@ -53,7 +53,7 @@ import {
 import { useMonths } from '@/hooks/months/useMonths';
 import { monthDetailPath } from '@/routes';
 import { tabularNums } from '@/theme';
-import { formatCurrencyBRL } from '@/utils/format';
+import { formatCurrency } from '@/utils/format';
 import { StatTile } from './components/StatTile';
 
 function monthKey(year: number, month: number) {
@@ -235,7 +235,7 @@ export function HistoryPage() {
         <Grid item xs={12} sm={4}>
           <StatTile
             label={`${BALANCE_LABELS.projected} do ano`}
-            value={formatCurrencyBRL(comparativoBalance)}
+            value={formatCurrency(comparativoBalance)}
             valueColor={
               comparativoBalance >= 0 ? theme.palette.success.main : theme.palette.error.main
             }
@@ -248,7 +248,7 @@ export function HistoryPage() {
         <Grid item xs={12} sm={4}>
           <StatTile
             label="Total de entradas"
-            value={formatCurrencyBRL(comparativoTotals.totalIncome)}
+            value={formatCurrency(comparativoTotals.totalIncome)}
             valueColor={theme.palette.success.main}
             delta={
               incomeDeltaPercent === null
@@ -264,7 +264,7 @@ export function HistoryPage() {
         <Grid item xs={12} sm={4}>
           <StatTile
             label="Total de despesas"
-            value={formatCurrencyBRL(comparativoTotals.totalExpense)}
+            value={formatCurrency(comparativoTotals.totalExpense)}
             valueColor={theme.palette.error.main}
             delta={
               expenseDeltaPercent === null
@@ -339,7 +339,7 @@ export function HistoryPage() {
                     <YAxis stroke={theme.palette.text.secondary} width={88} />
                     <Tooltip
                       cursor={{ stroke: theme.palette.divider }}
-                      formatter={(value) => formatCurrencyBRL(Number(value) || 0)}
+                      formatter={(value) => formatCurrency(Number(value) || 0)}
                       labelFormatter={(value, payload) => payload?.[0]?.payload?.label ?? value}
                       contentStyle={{
                         backgroundColor: theme.palette.background.paper,
@@ -381,8 +381,8 @@ export function HistoryPage() {
                             {row.label}
                             {row.isCurrent && ' (atual)'}
                           </TableCell>
-                          <TableCell align="right">{formatCurrencyBRL(row.Entradas)}</TableCell>
-                          <TableCell align="right">{formatCurrencyBRL(row.Despesas)}</TableCell>
+                          <TableCell align="right">{formatCurrency(row.Entradas)}</TableCell>
+                          <TableCell align="right">{formatCurrency(row.Despesas)}</TableCell>
                           <TableCell
                             align="right"
                             sx={{
@@ -391,7 +391,7 @@ export function HistoryPage() {
                                 row[BALANCE_LABELS.projected] >= 0 ? 'success.main' : 'error.main',
                             }}
                           >
-                            {formatCurrencyBRL(row[BALANCE_LABELS.projected])}
+                            {formatCurrency(row[BALANCE_LABELS.projected])}
                           </TableCell>
                         </TableRow>
                       ))}
@@ -438,7 +438,7 @@ export function HistoryPage() {
                           formatter={(value, _name, entry) => {
                             const row = entry.payload as (typeof categoryChartRows)[number];
                             return [
-                              `${formatCurrencyBRL(Number(value) || 0)} · ${row.count} despesa(s) · ${row.percent.toFixed(1)}%`,
+                              `${formatCurrency(Number(value) || 0)} · ${row.count} despesa(s) · ${row.percent.toFixed(1)}%`,
                               'Total',
                             ];
                           }}
@@ -455,7 +455,7 @@ export function HistoryPage() {
                           <LabelList
                             dataKey="total"
                             position="right"
-                            formatter={(value) => formatCurrencyBRL(Number(value) || 0)}
+                            formatter={(value) => formatCurrency(Number(value) || 0)}
                             style={{ fill: theme.palette.text.secondary, fontSize: 12 }}
                           />
                         </Bar>
@@ -488,7 +488,7 @@ export function HistoryPage() {
                                   {row.name}
                                 </Stack>
                               </TableCell>
-                              <TableCell align="right">{formatCurrencyBRL(row.total)}</TableCell>
+                              <TableCell align="right">{formatCurrency(row.total)}</TableCell>
                               <TableCell align="right">{row.percent.toFixed(1)}%</TableCell>
                               <TableCell align="right">{row.count}</TableCell>
                             </TableRow>

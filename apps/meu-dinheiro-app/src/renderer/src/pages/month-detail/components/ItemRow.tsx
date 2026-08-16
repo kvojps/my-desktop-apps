@@ -21,7 +21,7 @@ import {
 } from '@mui/material';
 import { KeyboardEvent, MouseEvent, ReactNode, useState } from 'react';
 import { contentQuery, tabularNums } from '@/theme';
-import { formatCurrencyBRLOrFallback } from '@/utils/format';
+import { formatCurrencyOrFallback } from '@/utils/format';
 
 export interface ItemRowStatus {
   /** Chave da paleta usada na barra lateral e no ícone. */
@@ -221,7 +221,7 @@ export function ItemRow({
       </Box>
 
       <Typography variant="subtitle1" sx={{ fontWeight: 700, textAlign: 'right', ...tabularNums }}>
-        {formatCurrencyBRLOrFallback(amount, '—')}
+        {formatCurrencyOrFallback(amount, '—')}
       </Typography>
 
       <Stack
