@@ -1,4 +1,5 @@
 import { ReactNode, createContext, useCallback, useContext, useState } from 'react';
+import { describeAppError } from '@shared/errors/appError';
 import { AppSnackbar } from '@/components/AppSnackbar';
 
 export type SnackbarSeverity = 'success' | 'error' | 'warning' | 'info';
@@ -23,7 +24,7 @@ export function SnackbarProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const showError = useCallback((err: unknown, fallback = 'Ocorreu um erro') => {
-    setSnackbar({ message: err instanceof Error ? err.message : fallback, severity: 'error' });
+    setSnackbar({ message: describeAppError(err, fallback), severity: 'error' });
   }, []);
 
   const closeSnackbar = useCallback(() => setSnackbar(null), []);

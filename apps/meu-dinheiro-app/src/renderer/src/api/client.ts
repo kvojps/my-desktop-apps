@@ -7,7 +7,9 @@ import type { Month, MonthDetail } from '@shared/types/month';
 
 function unwrapIpcError(err: unknown): never {
   if (err instanceof Error) {
-    const match = err.message.match(/Error invoking remote method '[^']+':\s*(?:Error:\s*)?(.*)/s);
+    const match = err.message.match(
+      /Error invoking remote method '[^']+':\s*(?:[A-Za-z]*Error:\s*)?(.*)/s,
+    );
     throw new Error(match ? match[1] : err.message);
   }
   throw err;

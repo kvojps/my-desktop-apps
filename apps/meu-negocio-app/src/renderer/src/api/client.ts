@@ -1,3 +1,5 @@
+import { describeAppError } from '@shared/errors/appError';
+
 function unwrapIpcError(err: unknown): never {
   if (err instanceof Error) {
     const match = err.message.match(
@@ -17,5 +19,5 @@ export async function call<T>(fn: () => Promise<T>): Promise<T> {
 }
 
 export function getErrorMessage(err: unknown, fallback: string): string {
-  return err instanceof Error && err.message ? err.message : fallback;
+  return describeAppError(err, fallback);
 }

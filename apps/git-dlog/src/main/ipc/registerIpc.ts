@@ -1,5 +1,5 @@
 import type Database from 'better-sqlite3';
-import { ipcMain, shell } from 'electron';
+import { shell } from 'electron';
 import { IPC_CHANNELS } from '@shared/ipc/channels';
 import type { PrIntegrationStatus } from '@shared/types/pullRequest';
 import type { RepoFetchResult } from '@shared/types/repoScan';
@@ -26,69 +26,65 @@ import { createScanPathSchema } from '../schemas/scanPath.schema';
 import { parseId } from '../utils/parseId';
 import { parseOrThrow } from '../utils/validate';
 import { registerDialogHandlers } from './dialogHandlers';
+import { handle } from './handle';
 
 export function registerIpcHandlers(db: Database.Database): void {
   registerDialogHandlers();
 
-  ipcMain.handle(IPC_CHANNELS.scanPathsGetAll, () => getAllScanPaths(db));
-  ipcMain.handle(IPC_CHANNELS.scanPathsAdd, (_event, data: unknown) =>
+  handle(IPC_CHANNELS.scanPathsGetAll, () => getAllScanPaths(db));
+  handle(IPC_CHANNELS.scanPathsAdd, (_event, data: unknown) =>
     addScanPath(db, { path: parseOrThrow(createScanPathSchema, data) }),
   );
-  ipcMain.handle(IPC_CHANNELS.scanPathsDelete, (_event, id: unknown) =>
-    deleteScanPath(db, parseId(id)),
-  );
+  handle(IPC_CHANNELS.scanPathsDelete, (_event, id: unknown) => deleteScanPath(db, parseId(id)));
 
   function getBaseDirs(): string[] {
     return getAllScanPaths(db).map((scanPath) => scanPath.path);
   }
 
-  ipcMain.handle(IPC_CHANNELS.reposScan, async () =>
+  handle(IPC_CHANNELS.reposScan, async () =>
     attachPullRequests(await scanRepos(await listRepoDirs(getBaseDirs()))),
   );
 
-  ipcMain.handle(
-    IPC_CHANNELS.reposFetch,
-    async (event, data: unknown): Promise<RepoFetchResult> => {
-      const requestedPaths = parseOrThrow(fetchReposSchema, data);
-      const repoDirs = await listRepoDirs(getBaseDirs());
+  handle(IPC_CHANNELS.reposFetch, async (event, data: unknown): Promise<RepoFetchResult> => {
+    const requestedPaths = parseOrThrow(fetchReposSchema, data);
+    const repoDirs = await listRepoDirs(getBaseDirs());
 
-      // O filtro é a própria validação: só entram caminhos que a varredura
-      // encontrou nos diretórios cadastrados.
-      const target = requestedPaths?.length
-        ? repoDirs.filter((repoDir) => requestedPaths.includes(repoDir))
-        : repoDirs;
+    // O filtro é a própria validação: só entram caminhos que a varredura
+    // encontrou nos diretórios cadastrados.
+    const target = requestedPaths?.length
+      ? repoDirs.filter((repoDir) => requestedPaths.includes(repoDir))
+      : repoDirs;
 
-      function sendProgress(progress: unknown) {
-        if (!event.sender.isDestroyed()) {
-          event.sender.send(IPC_CHANNELS.reposFetchProgress, progress);
-        }
+    function sendProgress(progress: unknown) {
+      if (!event.sender.isDestroyed()) {
+        event.sender.send(IPC_CHANNELS.reposFetchProgress, progress);
       }
+    }
 
-      const failures = await fetchRepos(await filterReposWithRemote(target), {
-        onProgress: sendProgress,
-      });
+    const failures = await fetchRepos(await filterReposWithRemote(target), {
+      onProgress: sendProgress,
+    });
 
-      // A varredura precisa vir antes dos PRs: é ela que descobre o remote de
-      // cada repositório, que é o que diz onde procurar os pull requests.
-      const scanned = await scanRepos(repoDirs);
+    // A varredura precisa vir antes dos PRs: é ela que descobre o remote de
+    // cada repositório, que é o que diz onde procurar os pull requests.
+    const scanned = await scanRepos(repoDirs);
 
-      const { prsByPath, failures: prFailures } = await fetchPullRequests(scanned, {
-        token: getGithubToken(db),
-        onProgress: (done, total, current) => sendProgress({ phase: 'prs', done, total, current }),
-      });
-      updatePrCache(prsByPath);
+    const { prsByPath, failures: prFailures } = await fetchPullRequests(scanned, {
+      token: getGithubToken(db),
+      onProgress: (done, total, current) => sendProgress({ phase: 'prs', done, total, current }),
+    });
+    updatePrCache(prsByPath);
 
-      return { results: attachPullRequests(scanned), failures, prFailures };
-    },
-  );
+    return { results: attachPullRequests(scanned), failures, prFailures };
+  });
 
   function integrationStatus(): Promise<PrIntegrationStatus> {
     return getIntegrationStatus(hasGithubToken(db));
   }
 
-  ipcMain.handle(IPC_CHANNELS.prsGetStatus, () => integrationStatus());
+  handle(IPC_CHANNELS.prsGetStatus, () => integrationStatus());
 
-  ipcMain.handle(IPC_CHANNELS.prsSaveToken, async (_event, data: unknown) => {
+  handle(IPC_CHANNELS.prsSaveToken, async (_event, data: unknown) => {
     const token = parseOrThrow(githubTokenSchema, data);
     // Valida antes de gravar: salvar um token quebrado só adiaria o erro para
     // o próximo "Buscar do remoto", longe da tela onde ele foi digitado.
@@ -97,16 +93,16 @@ export function registerIpcHandlers(db: Database.Database): void {
     return login;
   });
 
-  ipcMain.handle(IPC_CHANNELS.prsDeleteToken, () => {
+  handle(IPC_CHANNELS.prsDeleteToken, () => {
     deleteGithubToken(db);
   });
 
-  ipcMain.handle(IPC_CHANNELS.prsRedetect, () => {
+  handle(IPC_CHANNELS.prsRedetect, () => {
     resetProviderDetection();
     return integrationStatus();
   });
 
-  ipcMain.handle(IPC_CHANNELS.shellOpenExternal, async (_event, data: unknown) => {
+  handle(IPC_CHANNELS.shellOpenExternal, async (_event, data: unknown) => {
     await shell.openExternal(parseOrThrow(externalUrlSchema, data));
   });
 }

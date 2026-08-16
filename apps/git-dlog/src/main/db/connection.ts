@@ -1,8 +1,10 @@
 import Database from 'better-sqlite3';
 import { app } from 'electron';
 import path from 'node:path';
+import { runMigrations } from './migrations';
 
 let db: Database.Database | null = null;
+let dbFilePath = '';
 
 const SCHEMA = `
 CREATE TABLE IF NOT EXISTS scan_paths (
@@ -26,24 +28,17 @@ export function getDb(): Database.Database {
   return db;
 }
 
+/** Caminho do banco em disco, exibido na tela de Configurações. */
+export function getDbPath(): string {
+  return dbFilePath;
+}
+
 export function initDb(): Database.Database {
-  const dbPath = path.join(app.getPath('userData'), 'git-dlog.db');
-  db = new Database(dbPath);
+  dbFilePath = path.join(app.getPath('userData'), 'git-dlog.db');
+  db = new Database(dbFilePath);
   db.pragma('journal_mode = WAL');
   db.pragma('foreign_keys = ON');
   db.exec(SCHEMA);
-  migrate(db);
+  runMigrations(db);
   return db;
 }
-
-// Migrações incrementais: o SCHEMA acima cobre instalações novas; para bancos
-// já existentes, adicione aqui verificações idempotentes. Exemplo:
-//
-//   const hasColumn = db
-//     .prepare("SELECT 1 FROM pragma_table_info('scan_paths') WHERE name = 'nova_coluna'")
-//     .get();
-//   if (!hasColumn) {
-//     db.exec("ALTER TABLE scan_paths ADD COLUMN nova_coluna TEXT NOT NULL DEFAULT ''");
-//   }
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function migrate(db: Database.Database): void {}

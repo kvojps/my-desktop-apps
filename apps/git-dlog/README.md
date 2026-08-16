@@ -187,7 +187,7 @@ src/
 └── shared/       # Compartilhado entre os três: tipos de domínio e canais de IPC
 ```
 
-O banco fica em `%APPDATA%/git-dlog/git-dlog.db` e guarda apenas os diretórios cadastrados e as settings — nunca o resultado da varredura.
+O banco fica em `%APPDATA%/git-dlog/git-dlog.db` e guarda apenas os diretórios cadastrados e as settings — nunca o resultado da varredura. Ele abre em **WAL** com `foreign_keys = ON`: o schema cobre instalações novas com `CREATE TABLE IF NOT EXISTS` e bancos já existentes evoluem por migrações incrementais numeradas, gravadas em `PRAGMA user_version` e aplicadas uma única vez.
 
 Sobre a leitura de cada repositório: são **três chamadas ao git**, disparadas em paralelo — `git status --porcelain=v2 --branch` (branch, upstream, ahead/behind e contagem de arquivos), `git for-each-ref` com formato customizado (branches locais e remotas com commit, data, autor e estado de tracking) e `git stash list`. O agrupamento de branches por commit sai de graça desses mesmos dados, e o remote é lido direto do `.git/config`. Todo comando roda com `GIT_TERMINAL_PROMPT=0` e `GIT_OPTIONAL_LOCKS=0` — o primeiro para o git não travar esperando senha num terminal que não existe, o segundo para a varredura não disputar o lock do index com a IDE aberta. No fetch, os helpers de credencial são desarmados e o ssh entra em modo batch (`-o BatchMode=yes`), para que um repositório com credencial expirada falhe rápido em vez de pendurar o app num prompt invisível.
 
@@ -195,7 +195,7 @@ Do lado da segurança: o renderer roda com `contextIsolation` ligado e sem acess
 
 ### 2.3. Stack técnica
 
-- **Electron 35** + **electron-vite** (build de main/preload/renderer)
+- **Electron 43** + **electron-vite 5** (build de main/preload/renderer)
 - **React 19** + **React Router 7** (HashRouter)
 - **MUI (Material UI) 6** + Emotion para estilização
 - **zod** para validação de entrada no processo main

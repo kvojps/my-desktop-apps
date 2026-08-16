@@ -1,5 +1,5 @@
 import { ReactNode, createContext, useCallback, useContext, useState } from 'react';
-import { APP_ERROR_DESCRIPTIONS, decodeAppError } from '@shared/errors/appError';
+import { describeAppError } from '@shared/errors/appError';
 import { AppSnackbar } from '@/components/AppSnackbar';
 
 export type SnackbarSeverity = 'success' | 'error' | 'warning' | 'info';
@@ -24,12 +24,7 @@ export function SnackbarProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const showError = useCallback((err: unknown, fallback = 'Ocorreu um erro') => {
-    const { code, message } = decodeAppError(err, fallback);
-    // Erros de domínio já vêm com um texto específico ("Month already exists",
-    // validação); para falhas de sistema o texto técnico não ajuda ninguém.
-    const readable =
-      code === 'not-found' || code === 'invalid-input' ? message : APP_ERROR_DESCRIPTIONS[code];
-    setSnackbar({ message: readable, severity: 'error' });
+    setSnackbar({ message: describeAppError(err, fallback), severity: 'error' });
   }, []);
 
   const closeSnackbar = useCallback(() => setSnackbar(null), []);

@@ -30,8 +30,9 @@ function createWindow() {
     mainWindow.show();
   });
 
-  if (process.env.VITE_DEV_SERVER_URL) {
-    mainWindow.loadURL(process.env.VITE_DEV_SERVER_URL);
+  // Definida pelo electron-vite ao subir o dev server do renderer.
+  if (process.env.ELECTRON_RENDERER_URL) {
+    mainWindow.loadURL(process.env.ELECTRON_RENDERER_URL);
     mainWindow.webContents.openDevTools({ mode: 'detach' });
     return;
   }

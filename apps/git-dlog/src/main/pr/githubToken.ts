@@ -1,4 +1,5 @@
 import type { PullRequest, RepoRemote } from '@shared/types/pullRequest';
+import { AppError } from '../errors/AppError';
 import { normalizeReviewDecision, normalizeState, summarizeChecks } from './ghCli';
 
 const PR_LIMIT = 50;
@@ -82,19 +83,22 @@ export async function listPullRequestsWithToken(
     });
 
     if (response.status === 401) {
-      throw new Error('Token do GitHub inválido ou expirado.');
+      throw new AppError(401, 'Token do GitHub inválido ou expirado.');
     }
     if (response.status === 403) {
-      throw new Error('Token sem permissão para este repositório (ou limite de uso atingido).');
+      throw new AppError(
+        403,
+        'Token sem permissão para este repositório (ou limite de uso atingido).',
+      );
     }
     if (!response.ok) {
-      throw new Error(`GitHub respondeu ${response.status}.`);
+      throw new AppError(400, `GitHub respondeu ${response.status}.`);
     }
 
     const payload = (await response.json()) as GraphQlResponse;
 
     if (payload.errors?.length) {
-      throw new Error(payload.errors.map((error) => error.message).join('; '));
+      throw new AppError(400, payload.errors.map((error) => error.message).join('; '));
     }
 
     const nodes = payload.data?.repository?.pullRequests?.nodes ?? [];
@@ -134,7 +138,8 @@ export async function verifyGithubToken(token: string, host = 'github.com'): Pro
   });
 
   if (!response.ok) {
-    throw new Error(
+    throw new AppError(
+      response.status === 401 ? 401 : 400,
       response.status === 401 ? 'Token inválido.' : `GitHub respondeu ${response.status}.`,
     );
   }
@@ -145,11 +150,11 @@ export async function verifyGithubToken(token: string, host = 'github.com'): Pro
   };
 
   if (payload.errors?.length) {
-    throw new Error(payload.errors.map((error) => error.message).join('; '));
+    throw new AppError(400, payload.errors.map((error) => error.message).join('; '));
   }
 
   const login = payload.data?.viewer?.login;
-  if (!login) throw new Error('Não foi possível identificar o usuário do token.');
+  if (!login) throw new AppError(400, 'Não foi possível identificar o usuário do token.');
 
   return login;
 }

@@ -1,6 +1,7 @@
 import type Database from 'better-sqlite3';
 import { randomUUID } from 'node:crypto';
 import type { Product } from '@shared/types/product';
+import { AppError } from '../errors/AppError';
 
 interface ProductRow {
   id: string;
@@ -65,7 +66,7 @@ export function addProduct(
 export function updateProduct(db: Database.Database, id: string, data: Partial<Product>): Product {
   const existing = getProductById(db, id);
   if (!existing) {
-    throw new Error(`Product not found: ${id}`);
+    throw new AppError(404, `Produto não encontrado: ${id}`);
   }
 
   const updated: Product = {

@@ -1,14 +1,56 @@
 import type Database from 'better-sqlite3';
 import type { ReceiptPayload } from '@shared/ipc/api';
 import { IPC_CHANNELS } from '@shared/ipc/channels';
-import * as bankAccountsRepository from '../db/bankAccountsRepository';
-import * as categoriesRepository from '../db/categoriesRepository';
+import {
+  createBankAccount,
+  deleteBankAccount,
+  listBankAccounts,
+  updateBankAccount,
+} from '../db/bankAccountsRepository';
+import {
+  createCategory,
+  deleteCategory,
+  getCategoryTotalsForYear,
+  listCategories,
+  updateCategory,
+} from '../db/categoriesRepository';
 import { getUploadsDir } from '../db/connection';
-import * as defaultExpensesRepository from '../db/defaultExpensesRepository';
-import * as defaultIncomesRepository from '../db/defaultIncomesRepository';
-import * as expensesRepository from '../db/expensesRepository';
-import * as incomesRepository from '../db/incomesRepository';
-import * as monthsRepository from '../db/monthsRepository';
+import {
+  createDefaultExpense,
+  deleteDefaultExpense,
+  listDefaultExpenses,
+  updateDefaultExpense,
+} from '../db/defaultExpensesRepository';
+import {
+  createDefaultIncome,
+  deleteDefaultIncome,
+  listDefaultIncomes,
+  updateDefaultIncome,
+} from '../db/defaultIncomesRepository';
+import {
+  createExpense,
+  deleteExpense,
+  getExpenseForFilename,
+  listExpensesForMonth,
+  payExpense,
+  unpayExpense,
+  updateExpense,
+} from '../db/expensesRepository';
+import {
+  createIncome,
+  deleteIncome,
+  listIncomesForMonth,
+  receiveIncome,
+  unreceiveIncome,
+  updateIncome,
+} from '../db/incomesRepository';
+import {
+  createMonthsBatch,
+  createNextMonth,
+  deleteMonth,
+  getMonthWithExpenses,
+  listMonths,
+} from '../db/monthsRepository';
 import { runSetup } from '../db/setupRepository';
 import { openReceiptFile, saveReceiptFile } from '../files/receiptsStorage';
 import { createBankAccountSchema, updateBankAccountSchema } from '../schemas/bankAccounts.schema';
@@ -48,13 +90,11 @@ export function registerIpcHandlers(db: Database.Database): void {
     return { months: runSetup(db, body.initialYear, body.initialMonth) };
   });
 
-  handle(IPC_CHANNELS.monthsList, () => monthsRepository.listMonths(db));
-  handle(IPC_CHANNELS.monthsGet, (_e, id: number) =>
-    monthsRepository.getMonthWithExpenses(db, parseId(id)),
-  );
+  handle(IPC_CHANNELS.monthsList, () => listMonths(db));
+  handle(IPC_CHANNELS.monthsGet, (_e, id: number) => getMonthWithExpenses(db, parseId(id)));
   handle(IPC_CHANNELS.monthsCreate, (_e, year?: number, month?: number) => {
     const body = parseOrThrow(createMonthSchema, { year, month });
-    return monthsRepository.createNextMonth(db, body.year, body.month);
+    return createNextMonth(db, body.year, body.month);
   });
   handle(
     IPC_CHANNELS.monthsCreateBatch,
@@ -65,89 +105,83 @@ export function registerIpcHandlers(db: Database.Database): void {
         toYear,
         toMonth,
       });
-      return monthsRepository.createMonthsBatch(
-        db,
-        body.fromYear,
-        body.fromMonth,
-        body.toYear,
-        body.toMonth,
-      );
+      return createMonthsBatch(db, body.fromYear, body.fromMonth, body.toYear, body.toMonth);
     },
   );
   handle(IPC_CHANNELS.monthsDelete, (_e, id: number) => {
-    monthsRepository.deleteMonth(db, parseId(id));
+    deleteMonth(db, parseId(id));
     return { message: 'Month deleted' };
   });
 
-  handle(IPC_CHANNELS.defaultExpensesList, () => defaultExpensesRepository.listDefaultExpenses(db));
+  handle(IPC_CHANNELS.defaultExpensesList, () => listDefaultExpenses(db));
   handle(IPC_CHANNELS.defaultExpensesCreate, (_e, data: unknown) => {
     const body = parseOrThrow(createDefaultExpenseSchema, data);
-    return defaultExpensesRepository.createDefaultExpense(db, body);
+    return createDefaultExpense(db, body);
   });
   handle(IPC_CHANNELS.defaultExpensesUpdate, (_e, id: number, data: unknown) => {
     const body = parseOrThrow(updateDefaultExpenseSchema, data);
-    return defaultExpensesRepository.updateDefaultExpense(db, parseId(id), body);
+    return updateDefaultExpense(db, parseId(id), body);
   });
   handle(IPC_CHANNELS.defaultExpensesDelete, (_e, id: number) => {
-    defaultExpensesRepository.deleteDefaultExpense(db, parseId(id));
+    deleteDefaultExpense(db, parseId(id));
     return { message: 'Default expense deleted' };
   });
 
-  handle(IPC_CHANNELS.defaultIncomesList, () => defaultIncomesRepository.listDefaultIncomes(db));
+  handle(IPC_CHANNELS.defaultIncomesList, () => listDefaultIncomes(db));
   handle(IPC_CHANNELS.defaultIncomesCreate, (_e, data: unknown) => {
     const body = parseOrThrow(createDefaultIncomeSchema, data);
-    return defaultIncomesRepository.createDefaultIncome(db, body);
+    return createDefaultIncome(db, body);
   });
   handle(IPC_CHANNELS.defaultIncomesUpdate, (_e, id: number, data: unknown) => {
     const body = parseOrThrow(updateDefaultIncomeSchema, data);
-    return defaultIncomesRepository.updateDefaultIncome(db, parseId(id), body);
+    return updateDefaultIncome(db, parseId(id), body);
   });
   handle(IPC_CHANNELS.defaultIncomesDelete, (_e, id: number) => {
-    defaultIncomesRepository.deleteDefaultIncome(db, parseId(id));
+    deleteDefaultIncome(db, parseId(id));
     return { message: 'Default income deleted' };
   });
 
-  handle(IPC_CHANNELS.bankAccountsList, () => bankAccountsRepository.listBankAccounts(db));
+  handle(IPC_CHANNELS.bankAccountsList, () => listBankAccounts(db));
   handle(IPC_CHANNELS.bankAccountsCreate, (_e, data: unknown) => {
     const body = parseOrThrow(createBankAccountSchema, data);
-    return bankAccountsRepository.createBankAccount(db, body);
+    return createBankAccount(db, body);
   });
   handle(IPC_CHANNELS.bankAccountsUpdate, (_e, id: number, data: unknown) => {
     const body = parseOrThrow(updateBankAccountSchema, data);
-    return bankAccountsRepository.updateBankAccount(db, parseId(id), body);
+    return updateBankAccount(db, parseId(id), body);
   });
   handle(IPC_CHANNELS.bankAccountsDelete, (_e, id: number) => {
-    bankAccountsRepository.deleteBankAccount(db, parseId(id));
+    deleteBankAccount(db, parseId(id));
     return { message: 'Bank account deleted' };
   });
 
-  handle(IPC_CHANNELS.categoriesList, () => categoriesRepository.listCategories(db));
+  handle(IPC_CHANNELS.categoriesList, () => listCategories(db));
   handle(IPC_CHANNELS.categoriesCreate, (_e, data: unknown) => {
     const body = parseOrThrow(createCategorySchema, data);
-    return categoriesRepository.createCategory(db, body);
+    return createCategory(db, body);
   });
   handle(IPC_CHANNELS.categoriesUpdate, (_e, id: number, data: unknown) => {
     const body = parseOrThrow(updateCategorySchema, data);
-    return categoriesRepository.updateCategory(db, parseId(id), body);
+    return updateCategory(db, parseId(id), body);
   });
   handle(IPC_CHANNELS.categoriesDelete, (_e, id: number) => {
-    categoriesRepository.deleteCategory(db, parseId(id));
+    deleteCategory(db, parseId(id));
     return { message: 'Category deleted' };
   });
 
   handle(IPC_CHANNELS.expensesListForMonth, (_e, monthId: number) =>
-    expensesRepository.listExpensesForMonth(db, parseId(monthId)),
+    listExpensesForMonth(db, parseId(monthId)),
   );
   handle(IPC_CHANNELS.expensesCreate, (_e, monthId: number, data: unknown) => {
     const body = parseOrThrow(createExpenseSchema, data);
-    return expensesRepository.createExpense(db, parseId(monthId), body);
+    return createExpense(db, parseId(monthId), body);
   });
   handle(IPC_CHANNELS.expensesUpdate, (_e, id: number, data: unknown) => {
     const body = parseOrThrow(updateExpenseSchema, data);
-    return expensesRepository.updateExpense(db, parseId(id), body);
+    return updateExpense(db, parseId(id), body);
   });
   handle(IPC_CHANNELS.expensesDelete, (_e, id: number) => {
-    expensesRepository.deleteExpense(db, uploadsDir, parseId(id));
+    deleteExpense(db, uploadsDir, parseId(id));
     return { message: 'Expense deleted' };
   });
   handle(
@@ -171,7 +205,7 @@ export function registerIpcHandlers(db: Database.Database): void {
 
       let receiptFilename: string | undefined;
       if (payload?.receipt) {
-        const expense = expensesRepository.getExpenseForFilename(db, expenseId);
+        const expense = getExpenseForFilename(db, expenseId);
         receiptFilename = saveReceiptFile(
           uploadsDir,
           expense?.month_label ?? 'unknown',
@@ -183,7 +217,7 @@ export function registerIpcHandlers(db: Database.Database): void {
         );
       }
 
-      return expensesRepository.payExpense(
+      return payExpense(
         db,
         expenseId,
         receiptFilename,
@@ -193,23 +227,21 @@ export function registerIpcHandlers(db: Database.Database): void {
       );
     },
   );
-  handle(IPC_CHANNELS.expensesUnpay, (_e, id: number) =>
-    expensesRepository.unpayExpense(db, uploadsDir, parseId(id)),
-  );
+  handle(IPC_CHANNELS.expensesUnpay, (_e, id: number) => unpayExpense(db, uploadsDir, parseId(id)));
 
   handle(IPC_CHANNELS.incomesListForMonth, (_e, monthId: number) =>
-    incomesRepository.listIncomesForMonth(db, parseId(monthId)),
+    listIncomesForMonth(db, parseId(monthId)),
   );
   handle(IPC_CHANNELS.incomesCreate, (_e, monthId: number, data: unknown) => {
     const body = parseOrThrow(createIncomeSchema, data);
-    return incomesRepository.createIncome(db, parseId(monthId), body);
+    return createIncome(db, parseId(monthId), body);
   });
   handle(IPC_CHANNELS.incomesUpdate, (_e, id: number, data: unknown) => {
     const body = parseOrThrow(updateIncomeSchema, data);
-    return incomesRepository.updateIncome(db, parseId(id), body);
+    return updateIncome(db, parseId(id), body);
   });
   handle(IPC_CHANNELS.incomesDelete, (_e, id: number) => {
-    incomesRepository.deleteIncome(db, parseId(id));
+    deleteIncome(db, parseId(id));
     return { message: 'Income deleted' };
   });
   handle(
@@ -220,7 +252,7 @@ export function registerIpcHandlers(db: Database.Database): void {
         received_at: receivedAt,
         bank_account_id: bankAccountId,
       });
-      return incomesRepository.receiveIncome(
+      return receiveIncome(
         db,
         parseId(id),
         body.notes ?? undefined,
@@ -229,12 +261,10 @@ export function registerIpcHandlers(db: Database.Database): void {
       );
     },
   );
-  handle(IPC_CHANNELS.incomesUnreceive, (_e, id: number) =>
-    incomesRepository.unreceiveIncome(db, parseId(id)),
-  );
+  handle(IPC_CHANNELS.incomesUnreceive, (_e, id: number) => unreceiveIncome(db, parseId(id)));
 
   handle(IPC_CHANNELS.reportsCategoryTotalsForYear, (_e, year: number) =>
-    categoriesRepository.getCategoryTotalsForYear(db, parseId(year)),
+    getCategoryTotalsForYear(db, parseId(year)),
   );
 
   handle(IPC_CHANNELS.receiptsOpen, (_e, filename: string) =>

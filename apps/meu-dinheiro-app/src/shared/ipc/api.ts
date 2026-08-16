@@ -1,8 +1,8 @@
-import type { BankAccount } from '../types/bank-account';
-import type { Category, CategoryTotal } from '../types/category';
-import type { DefaultExpense, Expense } from '../types/expense';
-import type { DefaultIncome, Income } from '../types/income';
-import type { Month, MonthDetail } from '../types/month';
+import type { BankAccount } from '@shared/types/bank-account';
+import type { Category, CategoryTotal } from '@shared/types/category';
+import type { DefaultExpense, Expense } from '@shared/types/expense';
+import type { DefaultIncome, Income } from '@shared/types/income';
+import type { Month, MonthDetail } from '@shared/types/month';
 
 export type ExportResult =
   { success: true; filePath: string } | { success: false; error: 'canceled' };

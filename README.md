@@ -14,6 +14,41 @@ Cada app segue a mesma estrutura: `src/main` (processo principal), `src/preload`
 `src/renderer` (React) e `src/shared` (tipos e contratos de IPC compartilhados entre
 main e renderer do **mesmo** app).
 
+## Convenções
+
+Os três apps compartilham as mesmas decisões de arquitetura. Ao mexer em um,
+vale conferir se o padrão continua valendo para os outros dois.
+
+**Erros.** `src/shared/errors/appError.ts` é idêntico nos três: define os códigos
+de falha, o texto que o usuário lê e o par `encodeAppError`/`decodeAppError`. O
+IPC do Electron só preserva a _mensagem_ de um erro, então o main codifica o
+código dentro dela e o renderer decodifica.
+
+- No main, todo handler é registrado com o `handle` de `src/main/ipc/handle.ts`,
+  nunca com `ipcMain.handle` direto — é ele que passa qualquer falha por
+  `toIpcError` antes de devolvê-la.
+- Erro com mensagem escrita para o usuário é `AppError`; erro inesperado é
+  `Error` cru e vira uma descrição genérica classificada por `classifyError`.
+- No renderer, o texto exibido sai sempre de `describeAppError`.
+
+**Banco.** SQLite em WAL com `foreign_keys = ON`. `connection.ts` tem o `SCHEMA`
+(instalações novas), `initDb`, `getDb` e `getDbPath`; `migrations.ts` tem a lista
+numerada de migrações, aplicada uma única vez por banco e gravada em
+`PRAGMA user_version`. Bancos já instalados começam em `user_version = 0`, então
+toda migração precisa ser idempotente e nenhum `id` publicado pode ser reordenado
+ou reescrito.
+
+**IPC.** Canais em `src/shared/ipc/channels.ts`, contrato tipado em
+`src/shared/ipc/api.ts`, implementação no preload. Toda entrada passa por zod
+(`parseOrThrow`) e todo id por `parseId`.
+
+**Renderer.** `HashRouter`, MUI com tema em `src/renderer/src/theme`, imports por
+alias (`@/` e `@shared/`) sempre que saírem da própria pasta.
+
+**Dev.** `electron-vite` define `ELECTRON_RENDERER_URL` ao subir o dev server; é
+essa a variável que o `main/index.ts` testa para escolher entre `loadURL` e
+`loadFile`.
+
 ## Setup
 
 Um único install na raiz cobre todos os apps:

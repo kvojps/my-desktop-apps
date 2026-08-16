@@ -1,5 +1,6 @@
-import { BrowserWindow, type IpcMainInvokeEvent, dialog, ipcMain } from 'electron';
+import { BrowserWindow, type IpcMainInvokeEvent, dialog } from 'electron';
 import { IPC_CHANNELS } from '@shared/ipc/channels';
+import { handle } from './handle';
 
 function windowFor(event: IpcMainInvokeEvent): BrowserWindow {
   const window = BrowserWindow.fromWebContents(event.sender);
@@ -10,7 +11,7 @@ function windowFor(event: IpcMainInvokeEvent): BrowserWindow {
 }
 
 export function registerDialogHandlers(): void {
-  ipcMain.handle(IPC_CHANNELS.dialogSelectDirectory, async (event): Promise<string | null> => {
+  handle(IPC_CHANNELS.dialogSelectDirectory, async (event): Promise<string | null> => {
     const result = await dialog.showOpenDialog(windowFor(event), {
       title: 'Selecionar diretório',
       properties: ['openDirectory'],

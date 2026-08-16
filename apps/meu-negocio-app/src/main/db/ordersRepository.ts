@@ -145,7 +145,7 @@ export function addOrder(db: Database.Database, data: CreateOrderData): Order {
 export function updateOrder(db: Database.Database, id: string, data: UpdateOrderData): Order {
   const existing = getOrderById(db, id);
   if (!existing) {
-    throw new Error(`Order not found: ${id}`);
+    throw new AppError(404, `Pedido não encontrado: ${id}`);
   }
 
   // A edição troca todos os itens do pedido. Numa venda concluída isso apagaria
@@ -282,7 +282,7 @@ export function setOrderStatus(
 ): SetOrderStatusResult {
   const existing = getOrderById(db, id);
   if (!existing) {
-    throw new Error(`Order not found: ${id}`);
+    throw new AppError(404, `Pedido não encontrado: ${id}`);
   }
 
   const updatedProducts: Product[] = [];
@@ -332,7 +332,7 @@ export function setOrderPaymentAmount(
 ): Order {
   const existing = getOrderById(db, id);
   if (!existing) {
-    throw new Error(`Order not found: ${id}`);
+    throw new AppError(404, `Pedido não encontrado: ${id}`);
   }
 
   const updatedAt = new Date().toISOString();

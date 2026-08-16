@@ -1,10 +1,11 @@
 import type Database from 'better-sqlite3';
-import { BrowserWindow, type IpcMainInvokeEvent, dialog, ipcMain } from 'electron';
+import { BrowserWindow, type IpcMainInvokeEvent, dialog } from 'electron';
 import fs from 'node:fs/promises';
 import type { BackupData, ExportResult, ImportResult } from '@shared/ipc/api';
 import { IPC_CHANNELS } from '@shared/ipc/channels';
 import { exportData, importData } from '../db/backupRepository';
 import { backupSchema } from '../schemas/backup.schema';
+import { handle } from './handle';
 
 function windowFor(event: IpcMainInvokeEvent): BrowserWindow {
   const window = BrowserWindow.fromWebContents(event.sender);
@@ -15,7 +16,7 @@ function windowFor(event: IpcMainInvokeEvent): BrowserWindow {
 }
 
 export function registerBackupHandlers(db: Database.Database): void {
-  ipcMain.handle(IPC_CHANNELS.dataExport, async (event): Promise<ExportResult> => {
+  handle(IPC_CHANNELS.dataExport, async (event): Promise<ExportResult> => {
     const defaultPath = `meu-negocio-backup-${new Date().toISOString().slice(0, 10)}.json`;
     const result = await dialog.showSaveDialog(windowFor(event), {
       title: 'Exportar dados',
@@ -32,7 +33,7 @@ export function registerBackupHandlers(db: Database.Database): void {
     return { success: true, filePath: result.filePath };
   });
 
-  ipcMain.handle(IPC_CHANNELS.dataImport, async (event): Promise<ImportResult> => {
+  handle(IPC_CHANNELS.dataImport, async (event): Promise<ImportResult> => {
     const result = await dialog.showOpenDialog(windowFor(event), {
       title: 'Importar dados',
       filters: [{ name: 'JSON', extensions: ['json'] }],
