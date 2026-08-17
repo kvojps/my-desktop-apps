@@ -72,6 +72,12 @@ e o renderer não tem acesso a Node: tudo que ele pode fazer está enumerado aqu
 `HashRouter` (necessário no `file://` do build), MUI com tema em `theme/`, imports
 por alias (`@/` e `@shared/`) sempre que saírem da própria pasta.
 
+O padrão visual — paleta, raios, tipografia, vocabulário de componentes e a
+anatomia de uma tela — é comum aos três e está em
+[`docs/design-system.md`](docs/design-system.md). Como código não é compartilhado
+entre os apps, é aquele documento que faz o papel do pacote `ui` que não existe:
+alteração de UI começa por ele.
+
 - **`api/client.ts`** — fachada tipada com um método por operação. É o único
   arquivo que conhece `window.api` e o formato do erro que atravessa o IPC; o
   resto do renderer chama métodos comuns.
