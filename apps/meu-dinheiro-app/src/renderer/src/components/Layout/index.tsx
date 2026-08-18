@@ -1,11 +1,11 @@
 import {
-  BarChart,
-  Brightness4,
-  Brightness7,
-  Dashboard as DashboardIcon,
-  Settings as SettingsIcon,
+  BarChartOutlined,
+  DarkModeOutlined,
+  DashboardOutlined,
+  LightModeOutlined,
+  SettingsOutlined,
 } from '@mui/icons-material';
-import { Box, ButtonBase, Container, IconButton, Tooltip, Typography } from '@mui/material';
+import { Box, ButtonBase, IconButton, Tooltip, Typography } from '@mui/material';
 import { ReactNode } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import logo from '@/assets/logo.png';
@@ -17,9 +17,17 @@ interface LayoutProps {
 }
 
 const NAV_ITEMS = [
-  { label: 'Visão Geral', path: ROUTES.DASHBOARD, icon: <DashboardIcon /> },
-  { label: 'Histórico', path: ROUTES.HISTORY, icon: <BarChart /> },
-  { label: 'Configurações', path: ROUTES.SETTINGS, icon: <SettingsIcon /> },
+  {
+    label: 'Visão Geral',
+    path: ROUTES.DASHBOARD,
+    icon: <DashboardOutlined sx={{ fontSize: 18 }} />,
+  },
+  { label: 'Histórico', path: ROUTES.HISTORY, icon: <BarChartOutlined sx={{ fontSize: 18 }} /> },
+  {
+    label: 'Configurações',
+    path: ROUTES.SETTINGS,
+    icon: <SettingsOutlined sx={{ fontSize: 18 }} />,
+  },
 ];
 
 const RAIL_WIDTH = 92;
@@ -105,22 +113,38 @@ export function Layout({ children }: LayoutProps) {
 
         <Tooltip title="Alternar tema" placement="right">
           <IconButton onClick={toggleMode} aria-label="Alternar tema" sx={{ mt: 'auto' }}>
-            {mode === 'dark' ? <Brightness7 fontSize="small" /> : <Brightness4 fontSize="small" />}
+            {mode === 'dark' ? (
+              <LightModeOutlined fontSize="small" />
+            ) : (
+              <DarkModeOutlined fontSize="small" />
+            )}
           </IconButton>
         </Tooltip>
       </Box>
 
       {/* Só o conteúdo rola, para o rail permanecer sempre alcançável. */}
       <Box component="main" sx={{ flex: 1, minWidth: 0, overflowY: 'auto' }}>
-        {/* Os breakpoints do MUI medem a *janela*, mas o conteúdo mora numa
-            faixa bem mais estreita: o rail, o padding do Container e a barra de
-            rolagem custam ~156px. Na largura mínima (960) sobram 790px de
-            conteúdo — ou seja, `md` (900) dispara quando não há espaço de `md`.
-            Este container nomeado deixa os componentes consultarem a largura que
-            realmente têm, via `@container content (min-width: …)`. */}
-        <Container sx={{ mt: 4, mb: 4, containerType: 'inline-size', containerName: 'content' }}>
+        {/* Em monitor largo o conteúdo para de crescer e centraliza: sem teto, o
+            grid vira uma fileira de oito cards e ler uma linha da tabela exige
+            varrer a tela.
+
+            Os breakpoints do MUI medem a *janela*, mas o conteúdo mora numa
+            faixa mais estreita: o rail, o padding e a barra de rolagem custam
+            ~156px. Na largura mínima (960) sobram ~805px — ou seja, `md` (900)
+            dispara quando não há espaço de `md`. Este container nomeado deixa os
+            componentes consultarem a largura que realmente têm, via
+            `@container content (min-width: …)`. */}
+        <Box
+          sx={{
+            maxWidth: 1440,
+            mx: 'auto',
+            p: 3,
+            containerType: 'inline-size',
+            containerName: 'content',
+          }}
+        >
           {children}
-        </Container>
+        </Box>
       </Box>
     </Box>
   );
