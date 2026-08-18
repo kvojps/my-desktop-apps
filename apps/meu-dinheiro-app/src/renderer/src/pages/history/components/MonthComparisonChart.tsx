@@ -14,7 +14,7 @@ import {
 import { Month } from '@shared/types/month';
 import { BALANCE_LABELS, computeMonthBalance } from '@/hooks/months/useMonthBalance';
 import { formatCurrency } from '@/utils/format';
-import { CHART_HEIGHT, axisStyle, tooltipStyle } from './chartTheme';
+import { CHART_HEIGHT, axisStyle, tooltipProps } from './chartTheme';
 
 /**
  * O eixo X recebe o mês abreviado, não o rótulo inteiro. Doze rótulos como
@@ -147,7 +147,7 @@ export function MonthComparisonChart({ months, onSelectMonth }: MonthComparisonC
           cursor={{ fill: theme.palette.action.hover }}
           formatter={(value) => formatCurrency(Number(value) || 0)}
           labelFormatter={(value, payload) => payload?.[0]?.payload?.label ?? value}
-          contentStyle={tooltipStyle(theme)}
+          {...tooltipProps(theme)}
         />
         <Legend />
         <ReferenceLine y={0} stroke={theme.palette.divider} />

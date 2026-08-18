@@ -12,7 +12,7 @@ import {
 } from 'recharts';
 import type { CategoryTotalRow } from '@/hooks/categories/useCategoryTotals';
 import { formatCurrency } from '@/utils/format';
-import { CHART_HEIGHT, axisStyle, tooltipStyle } from './chartTheme';
+import { CHART_HEIGHT, axisStyle, tooltipProps } from './chartTheme';
 
 /** Largura de um dígito no `caption` de 12px, com o `tabular-nums` do `body`. */
 const LABEL_CHAR_WIDTH = 7;
@@ -66,7 +66,7 @@ export function CategoryBreakdownChart({ rows }: CategoryBreakdownChartProps) {
               'Total',
             ];
           }}
-          contentStyle={tooltipStyle(theme)}
+          {...tooltipProps(theme)}
         />
         <Bar dataKey="total" barSize={20} radius={[0, 4, 4, 0]}>
           {rows.map((row) => (

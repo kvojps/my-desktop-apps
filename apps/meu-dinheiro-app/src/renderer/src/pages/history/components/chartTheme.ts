@@ -16,12 +16,28 @@ export const CHART_HEIGHT = 380;
  * O tooltip do Recharts é DOM próprio, fora do `MuiTooltip`, então ele não herda
  * nada do tema — sem isto ele sai branco sobre o app escuro. Ficava repetido
  * literalmente em cada gráfico.
+ *
+ * O `contentStyle` sozinho não basta: o Recharts escreve cada linha com
+ * `color: entry.color || '#000'` **inline**, então o preto fixo vence a herança
+ * do tema. No gráfico de categorias o `entry.color` nem existe — a cor mora nos
+ * `Cell`, não no `Bar` —, e o texto saía preto sobre o papel escuro. Por isso
+ * `labelStyle` e `itemStyle` vêm junto, e não como decisão de cada gráfico.
+ *
+ * O texto fica em `text.primary` mesmo quando há cor de série: pela §1.4 cor de
+ * paleta como texto exige par por modo, e a série já se identifica pelo nome
+ * escrito na própria linha e pela legenda.
  */
-export function tooltipStyle(theme: Theme) {
+export function tooltipProps(theme: Theme) {
+  const color = theme.palette.text.primary;
   return {
-    backgroundColor: theme.palette.background.paper,
-    border: `1px solid ${theme.palette.divider}`,
-    borderRadius: CONTROL_RADIUS,
+    contentStyle: {
+      backgroundColor: theme.palette.background.paper,
+      border: `1px solid ${theme.palette.divider}`,
+      borderRadius: CONTROL_RADIUS,
+      color,
+    },
+    labelStyle: { color },
+    itemStyle: { color },
   };
 }
 
