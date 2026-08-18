@@ -151,6 +151,25 @@ não tem sombra de elevação — profundidade é feita com borda.
 `fontVariantNumeric: 'tabular-nums'` no `body` inteiro. Os três apps são quase só
 número empilhado em coluna; dígitos de largura fixa alinham sozinhos.
 
+### 2.1 Alinhamento em tabela
+
+Valor monetário alinha **à direita**; texto, rótulo e barra de progresso, **à
+esquerda**. É o alinhamento à direita que faz o `tabular-nums` global valer
+alguma coisa: com as casas decimais empilhadas, comparar magnitudes entre linhas
+vira leitura de comprimento, e não de dígito.
+
+Duas consequências práticas:
+
+- Coluna numérica precisa de **largura declarada**. Sem ela a primeira coluna
+  come toda a sobra e abre um vão entre o rótulo e os números, que é o que faz o
+  alinhamento à direita parecer errado quando na verdade falta largura.
+- Barra de progresso não acompanha o número: ela se lê da esquerda para a
+  direita, e alinhada à direita cada linha começaria a sua num ponto diferente.
+
+`meu-negocio-app` ainda alinha tudo à esquerda, inclusive as colunas monetárias
+— é ele que está fora da regra, não o `meu-dinheiro`, que a implementa na tabela
+de meses da Visão Geral (`Column.width` e `Column.align` do `DataTable`).
+
 ## 3. Vocabulário de componentes
 
 Estes são os componentes do app de referência. Ao criar tela nova, use-os pelo
@@ -169,6 +188,15 @@ nome — componente novo que faz o trabalho de um destes é divergência.
 | `ActionsMenu`   | Ações por linha, no menu de três pontos                          |
 | `ErrorState`    | Falha ao carregar a tela — tentar de novo e abrir pasta de dados |
 | `AppSnackbar`   | Aviso transitório, via `useSnackbar`                             |
+
+O `StatCard` tem dois slots opcionais além do valor: `forecast`, uma linha de
+`caption` com para onde o indicador caminha, e `spark`, a série do ano desenhada
+sem eixo nem grade. Eles existem porque um card que mostra só o presente obriga a
+sair da tela para responder "e daí para frente?".
+
+Numa série que mistura histórico e previsão, **a previsão se distingue por traço**
+(`strokeDasharray`), não só por cor — pelo §1.7, cor nunca é o único canal, e
+aqui as duas metades da linha são necessariamente da mesma matiz.
 
 Regra de promoção (README §2.4): o componente nasce em `pages/<tela>/components/`
 e só sobe para `components/` quando uma segunda tela precisa dele.

@@ -4,23 +4,12 @@ import {
   FilterAltOffOutlined,
   ReportProblemOutlined,
   SavingsOutlined,
+  TaskAltOutlined,
   TrendingDownOutlined,
   TrendingUpOutlined,
 } from '@mui/icons-material';
-import {
-  Box,
-  Button,
-  Card,
-  Chip,
-  FormControl,
-  InputLabel,
-  MenuItem,
-  Select,
-  Skeleton,
-  Stack,
-  Typography,
-} from '@mui/material';
-import { useEffect, useMemo, useState } from 'react';
+import { Box, Button, Chip, Skeleton, Stack, Tooltip } from '@mui/material';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DataTable } from '@/components/DataTable';
 import type { Column } from '@/components/DataTable';
@@ -39,6 +28,9 @@ import { useMonths } from '@/hooks/months/useMonths';
 import { ROUTES, monthDetailPath } from '@/routes';
 import { formatCurrency } from '@/utils/format';
 import { FirstRunGuide } from './components/FirstRunGuide';
+import { PaidProgress } from './components/PaidProgress';
+import { PeriodRangeControl, resolvePresets } from './components/PeriodRangeControl';
+import { useYearForecast } from './hooks/useYearForecast';
 
 const PAGE_SIZE = 12;
 
@@ -57,8 +49,11 @@ function pendingSub(total: number, pending: number, pendingLabel: string, doneLa
 interface MonthRow {
   id: number;
   label: string;
+  /** "AAAA-MM": ordena cronologicamente, o que o rótulo em português não faz. */
+  sortKey: string;
   isCurrent: boolean;
   overdue: number;
+  overdueAmount: number;
   totalIncome: number;
   totalExpense: number;
   realized: number;
@@ -66,18 +61,42 @@ interface MonthRow {
   expenseCount: number;
 }
 
+interface SortState {
+  key: string;
+  direction: 'asc' | 'desc';
+}
+
 function monthKey(year: number, month: number) {
   return `${year}-${String(month).padStart(2, '0')}`;
 }
 
+function pluralMonths(count: number) {
+  return `${count} ${count === 1 ? 'mês' : 'meses'}`;
+}
+
+/** Quanto da coluna "Pagas" já foi pago, de 0 a 1. Mês sem despesa fica por último. */
+function paidRatio(row: MonthRow) {
+  return row.expenseCount === 0 ? -1 : row.paidCount / row.expenseCount;
+}
+
+const COMPARATORS: Record<string, (a: MonthRow, b: MonthRow) => number> = {
+  label: (a, b) => a.sortKey.localeCompare(b.sortKey),
+  income: (a, b) => a.totalIncome - b.totalIncome,
+  expense: (a, b) => a.totalExpense - b.totalExpense,
+  realized: (a, b) => a.realized - b.realized,
+  paid: (a, b) => paidRatio(a) - paidRatio(b),
+};
+
 export function DashboardPage() {
-  const [fromOverride, setFromOverride] = useState('');
-  const [toOverride, setToOverride] = useState('');
+  // `null` é "ainda não escolheu", e não um intervalo vazio: é o que deixa o
+  // padrão ser derivado em vez de aplicado por efeito. Antes a tela renderizava
+  // "Tudo" por um quadro e só então saltava para "Este ano".
+  const [range, setRange] = useState<{ from: string; to: string } | null>(null);
+  const [sort, setSort] = useState<SortState>({ key: 'label', direction: 'desc' });
   const [page, setPage] = useState(1);
-  const [defaultYearApplied, setDefaultYearApplied] = useState(false);
   const navigate = useNavigate();
   const { months, loading, error, retry: handleRetry } = useMonths();
-  const { bankAccounts } = useBankAccounts();
+  const { bankAccounts, loading: accountsLoading } = useBankAccounts();
   const totalBankBalance = useMemo(
     () => bankAccounts.reduce((sum, a) => sum + a.balance, 0),
     [bankAccounts],
@@ -86,97 +105,58 @@ export function DashboardPage() {
   const monthOptions = useMemo(() => {
     return [...months]
       .sort((a, b) => a.year - b.year || a.month - b.month)
-      .map((m) => ({
-        label: m.label,
-        value: monthKey(m.year, m.month),
-      }));
+      .map((m) => ({ label: m.label, value: monthKey(m.year, m.month) }));
   }, [months]);
 
-  const firstOption = monthOptions[0]?.value ?? '';
-  const lastOption = monthOptions[monthOptions.length - 1]?.value ?? '';
-  const fromValue = fromOverride || firstOption;
-  const toValue = toOverride || lastOption;
-  const isFiltered = fromValue !== firstOption || toValue !== lastOption;
+  const presets = useMemo(() => resolvePresets(monthOptions), [monthOptions]);
 
-  const last3Range = useMemo(() => {
-    if (monthOptions.length === 0) return null;
-    const start = monthOptions[Math.max(0, monthOptions.length - 3)].value;
-    return { from: start, to: lastOption };
-  }, [monthOptions, lastOption]);
-
-  const thisYearRange = useMemo(() => {
-    const currentYear = new Date().getFullYear();
-    const yearOptions = monthOptions.filter((opt) => opt.value.startsWith(`${currentYear}`));
-    if (yearOptions.length === 0) return null;
-    return { from: yearOptions[0].value, to: yearOptions[yearOptions.length - 1].value };
-  }, [monthOptions]);
-
-  const isLast3Active = !!last3Range && fromValue === last3Range.from && toValue === last3Range.to;
-  const isThisYearActive =
-    !!thisYearRange && fromValue === thisYearRange.from && toValue === thisYearRange.to;
-  const isAllActive = !isFiltered;
+  // "Este ano" é o padrão porque é o recorte que o resto da tela assume: os
+  // cards projetam o ano corrente. Sem meses deste ano, cai para tudo.
+  const defaultRange = presets.year ?? presets.all;
+  const fromValue = range?.from ?? defaultRange?.from ?? '';
+  const toValue = range?.to ?? defaultRange?.to ?? '';
 
   function applyRange(from: string, to: string) {
-    setFromOverride(from);
-    setToOverride(to);
+    setRange({ from, to });
     setPage(1);
   }
 
-  function handleFromChange(value: string) {
-    applyRange(value, value > toValue ? value : toOverride);
+  function handleShowAll() {
+    if (presets.all) applyRange(presets.all.from, presets.all.to);
   }
 
-  function handleToChange(value: string) {
-    applyRange(value < fromValue ? value : fromOverride, value);
+  function handleToggleSort(key: string) {
+    setSort((current) =>
+      current.key === key
+        ? { key, direction: current.direction === 'asc' ? 'desc' : 'asc' }
+        : { key, direction: 'desc' },
+    );
+    setPage(1);
   }
-
-  function handleClearRange() {
-    applyRange('', '');
-  }
-
-  function handleQuickLast3() {
-    if (monthOptions.length === 0) return;
-    const start = monthOptions[Math.max(0, monthOptions.length - 3)].value;
-    applyRange(start, lastOption);
-  }
-
-  function handleQuickThisYear() {
-    const now = new Date();
-    const yearOptions = monthOptions.filter((opt) => opt.value.startsWith(`${now.getFullYear()}`));
-    if (yearOptions.length === 0) return;
-    applyRange(yearOptions[0].value, yearOptions[yearOptions.length - 1].value);
-  }
-
-  useEffect(() => {
-    if (!defaultYearApplied && monthOptions.length > 0) {
-      handleQuickThisYear();
-      setDefaultYearApplied(true);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [monthOptions, defaultYearApplied]);
 
   const filteredMonths = useMemo(() => {
-    return months
-      .filter((m) => {
-        const key = monthKey(m.year, m.month);
-        return key >= fromValue && key <= toValue;
-      })
-      .sort((a, b) => b.year - a.year || b.month - a.month);
+    return months.filter((m) => {
+      const key = monthKey(m.year, m.month);
+      return key >= fromValue && key <= toValue;
+    });
   }, [months, fromValue, toValue]);
 
   const summary = useMonthsBalance(filteredMonths);
+  const forecast = useYearForecast(months, totalBankBalance);
 
   const now = new Date();
   const currentKey = monthKey(now.getFullYear(), now.getMonth() + 1);
 
   const rows = useMemo<MonthRow[]>(() => {
-    return filteredMonths.map((month) => {
+    const mapped = filteredMonths.map((month) => {
       const balance = computeMonthBalance(month);
       return {
         id: month.id,
         label: month.label,
+        sortKey: monthKey(month.year, month.month),
         isCurrent: monthKey(month.year, month.month) === currentKey,
         overdue: month.overdueExpenses ?? 0,
+        overdueAmount: month.overdueAmount ?? 0,
         totalIncome: balance.totalIncome,
         totalExpense: balance.totalExpense,
         realized: balance.realized,
@@ -184,7 +164,11 @@ export function DashboardPage() {
         expenseCount: month.totalExpenses ?? 0,
       };
     });
-  }, [filteredMonths, currentKey]);
+
+    const compare = COMPARATORS[sort.key] ?? COMPARATORS.label;
+    const direction = sort.direction === 'asc' ? 1 : -1;
+    return mapped.sort((a, b) => compare(a, b) * direction);
+  }, [filteredMonths, currentKey, sort]);
 
   const totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
   // O intervalo pode encolher com a página atual já fora dele - trocar "De" para
@@ -197,6 +181,11 @@ export function DashboardPage() {
     {
       key: 'label',
       label: 'Mês',
+      sortable: true,
+      // Percentual e não pixel: é a coluna que absorve a sobra numa janela larga,
+      // e as de valor ficam com a largura que um valor em reais pede. Sem largura
+      // nenhuma, esta comia todo o espaço e abria um vão de ~400px até "Entradas".
+      width: '34%',
       render: (row) => (
         <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
           <Box component="span" sx={{ fontWeight: row.isCurrent ? 700 : 400 }}>
@@ -204,11 +193,17 @@ export function DashboardPage() {
           </Box>
           {row.isCurrent && <Chip label="Atual" color="primary" size="small" variant="outlined" />}
           {row.overdue > 0 && (
-            <StatusChip
-              label={`${row.overdue} vencida${row.overdue > 1 ? 's' : ''}`}
-              color="error"
-              icon={<ReportProblemOutlined fontSize="small" />}
-            />
+            // O valor vencido já vinha do SQL e ficava sem uso: a contagem diz
+            // quantas contas atrasaram, mas não se é uma fatura ou um cafezinho.
+            <Tooltip title={`${formatCurrency(row.overdueAmount)} em atraso`}>
+              <Box component="span" sx={{ display: 'inline-flex' }}>
+                <StatusChip
+                  label={`${row.overdue} vencida${row.overdue > 1 ? 's' : ''}`}
+                  color="error"
+                  icon={<ReportProblemOutlined fontSize="small" />}
+                />
+              </Box>
+            </Tooltip>
           )}
         </Stack>
       ),
@@ -216,61 +211,69 @@ export function DashboardPage() {
     {
       key: 'income',
       label: 'Entradas',
+      icon: <TrendingUpOutlined fontSize="inherit" />,
+      sortable: true,
       align: 'right',
+      width: 150,
       render: (row) => formatCurrency(row.totalIncome),
     },
     {
       key: 'expense',
       label: 'Despesas',
+      icon: <TrendingDownOutlined fontSize="inherit" />,
+      sortable: true,
       align: 'right',
+      width: 150,
       render: (row) => formatCurrency(row.totalExpense),
     },
     {
       key: 'realized',
       label: BALANCE_LABELS.realized,
+      icon: <SavingsOutlined fontSize="inherit" />,
+      sortable: true,
       align: 'right',
+      width: 160,
+      // Só o negativo é pintado. Verde em todo mês positivo saturava a coluna
+      // inteira - no escuro o `success` é `#0ca30c` puro - e, pela §1.5, cor
+      // sinaliza condição: fechar no azul é o estado normal, não um aviso.
       render: (row) => (
         <Box
           component="span"
-          sx={{ fontWeight: 600, color: row.realized >= 0 ? 'success.main' : 'error.main' }}
+          sx={{ fontWeight: 600, color: row.realized < 0 ? 'error.main' : 'text.primary' }}
         >
           {formatCurrency(row.realized)}
         </Box>
       ),
     },
     {
-      // A barra de progresso do card virou fração + percentual: numa tabela
-      // densa a barra some, e a fração já diz o que ela dizia.
       key: 'paid',
       label: 'Pagas',
-      align: 'right',
-      render: (row) =>
-        row.expenseCount === 0 ? (
-          <Box component="span" sx={{ color: 'text.secondary' }}>
-            —
-          </Box>
-        ) : (
-          `${row.paidCount}/${row.expenseCount} · ${Math.round(
-            (row.paidCount / row.expenseCount) * 100,
-          )}%`
-        ),
+      icon: <TaskAltOutlined fontSize="inherit" />,
+      sortable: true,
+      // À esquerda porque a barra se lê da esquerda para a direita: alinhada à
+      // direita, cada linha começaria a sua num ponto diferente.
+      width: 180,
+      render: (row) => <PaidProgress paidCount={row.paidCount} expenseCount={row.expenseCount} />,
     },
   ];
 
   // O card de contas é condicional, e a grade precisa saber quantas colunas
   // reservar - com `count` fixo a última coluna ficava vazia sem contas.
-  const statCount = bankAccounts.length > 0 ? 4 : 3;
+  const hasAccounts = bankAccounts.length > 0;
+  const statCount = hasAccounts ? 4 : 3;
 
   if (loading) {
+    // Enquanto as contas carregam, reservar as quatro colunas: descobrir que há
+    // contas depois de desenhar três reflui a fileira inteira.
+    const skeletonCount = hasAccounts || accountsLoading ? 4 : 3;
     return (
       <Stack spacing={3}>
         <Skeleton variant="text" width={240} height={48} />
-        <StatCardGrid count={4}>
-          {Array.from({ length: 4 }, (_, i) => (
-            <StatCardSkeleton key={i} />
+        <StatCardGrid count={skeletonCount}>
+          {Array.from({ length: skeletonCount }, (_, i) => (
+            <StatCardSkeleton key={i} hasForecast hasSpark />
           ))}
         </StatCardGrid>
-        <Skeleton variant="rounded" height={72} />
         <Skeleton variant="rounded" height={420} />
       </Stack>
     );
@@ -286,12 +289,58 @@ export function DashboardPage() {
     return <FirstRunGuide onGoToSettings={() => navigate(ROUTES.SETTINGS)} />;
   }
 
+  const fromLabel = monthOptions.find((o) => o.value === fromValue)?.label ?? '';
+  const toLabel = monthOptions.find((o) => o.value === toValue)?.label ?? '';
+  const rangeSummary =
+    fromLabel === toLabel
+      ? `${fromLabel} · ${pluralMonths(rows.length)}`
+      : `${fromLabel} – ${toLabel} · ${pluralMonths(rows.length)}`;
+
+  // A previsão é sempre do ano corrente. Exibi-la ao lado de números de 2024
+  // seria pôr dois recortes de tempo no mesmo card sem dizer que são dois.
+  const showForecast = forecast.hasData && fromValue <= currentKey && toValue >= currentKey;
+
+  const missingLabel = `${pluralMonths(forecast.estimatedMonths)} ${
+    forecast.estimatedMonths === 1 ? 'ainda não cadastrado' : 'ainda não cadastrados'
+  }`;
+
+  const methodHint = !forecast.estimatedMonths
+    ? `Os doze meses de ${forecast.year} estão cadastrados: este é o plano somado, não uma estimativa.`
+    : forecast.hasBaseline
+      ? `${missingLabel}, estimados pela média dos últimos seis meses com movimento.`
+      : `${missingLabel} e sem histórico suficiente para estimar — eles entram como zero.`;
+
+  function yearForecast(label: string, value: number, basis: string) {
+    if (!showForecast) return undefined;
+    return {
+      label,
+      value: formatCurrency(value),
+      hint: `${basis} ${methodHint}`,
+      estimated: forecast.estimatedMonths > 0,
+    };
+  }
+
+  function yearSpark(points: number[]) {
+    return showForecast ? { points, forecastFrom: forecast.forecastFrom } : undefined;
+  }
+
   return (
     <Stack spacing={3}>
+      {/* O recorte de meses vive aqui, e não numa faixa própria: era um card de
+          largura inteira com quase a altura da fileira de indicadores, para um
+          controle. O `Histórico` já põe o seletor de período neste mesmo lugar. */}
       <PageHeader
         icon={<DashboardOutlined />}
         title="Visão Geral"
-        subtitle="Saldo em contas e resumo de cada mês"
+        subtitle={rangeSummary}
+        actions={
+          <PeriodRangeControl
+            options={monthOptions}
+            from={fromValue}
+            to={toValue}
+            onChange={applyRange}
+          />
+        }
       />
 
       {/* Um bloco só para o resumo do período. Antes eram dois, e eles se
@@ -300,12 +349,12 @@ export function DashboardPage() {
           soma da decomposição que vinha logo abaixo. Dos oito números exibidos,
           só quatro eram independentes.
 
-          O que sobrou: cada card traz um total como valor e o que ainda não
-          aconteceu como legenda. Recebido e pago saem da subtração, e o
-          Realizado - que é justamente `recebido - pago` - virou card próprio,
-          com o Previsto na legenda. */}
+          O que sobrou: cada card traz um total como valor, o que ainda não
+          aconteceu como legenda e onde o indicador chega em dezembro como
+          previsão. Recebido e pago saem da subtração, e o Realizado - que é
+          justamente `recebido - pago` - virou card próprio. */}
       <StatCardGrid count={statCount}>
-        {bankAccounts.length > 0 && (
+        {hasAccounts && (
           <StatCard
             label="Saldo em contas"
             value={formatCurrency(totalBankBalance)}
@@ -313,6 +362,12 @@ export function DashboardPage() {
             icon={AccountBalanceOutlined}
             accent="primary"
             tone={totalBankBalance < 0 ? 'alert' : 'neutral'}
+            forecast={yearForecast(
+              `Em dezembro de ${forecast.year}:`,
+              forecast.bankEndOfYear,
+              'Saldo de hoje mais tudo que ainda falta receber e pagar no ano.',
+            )}
+            spark={yearSpark(forecast.series.bank)}
           />
         )}
         <StatCard
@@ -322,6 +377,12 @@ export function DashboardPage() {
           icon={SavingsOutlined}
           accent="info"
           tone={summary.realized >= 0 ? 'positive' : 'alert'}
+          forecast={yearForecast(
+            `Fecha ${forecast.year} em`,
+            forecast.projected,
+            'Entradas menos despesas do ano inteiro — onde o realizado chega se tudo for cumprido.',
+          )}
+          spark={yearSpark(forecast.series.projectedCumulative)}
         />
         <StatCard
           label="Entradas no período"
@@ -329,6 +390,12 @@ export function DashboardPage() {
           sub={pendingSub(summary.totalIncome, summary.pendingIncome, 'a receber', 'tudo recebido')}
           icon={TrendingUpOutlined}
           accent="success"
+          forecast={yearForecast(
+            `Total de ${forecast.year}:`,
+            forecast.income,
+            'Soma das entradas dos doze meses.',
+          )}
+          spark={yearSpark(forecast.series.income)}
         />
         <StatCard
           label="Despesas no período"
@@ -336,90 +403,22 @@ export function DashboardPage() {
           sub={pendingSub(summary.totalExpense, summary.pendingExpense, 'a pagar', 'tudo pago')}
           icon={TrendingDownOutlined}
           accent="secondary"
+          forecast={yearForecast(
+            `Total de ${forecast.year}:`,
+            forecast.expense,
+            'Soma das despesas dos doze meses.',
+          )}
+          spark={yearSpark(forecast.series.expense)}
         />
       </StatCardGrid>
-
-      <Card variant="outlined" sx={{ p: 2 }}>
-        {/* Intervalo e atalhos formam um grupo só; "Limpar filtro" é o outro. Com
-            `ml: 'auto'` no botão, a quebra de linha o mandava para a direita de
-            uma linha vazia. Os selects usam 168px em vez de 180: com 180 os
-            atalhos não cabiam na primeira linha por 5px e desciam sozinhos,
-            deixando ~260px de vão à direita dos campos. */}
-        <Stack
-          direction="row"
-          spacing={2}
-          alignItems="center"
-          flexWrap="wrap"
-          useFlexGap
-          justifyContent="space-between"
-        >
-          <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap" useFlexGap>
-            <Typography variant="subtitle1" sx={{ minWidth: 80 }}>
-              Exibir meses:
-            </Typography>
-            <FormControl size="small" sx={{ minWidth: 168 }}>
-              <InputLabel>De</InputLabel>
-              <Select
-                value={fromValue}
-                label="De"
-                onChange={(e) => handleFromChange(e.target.value)}
-              >
-                {monthOptions.map((opt) => (
-                  <MenuItem key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            <FormControl size="small" sx={{ minWidth: 168 }}>
-              <InputLabel>Até</InputLabel>
-              <Select value={toValue} label="Até" onChange={(e) => handleToChange(e.target.value)}>
-                {monthOptions.map((opt) => (
-                  <MenuItem key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
-            <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-              <Chip
-                label="Últimos 3 meses"
-                size="small"
-                variant={isLast3Active ? 'filled' : 'outlined'}
-                color={isLast3Active ? 'primary' : 'default'}
-                onClick={handleQuickLast3}
-              />
-              <Chip
-                label="Este ano"
-                size="small"
-                variant={isThisYearActive ? 'filled' : 'outlined'}
-                color={isThisYearActive ? 'primary' : 'default'}
-                onClick={handleQuickThisYear}
-              />
-              <Chip
-                label="Tudo"
-                size="small"
-                variant={isAllActive ? 'filled' : 'outlined'}
-                color={isAllActive ? 'primary' : 'default'}
-                onClick={handleClearRange}
-              />
-            </Stack>
-          </Stack>
-
-          {isFiltered && (
-            <Button size="small" onClick={handleClearRange}>
-              Limpar filtro
-            </Button>
-          )}
-        </Stack>
-      </Card>
 
       <DataTable
         columns={columns}
         items={visibleRows}
         totalCount={rows.length}
         start={start}
+        sort={sort}
+        onToggleSort={handleToggleSort}
         getRowKey={(row) => String(row.id)}
         footerLabel="meses"
         onRowClick={(row) => navigate(monthDetailPath(row.id))}
@@ -427,8 +426,8 @@ export function DashboardPage() {
           <EmptyState
             icon={<FilterAltOffOutlined sx={{ fontSize: 40 }} />}
             title="Nenhum mês no intervalo selecionado."
-            description="O intervalo de datas acima não alcança nenhum mês cadastrado."
-            action={<Button onClick={handleClearRange}>Limpar filtro</Button>}
+            description="O período escolhido no cabeçalho não alcança nenhum mês cadastrado."
+            action={<Button onClick={handleShowAll}>Mostrar todos os meses</Button>}
           />
         }
         pagination={{ currentPage, totalPages, onPageChange: setPage }}
