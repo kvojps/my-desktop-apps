@@ -4,7 +4,6 @@ import {
   FilterAltOffOutlined,
   ReportProblemOutlined,
   SavingsOutlined,
-  TaskAltOutlined,
   TrendingDownOutlined,
   TrendingUpOutlined,
 } from '@mui/icons-material';
@@ -182,10 +181,6 @@ export function DashboardPage() {
       key: 'label',
       label: 'Mês',
       sortable: true,
-      // Percentual e não pixel: é a coluna que absorve a sobra numa janela larga,
-      // e as de valor ficam com a largura que um valor em reais pede. Sem largura
-      // nenhuma, esta comia todo o espaço e abria um vão de ~400px até "Entradas".
-      width: '34%',
       render: (row) => (
         <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
           <Box component="span" sx={{ fontWeight: row.isCurrent ? 700 : 400 }}>
@@ -211,28 +206,22 @@ export function DashboardPage() {
     {
       key: 'income',
       label: 'Entradas',
-      icon: <TrendingUpOutlined fontSize="inherit" />,
       sortable: true,
       align: 'right',
-      width: 150,
       render: (row) => formatCurrency(row.totalIncome),
     },
     {
       key: 'expense',
       label: 'Despesas',
-      icon: <TrendingDownOutlined fontSize="inherit" />,
       sortable: true,
       align: 'right',
-      width: 150,
       render: (row) => formatCurrency(row.totalExpense),
     },
     {
       key: 'realized',
       label: BALANCE_LABELS.realized,
-      icon: <SavingsOutlined fontSize="inherit" />,
       sortable: true,
       align: 'right',
-      width: 160,
       // Só o negativo é pintado. Verde em todo mês positivo saturava a coluna
       // inteira - no escuro o `success` é `#0ca30c` puro - e, pela §1.5, cor
       // sinaliza condição: fechar no azul é o estado normal, não um aviso.
@@ -248,11 +237,8 @@ export function DashboardPage() {
     {
       key: 'paid',
       label: 'Pagas',
-      icon: <TaskAltOutlined fontSize="inherit" />,
       sortable: true,
-      // À esquerda porque a barra se lê da esquerda para a direita: alinhada à
-      // direita, cada linha começaria a sua num ponto diferente.
-      width: 180,
+      align: 'right',
       render: (row) => <PaidProgress paidCount={row.paidCount} expenseCount={row.expenseCount} />,
     },
   ];

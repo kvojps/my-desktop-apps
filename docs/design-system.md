@@ -153,22 +153,17 @@ número empilhado em coluna; dígitos de largura fixa alinham sozinhos.
 
 ### 2.1 Alinhamento em tabela
 
-Valor monetário alinha **à direita**; texto, rótulo e barra de progresso, **à
-esquerda**. É o alinhamento à direita que faz o `tabular-nums` global valer
+Valor monetário alinha **à direita**; texto e rótulo, **à esquerda**. É o
+alinhamento à direita que faz o `fontVariantNumeric: 'tabular-nums'` global valer
 alguma coisa: com as casas decimais empilhadas, comparar magnitudes entre linhas
 vira leitura de comprimento, e não de dígito.
 
-Duas consequências práticas:
-
-- Coluna numérica precisa de **largura declarada**. Sem ela a primeira coluna
-  come toda a sobra e abre um vão entre o rótulo e os números, que é o que faz o
-  alinhamento à direita parecer errado quando na verdade falta largura.
-- Barra de progresso não acompanha o número: ela se lê da esquerda para a
-  direita, e alinhada à direita cada linha começaria a sua num ponto diferente.
+Um medidor dentro de uma coluna alinhada à direita vai por último, depois do seu
+rótulo — assim ele encosta na borda e todos os medidores da coluna começam no
+mesmo ponto.
 
 `meu-negocio-app` ainda alinha tudo à esquerda, inclusive as colunas monetárias
-— é ele que está fora da regra, não o `meu-dinheiro`, que a implementa na tabela
-de meses da Visão Geral (`Column.width` e `Column.align` do `DataTable`).
+— é ele que está fora da regra, não o `meu-dinheiro`.
 
 ## 3. Vocabulário de componentes
 
