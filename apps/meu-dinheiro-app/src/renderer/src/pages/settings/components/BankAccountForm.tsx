@@ -1,14 +1,8 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import {
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  TextField,
-} from '@mui/material';
+import { Button, TextField } from '@mui/material';
 import { useForm } from 'react-hook-form';
 import { BankAccount } from '@shared/types/bank-account';
+import { Modal } from '@/components/Modal';
 import { BankAccountFormValues, bankAccountFormSchema } from './formSchemas';
 
 interface BankAccountFormProps {
@@ -39,36 +33,40 @@ export function BankAccountForm({ open, onClose, onSave, initial }: BankAccountF
   });
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>{initial ? 'Editar Conta' : 'Nova Conta'}</DialogTitle>
-      <DialogContent>
-        <TextField
-          autoFocus
-          label="Nome da conta"
-          fullWidth
-          error={!!errors.name}
-          helperText={errors.name?.message}
-          sx={{ mt: 1, mb: 2 }}
-          {...register('name')}
-        />
-        <TextField
-          label="Saldo (R$)"
-          type="number"
-          fullWidth
-          error={!!errors.balance}
-          helperText={
-            errors.balance?.message ??
-            (initial ? 'Ajuste manual do saldo atual.' : 'Saldo inicial da conta.')
-          }
-          {...register('balance')}
-        />
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose}>Cancelar</Button>
-        <Button variant="contained" onClick={() => onSubmit()}>
-          Salvar
-        </Button>
-      </DialogActions>
-    </Dialog>
+    <Modal
+      open={open}
+      onClose={onClose}
+      title={initial ? 'Editar Conta' : 'Nova Conta'}
+      onSubmit={onSubmit}
+      footer={
+        <>
+          <Button onClick={onClose}>Cancelar</Button>
+          <Button variant="contained" type="submit">
+            Salvar
+          </Button>
+        </>
+      }
+    >
+      <TextField
+        autoFocus
+        label="Nome da conta"
+        fullWidth
+        error={!!errors.name}
+        helperText={errors.name?.message}
+        sx={{ mt: 1, mb: 2 }}
+        {...register('name')}
+      />
+      <TextField
+        label="Saldo (R$)"
+        type="number"
+        fullWidth
+        error={!!errors.balance}
+        helperText={
+          errors.balance?.message ??
+          (initial ? 'Ajuste manual do saldo atual.' : 'Saldo inicial da conta.')
+        }
+        {...register('balance')}
+      />
+    </Modal>
   );
 }

@@ -1,14 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import {
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  MenuItem,
-  TextField,
-} from '@mui/material';
+import { Button, MenuItem, TextField } from '@mui/material';
 import { Controller, useForm } from 'react-hook-form';
+import { Modal } from '@/components/Modal';
 import { useCategories } from '@/hooks/categories/useCategories';
 import { ExpenseFormValues, expenseFormSchema } from './formSchemas';
 
@@ -60,58 +53,62 @@ export function AddExpenseDialog({ open, onClose, onSubmit }: AddExpenseDialogPr
   });
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Nova Despesa</DialogTitle>
-      <DialogContent>
-        <TextField
-          autoFocus
-          label="Nome"
-          fullWidth
-          error={!!errors.name}
-          helperText={errors.name?.message}
-          sx={{ mt: 1, mb: 2 }}
-          {...register('name')}
-        />
-        <TextField
-          label="Valor (R$)"
-          type="number"
-          fullWidth
-          error={!!errors.amount}
-          helperText={errors.amount?.message}
-          sx={{ mb: 2 }}
-          {...register('amount')}
-        />
-        <TextField
-          label="Data de vencimento"
-          type="date"
-          fullWidth
-          InputLabelProps={{ shrink: true }}
-          sx={{ mb: 2 }}
-          {...register('dueDate')}
-        />
-        <Controller
-          name="categoryId"
-          control={control}
-          render={({ field }) => (
-            <TextField select label="Categoria" fullWidth {...field}>
-              <MenuItem value="">
-                <em>Sem categoria</em>
+    <Modal
+      open={open}
+      onClose={handleClose}
+      title="Nova Despesa"
+      onSubmit={submit}
+      footer={
+        <>
+          <Button onClick={handleClose}>Cancelar</Button>
+          <Button variant="contained" type="submit" disabled={isSubmitting}>
+            Adicionar
+          </Button>
+        </>
+      }
+    >
+      <TextField
+        autoFocus
+        label="Nome"
+        fullWidth
+        error={!!errors.name}
+        helperText={errors.name?.message}
+        sx={{ mt: 1, mb: 2 }}
+        {...register('name')}
+      />
+      <TextField
+        label="Valor (R$)"
+        type="number"
+        fullWidth
+        error={!!errors.amount}
+        helperText={errors.amount?.message}
+        sx={{ mb: 2 }}
+        {...register('amount')}
+      />
+      <TextField
+        label="Data de vencimento"
+        type="date"
+        fullWidth
+        InputLabelProps={{ shrink: true }}
+        sx={{ mb: 2 }}
+        {...register('dueDate')}
+      />
+      <Controller
+        name="categoryId"
+        control={control}
+        render={({ field }) => (
+          <TextField select label="Categoria" fullWidth {...field}>
+            <MenuItem value="">
+              <em>Sem categoria</em>
+            </MenuItem>
+            {categories.map((category) => (
+              <MenuItem key={category.id} value={String(category.id)}>
+                {category.name}
               </MenuItem>
-              {categories.map((category) => (
-                <MenuItem key={category.id} value={String(category.id)}>
-                  {category.name}
-                </MenuItem>
-              ))}
-            </TextField>
-          )}
-        />
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={handleClose}>Cancelar</Button>
-        <Button variant="contained" onClick={() => submit()} disabled={isSubmitting}>
-          Adicionar
-        </Button>
-      </DialogActions>
-    </Dialog>
+            ))}
+          </TextField>
+        )}
+      />
+    </Modal>
   );
 }

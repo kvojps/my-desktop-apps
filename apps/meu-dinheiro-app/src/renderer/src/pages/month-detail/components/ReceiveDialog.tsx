@@ -1,18 +1,10 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import {
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  MenuItem,
-  TextField,
-  Typography,
-} from '@mui/material';
+import { Button, MenuItem, TextField, Typography } from '@mui/material';
 import { useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { BankAccount } from '@shared/types/bank-account';
 import { Income } from '@shared/types/income';
+import { Modal } from '@/components/Modal';
 import { formatDateOnly, todayDateString } from '@/utils/date';
 import { formatCurrency } from '@/utils/format';
 import { ReceiveFormValues, receiveFormSchema } from './formSchemas';
@@ -65,63 +57,67 @@ export function ReceiveDialog({
   if (!income) return null;
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Receber Entrada</DialogTitle>
-      <DialogContent>
-        <Typography variant="h6" gutterBottom>
-          {income.name}
+    <Modal
+      open={open}
+      onClose={handleClose}
+      title="Receber Entrada"
+      onSubmit={submit}
+      footer={
+        <>
+          <Button onClick={handleClose}>Cancelar</Button>
+          <Button variant="contained" color="success" type="submit">
+            Confirmar Recebimento
+          </Button>
+        </>
+      }
+    >
+      <Typography variant="h6" gutterBottom>
+        {income.name}
+      </Typography>
+      <Typography variant="body1" color="text.secondary" gutterBottom>
+        Valor: {formatCurrency(income.amount)}
+      </Typography>
+      {income.expectedDate && (
+        <Typography variant="body2" color="text.secondary" gutterBottom>
+          Previsto: {formatDateOnly(income.expectedDate)}
         </Typography>
-        <Typography variant="body1" color="text.secondary" gutterBottom>
-          Valor: {formatCurrency(income.amount)}
-        </Typography>
-        {income.expectedDate && (
-          <Typography variant="body2" color="text.secondary" gutterBottom>
-            Previsto: {formatDateOnly(income.expectedDate)}
-          </Typography>
-        )}
+      )}
 
-        <TextField
-          label="Data do recebimento"
-          type="date"
-          fullWidth
-          InputLabelProps={{ shrink: true }}
-          inputProps={{ max: todayDateString() }}
-          sx={{ mt: 2 }}
-          {...register('receivedAt')}
-        />
+      <TextField
+        label="Data do recebimento"
+        type="date"
+        fullWidth
+        InputLabelProps={{ shrink: true }}
+        inputProps={{ max: todayDateString() }}
+        sx={{ mt: 2 }}
+        {...register('receivedAt')}
+      />
 
-        <Controller
-          name="bankAccountId"
-          control={control}
-          render={({ field }) => (
-            <TextField select label="Conta (opcional)" fullWidth sx={{ mt: 2 }} {...field}>
-              <MenuItem value="">
-                <em>Nenhuma</em>
+      <Controller
+        name="bankAccountId"
+        control={control}
+        render={({ field }) => (
+          <TextField select label="Conta (opcional)" fullWidth sx={{ mt: 2 }} {...field}>
+            <MenuItem value="">
+              <em>Nenhuma</em>
+            </MenuItem>
+            {bankAccounts.map((account) => (
+              <MenuItem key={account.id} value={String(account.id)}>
+                {account.name} ({formatCurrency(account.balance)})
               </MenuItem>
-              {bankAccounts.map((account) => (
-                <MenuItem key={account.id} value={String(account.id)}>
-                  {account.name} ({formatCurrency(account.balance)})
-                </MenuItem>
-              ))}
-            </TextField>
-          )}
-        />
+            ))}
+          </TextField>
+        )}
+      />
 
-        <TextField
-          label="Observações"
-          fullWidth
-          multiline
-          rows={3}
-          sx={{ mt: 2 }}
-          {...register('notes')}
-        />
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={handleClose}>Cancelar</Button>
-        <Button variant="contained" color="success" onClick={() => submit()}>
-          Confirmar Recebimento
-        </Button>
-      </DialogActions>
-    </Dialog>
+      <TextField
+        label="Observações"
+        fullWidth
+        multiline
+        rows={3}
+        sx={{ mt: 2 }}
+        {...register('notes')}
+      />
+    </Modal>
   );
 }

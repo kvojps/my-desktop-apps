@@ -1,15 +1,8 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import {
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  MenuItem,
-  TextField,
-} from '@mui/material';
+import { Button, MenuItem, TextField } from '@mui/material';
 import { Controller, useForm } from 'react-hook-form';
 import { Expense } from '@shared/types/expense';
+import { Modal } from '@/components/Modal';
 import { useCategories } from '@/hooks/categories/useCategories';
 import { ExpenseFormValues, expenseFormSchema } from './formSchemas';
 
@@ -56,59 +49,63 @@ export function EditExpenseDialog({ open, expense, onClose, onSubmit }: EditExpe
   });
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Editar Despesa</DialogTitle>
-      <DialogContent>
-        <TextField
-          autoFocus
-          label="Nome"
-          fullWidth
-          error={!!errors.name}
-          helperText={errors.name?.message}
-          sx={{ mt: 1, mb: 2 }}
-          {...register('name')}
-        />
-        <TextField
-          label="Valor (R$)"
-          type="number"
-          fullWidth
-          error={!!errors.amount}
-          helperText={errors.amount?.message ?? 'Deixe em branco para valor variável.'}
-          sx={{ mb: 2 }}
-          {...register('amount')}
-        />
-        <TextField
-          label="Data de vencimento"
-          type="date"
-          fullWidth
-          InputLabelProps={{ shrink: true }}
-          sx={{ mb: 2 }}
-          {...register('dueDate')}
-        />
-        <Controller
-          name="categoryId"
-          control={control}
-          render={({ field }) => (
-            <TextField select label="Categoria" fullWidth sx={{ mb: 2 }} {...field}>
-              <MenuItem value="">
-                <em>Sem categoria</em>
+    <Modal
+      open={open}
+      onClose={onClose}
+      title="Editar Despesa"
+      onSubmit={submit}
+      footer={
+        <>
+          <Button onClick={onClose}>Cancelar</Button>
+          <Button variant="contained" type="submit" disabled={isSubmitting}>
+            Salvar
+          </Button>
+        </>
+      }
+    >
+      <TextField
+        autoFocus
+        label="Nome"
+        fullWidth
+        error={!!errors.name}
+        helperText={errors.name?.message}
+        sx={{ mt: 1, mb: 2 }}
+        {...register('name')}
+      />
+      <TextField
+        label="Valor (R$)"
+        type="number"
+        fullWidth
+        error={!!errors.amount}
+        helperText={errors.amount?.message ?? 'Deixe em branco para valor variável.'}
+        sx={{ mb: 2 }}
+        {...register('amount')}
+      />
+      <TextField
+        label="Data de vencimento"
+        type="date"
+        fullWidth
+        InputLabelProps={{ shrink: true }}
+        sx={{ mb: 2 }}
+        {...register('dueDate')}
+      />
+      <Controller
+        name="categoryId"
+        control={control}
+        render={({ field }) => (
+          <TextField select label="Categoria" fullWidth sx={{ mb: 2 }} {...field}>
+            <MenuItem value="">
+              <em>Sem categoria</em>
+            </MenuItem>
+            {categories.map((category) => (
+              <MenuItem key={category.id} value={String(category.id)}>
+                {category.name}
               </MenuItem>
-              {categories.map((category) => (
-                <MenuItem key={category.id} value={String(category.id)}>
-                  {category.name}
-                </MenuItem>
-              ))}
-            </TextField>
-          )}
-        />
-        <TextField label="Observação" fullWidth multiline rows={2} {...register('notes')} />
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose}>Cancelar</Button>
-        <Button variant="contained" onClick={() => submit()} disabled={isSubmitting}>
-          Salvar
-        </Button>
-      </DialogActions>
-    </Dialog>
+            ))}
+          </TextField>
+        )}
+      />
+      <TextField label="Observação" fullWidth multiline rows={2} {...register('notes')} />
+    </Modal>
   );
 }
