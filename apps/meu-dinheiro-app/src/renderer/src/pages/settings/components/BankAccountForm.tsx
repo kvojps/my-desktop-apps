@@ -8,7 +8,7 @@ import { BankAccountFormValues, bankAccountFormSchema } from './formSchemas';
 interface BankAccountFormProps {
   open: boolean;
   onClose: () => void;
-  onSave: (data: { name: string; balance?: number }) => void;
+  onSave: (data: { name: string; balance?: number }) => Promise<boolean>;
   initial?: BankAccount | null;
 }
 
@@ -16,7 +16,7 @@ export function BankAccountForm({ open, onClose, onSave, initial }: BankAccountF
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm<BankAccountFormValues>({
     resolver: zodResolver(bankAccountFormSchema),
     defaultValues: {
@@ -25,11 +25,14 @@ export function BankAccountForm({ open, onClose, onSave, initial }: BankAccountF
     },
   });
 
-  const onSubmit = handleSubmit((values) => {
-    onSave({
+  // Aguardar o save é o que permite travar o botão enquanto ele corre; sem
+  // isso um duplo clique cadastra duas vezes. Mesmo desenho dos diálogos do mês.
+  const onSubmit = handleSubmit(async (values) => {
+    const success = await onSave({
       name: values.name,
       balance: Number(values.balance) || 0,
     });
+    if (success) onClose();
   });
 
   return (
@@ -41,7 +44,7 @@ export function BankAccountForm({ open, onClose, onSave, initial }: BankAccountF
       footer={
         <>
           <Button onClick={onClose}>Cancelar</Button>
-          <Button variant="contained" type="submit">
+          <Button variant="contained" type="submit" disabled={isSubmitting}>
             Salvar
           </Button>
         </>

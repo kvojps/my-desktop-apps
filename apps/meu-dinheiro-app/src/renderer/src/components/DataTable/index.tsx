@@ -36,6 +36,12 @@ interface DataTableProps<T> {
   footerLabel: string;
   isLoading?: boolean;
   onRowClick?: (item: T) => void;
+  /**
+   * Sem a superfície própria, para quando a tabela já mora dentro de uma —
+   * o `AccordionDetails` das Configurações. Um `Paper` com borda dentro de
+   * outro vira caixa dentro de caixa.
+   */
+  flush?: boolean;
   /** Estado vazio completo — ícone, frase e a ação que resolve. */
   empty?: ReactNode;
   pagination?: {
@@ -60,6 +66,7 @@ export function DataTable<T>({
   footerLabel,
   isLoading,
   onRowClick,
+  flush,
   empty,
   pagination,
 }: DataTableProps<T>) {
@@ -129,8 +136,11 @@ export function DataTable<T>({
     ));
   }
 
-  return (
-    <Paper variant="outlined">
+  // O miolo é o mesmo nos dois modos; só o invólucro muda. Sem a borda do
+  // `Paper`, quem abre e fecha a tabela são a faixa tonal do cabeçalho e a
+  // régua superior do rodapé.
+  const body = (
+    <>
       <TableContainer>
         <Table size="small">
           <TableHead>
@@ -180,6 +190,8 @@ export function DataTable<T>({
           onPageChange={pagination.onPageChange}
         />
       )}
-    </Paper>
+    </>
   );
+
+  return flush ? <Box>{body}</Box> : <Paper variant="outlined">{body}</Paper>;
 }

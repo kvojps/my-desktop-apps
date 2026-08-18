@@ -2,6 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Button, MenuItem, TextField } from '@mui/material';
 import { Controller, useForm } from 'react-hook-form';
 import { DefaultExpense } from '@shared/types/expense';
+import { CategoryTag } from '@/components/CategoryTag';
 import { Modal } from '@/components/Modal';
 import { useCategories } from '@/hooks/categories/useCategories';
 import { DefaultExpenseFormValues, defaultExpenseFormSchema } from './formSchemas';
@@ -14,7 +15,7 @@ interface DefaultExpenseFormProps {
     dueDay?: number;
     amount: number;
     categoryId?: number | null;
-  }) => void;
+  }) => Promise<boolean>;
   initial?: DefaultExpense | null;
 }
 
@@ -24,7 +25,7 @@ export function DefaultExpenseForm({ open, onClose, onSave, initial }: DefaultEx
     register,
     control,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm<DefaultExpenseFormValues>({
     resolver: zodResolver(defaultExpenseFormSchema),
     defaultValues: {
@@ -35,13 +36,14 @@ export function DefaultExpenseForm({ open, onClose, onSave, initial }: DefaultEx
     },
   });
 
-  const onSubmit = handleSubmit((values) => {
-    onSave({
+  const onSubmit = handleSubmit(async (values) => {
+    const success = await onSave({
       name: values.name,
       dueDay: values.dueDay ? Number(values.dueDay) : undefined,
       amount: Number(values.amount) || 0,
       categoryId: values.categoryId ? Number(values.categoryId) : null,
     });
+    if (success) onClose();
   });
 
   return (
@@ -53,7 +55,7 @@ export function DefaultExpenseForm({ open, onClose, onSave, initial }: DefaultEx
       footer={
         <>
           <Button onClick={onClose}>Cancelar</Button>
-          <Button variant="contained" type="submit">
+          <Button variant="contained" type="submit" disabled={isSubmitting}>
             Salvar
           </Button>
         </>
@@ -69,7 +71,7 @@ export function DefaultExpenseForm({ open, onClose, onSave, initial }: DefaultEx
         {...register('name')}
       />
       <TextField
-        label="Valor (R$) - opcional"
+        label="Valor (R$)"
         type="number"
         fullWidth
         error={!!errors.amount}
@@ -97,7 +99,7 @@ export function DefaultExpenseForm({ open, onClose, onSave, initial }: DefaultEx
             </MenuItem>
             {categories.map((category) => (
               <MenuItem key={category.id} value={String(category.id)}>
-                {category.name}
+                <CategoryTag name={category.name} color={category.color} />
               </MenuItem>
             ))}
           </TextField>

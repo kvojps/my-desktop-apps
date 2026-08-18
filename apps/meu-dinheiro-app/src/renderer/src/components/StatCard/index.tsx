@@ -3,6 +3,8 @@ import { Box, Card, CardContent, Skeleton, Stack, Tooltip, Typography } from '@m
 import { useTheme } from '@mui/material/styles';
 import type { ComponentType, ReactNode } from 'react';
 import { Line, LineChart, ResponsiveContainer, YAxis } from 'recharts';
+import { IconTile, TILE_SIZE } from '@/components/IconTile';
+import type { TileAccent } from '@/components/IconTile';
 import { CONTROL_RADIUS } from '@/theme';
 
 /**
@@ -19,10 +21,11 @@ import { CONTROL_RADIUS } from '@/theme';
  */
 export type StatTone = 'neutral' | 'positive' | 'alert';
 
-/** Cor de identidade do indicador. Sem ela o ladrilho fica neutro. */
-export type StatAccent = 'primary' | 'secondary' | 'success' | 'info' | 'warning' | 'error';
-
-const TILE_SIZE = 38;
+/**
+ * Cor de identidade do indicador. Sem ela o ladrilho fica neutro. É a cor do
+ * `IconTile`, que desde a tela de Configurações é compartilhado (README §2.4).
+ */
+export type StatAccent = TileAccent;
 
 const TONE_COLOR: Record<StatTone, string> = {
   neutral: 'text.primary',
@@ -181,21 +184,7 @@ export function StatCard({
             </Typography>
           </Stack>
 
-          <Box
-            sx={{
-              flexShrink: 0,
-              width: TILE_SIZE,
-              height: TILE_SIZE,
-              borderRadius: `${CONTROL_RADIUS}px`,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              bgcolor: tileColor ? `${tileColor}.main` : 'action.selected',
-              color: tileColor ? `${tileColor}.contrastText` : 'text.secondary',
-            }}
-          >
-            <Icon sx={{ fontSize: 20 }} />
-          </Box>
+          <IconTile icon={Icon} accent={tileColor} />
         </Stack>
 
         {(sub || trend) && (

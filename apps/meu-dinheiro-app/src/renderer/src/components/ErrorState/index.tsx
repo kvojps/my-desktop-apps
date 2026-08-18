@@ -10,6 +10,12 @@ interface ErrorStateProps {
   title: string;
   error: unknown;
   onRetry: () => void;
+  /**
+   * Dentro de uma seção, e não ocupando a página: sem o respiro de topo e um
+   * degrau menor. É a mesma distinção que o `EmptyState` já faz nas chamadas,
+   * com ícone de 48 na página inteira e de 40 numa seção.
+   */
+  dense?: boolean;
 }
 
 /**
@@ -17,7 +23,7 @@ interface ErrorStateProps {
  * acontecido num app local (banco inacessível, corrompido, sem permissão) e
  * oferece a ação correspondente.
  */
-export function ErrorState({ title, error, onRetry }: ErrorStateProps) {
+export function ErrorState({ title, error, onRetry, dense }: ErrorStateProps) {
   const { code, message } = decodeAppError(error);
   const { showSnackbar, showError } = useSnackbar();
   const [restoring, setRestoring] = useState(false);
@@ -51,9 +57,9 @@ export function ErrorState({ title, error, onRetry }: ErrorStateProps) {
   }
 
   return (
-    <Box sx={{ textAlign: 'center', mt: 8, mx: 'auto', maxWidth: 560 }}>
-      <ErrorOutline sx={{ fontSize: 48, color: 'error.main', mb: 1 }} />
-      <Typography variant="h5" gutterBottom>
+    <Box sx={{ textAlign: 'center', mt: dense ? 0 : 8, mx: 'auto', maxWidth: 560 }}>
+      <ErrorOutline sx={{ fontSize: dense ? 40 : 48, color: 'error.main', mb: 1 }} />
+      <Typography variant={dense ? 'h6' : 'h5'} gutterBottom>
         {title}
       </Typography>
       <Typography color="text.secondary" sx={{ mb: 2 }}>

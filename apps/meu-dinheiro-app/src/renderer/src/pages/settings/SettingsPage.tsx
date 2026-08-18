@@ -1,44 +1,35 @@
 import {
-  AccountBalance,
-  Add as AddIcon,
-  CalendarMonth,
-  Delete as DeleteIcon,
-  Edit as EditIcon,
+  AccountBalanceOutlined,
+  Add,
+  CalendarMonthOutlined,
   ExpandMore,
-  FileDownload as FileDownloadIcon,
-  FileUpload as FileUploadIcon,
-  ImportExport,
-  Label,
-  Payments,
-  PlaylistAdd as PlaylistAddIcon,
-  ReceiptLong,
+  FileDownload,
+  FileUpload,
+  ImportExportOutlined,
+  LabelOutlined,
+  PaymentsOutlined,
+  PlaylistAdd,
+  ReceiptLongOutlined,
   SettingsOutlined,
 } from '@mui/icons-material';
 import {
   Accordion,
   AccordionDetails,
   AccordionSummary,
-  Avatar,
   Box,
   Button,
   Chip,
-  Divider,
-  IconButton,
-  List,
-  ListItem,
-  ListItemAvatar,
-  ListItemSecondaryAction,
-  ListItemText,
   Skeleton,
   Stack,
   Typography,
 } from '@mui/material';
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { BankAccount } from '@shared/types/bank-account';
 import { Category } from '@shared/types/category';
 import { DefaultExpense } from '@shared/types/expense';
 import { DefaultIncome } from '@shared/types/income';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
+import { DataTable } from '@/components/DataTable';
 import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { PageHeader } from '@/components/PageHeader';
@@ -48,18 +39,36 @@ import { useDefaultExpenses } from '@/hooks/default-expenses/useDefaultExpenses'
 import { useDefaultIncomes } from '@/hooks/default-incomes/useDefaultIncomes';
 import { MAX_BATCH_MONTHS, useMonthRangeCreator } from '@/hooks/months/useMonthRangeCreator';
 import { useDataTransfer } from '@/hooks/settings/useDataTransfer';
-import { formatCurrency, formatCurrencyOrFallback } from '@/utils/format';
+import { formatCurrency } from '@/utils/format';
 import { BankAccountForm } from './components/BankAccountForm';
 import { CategoryForm } from './components/CategoryForm';
 import { DefaultExpenseForm } from './components/DefaultExpenseForm';
 import { DefaultIncomeForm } from './components/DefaultIncomeForm';
 import { MonthYearPicker } from './components/MonthYearPicker';
+import { SectionHeader } from './components/SectionHeader';
+import {
+  bankAccountColumns,
+  categoryColumns,
+  defaultExpenseColumns,
+  defaultIncomeColumns,
+  renderRowActions,
+} from './components/columns';
 
 export function SettingsPage() {
-  const { defaultExpenses, loading, error, retry, save, remove, reload } = useDefaultExpenses();
+  const {
+    defaultExpenses,
+    loading: defaultExpensesLoading,
+    error: defaultExpensesError,
+    retry: retryDefaultExpenses,
+    save,
+    remove,
+    reload,
+  } = useDefaultExpenses();
   const {
     defaultIncomes,
     loading: defaultIncomesLoading,
+    error: defaultIncomesError,
+    retry: retryDefaultIncomes,
     save: saveDefaultIncome,
     remove: removeDefaultIncome,
     reload: reloadDefaultIncomes,
@@ -67,6 +76,8 @@ export function SettingsPage() {
   const {
     bankAccounts,
     loading: bankAccountsLoading,
+    error: bankAccountsError,
+    retry: retryBankAccounts,
     save: saveBankAccount,
     remove: removeBankAccount,
     reload: reloadBankAccounts,
@@ -74,6 +85,8 @@ export function SettingsPage() {
   const {
     categories,
     loading: categoriesLoading,
+    error: categoriesError,
+    retry: retryCategories,
     save: saveCategory,
     remove: removeCategory,
     reload: reloadCategories,
@@ -117,7 +130,28 @@ export function SettingsPage() {
 
   const [importConfirmOpen, setImportConfirmOpen] = useState(false);
 
+  const rangeHintId = useId();
+
   const totalBankBalance = bankAccounts.reduce((sum, a) => sum + a.balance, 0);
+
+  /**
+   * Cada seção carrega e falha por conta própria, mas as quatro falharem ao
+   * mesmo tempo não é quatro problemas: é o banco fora do ar. Como os acordeões
+   * nascem fechados, esse caso precisa aparecer na página — um erro escondido
+   * atrás de um acordeão fechado não é um erro visível.
+   */
+  const sections = [
+    { loading: bankAccountsLoading, error: bankAccountsError, retry: retryBankAccounts },
+    { loading: categoriesLoading, error: categoriesError, retry: retryCategories },
+    { loading: defaultExpensesLoading, error: defaultExpensesError, retry: retryDefaultExpenses },
+    { loading: defaultIncomesLoading, error: defaultIncomesError, retry: retryDefaultIncomes },
+  ];
+  const everySectionLoading = sections.every((section) => section.loading);
+  const everySectionFailed = sections.every((section) => section.error);
+
+  function retryEverySection() {
+    sections.forEach((section) => section.retry());
+  }
 
   function openEditBankAccount(account: BankAccount) {
     setEditingBankAccount(account);
@@ -131,13 +165,10 @@ export function SettingsPage() {
     setBankAccountFormOpen(true);
   }
 
+  // Os formulários fecham sozinhos quando o save dá certo, e por isso precisam
+  // da promessa de volta: é ela que trava o botão enquanto o save corre.
   function handleSaveBankAccount(data: { name: string; balance?: number }) {
-    saveBankAccount(data, editingBankAccount?.id).then((success) => {
-      if (success) {
-        setBankAccountFormOpen(false);
-        setEditingBankAccount(null);
-      }
-    });
+    return saveBankAccount(data, editingBankAccount?.id);
   }
 
   async function handleConfirmDeleteBankAccount() {
@@ -161,12 +192,7 @@ export function SettingsPage() {
   }
 
   function handleSaveCategory(data: { name: string; color: string }) {
-    saveCategory(data, editingCategory?.id).then((success) => {
-      if (success) {
-        setCategoryFormOpen(false);
-        setEditingCategory(null);
-      }
-    });
+    return saveCategory(data, editingCategory?.id);
   }
 
   async function handleConfirmDeleteCategory() {
@@ -195,12 +221,7 @@ export function SettingsPage() {
     amount: number;
     categoryId?: number | null;
   }) {
-    save(data, editingExpense?.id).then((success) => {
-      if (success) {
-        setFormOpen(false);
-        setEditingExpense(null);
-      }
-    });
+    return save(data, editingExpense?.id);
   }
 
   function openEditIncome(income: DefaultIncome) {
@@ -221,12 +242,7 @@ export function SettingsPage() {
     amount: number;
     bankAccountId?: number | null;
   }) {
-    saveDefaultIncome(data, editingIncome?.id).then((success) => {
-      if (success) {
-        setIncomeFormOpen(false);
-        setEditingIncome(null);
-      }
-    });
+    return saveDefaultIncome(data, editingIncome?.id);
   }
 
   async function handleConfirmDeleteIncome() {
@@ -250,10 +266,20 @@ export function SettingsPage() {
     await importData();
   }
 
-  if (loading) {
+  /** O botão de criar da seção, repetido no estado vazio onde o olho já está. */
+  function addButton(onClick: () => void) {
     return (
-      /* Mesma forma da tela pronta — cabeçalho e as seis seções —, para nada
-         saltar quando os dados chegam. */
+      <Button variant="contained" startIcon={<Add />} onClick={onClick} size="small">
+        Adicionar
+      </Button>
+    );
+  }
+
+  if (everySectionLoading) {
+    return (
+      /* Mesma forma da tela pronta — cabeçalho e as seis seções fechadas, na
+         altura real do `AccordionSummary` —, para nada saltar quando os dados
+         chegam. */
       <Stack spacing={3}>
         <Skeleton variant="text" width={280} height={48} />
         <Stack spacing={3}>
@@ -265,12 +291,12 @@ export function SettingsPage() {
     );
   }
 
-  if (error) {
+  if (everySectionFailed) {
     return (
       <ErrorState
         title="Não foi possível carregar as configurações"
-        error={error}
-        onRetry={retry}
+        error={defaultExpensesError}
+        onRetry={retryEverySection}
       />
     );
   }
@@ -286,366 +312,266 @@ export function SettingsPage() {
       <Stack spacing={3}>
         <Accordion>
           <AccordionSummary expandIcon={<ExpandMore />}>
-            <Stack direction="row" spacing={2} alignItems="center" sx={{ width: '100%', pr: 1 }}>
-              <Avatar sx={{ bgcolor: 'primary.main', width: 40, height: 40 }}>
-                <AccountBalance fontSize="small" />
-              </Avatar>
-              <Box sx={{ flexGrow: 1 }}>
-                <Typography variant="h6">Contas Bancárias</Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Usadas para debitar despesas ou creditar entradas
-                </Typography>
+            <SectionHeader
+              icon={AccountBalanceOutlined}
+              accent="primary"
+              title="Contas Bancárias"
+              description="Usadas para debitar despesas ou creditar entradas"
+              count={bankAccounts.length}
+              loading={bankAccountsLoading}
+              extra={
+                bankAccounts.length > 0 && (
+                  // Só o negativo é pintado, como a coluna de Realizado da Visão
+                  // Geral: saldo positivo é o estado normal, não um aviso (§1.5).
+                  <Chip
+                    label={`Total: ${formatCurrency(totalBankBalance)}`}
+                    size="small"
+                    variant="outlined"
+                    color={totalBankBalance < 0 ? 'error' : 'default'}
+                  />
+                )
+              }
+            />
+          </AccordionSummary>
+          <AccordionDetails>
+            <Stack spacing={2}>
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                {addButton(openAddBankAccount)}
               </Box>
-              <Chip label={bankAccounts.length} size="small" />
-              {bankAccounts.length > 0 && (
-                <Chip
-                  label={`Total: ${formatCurrency(totalBankBalance)}`}
-                  size="small"
-                  variant="outlined"
-                  color={
-                    totalBankBalance < 0 ? 'error' : totalBankBalance > 0 ? 'success' : 'default'
+              {bankAccountsError ? (
+                <ErrorState
+                  title="Não foi possível carregar as contas"
+                  error={bankAccountsError}
+                  onRetry={retryBankAccounts}
+                  dense
+                />
+              ) : (
+                <DataTable
+                  flush
+                  columns={bankAccountColumns}
+                  items={bankAccounts}
+                  totalCount={bankAccounts.length}
+                  start={0}
+                  isLoading={bankAccountsLoading}
+                  getRowKey={(account) => String(account.id)}
+                  footerLabel="contas"
+                  renderActions={(account) =>
+                    renderRowActions(account, 'Excluir conta', {
+                      onEdit: openEditBankAccount,
+                      onDelete: setDeleteBankAccountTarget,
+                    })
+                  }
+                  empty={
+                    <EmptyState
+                      icon={<AccountBalanceOutlined sx={{ fontSize: 40 }} />}
+                      title="Nenhuma conta cadastrada."
+                      description="Contas bancárias ligam uma conta a pagar ao dinheiro real."
+                      action={addButton(openAddBankAccount)}
+                    />
                   }
                 />
               )}
             </Stack>
-          </AccordionSummary>
-          <AccordionDetails>
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
-              <Button
-                variant="contained"
-                startIcon={<AddIcon />}
-                onClick={openAddBankAccount}
-                size="small"
-              >
-                Adicionar
-              </Button>
-            </Box>
-            <Divider sx={{ mb: 2 }} />
-            {bankAccountsLoading ? (
-              <Stack spacing={1}>
-                <Skeleton variant="rounded" height={56} />
-                <Skeleton variant="rounded" height={56} />
-              </Stack>
-            ) : bankAccounts.length === 0 ? (
-              <EmptyState
-                icon={<AccountBalance sx={{ fontSize: 32 }} />}
-                title="Nenhuma conta cadastrada."
-                description="Contas bancárias ligam uma conta a pagar ao dinheiro real."
-                action={
-                  <Button
-                    variant="contained"
-                    startIcon={<AddIcon />}
-                    onClick={openAddBankAccount}
-                    size="small"
-                  >
-                    Adicionar
-                  </Button>
-                }
-              />
-            ) : (
-              <List disablePadding>
-                {bankAccounts.map((account) => (
-                  <ListItem key={account.id} divider sx={{ px: 0 }}>
-                    <ListItemAvatar>
-                      <Avatar sx={{ bgcolor: 'primary.main' }}>
-                        <AccountBalance fontSize="small" />
-                      </Avatar>
-                    </ListItemAvatar>
-                    <ListItemText
-                      primary={account.name}
-                      primaryTypographyProps={{ fontWeight: 600 }}
-                      secondary={`Saldo: ${formatCurrency(account.balance)}`}
-                    />
-                    <ListItemSecondaryAction>
-                      <IconButton
-                        edge="end"
-                        onClick={() => openEditBankAccount(account)}
-                        sx={{ mr: 1 }}
-                      >
-                        <EditIcon />
-                      </IconButton>
-                      <IconButton edge="end" onClick={() => setDeleteBankAccountTarget(account)}>
-                        <DeleteIcon />
-                      </IconButton>
-                    </ListItemSecondaryAction>
-                  </ListItem>
-                ))}
-              </List>
-            )}
           </AccordionDetails>
         </Accordion>
 
         <Accordion>
           <AccordionSummary expandIcon={<ExpandMore />}>
-            <Stack direction="row" spacing={2} alignItems="center" sx={{ width: '100%', pr: 1 }}>
-              <Avatar
-                sx={{ bgcolor: 'action.selected', color: 'text.secondary', width: 40, height: 40 }}
-              >
-                <Label fontSize="small" />
-              </Avatar>
-              <Box sx={{ flexGrow: 1 }}>
-                <Typography variant="h6">Categorias</Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Usadas para classificar despesas
-                </Typography>
-              </Box>
-              <Chip label={categories.length} size="small" />
-            </Stack>
+            <SectionHeader
+              icon={LabelOutlined}
+              accent="warning"
+              title="Categorias"
+              description="Usadas para classificar despesas"
+              count={categories.length}
+              loading={categoriesLoading}
+            />
           </AccordionSummary>
           <AccordionDetails>
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
-              <Button
-                variant="contained"
-                startIcon={<AddIcon />}
-                onClick={openAddCategory}
-                size="small"
-              >
-                Adicionar
-              </Button>
-            </Box>
-            <Divider sx={{ mb: 2 }} />
-            {categoriesLoading ? (
-              <Stack spacing={1}>
-                <Skeleton variant="rounded" height={56} />
-                <Skeleton variant="rounded" height={56} />
-              </Stack>
-            ) : categories.length === 0 ? (
-              <EmptyState
-                icon={<Label sx={{ fontSize: 32 }} />}
-                title="Nenhuma categoria cadastrada."
-                description="Categorias classificam as despesas e alimentam o Histórico."
-                action={
-                  <Button
-                    variant="contained"
-                    startIcon={<AddIcon />}
-                    onClick={openAddCategory}
-                    size="small"
-                  >
-                    Adicionar
-                  </Button>
-                }
-              />
-            ) : (
-              <List disablePadding>
-                {categories.map((category) => (
-                  <ListItem key={category.id} divider sx={{ px: 0 }}>
-                    <ListItemAvatar>
-                      <Avatar sx={{ bgcolor: category.color }}>
-                        <Label fontSize="small" />
-                      </Avatar>
-                    </ListItemAvatar>
-                    <ListItemText
-                      primary={category.name}
-                      primaryTypographyProps={{ fontWeight: 600 }}
+            <Stack spacing={2}>
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                {addButton(openAddCategory)}
+              </Box>
+              {categoriesError ? (
+                <ErrorState
+                  title="Não foi possível carregar as categorias"
+                  error={categoriesError}
+                  onRetry={retryCategories}
+                  dense
+                />
+              ) : (
+                <DataTable
+                  flush
+                  columns={categoryColumns}
+                  items={categories}
+                  totalCount={categories.length}
+                  start={0}
+                  isLoading={categoriesLoading}
+                  getRowKey={(category) => String(category.id)}
+                  footerLabel="categorias"
+                  renderActions={(category) =>
+                    renderRowActions(category, 'Excluir categoria', {
+                      onEdit: openEditCategory,
+                      onDelete: setDeleteCategoryTarget,
+                    })
+                  }
+                  empty={
+                    <EmptyState
+                      icon={<LabelOutlined sx={{ fontSize: 40 }} />}
+                      title="Nenhuma categoria cadastrada."
+                      description="Categorias classificam as despesas e alimentam o Histórico."
+                      action={addButton(openAddCategory)}
                     />
-                    <ListItemSecondaryAction>
-                      <IconButton
-                        edge="end"
-                        onClick={() => openEditCategory(category)}
-                        sx={{ mr: 1 }}
-                      >
-                        <EditIcon />
-                      </IconButton>
-                      <IconButton edge="end" onClick={() => setDeleteCategoryTarget(category)}>
-                        <DeleteIcon />
-                      </IconButton>
-                    </ListItemSecondaryAction>
-                  </ListItem>
-                ))}
-              </List>
-            )}
+                  }
+                />
+              )}
+            </Stack>
           </AccordionDetails>
         </Accordion>
 
         <Accordion>
           <AccordionSummary expandIcon={<ExpandMore />}>
-            <Stack direction="row" spacing={2} alignItems="center" sx={{ width: '100%', pr: 1 }}>
-              <Avatar sx={{ bgcolor: 'primary.main', width: 40, height: 40 }}>
-                <ReceiptLong fontSize="small" />
-              </Avatar>
-              <Box sx={{ flexGrow: 1 }}>
-                <Typography variant="h6">Despesas Padrão</Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Criadas automaticamente em cada novo mês
-                </Typography>
-              </Box>
-              <Chip label={defaultExpenses.length} size="small" />
-            </Stack>
+            <SectionHeader
+              icon={ReceiptLongOutlined}
+              accent="secondary"
+              title="Despesas Padrão"
+              description="Criadas automaticamente em cada novo mês"
+              count={defaultExpenses.length}
+              loading={defaultExpensesLoading}
+            />
           </AccordionSummary>
           <AccordionDetails>
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
-              <Button variant="contained" startIcon={<AddIcon />} onClick={openAdd} size="small">
-                Adicionar
-              </Button>
-            </Box>
-            <Divider sx={{ mb: 2 }} />
-            {defaultExpenses.length === 0 ? (
-              <EmptyState
-                icon={<ReceiptLong sx={{ fontSize: 32 }} />}
-                title="Nenhuma despesa padrão cadastrada."
-                description="Todo mês novo nasce com uma cópia das despesas padrão."
-                action={
-                  <Button
-                    variant="contained"
-                    startIcon={<AddIcon />}
-                    onClick={openAdd}
-                    size="small"
-                  >
-                    Adicionar
-                  </Button>
-                }
-              />
-            ) : (
-              <List disablePadding>
-                {defaultExpenses.map((acc) => (
-                  <ListItem key={acc.id} divider sx={{ px: 0 }}>
-                    <ListItemAvatar>
-                      <Avatar sx={{ bgcolor: 'primary.main' }}>
-                        <ReceiptLong fontSize="small" />
-                      </Avatar>
-                    </ListItemAvatar>
-                    <ListItemText
-                      primary={acc.name}
-                      primaryTypographyProps={{ fontWeight: 600 }}
-                      secondary={`${formatCurrencyOrFallback(acc.amount, 'Valor variável')}${acc.dueDay ? ` - Vencimento dia ${acc.dueDay}` : ''}${acc.categoryName ? ` - ${acc.categoryName}` : ''}`}
+            <Stack spacing={2}>
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>{addButton(openAdd)}</Box>
+              {defaultExpensesError ? (
+                <ErrorState
+                  title="Não foi possível carregar as despesas padrão"
+                  error={defaultExpensesError}
+                  onRetry={retryDefaultExpenses}
+                  dense
+                />
+              ) : (
+                <DataTable
+                  flush
+                  columns={defaultExpenseColumns}
+                  items={defaultExpenses}
+                  totalCount={defaultExpenses.length}
+                  start={0}
+                  isLoading={defaultExpensesLoading}
+                  getRowKey={(expense) => String(expense.id)}
+                  footerLabel="despesas padrão"
+                  renderActions={(expense) =>
+                    renderRowActions(expense, 'Excluir despesa padrão', {
+                      onEdit: openEdit,
+                      onDelete: setDeleteTarget,
+                    })
+                  }
+                  empty={
+                    <EmptyState
+                      icon={<ReceiptLongOutlined sx={{ fontSize: 40 }} />}
+                      title="Nenhuma despesa padrão cadastrada."
+                      description="Todo mês novo nasce com uma cópia das despesas padrão."
+                      action={addButton(openAdd)}
                     />
-                    <ListItemSecondaryAction>
-                      <IconButton edge="end" onClick={() => openEdit(acc)} sx={{ mr: 1 }}>
-                        <EditIcon />
-                      </IconButton>
-                      <IconButton edge="end" onClick={() => setDeleteTarget(acc)}>
-                        <DeleteIcon />
-                      </IconButton>
-                    </ListItemSecondaryAction>
-                  </ListItem>
-                ))}
-              </List>
-            )}
+                  }
+                />
+              )}
+            </Stack>
           </AccordionDetails>
         </Accordion>
 
         <Accordion>
           <AccordionSummary expandIcon={<ExpandMore />}>
-            <Stack direction="row" spacing={2} alignItems="center" sx={{ width: '100%', pr: 1 }}>
-              <Avatar sx={{ bgcolor: 'secondary.main', width: 40, height: 40 }}>
-                <Payments fontSize="small" />
-              </Avatar>
-              <Box sx={{ flexGrow: 1 }}>
-                <Typography variant="h6">Entradas Padrão</Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Criadas automaticamente em cada novo mês
-                </Typography>
-              </Box>
-              <Chip label={defaultIncomes.length} size="small" />
-            </Stack>
+            <SectionHeader
+              icon={PaymentsOutlined}
+              accent="success"
+              title="Entradas Padrão"
+              description="Criadas automaticamente em cada novo mês"
+              count={defaultIncomes.length}
+              loading={defaultIncomesLoading}
+            />
           </AccordionSummary>
           <AccordionDetails>
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
-              <Button
-                variant="contained"
-                startIcon={<AddIcon />}
-                onClick={openAddIncome}
-                size="small"
-              >
-                Adicionar
-              </Button>
-            </Box>
-            <Divider sx={{ mb: 2 }} />
-            {defaultIncomesLoading ? (
-              <Stack spacing={1}>
-                <Skeleton variant="rounded" height={56} />
-                <Skeleton variant="rounded" height={56} />
-              </Stack>
-            ) : defaultIncomes.length === 0 ? (
-              <EmptyState
-                icon={<Payments sx={{ fontSize: 32 }} />}
-                title="Nenhuma entrada padrão cadastrada."
-                description="Todo mês novo nasce com uma cópia das entradas padrão."
-                action={
-                  <Button
-                    variant="contained"
-                    startIcon={<AddIcon />}
-                    onClick={openAddIncome}
-                    size="small"
-                  >
-                    Adicionar
-                  </Button>
-                }
-              />
-            ) : (
-              <List disablePadding>
-                {defaultIncomes.map((inc) => (
-                  <ListItem key={inc.id} divider sx={{ px: 0 }}>
-                    <ListItemAvatar>
-                      <Avatar sx={{ bgcolor: 'secondary.main' }}>
-                        <Payments fontSize="small" />
-                      </Avatar>
-                    </ListItemAvatar>
-                    <ListItemText
-                      primary={inc.name}
-                      primaryTypographyProps={{ fontWeight: 600 }}
-                      secondary={`${formatCurrencyOrFallback(inc.amount, 'Valor variável')}${inc.expectedDay ? ` - Previsto dia ${inc.expectedDay}` : ''}${inc.bankAccountName ? ` - Conta: ${inc.bankAccountName}` : ''}`}
+            <Stack spacing={2}>
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                {addButton(openAddIncome)}
+              </Box>
+              {defaultIncomesError ? (
+                <ErrorState
+                  title="Não foi possível carregar as entradas padrão"
+                  error={defaultIncomesError}
+                  onRetry={retryDefaultIncomes}
+                  dense
+                />
+              ) : (
+                <DataTable
+                  flush
+                  columns={defaultIncomeColumns}
+                  items={defaultIncomes}
+                  totalCount={defaultIncomes.length}
+                  start={0}
+                  isLoading={defaultIncomesLoading}
+                  getRowKey={(income) => String(income.id)}
+                  footerLabel="entradas padrão"
+                  renderActions={(income) =>
+                    renderRowActions(income, 'Excluir entrada padrão', {
+                      onEdit: openEditIncome,
+                      onDelete: setDeleteIncomeTarget,
+                    })
+                  }
+                  empty={
+                    <EmptyState
+                      icon={<PaymentsOutlined sx={{ fontSize: 40 }} />}
+                      title="Nenhuma entrada padrão cadastrada."
+                      description="Todo mês novo nasce com uma cópia das entradas padrão."
+                      action={addButton(openAddIncome)}
                     />
-                    <ListItemSecondaryAction>
-                      <IconButton edge="end" onClick={() => openEditIncome(inc)} sx={{ mr: 1 }}>
-                        <EditIcon />
-                      </IconButton>
-                      <IconButton edge="end" onClick={() => setDeleteIncomeTarget(inc)}>
-                        <DeleteIcon />
-                      </IconButton>
-                    </ListItemSecondaryAction>
-                  </ListItem>
-                ))}
-              </List>
-            )}
+                  }
+                />
+              )}
+            </Stack>
           </AccordionDetails>
         </Accordion>
 
         <Accordion>
           <AccordionSummary expandIcon={<ExpandMore />}>
-            <Stack direction="row" spacing={2} alignItems="center" sx={{ width: '100%', pr: 1 }}>
-              <Avatar
-                sx={{ bgcolor: 'action.selected', color: 'text.secondary', width: 40, height: 40 }}
-              >
-                <CalendarMonth fontSize="small" />
-              </Avatar>
-              <Box sx={{ flexGrow: 1 }}>
-                <Typography variant="h6">Adicionar Meses</Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Copia despesas e entradas padrão para novos meses
-                </Typography>
-              </Box>
-            </Stack>
+            <SectionHeader
+              icon={CalendarMonthOutlined}
+              title="Adicionar Meses"
+              description="Copia despesas e entradas padrão para novos meses"
+            />
           </AccordionSummary>
           <AccordionDetails>
             <Stack direction="row" spacing={2} alignItems="flex-end" flexWrap="wrap" useFlexGap>
               <MonthYearPicker
-                label="De:"
+                label="De"
                 month={range.fromMonth}
                 year={range.fromYear}
                 onMonthChange={(m) => setRange((p) => ({ ...p, fromMonth: m }))}
                 onYearChange={(y) => setRange((p) => ({ ...p, fromYear: y }))}
               />
               <MonthYearPicker
-                label="Até:"
+                label="Até"
                 month={range.toMonth}
                 year={range.toYear}
                 onMonthChange={(m) => setRange((p) => ({ ...p, toMonth: m }))}
                 onYearChange={(y) => setRange((p) => ({ ...p, toYear: y }))}
               />
+              {/* Botão desabilitado não diz por quê; a legenda abaixo diz, e o
+                  `aria-describedby` é o que a entrega junto com ele (§5.5). */}
               <Button
                 variant="contained"
                 onClick={createRange}
                 disabled={creating || !rangeValid}
-                startIcon={<PlaylistAddIcon />}
+                aria-describedby={rangeHintId}
+                startIcon={<PlaylistAdd />}
               >
                 {creating ? 'Criando...' : 'Adicionar Meses'}
               </Button>
             </Stack>
             <Typography
+              id={rangeHintId}
               variant="caption"
-              color={rangeValid ? 'text.secondary' : 'error'}
-              sx={{ display: 'block', mt: 1 }}
+              sx={{ display: 'block', mt: 1, color: rangeValid ? 'text.secondary' : 'error.main' }}
             >
               {monthsCount > 0
                 ? `Isso vai criar até ${monthsCount} ${monthsCount === 1 ? 'mês' : 'meses'} (meses já existentes serão ignorados).`
@@ -658,28 +584,20 @@ export function SettingsPage() {
 
         <Accordion>
           <AccordionSummary expandIcon={<ExpandMore />}>
-            <Stack direction="row" spacing={2} alignItems="center" sx={{ width: '100%', pr: 1 }}>
-              <Avatar
-                sx={{ bgcolor: 'action.selected', color: 'text.secondary', width: 40, height: 40 }}
-              >
-                <ImportExport fontSize="small" />
-              </Avatar>
-              <Box sx={{ flexGrow: 1 }}>
-                <Typography variant="h6">Exportar / Importar Dados</Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Backup completo em ZIP, com meses, despesas e comprovantes
-                </Typography>
-              </Box>
-            </Stack>
+            <SectionHeader
+              icon={ImportExportOutlined}
+              title="Exportar / Importar Dados"
+              description="Backup completo em ZIP, com meses, despesas e comprovantes"
+            />
           </AccordionSummary>
           <AccordionDetails>
             <Stack direction="row" spacing={2}>
-              <Button variant="outlined" startIcon={<FileDownloadIcon />} onClick={exportData}>
+              <Button variant="outlined" startIcon={<FileDownload />} onClick={exportData}>
                 Exportar
               </Button>
               <Button
                 variant="outlined"
-                startIcon={<FileUploadIcon />}
+                startIcon={<FileUpload />}
                 disabled={importing}
                 onClick={() => setImportConfirmOpen(true)}
               >
@@ -711,6 +629,7 @@ export function SettingsPage() {
           </>
         }
         loading={deleting}
+        loadingLabel="Excluindo..."
         onClose={() => setDeleteTarget(null)}
         onConfirm={handleConfirmDelete}
       />
@@ -737,6 +656,7 @@ export function SettingsPage() {
           </>
         }
         loading={deletingIncome}
+        loadingLabel="Excluindo..."
         onClose={() => setDeleteIncomeTarget(null)}
         onConfirm={handleConfirmDeleteIncome}
       />
@@ -763,6 +683,7 @@ export function SettingsPage() {
           </>
         }
         loading={deletingBankAccount}
+        loadingLabel="Excluindo..."
         onClose={() => setDeleteBankAccountTarget(null)}
         onConfirm={handleConfirmDeleteBankAccount}
       />
@@ -788,6 +709,7 @@ export function SettingsPage() {
           </>
         }
         loading={deletingCategory}
+        loadingLabel="Excluindo..."
         onClose={() => setDeleteCategoryTarget(null)}
         onConfirm={handleConfirmDeleteCategory}
       />
@@ -804,6 +726,7 @@ export function SettingsPage() {
         }
         confirmLabel="Escolher arquivo"
         loading={importing}
+        loadingLabel="Importando..."
         onClose={() => setImportConfirmOpen(false)}
         onConfirm={handleConfirmImport}
       />

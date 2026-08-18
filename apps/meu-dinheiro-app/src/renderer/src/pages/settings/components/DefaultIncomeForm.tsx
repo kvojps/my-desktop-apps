@@ -16,7 +16,7 @@ interface DefaultIncomeFormProps {
     expectedDay?: number;
     amount: number;
     bankAccountId?: number | null;
-  }) => void;
+  }) => Promise<boolean>;
   initial?: DefaultIncome | null;
 }
 
@@ -31,7 +31,7 @@ export function DefaultIncomeForm({
     register,
     control,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm<DefaultIncomeFormValues>({
     resolver: zodResolver(defaultIncomeFormSchema),
     defaultValues: {
@@ -42,13 +42,14 @@ export function DefaultIncomeForm({
     },
   });
 
-  const onSubmit = handleSubmit((values) => {
-    onSave({
+  const onSubmit = handleSubmit(async (values) => {
+    const success = await onSave({
       name: values.name,
       expectedDay: values.expectedDay ? Number(values.expectedDay) : undefined,
       amount: Number(values.amount) || 0,
       bankAccountId: values.bankAccountId ? Number(values.bankAccountId) : null,
     });
+    if (success) onClose();
   });
 
   return (
@@ -60,7 +61,7 @@ export function DefaultIncomeForm({
       footer={
         <>
           <Button onClick={onClose}>Cancelar</Button>
-          <Button variant="contained" type="submit">
+          <Button variant="contained" type="submit" disabled={isSubmitting}>
             Salvar
           </Button>
         </>
@@ -76,7 +77,7 @@ export function DefaultIncomeForm({
         {...register('name')}
       />
       <TextField
-        label="Valor (R$) - opcional"
+        label="Valor (R$)"
         type="number"
         fullWidth
         error={!!errors.amount}
