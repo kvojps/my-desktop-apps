@@ -8,14 +8,16 @@ o seu próprio `src/shared` — **os apps não compartilham código de propósit
 
 - **Qualquer alteração de UI** — tema, cor, componente, layout, tela nova,
   carregamento, estado vazio, foco, janela do Electron:
-  leia [`docs/design-system.md`](docs/design-system.md) primeiro. Ele é normativo,
-  e o app de referência é o `meu-negocio-app`.
+  leia [`docs/design-system.md`](docs/design-system.md) primeiro. Ele é normativo
+  e é a própria referência: não há app canônico, e divergência entre o documento
+  e o código é bug do código.
 - **Arquitetura, camadas, IPC, banco, convenções de nome:** [`README.md`](README.md), §2.
 
 ## Regras que não se descobrem lendo o código
 
 - Cor da paleta usada como **texto** precisa de par por modo; nenhuma cor única
-  passa em AA nos dois. `warning` é só preenchimento. Detalhes e medições em
+  passa em AA nos dois. `warning` e `text.disabled` são só preenchimento, nunca
+  texto. Detalhes e medições em
   `docs/design-system.md`, §1.
 - A preferência de tema pertence ao banco, não ao `localStorage`: o processo main
   precisa dela para pintar a janela antes de existir renderer (§5.1).
