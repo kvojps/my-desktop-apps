@@ -113,9 +113,12 @@ export function MonthComparisonChart({ months, onSelectMonth }: MonthComparisonC
 
   return (
     <ResponsiveContainer width="100%" height={CHART_HEIGHT}>
-      {/* A margem à direita é o meio-rótulo do último mês: sem ela o "Dez" sai
-          cortado na borda do gráfico. */}
-      <ComposedChart data={data} margin={{ top: 8, right: 20, bottom: 0 }}>
+      {/* Duas margens, dois rótulos que o Recharts escreve fora da área de
+          plotagem e não mede: a da direita é o meio-rótulo do último mês, sem a
+          qual o "Dez" sai cortado na borda; a de cima é o "Atual" da
+          `ReferenceLine`, que fica acima do topo da plotagem — com os 8px que
+          estavam aqui ele saía cortado ao meio. */}
+      <ComposedChart data={data} margin={{ top: 24, right: 20, bottom: 0 }}>
         {/* O mês corrente, marcado por linha e não pela `ReferenceArea` que
             estava aqui: num eixo de categorias `x1 === x2` escala para o mesmo
             ponto, e o retângulo saía com largura zero — invisível. Enquanto
