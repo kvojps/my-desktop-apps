@@ -21,6 +21,7 @@ import { useBankAccounts } from '@/hooks/bank-accounts/useBankAccounts';
 import {
   BALANCE_LABELS,
   computeMonthBalance,
+  pendingSubtitle,
   useMonthsBalance,
 } from '@/hooks/months/useMonthBalance';
 import { useMonths } from '@/hooks/months/useMonths';
@@ -32,17 +33,6 @@ import { PeriodRangeControl, resolvePresets } from './components/PeriodRangeCont
 import { useYearForecast } from './hooks/useYearForecast';
 
 const PAGE_SIZE = 12;
-
-/**
- * Legenda dos cards de entrada e despesa. O total já é o valor do card, então a
- * legenda carrega só o que ainda não aconteceu — o lado realizado é a diferença,
- * e o card de Realizado já o mostra somado.
- */
-function pendingSub(total: number, pending: number, pendingLabel: string, doneLabel: string) {
-  if (total === 0) return undefined;
-  if (pending <= 0) return doneLabel;
-  return `${pendingLabel} ${formatCurrency(pending)}`;
-}
 
 /** Uma linha da tabela de meses, já com os agregados achatados. */
 interface MonthRow {
@@ -373,7 +363,12 @@ export function DashboardPage() {
         <StatCard
           label="Entradas no período"
           value={formatCurrency(summary.totalIncome)}
-          sub={pendingSub(summary.totalIncome, summary.pendingIncome, 'a receber', 'tudo recebido')}
+          sub={pendingSubtitle(
+            summary.totalIncome,
+            summary.pendingIncome,
+            'a receber',
+            'tudo recebido',
+          )}
           icon={TrendingUpOutlined}
           accent="success"
           forecast={yearForecast(
@@ -386,7 +381,12 @@ export function DashboardPage() {
         <StatCard
           label="Despesas no período"
           value={formatCurrency(summary.totalExpense)}
-          sub={pendingSub(summary.totalExpense, summary.pendingExpense, 'a pagar', 'tudo pago')}
+          sub={pendingSubtitle(
+            summary.totalExpense,
+            summary.pendingExpense,
+            'a pagar',
+            'tudo pago',
+          )}
           icon={TrendingDownOutlined}
           accent="secondary"
           forecast={yearForecast(

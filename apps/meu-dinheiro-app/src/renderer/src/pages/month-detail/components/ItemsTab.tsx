@@ -1,13 +1,6 @@
+import { FilterAltOffOutlined, Search } from '@mui/icons-material';
 import {
-  FilterAltOffOutlined,
-  GridViewOutlined,
-  Search,
-  ViewListOutlined,
-} from '@mui/icons-material';
-import {
-  Box,
   Button,
-  Card,
   FormControl,
   InputAdornment,
   InputLabel,
@@ -15,16 +8,12 @@ import {
   Select,
   Stack,
   TextField,
-  ToggleButton,
-  ToggleButtonGroup,
-  Tooltip,
 } from '@mui/material';
-import { Key, ReactNode } from 'react';
+import { ReactNode } from 'react';
+import { DataTable } from '@/components/DataTable';
+import type { Column } from '@/components/DataTable';
 import { EmptyState } from '@/components/EmptyState';
-import { Pagination } from '@/components/Pagination';
 import { ItemsFilter } from '@/hooks/useItemsFilter';
-import { ListView, useListView } from '@/hooks/useListView';
-import { cardGrid } from '@/theme';
 
 interface Option<V extends string> {
   value: V;
@@ -35,95 +24,82 @@ interface ItemsTabProps<T, Status extends string, Sort extends string> {
   filter: ItemsFilter<T, Status, Sort>;
   /** Quantos itens o mês tem antes de qualquer filtro. */
   totalCount: number;
+  columns: Column<T>[];
   searchPlaceholder: string;
   /** Quando o mês não tem nenhum item. */
   emptyMessage: string;
-  /** Ícone da aba, usado nos dois estados vazios. */
+  /** Ícone da aba, usado no estado vazio de mês sem itens. */
   emptyIcon: ReactNode;
   /** Quando os filtros não deixaram nada. */
   noResultsMessage: string;
   addLabel: string;
+  /** Plural do que a tabela lista, para o rodapé: "despesas", "entradas". */
+  footerLabel: string;
   statusOptions: Option<Status>[];
-  sortOptions: Option<Sort>[];
   /** Filtro adicional da aba, montado por quem usa (ex.: categoria). */
   extraFilter?: ReactNode;
-  getKey: (item: T) => Key;
-  /** Visualização em lista densa — o padrão. */
-  renderRow: (item: T) => ReactNode;
-  /** Visualização em grade de cards. */
-  renderItem: (item: T) => ReactNode;
+  getRowKey: (item: T) => string;
+  getRowLabel: (item: T) => string;
+  renderActions: (item: T) => ReactNode;
+  onRowClick: (item: T) => void;
   onAdd: () => void;
 }
 
-/** Corpo de uma aba do mês: filtros, lista paginada e o botão de adicionar. */
+/** Corpo de uma aba do mês: filtros e a tabela paginada. */
 export function ItemsTab<T, Status extends string, Sort extends string>({
   filter,
   totalCount,
+  columns,
   searchPlaceholder,
   emptyMessage,
   emptyIcon,
   noResultsMessage,
   addLabel,
+  footerLabel,
   statusOptions,
-  sortOptions,
   extraFilter,
-  getKey,
-  renderRow,
-  renderItem,
+  getRowKey,
+  getRowLabel,
+  renderActions,
+  onRowClick,
   onAdd,
 }: ItemsTabProps<T, Status, Sort>) {
-  const { view, setView } = useListView();
+  // Mês sem nenhum item não ganha barra de filtros: não há o que estreitar, e
+  // um filtro sobre o vazio só sugere que o vazio é culpa dele (§5.4).
+  const hasItems = totalCount > 0;
 
-  if (totalCount === 0) {
-    return (
-      <Card variant="outlined">
-        <EmptyState
-          icon={emptyIcon}
-          title={emptyMessage}
-          action={
-            <Button variant="contained" onClick={onAdd}>
-              {addLabel}
-            </Button>
-          }
-        />
-      </Card>
-    );
-  }
+  // Os dois vazios do §5.4 são diferentes e a diferença é o `isFiltered`:
+  // "cadastre a primeira despesa" para quem não tem nenhuma, "limpe o filtro"
+  // para quem tem doze e digitou errado.
+  const empty = filter.isFiltered ? (
+    <EmptyState
+      icon={<FilterAltOffOutlined sx={{ fontSize: 40 }} />}
+      title={noResultsMessage}
+      action={<Button onClick={filter.reset}>Limpar filtros</Button>}
+    />
+  ) : (
+    <EmptyState
+      icon={emptyIcon}
+      title={emptyMessage}
+      action={
+        <Button variant="contained" onClick={onAdd}>
+          {addLabel}
+        </Button>
+      }
+    />
+  );
 
   return (
     <>
-      {/* Controles, não conteúdo: barra sem fundo próprio para não competir
-          visualmente com as linhas da lista logo abaixo.
+      {/* Controles, não conteúdo: a barra não tem superfície própria porque a
+          tabela logo abaixo já é um `Paper` com borda, e uma segunda caixa
+          encostada nela vira caixa dentro de caixa.
 
-          Dois grupos — o que filtra e o que apresenta — em vez de controles
-          soltos. Com `ml: 'auto'` num só filho, a quebra de linha jogava
-          "Ordenar por" para a direita de uma linha vazia, deixando um vão de
-          ~540px no meio da barra. `space-between` entre dois grupos dá o mesmo
-          alinhamento quando tudo cabe numa linha e, quando não cabe, cada grupo
-          começa na margem esquerda da sua.
-
-          O status é um select, e não uma fileira de chips: os chips cresciam com
-          a quantidade de estados (289px para quatro) e eram o que mais empurrava
-          a barra para uma segunda linha.
-
-          As larguras estão dimensionadas para a barra inteira caber numa linha
-          na janela mínima, onde há 790px: 200 + 140 + 150 (filtros) + 150 + 70
-          (apresentação) + 5 vãos de 12px = 770. Antes eram 872 e a barra
-          quebrava.
-
-          Nenhum controle cresce. Um `flex-grow` na busca parece atraente para
-          ocupar a sobra, mas a contribuição de max-content do item passa a
-          incluir o teto do crescimento — o container conclui que não cabe e
-          quebra a linha justamente na janela mínima, que é o caso a proteger. */}
-      <Stack
-        direction="row"
-        spacing={1.5}
-        alignItems="center"
-        flexWrap="wrap"
-        useFlexGap
-        justifyContent="space-between"
-        sx={{ pb: 2, mb: 3, borderBottom: '1px solid', borderColor: 'divider' }}
-      >
+          A ordenação saiu daqui — ela agora é o cabeçalho da tabela, como na
+          Visão Geral —, e com ela saiu o alternador lista/grade. O que sobrou
+          são os três controles que de fato estreitam a lista, e eles cabem
+          numa linha com folga mesmo na janela mínima. */}
+      {hasItems && (
         <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap" useFlexGap>
           <TextField
             size="small"
@@ -157,69 +133,26 @@ export function ItemsTab<T, Status extends string, Sort extends string>({
 
           {extraFilter}
         </Stack>
-
-        <Stack direction="row" spacing={1.5} alignItems="center" sx={{ flexShrink: 0 }}>
-          <FormControl size="small" sx={{ minWidth: 150 }}>
-            <InputLabel>Ordenar por</InputLabel>
-            <Select
-              value={filter.sort}
-              label="Ordenar por"
-              onChange={(e) => filter.setSort(e.target.value as Sort)}
-            >
-              {sortOptions.map((option) => (
-                <MenuItem key={option.value} value={option.value}>
-                  {option.label}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-
-          <ToggleButtonGroup
-            size="small"
-            exclusive
-            value={view}
-            onChange={(_, next: ListView | null) => next && setView(next)}
-          >
-            <ToggleButton value="list" aria-label="Ver em lista">
-              <Tooltip title="Lista">
-                <ViewListOutlined fontSize="small" />
-              </Tooltip>
-            </ToggleButton>
-            <ToggleButton value="grid" aria-label="Ver em grade">
-              <Tooltip title="Grade">
-                <GridViewOutlined fontSize="small" />
-              </Tooltip>
-            </ToggleButton>
-          </ToggleButtonGroup>
-        </Stack>
-      </Stack>
-
-      {filter.filtered.length === 0 ? (
-        <EmptyState
-          icon={<FilterAltOffOutlined sx={{ fontSize: 40 }} />}
-          title={noResultsMessage}
-          action={<Button onClick={filter.reset}>Limpar filtros</Button>}
-        />
-      ) : view === 'list' ? (
-        <Stack spacing={1}>
-          {filter.visible.map((item) => (
-            <Box key={getKey(item)}>{renderRow(item)}</Box>
-          ))}
-        </Stack>
-      ) : (
-        /* Grade guiada pela largura disponível: os breakpoints do MUI olham a
-           janela e davam três colunas quando só cabiam duas. */
-        <Box sx={{ ...cardGrid(280), gap: 2 }}>
-          {filter.visible.map((item) => (
-            <Box key={getKey(item)}>{renderItem(item)}</Box>
-          ))}
-        </Box>
       )}
 
-      <Pagination
-        currentPage={filter.page}
-        totalPages={filter.totalPages}
-        onPageChange={filter.setPage}
+      <DataTable
+        columns={columns}
+        items={filter.visible}
+        totalCount={filter.filtered.length}
+        start={filter.start}
+        sort={{ key: filter.sort, direction: filter.direction }}
+        onToggleSort={filter.toggleSort}
+        renderActions={renderActions}
+        getRowKey={getRowKey}
+        getRowLabel={getRowLabel}
+        footerLabel={footerLabel}
+        onRowClick={onRowClick}
+        empty={empty}
+        pagination={{
+          currentPage: filter.page,
+          totalPages: filter.totalPages,
+          onPageChange: filter.setPage,
+        }}
       />
     </>
   );

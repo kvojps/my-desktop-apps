@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { Month, MonthDetail } from '@shared/types/month';
+import { formatCurrency } from '@/utils/format';
 
 /**
  * Os dois conceitos de saldo do app, sempre calculados juntos para que nenhuma
@@ -106,4 +107,20 @@ export function useMonthBalance(month: Month | MonthDetail | null | undefined): 
 
 export function useMonthsBalance(months: Month[]): MonthBalance {
   return useMemo(() => sumMonthBalances(months), [months]);
+}
+
+/**
+ * Legenda de um card de entrada ou despesa. O total já é o valor do card, então
+ * a legenda carrega só o que ainda não aconteceu — o lado realizado é a
+ * diferença, e o card de Realizado já o mostra somado.
+ */
+export function pendingSubtitle(
+  total: number,
+  pending: number,
+  pendingLabel: string,
+  doneLabel: string,
+): string | undefined {
+  if (total === 0) return undefined;
+  if (pending <= 0) return doneLabel;
+  return `${pendingLabel} ${formatCurrency(pending)}`;
 }

@@ -328,7 +328,7 @@ o que só um app precisa é esperado:
 | App            | Extensão                                                        |
 | -------------- | --------------------------------------------------------------- |
 | `git-dlog`     | Variante `mono` (JetBrains Mono empacotada) — caminhos e hashes |
-| `meu-dinheiro` | `contentQuery`, `cardGrid`, overrides de `MuiAccordion`         |
+| `meu-dinheiro` | `contentQuery`, overrides de `MuiAccordion`                     |
 | `meu-dinheiro` | `tabularNums` como `sx` exportado                               |
 
 `tabularNums` é redundante onde o `body` já traz `tabular-nums` — ao alinhar o

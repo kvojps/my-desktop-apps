@@ -37,10 +37,10 @@ Cada mês criado copia as **despesas e entradas padrão** vigentes naquele momen
 A tela inicial responde "como estou?" em três alturas, do geral para o específico:
 
 - **Saldo em contas**, a soma de todas as contas bancárias — o número que existe de verdade agora. Só aparece se você cadastrou contas.
-- **Saldo do período**, com o detalhamento em Recebido / A receber / Pago / A pagar.
-- **Um card por mês**, com o saldo do mês, entradas e despesas, o quanto já foi pago (barra de progresso e `3/8 pagas · 38%`) e um chip vermelho de **contas vencidas** quando há.
+- **Realizado, entradas e despesas do período**, cada um com o que ainda não aconteceu na legenda e para onde o indicador caminha até dezembro.
+- **Uma linha por mês**, com entradas, despesas, saldo realizado, o quanto já foi pago (barra e `3/8`) e um chip vermelho de **contas vencidas** quando há.
 
-O **intervalo exibido** tem seletores "De/Até" e três atalhos: **Últimos 3 meses**, **Este ano** (o padrão ao abrir) e **Tudo**. Os cards vêm do mais recente para o mais antigo, **12 por vez**, com "Carregar mais meses" — histórico longo não custa uma tela infinita. O mês atual leva uma faixa azul na lateral e o chip "Atual".
+O **intervalo exibido** fica no cabeçalho, com três atalhos — **3 meses**, **Este ano** (o padrão ao abrir) e **Tudo** — e um seletor "De/Até" para o recorte que os atalhos não dão. A tabela ordena por qualquer coluna, mostra **12 meses por página** e abre do mais recente para o mais antigo. O mês atual leva o chip "Atual".
 
 ## 1.4 Realizado e Previsto — os dois saldos
 
@@ -59,7 +59,7 @@ O cálculo aceita as duas formas de dado sem que a tela precise saber qual receb
 
 A tela do mês tem duas abas — **Despesas** e **Entradas** —, cada uma mostrando quantas já foram quitadas (`5/12`). As duas funcionam igual: buscar por nome, filtrar por status, ordenar, paginar de 12 em 12. As despesas ganham um filtro a mais, por **categoria**.
 
-Cada conta tem um status, que é o que define a cor da faixa lateral e o ícone:
+Cada conta tem um status, que é o que define a cor do chip e o ícone:
 
 | Status                     | Quando                                     |
 | -------------------------- | ------------------------------------------ |
@@ -69,9 +69,11 @@ Cada conta tem um status, que é o que define a cor da faixa lateral e o ícone:
 
 A cor nunca vem sozinha: o ícone e o texto no tooltip dizem a mesma coisa, para quem não distingue as cores.
 
-A lista tem **duas visualizações** — lista densa (o padrão) e grade de cards —, e a escolha fica salva entre sessões. A lista é o padrão porque escanear contas é o uso dominante da tela: ela cabe cerca de três vezes mais itens por tela do que a grade.
+As duas abas são **tabelas**, a mesma da Visão Geral: nome, categoria (ou conta bancária, nas entradas), data, status, valor e as ações da linha. O valor alinha à direita e o resto à esquerda, que é o que faz os dígitos de largura fixa alinharem sozinhos e comparar magnitudes virar leitura de comprimento.
 
-Na linha, o essencial fica alinhado entre linhas vizinhas — é o alinhamento que torna a lista escaneável. Como as colunas têm largura fixa, a **densidade cede em dois passos** conforme o espaço real do conteúdo: acima de 1000px aparecem nome, categoria, data, valor e ações; acima de 640px a categoria desce para a linha de apoio abaixo do nome; abaixo disso as ações vão para uma segunda linha. Ícones discretos marcam as contas que têm **observação** ou **comprovante** anexado, e clicar na linha abre o detalhe completo.
+**Ordenar é clicar no cabeçalho** — nome, data ou valor —, e clicar de novo inverte o sentido. A aba abre ordenada pela data crescente: o que vence primeiro é o que a tela existe para resolver. São **12 linhas por página**.
+
+Ícones discretos marcam as contas que têm **observação** ou **comprovante** anexado, e clicar na linha (ou dar `Enter` nela) abre o detalhe completo. A data em que a conta foi paga ou recebida fica no tooltip do chip de status — a coluna de data é sempre a do vencimento ou da previsão, porque um cabeçalho de tabela não muda de significado linha a linha.
 
 ## 1.6 Pagar e receber
 

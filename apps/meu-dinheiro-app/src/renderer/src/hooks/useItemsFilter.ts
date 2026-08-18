@@ -2,6 +2,8 @@ import { useState } from 'react';
 
 export const DEFAULT_PAGE_SIZE = 12;
 
+export type SortDirection = 'asc' | 'desc';
+
 export interface ItemsFilterOptions<T, Status extends string, Sort extends string> {
   items: T[];
   defaultStatus: Status;
@@ -12,6 +14,11 @@ export interface ItemsFilterOptions<T, Status extends string, Sort extends strin
   matchesStatus: (item: T, status: Status) => boolean;
   /** Filtro extra opcional da aba (ex.: categoria). Vazio = sem filtro. */
   matchesExtra?: (item: T, extra: string) => boolean;
+  /**
+   * Sempre **ascendente**. A direção é do hook, não do comparador: com o
+   * cabeçalho da tabela ordenando nos dois sentidos, um comparador que já
+   * devolve descendente por dentro inverte a seta em relação à lista.
+   */
   compare: (a: T, b: T, sort: Sort) => number;
 }
 
@@ -20,7 +27,10 @@ export interface ItemsFilter<T, Status extends string, Sort extends string> {
   status: Status;
   extra: string;
   sort: Sort;
+  direction: SortDirection;
   page: number;
+  /** Índice do primeiro item da página dentro do total filtrado. */
+  start: number;
   /** Todos os itens que passaram pelos filtros. */
   filtered: T[];
   /** Os itens da página atual. */
@@ -29,7 +39,8 @@ export interface ItemsFilter<T, Status extends string, Sort extends string> {
   setSearch: (value: string) => void;
   setStatus: (value: Status) => void;
   setExtra: (value: string) => void;
-  setSort: (value: Sort) => void;
+  /** Mesma coluna inverte a direção; coluna nova começa descendente. */
+  toggleSort: (value: string) => void;
   setPage: (value: number) => void;
   /** Devolve busca, status e filtro extra ao padrão. A ordenação não é filtro. */
   reset: () => void;
@@ -41,6 +52,7 @@ export interface ItemsSelection<T> {
   filtered: T[];
   visible: T[];
   page: number;
+  start: number;
   totalPages: number;
 }
 
@@ -50,26 +62,36 @@ export interface ItemsSelection<T> {
  */
 export function selectItems<T, Status extends string, Sort extends string>(
   options: Omit<ItemsFilterOptions<T, Status, Sort>, 'defaultStatus' | 'defaultSort'>,
-  criteria: { search: string; status: Status; extra: string; sort: Sort; page: number },
+  criteria: {
+    search: string;
+    status: Status;
+    extra: string;
+    sort: Sort;
+    direction: SortDirection;
+    page: number;
+  },
 ): ItemsSelection<T> {
   const { items, searchText, matchesStatus, matchesExtra, compare } = options;
   const pageSize = options.pageSize ?? DEFAULT_PAGE_SIZE;
   const term = criteria.search.trim().toLowerCase();
+  const direction = criteria.direction === 'asc' ? 1 : -1;
 
   const filtered = items
     .filter((item) => searchText(item).toLowerCase().includes(term))
     .filter((item) => matchesStatus(item, criteria.status))
     .filter((item) => criteria.extra === '' || !matchesExtra || matchesExtra(item, criteria.extra))
-    .sort((a, b) => compare(a, b, criteria.sort));
+    .sort((a, b) => compare(a, b, criteria.sort) * direction);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   // A página some quando o último item dela é excluído ou filtrado.
   const page = Math.min(criteria.page, totalPages);
+  const start = (page - 1) * pageSize;
 
   return {
     filtered,
-    visible: filtered.slice((page - 1) * pageSize, page * pageSize),
+    visible: filtered.slice(start, start + pageSize),
     page,
+    start,
     totalPages,
   };
 }
@@ -92,11 +114,14 @@ export function useItemsFilter<T, Status extends string, Sort extends string>({
   const [status, setStatus] = useState<Status>(defaultStatus);
   const [extra, setExtra] = useState('');
   const [sort, setSort] = useState<Sort>(defaultSort);
+  // Ascendente por padrão porque o padrão das duas abas é uma data: a lista
+  // abre no que vence primeiro, que é o que a tela existe para resolver.
+  const [direction, setDirection] = useState<SortDirection>('asc');
   const [page, setPage] = useState(1);
 
   const selection = selectItems(
     { items, pageSize, searchText, matchesStatus, matchesExtra, compare },
-    { search, status, extra, sort, page },
+    { search, status, extra, sort, direction, page },
   );
 
   /** Trocar qualquer critério devolve a lista para a primeira página. */
@@ -105,6 +130,18 @@ export function useItemsFilter<T, Status extends string, Sort extends string>({
       setter(value);
       setPage(1);
     };
+  }
+
+  function toggleSort(value: string) {
+    if (value === sort) {
+      setDirection((current) => (current === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSort(value as Sort);
+      // Coluna nova começa descendente: quem troca para "Valor" quer ver o
+      // maior gasto, não o menor.
+      setDirection('desc');
+    }
+    setPage(1);
   }
 
   function reset() {
@@ -119,14 +156,16 @@ export function useItemsFilter<T, Status extends string, Sort extends string>({
     status,
     extra,
     sort,
+    direction,
     page: selection.page,
+    start: selection.start,
     filtered: selection.filtered,
     visible: selection.visible,
     totalPages: selection.totalPages,
     setSearch: withPageReset(setSearch),
     setStatus: withPageReset(setStatus),
     setExtra: withPageReset(setExtra),
-    setSort: withPageReset(setSort),
+    toggleSort,
     setPage,
     reset,
     isFiltered: search.trim() !== '' || status !== defaultStatus || extra !== '',

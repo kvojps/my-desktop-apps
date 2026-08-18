@@ -1,5 +1,4 @@
 import { PaletteMode, ThemeOptions, createTheme } from '@mui/material';
-import type { SxProps, Theme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 
 /** Raio das superfícies (cards, papers, diálogos). */
@@ -22,12 +21,6 @@ export const contentQuery = {
   /** Cabe a lista densa completa, com categoria em coluna própria. */
   wide: '@container content (min-width: 1000px)',
 } as const;
-
-/** Grade de cards que reage à largura real, sem depender de breakpoints. */
-export const cardGrid = (min: number): SxProps<Theme> => ({
-  display: 'grid',
-  gridTemplateColumns: `repeat(auto-fill, minmax(min(${min}px, 100%), 1fr))`,
-});
 
 const getDesignTokens = (mode: PaletteMode): ThemeOptions => {
   // Uma única borda para todas as superfícies: cards, papers com variant

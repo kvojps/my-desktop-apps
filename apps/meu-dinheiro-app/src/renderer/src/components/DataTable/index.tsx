@@ -11,7 +11,7 @@ import {
   TableSortLabel,
   Typography,
 } from '@mui/material';
-import { ReactNode } from 'react';
+import { KeyboardEvent, ReactNode } from 'react';
 import { Pagination } from '@/components/Pagination';
 
 export interface Column<T> {
@@ -31,6 +31,8 @@ interface DataTableProps<T> {
   onToggleSort?: (key: string) => void;
   renderActions?: (item: T) => ReactNode;
   getRowKey: (item: T) => string;
+  /** Como a linha se anuncia quando ela é clicável. Sem isto ela vira "button". */
+  getRowLabel?: (item: T) => string;
   footerLabel: string;
   isLoading?: boolean;
   onRowClick?: (item: T) => void;
@@ -54,6 +56,7 @@ export function DataTable<T>({
   onToggleSort,
   renderActions,
   getRowKey,
+  getRowLabel,
   footerLabel,
   isLoading,
   onRowClick,
@@ -61,6 +64,18 @@ export function DataTable<T>({
   pagination,
 }: DataTableProps<T>) {
   const colSpan = columns.length + (renderActions ? 1 : 0);
+
+  /**
+   * Linha clicável é um controle, e controle precisa existir para o teclado
+   * (§5.5). O `Enter`/`Espaço` só valem quando o foco está na própria linha —
+   * dentro da célula de ações eles pertencem ao botão que os recebeu.
+   */
+  function handleRowKeyDown(event: KeyboardEvent<HTMLTableRowElement>, item: T) {
+    if (event.target !== event.currentTarget) return;
+    if (event.key !== 'Enter' && event.key !== ' ') return;
+    event.preventDefault();
+    onRowClick?.(item);
+  }
 
   function renderBody() {
     // Enquanto o SQLite responde, a tabela mantém a própria forma em vez de
@@ -91,7 +106,11 @@ export function DataTable<T>({
       <TableRow
         key={getRowKey(item)}
         hover
+        role={onRowClick ? 'button' : undefined}
+        tabIndex={onRowClick ? 0 : undefined}
+        aria-label={onRowClick ? getRowLabel?.(item) : undefined}
         onClick={onRowClick ? () => onRowClick(item) : undefined}
+        onKeyDown={onRowClick ? (event) => handleRowKeyDown(event, item) : undefined}
         sx={onRowClick ? { cursor: 'pointer' } : undefined}
       >
         {columns.map((col) => (
@@ -99,7 +118,13 @@ export function DataTable<T>({
             {col.render(item)}
           </TableCell>
         ))}
-        {renderActions && <TableCell align="right">{renderActions(item)}</TableCell>}
+        {renderActions && (
+          // A ação da linha não pode disparar o clique da linha: "Pagar" abriria
+          // o diálogo de pagamento e o de detalhes ao mesmo tempo.
+          <TableCell align="right" onClick={(event) => event.stopPropagation()}>
+            {renderActions(item)}
+          </TableCell>
+        )}
       </TableRow>
     ));
   }
