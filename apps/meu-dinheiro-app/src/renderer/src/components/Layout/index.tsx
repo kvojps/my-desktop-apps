@@ -5,38 +5,73 @@ import {
   LightModeOutlined,
   SettingsOutlined,
 } from '@mui/icons-material';
-import { Box, ButtonBase, IconButton, Tooltip, Typography } from '@mui/material';
+import { Box, ButtonBase, IconButton, Tooltip } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import { ReactNode } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import logo from '@/assets/logo.png';
 import { useThemeMode } from '@/hooks/useThemeMode';
 import { ROUTES } from '@/routes';
+import { CONTROL_RADIUS } from '@/theme';
 
 interface LayoutProps {
   children: ReactNode;
 }
 
-const NAV_ITEMS = [
+/** Tamanho único de ícone do rail: sem rótulo, o ícone carrega o item sozinho. */
+const ICON_SIZE = 22;
+
+interface NavItem {
+  label: string;
+  path: string;
+  icon: ReactNode;
+  /** Rotas que pertencem ao item mas não são o destino dele. */
+  matchPrefixes?: string[];
+}
+
+const NAV_ITEMS: NavItem[] = [
   {
     label: 'Visão Geral',
     path: ROUTES.DASHBOARD,
-    icon: <DashboardOutlined sx={{ fontSize: 18 }} />,
+    icon: <DashboardOutlined sx={{ fontSize: ICON_SIZE }} />,
   },
-  { label: 'Histórico', path: ROUTES.HISTORY, icon: <BarChartOutlined sx={{ fontSize: 18 }} /> },
+  {
+    label: 'Histórico',
+    path: ROUTES.HISTORY,
+    icon: <BarChartOutlined sx={{ fontSize: ICON_SIZE }} />,
+    // O detalhe de mês é alcançado pelas tabelas do dashboard e do histórico, mas
+    // é ao histórico que ele pertence — é a tela que lista meses. Sem isto o rail
+    // fica inteiro apagado em /months/5, e um rail sem rótulo apagado não diz
+    // nada sobre onde o usuário está.
+    matchPrefixes: ['/months'],
+  },
   {
     label: 'Configurações',
     path: ROUTES.SETTINGS,
-    icon: <SettingsOutlined sx={{ fontSize: 18 }} />,
+    icon: <SettingsOutlined sx={{ fontSize: ICON_SIZE }} />,
   },
 ];
 
-const RAIL_WIDTH = 92;
+const RAIL_WIDTH = 64;
+/** Alvo de clique dos itens e do toggle: quadrado, para o rail ter um só ritmo. */
+const TILE_SIZE = 44;
+
+function isActive(pathname: string, item: NavItem): boolean {
+  if (pathname === item.path) return true;
+  return (item.matchPrefixes ?? []).some((prefix) => pathname.startsWith(prefix));
+}
 
 /**
  * Rail de navegação fixo à esquerda, no lugar de uma barra superior. Num app
  * desktop a altura é o recurso escasso — a barra custava ~64px de conteúdo em
  * toda tela, enquanto o rail cobra largura, que sobra (a janela tem mínimo de
  * 960px). O rail também não rola junto com a página: só o conteúdo rola.
+ *
+ * O rail é só de ícones. A versão anterior empilhava um rótulo de 10px sob cada
+ * ícone: pequeno demais para ser lido com conforto, grande demais para ser
+ * ignorado, e abaixo dos 12px do `caption` em que o design system mediu os
+ * limiares de contraste. O nome de cada item passou para o tooltip e para o
+ * `aria-label`, e a largura caiu de 92 para 64px.
  */
 export function Layout({ children }: LayoutProps) {
   const navigate = useNavigate();
@@ -54,7 +89,7 @@ export function Layout({ children }: LayoutProps) {
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          gap: 0.5,
+          gap: 1,
           py: 2,
           bgcolor: 'background.paper',
           borderRight: '1px solid',
@@ -72,51 +107,69 @@ export function Layout({ children }: LayoutProps) {
         </Tooltip>
 
         {NAV_ITEMS.map((item) => {
-          const active = location.pathname === item.path;
+          const active = isActive(location.pathname, item);
           return (
-            <ButtonBase
-              key={item.path}
-              onClick={() => navigate(item.path)}
-              aria-current={active ? 'page' : undefined}
-              sx={{
-                width: 76,
-                py: 1,
-                px: 0.5,
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 0.5,
-                borderRadius: 2,
-                color: active ? 'primary.main' : 'text.secondary',
-                bgcolor: active ? 'action.selected' : 'transparent',
-                transition: (theme) =>
-                  theme.transitions.create(['background-color', 'color'], {
-                    duration: theme.transitions.duration.shortest,
-                  }),
-                '&:hover': { bgcolor: 'action.hover' },
-              }}
-            >
-              {item.icon}
-              <Typography
-                variant="caption"
+            <Tooltip key={item.path} title={item.label} placement="right">
+              <ButtonBase
+                onClick={() => navigate(item.path)}
+                aria-label={item.label}
+                aria-current={active ? 'page' : undefined}
                 sx={{
-                  fontSize: 10,
-                  lineHeight: 1.2,
-                  textAlign: 'center',
-                  fontWeight: active ? 700 : 500,
+                  position: 'relative',
+                  width: TILE_SIZE,
+                  height: TILE_SIZE,
+                  borderRadius: `${CONTROL_RADIUS}px`,
+                  color: active ? 'primary.main' : 'text.secondary',
+                  bgcolor: (theme) =>
+                    active
+                      ? alpha(
+                          theme.palette.primary.main,
+                          theme.palette.mode === 'light' ? 0.12 : 0.22,
+                        )
+                      : 'transparent',
+                  transition: (theme) =>
+                    theme.transitions.create(['background-color', 'color'], {
+                      duration: theme.transitions.duration.shortest,
+                    }),
+                  '&:hover': {
+                    bgcolor: active ? undefined : 'action.hover',
+                    color: active ? undefined : 'text.primary',
+                  },
+                  // O rótulo em negrito era o canal não-cromático do item ativo;
+                  // sem ele, cor seria o único sinal, e cor sozinha não basta.
+                  // Esta barra encosta na borda esquerda do rail e sobrevive a
+                  // daltonismo e a alto contraste.
+                  ...(active && {
+                    '&::before': {
+                      content: '""',
+                      position: 'absolute',
+                      left: (RAIL_WIDTH - TILE_SIZE) / -2,
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      width: 3,
+                      height: 20,
+                      borderRadius: '0 3px 3px 0',
+                      bgcolor: 'primary.main',
+                    },
+                  }),
                 }}
               >
-                {item.label}
-              </Typography>
-            </ButtonBase>
+                {item.icon}
+              </ButtonBase>
+            </Tooltip>
           );
         })}
 
         <Tooltip title="Alternar tema" placement="right">
-          <IconButton onClick={toggleMode} aria-label="Alternar tema" sx={{ mt: 'auto' }}>
+          <IconButton
+            onClick={toggleMode}
+            aria-label="Alternar tema"
+            sx={{ mt: 'auto', width: TILE_SIZE, height: TILE_SIZE }}
+          >
             {mode === 'dark' ? (
-              <LightModeOutlined fontSize="small" />
+              <LightModeOutlined sx={{ fontSize: ICON_SIZE }} />
             ) : (
-              <DarkModeOutlined fontSize="small" />
+              <DarkModeOutlined sx={{ fontSize: ICON_SIZE }} />
             )}
           </IconButton>
         </Tooltip>
@@ -130,7 +183,7 @@ export function Layout({ children }: LayoutProps) {
 
             Os breakpoints do MUI medem a *janela*, mas o conteúdo mora numa
             faixa mais estreita: o rail, o padding e a barra de rolagem custam
-            ~156px. Na largura mínima (960) sobram ~805px — ou seja, `md` (900)
+            ~128px. Na largura mínima (960) sobram ~832px — ou seja, `md` (900)
             dispara quando não há espaço de `md`. Este container nomeado deixa os
             componentes consultarem a largura que realmente têm, via
             `@container content (min-width: …)`. */}

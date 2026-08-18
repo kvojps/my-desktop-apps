@@ -8,12 +8,12 @@ export const CONTROL_RADIUS = 8;
 
 /**
  * Consultas sobre a faixa de conteúdo (o container nomeado em `Layout`), e não
- * sobre a janela. Um breakpoint do MUI erra por ~156px aqui — é o que o rail, o
+ * sobre a janela. Um breakpoint do MUI erra por ~128px aqui — é o que o rail, o
  * padding do container e a barra de rolagem cobram —, então `md` acaba valendo
  * quando o conteúdo tem menos de 800px. Use estes limiares onde a densidade do
  * layout depende do espaço disponível de verdade.
  *
- * Larguras medidas: janela mínima (960) = 805px; padrão (1280) = 1125px.
+ * Larguras medidas: janela mínima (960) = 832px; padrão (1280) = 1152px.
  */
 export const contentQuery = {
   /** Cabem colunas auxiliares além do essencial. */

@@ -197,7 +197,11 @@ Regra de promoção (README §2.4): o componente nasce em `pages/<tela>/componen
 e só sobe para `components/` quando uma segunda tela precisa dele.
 
 Ícones sempre de `@mui/icons-material`, variantes `Outlined` na navegação, com
-`fontSize: 18` no rail e `fontSize: 20` em ladrilho de `StatCard`.
+`fontSize: 22` no rail e `fontSize: 20` em ladrilho de `StatCard`.
+
+O rail é maior que o ladrilho porque ali o ícone está **sozinho**: sem rótulo ao
+lado, ele é o único portador do significado do item. Era 18 enquanto havia um
+rótulo embaixo.
 
 ## 4. Anatomia de uma tela
 
@@ -216,10 +220,30 @@ O espaçamento vertical é sempre do `Stack` da página. `PageHeader` não tem m
 própria de propósito — dar uma a ele abre um vão desigual em relação às outras
 seções.
 
-O `Layout` já cuida do resto: `AppBar` fixa com logo, navegação e alternador de
-tema; `Drawer` abaixo de `md`; `main` com `maxWidth: 1440`, `mx: 'auto'` e `p: 3`.
-Em monitor largo o conteúdo para de crescer e centraliza, senão o grid vira uma
-fileira de oito cards e ler uma linha da tabela exige varrer a tela.
+O `Layout` já cuida do resto. O shell é um **rail de navegação fixo à esquerda**,
+de 64px: logo no topo, os itens de navegação, e o alternador de tema empurrado
+para o rodapé com `mt: 'auto'`. Num app desktop a altura é o recurso escasso — uma
+barra superior custaria ~64px de conteúdo em toda tela, enquanto o rail cobra
+largura, que sobra (a janela tem mínimo de 960px). O rail não rola com a página:
+só o `main` rola, para a navegação permanecer sempre alcançável.
+
+O rail é **só de ícones**, sem rótulo visível e sem colapsar/expandir. Cada item é
+um ladrilho quadrado de 44px, raio `CONTROL_RADIUS`, com o nome no `Tooltip`
+(`placement="right"`) e no `aria-label`. Rótulo de rail é a tentação óbvia e é uma
+armadilha: para caber, ele desce para 10px, abaixo dos 12px do `caption` em que os
+limiares da §1 foram medidos.
+
+O item ativo precisa dos **dois** canais que a §1.7 exige: o tingido de `primary`
+no fundo mais uma barra indicadora de 3px encostada na borda esquerda do rail. A
+barra é o canal de posição — é ela que sobrevive quando a cor não chega.
+
+`main` com `maxWidth: 1440`, `mx: 'auto'` e `p: 3`. Em monitor largo o conteúdo
+para de crescer e centraliza, senão o grid vira uma fileira de oito cards e ler
+uma linha da tabela exige varrer a tela.
+
+`meu-negocio-app` ainda usa `AppBar` horizontal com `Drawer` abaixo de `md` — como
+no alinhamento de colunas da §2.1, é ele que está fora da regra. `meu-dinheiro-app`
+e `git-dlog` já usam o rail.
 
 ## 5. Comportamento
 
