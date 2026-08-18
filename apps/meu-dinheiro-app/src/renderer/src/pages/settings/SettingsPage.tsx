@@ -12,6 +12,7 @@ import {
   Payments,
   PlaylistAdd as PlaylistAddIcon,
   ReceiptLong,
+  SettingsOutlined,
 } from '@mui/icons-material';
 import {
   Accordion,
@@ -38,7 +39,9 @@ import { Category } from '@shared/types/category';
 import { DefaultExpense } from '@shared/types/expense';
 import { DefaultIncome } from '@shared/types/income';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
+import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
+import { PageHeader } from '@/components/PageHeader';
 import { useBankAccounts } from '@/hooks/bank-accounts/useBankAccounts';
 import { useCategories } from '@/hooks/categories/useCategories';
 import { useDefaultExpenses } from '@/hooks/default-expenses/useDefaultExpenses';
@@ -249,14 +252,16 @@ export function SettingsPage() {
 
   if (loading) {
     return (
-      <Box>
-        <Skeleton variant="text" width={280} height={48} sx={{ mb: 2 }} />
-        <Stack spacing={2}>
-          <Skeleton variant="rounded" height={80} />
-          <Skeleton variant="rounded" height={80} />
-          <Skeleton variant="rounded" height={80} />
+      /* Mesma forma da tela pronta — cabeçalho e as seis seções —, para nada
+         saltar quando os dados chegam. */
+      <Stack spacing={3}>
+        <Skeleton variant="text" width={280} height={48} />
+        <Stack spacing={3}>
+          {Array.from({ length: 6 }, (_, i) => (
+            <Skeleton key={i} variant="rounded" height={72} />
+          ))}
         </Stack>
-      </Box>
+      </Stack>
     );
   }
 
@@ -271,13 +276,12 @@ export function SettingsPage() {
   }
 
   return (
-    <Box>
-      <Typography variant="h4" gutterBottom>
-        Configurações
-      </Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-        Gerencie despesas e entradas padrão, categorias, contas e os dados do aplicativo.
-      </Typography>
+    <Stack spacing={3}>
+      <PageHeader
+        icon={<SettingsOutlined />}
+        title="Configurações"
+        subtitle="Gerencie despesas e entradas padrão, categorias, contas e os dados do aplicativo."
+      />
 
       <Stack spacing={3}>
         <Accordion>
@@ -323,18 +327,21 @@ export function SettingsPage() {
                 <Skeleton variant="rounded" height={56} />
               </Stack>
             ) : bankAccounts.length === 0 ? (
-              <Box
-                sx={{
-                  py: 4,
-                  textAlign: 'center',
-                  border: '1px dashed',
-                  borderColor: 'divider',
-                  borderRadius: 2,
-                }}
-              >
-                <AccountBalance sx={{ fontSize: 32, color: 'text.disabled', mb: 1 }} />
-                <Typography color="text.secondary">Nenhuma conta cadastrada.</Typography>
-              </Box>
+              <EmptyState
+                icon={<AccountBalance sx={{ fontSize: 32 }} />}
+                title="Nenhuma conta cadastrada."
+                description="Contas bancárias ligam uma conta a pagar ao dinheiro real."
+                action={
+                  <Button
+                    variant="contained"
+                    startIcon={<AddIcon />}
+                    onClick={openAddBankAccount}
+                    size="small"
+                  >
+                    Adicionar
+                  </Button>
+                }
+              />
             ) : (
               <List disablePadding>
                 {bankAccounts.map((account) => (
@@ -403,18 +410,21 @@ export function SettingsPage() {
                 <Skeleton variant="rounded" height={56} />
               </Stack>
             ) : categories.length === 0 ? (
-              <Box
-                sx={{
-                  py: 4,
-                  textAlign: 'center',
-                  border: '1px dashed',
-                  borderColor: 'divider',
-                  borderRadius: 2,
-                }}
-              >
-                <Label sx={{ fontSize: 32, color: 'text.disabled', mb: 1 }} />
-                <Typography color="text.secondary">Nenhuma categoria cadastrada.</Typography>
-              </Box>
+              <EmptyState
+                icon={<Label sx={{ fontSize: 32 }} />}
+                title="Nenhuma categoria cadastrada."
+                description="Categorias classificam as despesas e alimentam o Histórico."
+                action={
+                  <Button
+                    variant="contained"
+                    startIcon={<AddIcon />}
+                    onClick={openAddCategory}
+                    size="small"
+                  >
+                    Adicionar
+                  </Button>
+                }
+              />
             ) : (
               <List disablePadding>
                 {categories.map((category) => (
@@ -470,18 +480,21 @@ export function SettingsPage() {
             </Box>
             <Divider sx={{ mb: 2 }} />
             {defaultExpenses.length === 0 ? (
-              <Box
-                sx={{
-                  py: 4,
-                  textAlign: 'center',
-                  border: '1px dashed',
-                  borderColor: 'divider',
-                  borderRadius: 2,
-                }}
-              >
-                <ReceiptLong sx={{ fontSize: 32, color: 'text.disabled', mb: 1 }} />
-                <Typography color="text.secondary">Nenhuma despesa padrão cadastrada.</Typography>
-              </Box>
+              <EmptyState
+                icon={<ReceiptLong sx={{ fontSize: 32 }} />}
+                title="Nenhuma despesa padrão cadastrada."
+                description="Todo mês novo nasce com uma cópia das despesas padrão."
+                action={
+                  <Button
+                    variant="contained"
+                    startIcon={<AddIcon />}
+                    onClick={openAdd}
+                    size="small"
+                  >
+                    Adicionar
+                  </Button>
+                }
+              />
             ) : (
               <List disablePadding>
                 {defaultExpenses.map((acc) => (
@@ -544,18 +557,21 @@ export function SettingsPage() {
                 <Skeleton variant="rounded" height={56} />
               </Stack>
             ) : defaultIncomes.length === 0 ? (
-              <Box
-                sx={{
-                  py: 4,
-                  textAlign: 'center',
-                  border: '1px dashed',
-                  borderColor: 'divider',
-                  borderRadius: 2,
-                }}
-              >
-                <Payments sx={{ fontSize: 32, color: 'text.disabled', mb: 1 }} />
-                <Typography color="text.secondary">Nenhuma entrada padrão cadastrada.</Typography>
-              </Box>
+              <EmptyState
+                icon={<Payments sx={{ fontSize: 32 }} />}
+                title="Nenhuma entrada padrão cadastrada."
+                description="Todo mês novo nasce com uma cópia das entradas padrão."
+                action={
+                  <Button
+                    variant="contained"
+                    startIcon={<AddIcon />}
+                    onClick={openAddIncome}
+                    size="small"
+                  >
+                    Adicionar
+                  </Button>
+                }
+              />
             ) : (
               <List disablePadding>
                 {defaultIncomes.map((inc) => (
@@ -791,6 +807,6 @@ export function SettingsPage() {
         onClose={() => setImportConfirmOpen(false)}
         onConfirm={handleConfirmImport}
       />
-    </Box>
+    </Stack>
   );
 }
