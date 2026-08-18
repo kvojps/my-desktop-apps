@@ -30,7 +30,7 @@ export function EmptyState({ icon, title, description, action }: EmptyStateProps
         {title}
       </Typography>
       {description && (
-        <Typography variant="caption" color="text.disabled" sx={{ maxWidth: 420 }}>
+        <Typography variant="caption" color="text.secondary" sx={{ maxWidth: 420 }}>
           {description}
         </Typography>
       )}

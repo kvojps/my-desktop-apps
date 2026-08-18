@@ -27,7 +27,7 @@ interface PaidProgressProps {
 export function PaidProgress({ paidCount, expenseCount }: PaidProgressProps) {
   if (expenseCount === 0) {
     return (
-      <Typography variant="body2" color="text.disabled">
+      <Typography variant="body2" color="text.secondary">
         —
       </Typography>
     );
