@@ -1,17 +1,20 @@
-import { ReportProblemOutlined } from '@mui/icons-material';
+import {
+  AccountBalanceOutlined,
+  DashboardOutlined,
+  FilterAltOffOutlined,
+  ReportProblemOutlined,
+  SavingsOutlined,
+  TrendingDownOutlined,
+  TrendingUpOutlined,
+} from '@mui/icons-material';
 import {
   Box,
   Button,
   Card,
-  CardActionArea,
-  CardContent,
   Chip,
-  Divider,
   FormControl,
   InputLabel,
-  LinearProgress,
   MenuItem,
-  Paper,
   Select,
   Skeleton,
   Stack,
@@ -19,18 +22,49 @@ import {
 } from '@mui/material';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { DataTable } from '@/components/DataTable';
+import type { Column } from '@/components/DataTable';
+import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
-import { MonthBalanceBreakdown, MonthBalanceHeadline } from '@/components/MonthBalance';
+import { PageHeader } from '@/components/PageHeader';
+import { StatCard, StatCardGrid, StatCardSkeleton } from '@/components/StatCard';
+import { StatusChip } from '@/components/StatusChip';
 import { useBankAccounts } from '@/hooks/bank-accounts/useBankAccounts';
-import { computeMonthBalance, useMonthsBalance } from '@/hooks/months/useMonthBalance';
+import {
+  BALANCE_LABELS,
+  computeMonthBalance,
+  useMonthsBalance,
+} from '@/hooks/months/useMonthBalance';
 import { useMonths } from '@/hooks/months/useMonths';
 import { ROUTES, monthDetailPath } from '@/routes';
-import { cardGrid } from '@/theme';
 import { formatCurrency } from '@/utils/format';
 import { FirstRunGuide } from './components/FirstRunGuide';
 
-const INITIAL_VISIBLE = 12;
-const LOAD_MORE_STEP = 12;
+const PAGE_SIZE = 12;
+
+/**
+ * Legenda dos cards de entrada e despesa. O total já é o valor do card, então a
+ * legenda carrega só o que ainda não aconteceu — o lado realizado é a diferença,
+ * e o card de Realizado já o mostra somado.
+ */
+function pendingSub(total: number, pending: number, pendingLabel: string, doneLabel: string) {
+  if (total === 0) return undefined;
+  if (pending <= 0) return doneLabel;
+  return `${pendingLabel} ${formatCurrency(pending)}`;
+}
+
+/** Uma linha da tabela de meses, já com os agregados achatados. */
+interface MonthRow {
+  id: number;
+  label: string;
+  isCurrent: boolean;
+  overdue: number;
+  totalIncome: number;
+  totalExpense: number;
+  realized: number;
+  paidCount: number;
+  expenseCount: number;
+}
 
 function monthKey(year: number, month: number) {
   return `${year}-${String(month).padStart(2, '0')}`;
@@ -39,7 +73,7 @@ function monthKey(year: number, month: number) {
 export function DashboardPage() {
   const [fromOverride, setFromOverride] = useState('');
   const [toOverride, setToOverride] = useState('');
-  const [visibleCount, setVisibleCount] = useState(INITIAL_VISIBLE);
+  const [page, setPage] = useState(1);
   const [defaultYearApplied, setDefaultYearApplied] = useState(false);
   const navigate = useNavigate();
   const { months, loading, error, retry: handleRetry } = useMonths();
@@ -85,7 +119,7 @@ export function DashboardPage() {
   function applyRange(from: string, to: string) {
     setFromOverride(from);
     setToOverride(to);
-    setVisibleCount(INITIAL_VISIBLE);
+    setPage(1);
   }
 
   function handleFromChange(value: string) {
@@ -130,25 +164,115 @@ export function DashboardPage() {
       .sort((a, b) => b.year - a.year || b.month - a.month);
   }, [months, fromValue, toValue]);
 
-  const visibleMonths = filteredMonths.slice(0, visibleCount);
-  const hasMore = filteredMonths.length > visibleCount;
-
   const summary = useMonthsBalance(filteredMonths);
 
   const now = new Date();
   const currentKey = monthKey(now.getFullYear(), now.getMonth() + 1);
 
+  const rows = useMemo<MonthRow[]>(() => {
+    return filteredMonths.map((month) => {
+      const balance = computeMonthBalance(month);
+      return {
+        id: month.id,
+        label: month.label,
+        isCurrent: monthKey(month.year, month.month) === currentKey,
+        overdue: month.overdueExpenses ?? 0,
+        totalIncome: balance.totalIncome,
+        totalExpense: balance.totalExpense,
+        realized: balance.realized,
+        paidCount: month.paidExpenses ?? 0,
+        expenseCount: month.totalExpenses ?? 0,
+      };
+    });
+  }, [filteredMonths, currentKey]);
+
+  const totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+  // O intervalo pode encolher com a página atual já fora dele - trocar "De" para
+  // um mês recente estando na página 3 deixava a tabela vazia sem estar vazia.
+  const currentPage = Math.min(page, totalPages);
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const visibleRows = rows.slice(start, start + PAGE_SIZE);
+
+  const columns: Column<MonthRow>[] = [
+    {
+      key: 'label',
+      label: 'Mês',
+      render: (row) => (
+        <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
+          <Box component="span" sx={{ fontWeight: row.isCurrent ? 700 : 400 }}>
+            {row.label}
+          </Box>
+          {row.isCurrent && <Chip label="Atual" color="primary" size="small" variant="outlined" />}
+          {row.overdue > 0 && (
+            <StatusChip
+              label={`${row.overdue} vencida${row.overdue > 1 ? 's' : ''}`}
+              color="error"
+              icon={<ReportProblemOutlined fontSize="small" />}
+            />
+          )}
+        </Stack>
+      ),
+    },
+    {
+      key: 'income',
+      label: 'Entradas',
+      align: 'right',
+      render: (row) => formatCurrency(row.totalIncome),
+    },
+    {
+      key: 'expense',
+      label: 'Despesas',
+      align: 'right',
+      render: (row) => formatCurrency(row.totalExpense),
+    },
+    {
+      key: 'realized',
+      label: BALANCE_LABELS.realized,
+      align: 'right',
+      render: (row) => (
+        <Box
+          component="span"
+          sx={{ fontWeight: 600, color: row.realized >= 0 ? 'success.main' : 'error.main' }}
+        >
+          {formatCurrency(row.realized)}
+        </Box>
+      ),
+    },
+    {
+      // A barra de progresso do card virou fração + percentual: numa tabela
+      // densa a barra some, e a fração já diz o que ela dizia.
+      key: 'paid',
+      label: 'Pagas',
+      align: 'right',
+      render: (row) =>
+        row.expenseCount === 0 ? (
+          <Box component="span" sx={{ color: 'text.secondary' }}>
+            —
+          </Box>
+        ) : (
+          `${row.paidCount}/${row.expenseCount} · ${Math.round(
+            (row.paidCount / row.expenseCount) * 100,
+          )}%`
+        ),
+    },
+  ];
+
+  // O card de contas é condicional, e a grade precisa saber quantas colunas
+  // reservar - com `count` fixo a última coluna ficava vazia sem contas.
+  const statCount = bankAccounts.length > 0 ? 4 : 3;
+
   if (loading) {
     return (
-      <Box>
-        <Skeleton variant="rounded" height={148} sx={{ mb: 3 }} />
-        <Skeleton variant="rounded" height={72} sx={{ mb: 3 }} />
-        <Box sx={{ ...cardGrid(300), gap: 3 }}>
-          {Array.from({ length: 6 }).map((_, i) => (
-            <Skeleton key={i} variant="rounded" height={150} />
+      <Stack spacing={3}>
+        <Skeleton variant="text" width={240} height={48} />
+        <StatCardGrid count={4}>
+          {Array.from({ length: 4 }, (_, i) => (
+            <StatCardSkeleton key={i} />
           ))}
-        </Box>
-      </Box>
+        </StatCardGrid>
+        <Skeleton variant="rounded" height={72} />
+        <Skeleton variant="rounded" height={420} />
+      </Stack>
     );
   }
 
@@ -163,34 +287,59 @@ export function DashboardPage() {
   }
 
   return (
-    <Box>
-      <Paper sx={{ p: 3, mb: 3 }}>
+    <Stack spacing={3}>
+      <PageHeader
+        icon={<DashboardOutlined />}
+        title="Visão Geral"
+        subtitle="Saldo em contas e resumo de cada mês"
+      />
+
+      {/* Um bloco só para o resumo do período. Antes eram dois, e eles se
+          repetiam: `totalIncome` é exatamente `recebido + a receber` e
+          `totalExpense` é `pago + a pagar`, então os totais aqui em cima eram a
+          soma da decomposição que vinha logo abaixo. Dos oito números exibidos,
+          só quatro eram independentes.
+
+          O que sobrou: cada card traz um total como valor e o que ainda não
+          aconteceu como legenda. Recebido e pago saem da subtração, e o
+          Realizado - que é justamente `recebido - pago` - virou card próprio,
+          com o Previsto na legenda. */}
+      <StatCardGrid count={statCount}>
         {bankAccounts.length > 0 && (
-          <>
-            <Typography variant="body2" color="text.secondary" gutterBottom>
-              Saldo em contas
-            </Typography>
-            <Typography
-              variant="h3"
-              sx={{ fontWeight: 800 }}
-              color={totalBankBalance < 0 ? 'error.main' : 'text.primary'}
-            >
-              {formatCurrency(totalBankBalance)}
-            </Typography>
-            <Divider sx={{ my: 2.5 }} />
-          </>
+          <StatCard
+            label="Saldo em contas"
+            value={formatCurrency(totalBankBalance)}
+            sub="soma das contas bancárias"
+            icon={AccountBalanceOutlined}
+            accent="primary"
+            tone={totalBankBalance < 0 ? 'alert' : 'neutral'}
+          />
         )}
-
-        <MonthBalanceHeadline
-          balance={summary}
-          scope="no período"
-          variant={bankAccounts.length > 0 ? 'h5' : 'h3'}
+        <StatCard
+          label={`${BALANCE_LABELS.realized} no período`}
+          value={formatCurrency(summary.realized)}
+          sub={`${BALANCE_LABELS.projected}: ${formatCurrency(summary.projected)}`}
+          icon={SavingsOutlined}
+          accent="info"
+          tone={summary.realized >= 0 ? 'positive' : 'alert'}
         />
+        <StatCard
+          label="Entradas no período"
+          value={formatCurrency(summary.totalIncome)}
+          sub={pendingSub(summary.totalIncome, summary.pendingIncome, 'a receber', 'tudo recebido')}
+          icon={TrendingUpOutlined}
+          accent="success"
+        />
+        <StatCard
+          label="Despesas no período"
+          value={formatCurrency(summary.totalExpense)}
+          sub={pendingSub(summary.totalExpense, summary.pendingExpense, 'a pagar', 'tudo pago')}
+          icon={TrendingDownOutlined}
+          accent="secondary"
+        />
+      </StatCardGrid>
 
-        <MonthBalanceBreakdown balance={summary} />
-      </Paper>
-
-      <Paper sx={{ p: 2, mb: 3 }}>
+      <Card variant="outlined" sx={{ p: 2 }}>
         {/* Intervalo e atalhos formam um grupo só; "Limpar filtro" é o outro. Com
             `ml: 'auto'` no botão, a quebra de linha o mandava para a direita de
             uma linha vazia. Os selects usam 168px em vez de 180: com 180 os
@@ -264,125 +413,26 @@ export function DashboardPage() {
             </Button>
           )}
         </Stack>
-      </Paper>
+      </Card>
 
-      {/* Grade guiada pela largura real: com breakpoints de janela, a mínima
-          (790px de conteúdo) recebia três colunas e o rótulo do mês quebrava
-          em duas linhas ao lado do chip de vencidas. */}
-      <Box sx={{ ...cardGrid(300), gap: 3 }}>
-        {visibleMonths.map((month) => {
-          const total = month.totalExpenses ?? 0;
-          const paid = month.paidExpenses ?? 0;
-          const overdue = month.overdueExpenses ?? 0;
-          const allPaid = total > 0 && paid === total;
-          const isCurrent = monthKey(month.year, month.month) === currentKey;
-          const balance = computeMonthBalance(month);
-          const paidPercent = total > 0 ? Math.round((paid / total) * 100) : 0;
-
-          return (
-            <Card
-              key={month.id}
-              sx={{
-                height: '100%',
-                borderLeft: isCurrent ? '4px solid' : undefined,
-                borderLeftColor: isCurrent ? 'primary.main' : undefined,
-              }}
-            >
-              <CardActionArea onClick={() => navigate(monthDetailPath(month.id))}>
-                <CardContent>
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'flex-start',
-                      mb: 1.5,
-                      gap: 1,
-                    }}
-                  >
-                    <Stack
-                      direction="row"
-                      spacing={1}
-                      alignItems="center"
-                      flexWrap="wrap"
-                      useFlexGap
-                    >
-                      <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                        {month.label}
-                      </Typography>
-                      {isCurrent && (
-                        <Chip label="Atual" color="primary" size="small" variant="outlined" />
-                      )}
-                    </Stack>
-                    {overdue > 0 && (
-                      <Chip
-                        icon={<ReportProblemOutlined fontSize="small" />}
-                        label={`${overdue} vencida${overdue > 1 ? 's' : ''}`}
-                        color="error"
-                        size="small"
-                      />
-                    )}
-                  </Box>
-
-                  <MonthBalanceHeadline
-                    balance={balance}
-                    variant="h4"
-                    showHints={false}
-                    showLabel={false}
-                    showProjected={false}
-                  />
-
-                  {(balance.totalExpense > 0 || balance.totalIncome > 0) && (
-                    <Stack direction="row" spacing={2} flexWrap="wrap" useFlexGap sx={{ mt: 0.5 }}>
-                      <Typography variant="body2" color="text.secondary">
-                        Entradas: {formatCurrency(balance.totalIncome)}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        Despesas: {formatCurrency(balance.totalExpense)}
-                      </Typography>
-                    </Stack>
-                  )}
-
-                  {total > 0 ? (
-                    <Box sx={{ mt: 1.5 }}>
-                      <LinearProgress
-                        variant="determinate"
-                        value={paidPercent}
-                        color={allPaid ? 'success' : 'warning'}
-                        sx={{ height: 6, borderRadius: 1, mb: 0.5 }}
-                      />
-                      <Typography variant="caption" color="text.secondary">
-                        {paid}/{total} pagas · {paidPercent}% pago
-                      </Typography>
-                    </Box>
-                  ) : (
-                    <Typography
-                      variant="caption"
-                      color="text.secondary"
-                      sx={{ display: 'block', mt: 1.5 }}
-                    >
-                      Sem despesas
-                    </Typography>
-                  )}
-                </CardContent>
-              </CardActionArea>
-            </Card>
-          );
-        })}
-      </Box>
-
-      {filteredMonths.length === 0 && (
-        <Typography color="text.secondary" sx={{ textAlign: 'center', mt: 4 }}>
-          Nenhum mês encontrado no intervalo selecionado.
-        </Typography>
-      )}
-
-      {hasMore && (
-        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
-          <Button variant="outlined" onClick={() => setVisibleCount((v) => v + LOAD_MORE_STEP)}>
-            Carregar mais meses
-          </Button>
-        </Box>
-      )}
-    </Box>
+      <DataTable
+        columns={columns}
+        items={visibleRows}
+        totalCount={rows.length}
+        start={start}
+        getRowKey={(row) => String(row.id)}
+        footerLabel="meses"
+        onRowClick={(row) => navigate(monthDetailPath(row.id))}
+        empty={
+          <EmptyState
+            icon={<FilterAltOffOutlined sx={{ fontSize: 40 }} />}
+            title="Nenhum mês no intervalo selecionado."
+            description="O intervalo de datas acima não alcança nenhum mês cadastrado."
+            action={<Button onClick={handleClearRange}>Limpar filtro</Button>}
+          />
+        }
+        pagination={{ currentPage, totalPages, onPageChange: setPage }}
+      />
+    </Stack>
   );
 }

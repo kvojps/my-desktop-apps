@@ -3,11 +3,12 @@ import {
   Avatar,
   Box,
   Button,
+  Card,
+  CardContent,
   List,
   ListItem,
   ListItemAvatar,
   ListItemText,
-  Paper,
   Typography,
 } from '@mui/material';
 
@@ -35,34 +36,36 @@ interface FirstRunGuideProps {
 
 export function FirstRunGuide({ onGoToSettings }: FirstRunGuideProps) {
   return (
-    <Paper sx={{ p: 4, mt: 6, mx: 'auto', maxWidth: 620 }}>
-      <Typography variant="h5" gutterBottom>
-        Nenhum mês cadastrado
-      </Typography>
-      <Typography color="text.secondary">
-        Três passos em Configurações e o app já monta os meses para você.
-      </Typography>
+    <Card variant="outlined" sx={{ mt: 6, mx: 'auto', maxWidth: 620 }}>
+      <CardContent sx={{ p: 4 }}>
+        <Typography variant="h5" gutterBottom>
+          Nenhum mês cadastrado
+        </Typography>
+        <Typography color="text.secondary">
+          Três passos em Configurações e o app já monta os meses para você.
+        </Typography>
 
-      <List sx={{ my: 1 }}>
-        {STEPS.map((step, index) => (
-          <ListItem key={step.title} disableGutters alignItems="flex-start">
-            <ListItemAvatar>
-              <Avatar sx={{ bgcolor: 'primary.main', width: 36, height: 36 }}>{step.icon}</Avatar>
-            </ListItemAvatar>
-            <ListItemText
-              primary={`${index + 1}. ${step.title}`}
-              secondary={step.description}
-              primaryTypographyProps={{ fontWeight: 600 }}
-            />
-          </ListItem>
-        ))}
-      </List>
+        <List sx={{ my: 1 }}>
+          {STEPS.map((step, index) => (
+            <ListItem key={step.title} disableGutters alignItems="flex-start">
+              <ListItemAvatar>
+                <Avatar sx={{ bgcolor: 'primary.main', width: 36, height: 36 }}>{step.icon}</Avatar>
+              </ListItemAvatar>
+              <ListItemText
+                primary={`${index + 1}. ${step.title}`}
+                secondary={step.description}
+                primaryTypographyProps={{ fontWeight: 600 }}
+              />
+            </ListItem>
+          ))}
+        </List>
 
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-        <Button variant="contained" startIcon={<Settings />} onClick={onGoToSettings}>
-          Ir para Configurações
-        </Button>
-      </Box>
-    </Paper>
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <Button variant="contained" startIcon={<Settings />} onClick={onGoToSettings}>
+            Ir para Configurações
+          </Button>
+        </Box>
+      </CardContent>
+    </Card>
   );
 }
