@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { CategoryTotal } from '@shared/types/category';
 import { api } from '@/api/client';
 import { useSnackbar } from '@/contexts/SnackbarContext';
@@ -30,12 +30,17 @@ export function useCategoryTotals(year: number) {
   const { showError } = useSnackbar();
   const [rows, setRows] = useState<CategoryTotal[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+  // O erro guardado é o próprio, e não um booleano: o `ErrorState` decodifica o
+  // código para saber se oferece "restaurar backup" ou "abrir pasta de dados".
+  const [error, setError] = useState<unknown>(null);
+  const [reloadKey, setReloadKey] = useState(0);
+
+  const retry = useCallback(() => setReloadKey((key) => key + 1), []);
 
   useEffect(() => {
     if (!Number.isInteger(year) || year <= 0) {
       setRows([]);
-      setError(false);
+      setError(null);
       setLoading(false);
       return;
     }
@@ -47,11 +52,11 @@ export function useCategoryTotals(year: number) {
       .then((data) => {
         if (cancelled) return;
         setRows(data);
-        setError(false);
+        setError(null);
       })
       .catch((err) => {
         if (cancelled) return;
-        setError(true);
+        setError(err);
         showError(err);
       })
       .finally(() => {
@@ -61,7 +66,7 @@ export function useCategoryTotals(year: number) {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [year]);
+  }, [year, reloadKey]);
 
   const grandTotal = rows.reduce((sum, r) => sum + r.total, 0);
   const tableRows = rows.map((r) => toRow(r, grandTotal)).sort((a, b) => b.total - a.total);
@@ -83,5 +88,5 @@ export function useCategoryTotals(year: number) {
 
   const topCategory = tableRows[0] ?? null;
 
-  return { tableRows, chartRows, topCategory, grandTotal, loading, error };
+  return { tableRows, chartRows, topCategory, grandTotal, loading, error, retry };
 }
