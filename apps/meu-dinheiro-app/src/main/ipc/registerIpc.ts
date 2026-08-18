@@ -1,6 +1,7 @@
 import type Database from 'better-sqlite3';
 import type { ReceiptPayload } from '@shared/ipc/api';
 import { IPC_CHANNELS } from '@shared/ipc/channels';
+import { setAppSetting } from '../db/appSettingsRepository';
 import {
   createBankAccount,
   deleteBankAccount,
@@ -75,6 +76,8 @@ import {
 } from '../schemas/incomes.schema';
 import { createMonthSchema, createMonthsBatchSchema } from '../schemas/months.schema';
 import { setupSchema } from '../schemas/setup.schema';
+import { themeModeSchema } from '../schemas/theme.schema';
+import { THEME_MODE_KEY, applyThemeMode, getThemeMode } from '../theme/themeMode';
 import { parseId } from '../utils/parseId';
 import { parseOrThrow } from '../utils/validate';
 import { registerBackupHandlers } from './backupHandlers';
@@ -270,4 +273,12 @@ export function registerIpcHandlers(db: Database.Database): void {
   handle(IPC_CHANNELS.receiptsOpen, (_e, filename: string) =>
     openReceiptFile(uploadsDir, filename),
   );
+
+  handle(IPC_CHANNELS.themeGet, () => getThemeMode());
+  handle(IPC_CHANNELS.themeSet, (_e, mode: unknown) => {
+    const value = parseOrThrow(themeModeSchema, mode);
+    setAppSetting(db, THEME_MODE_KEY, value);
+    applyThemeMode(value);
+    return value;
+  });
 }

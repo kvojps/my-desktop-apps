@@ -1,6 +1,20 @@
 import { contextBridge, ipcRenderer } from 'electron';
 import type { ElectronApi, ReceiptPayload } from '@shared/ipc/api';
 import { IPC_CHANNELS } from '@shared/ipc/channels';
+import type { ThemeMode } from '@shared/types/theme';
+
+const INITIAL_THEME_MODE_FLAG = '--initial-theme-mode=';
+
+/**
+ * O modo que o main já resolveu (banco ou sistema operacional) e passou por
+ * `webPreferences.additionalArguments`. Chega aqui de forma síncrona, antes do
+ * primeiro render, que é o que evita o frame de tema errado no boot.
+ */
+function readInitialThemeMode(): ThemeMode | null {
+  const arg = process.argv.find((value) => value.startsWith(INITIAL_THEME_MODE_FLAG));
+  const mode = arg?.slice(INITIAL_THEME_MODE_FLAG.length);
+  return mode === 'light' || mode === 'dark' ? mode : null;
+}
 
 const api: ElectronApi = {
   setup: {
@@ -75,6 +89,11 @@ const api: ElectronApi = {
     export: () => ipcRenderer.invoke(IPC_CHANNELS.dataExport),
     import: () => ipcRenderer.invoke(IPC_CHANNELS.dataImport),
     openFolder: () => ipcRenderer.invoke(IPC_CHANNELS.dataOpenFolder),
+  },
+  theme: {
+    initialMode: readInitialThemeMode(),
+    get: () => ipcRenderer.invoke(IPC_CHANNELS.themeGet),
+    set: (mode) => ipcRenderer.invoke(IPC_CHANNELS.themeSet, mode),
   },
 };
 

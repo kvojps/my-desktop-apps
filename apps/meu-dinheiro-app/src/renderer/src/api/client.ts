@@ -4,6 +4,7 @@ import type { Category, CategoryTotal } from '@shared/types/category';
 import type { DefaultExpense, Expense } from '@shared/types/expense';
 import type { DefaultIncome, Income } from '@shared/types/income';
 import type { Month, MonthDetail } from '@shared/types/month';
+import type { ThemeMode } from '@shared/types/theme';
 
 function unwrapIpcError(err: unknown): never {
   if (err instanceof Error) {
@@ -231,5 +232,22 @@ export const api = {
 
   openDataFolder() {
     return call<void>(() => window.api.data.openFolder());
+  },
+
+  /**
+   * Leitura síncrona, sem `call`: o valor já veio resolvido do main por
+   * argumento de linha de comando, não por IPC. É o que permite o primeiro
+   * render já sair no tema certo.
+   */
+  initialThemeMode(): ThemeMode | null {
+    return window.api.theme.initialMode;
+  },
+
+  getThemeMode() {
+    return call<ThemeMode>(() => window.api.theme.get());
+  },
+
+  setThemeMode(mode: ThemeMode) {
+    return call<ThemeMode>(() => window.api.theme.set(mode));
   },
 };

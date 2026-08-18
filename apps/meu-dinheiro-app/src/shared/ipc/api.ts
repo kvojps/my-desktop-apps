@@ -3,6 +3,7 @@ import type { Category, CategoryTotal } from '@shared/types/category';
 import type { DefaultExpense, Expense } from '@shared/types/expense';
 import type { DefaultIncome, Income } from '@shared/types/income';
 import type { Month, MonthDetail } from '@shared/types/month';
+import type { ThemeMode } from '@shared/types/theme';
 
 export type ExportResult =
   { success: true; filePath: string } | { success: false; error: 'canceled' };
@@ -151,6 +152,18 @@ export interface DataApi {
   openFolder: () => Promise<void>;
 }
 
+export interface ThemeApi {
+  /**
+   * O modo já resolvido pelo main, injetado no preload por
+   * `additionalArguments`. É um valor, e não uma chamada, justamente para o
+   * renderer poder escolher o tema no primeiro render — um `get()` assíncrono
+   * custaria um frame com o tema errado a cada boot.
+   */
+  initialMode: ThemeMode | null;
+  get: () => Promise<ThemeMode>;
+  set: (mode: ThemeMode) => Promise<ThemeMode>;
+}
+
 export interface ElectronApi {
   setup: SetupApi;
   months: MonthsApi;
@@ -163,4 +176,5 @@ export interface ElectronApi {
   receipts: ReceiptsApi;
   reports: ReportsApi;
   data: DataApi;
+  theme: ThemeApi;
 }
