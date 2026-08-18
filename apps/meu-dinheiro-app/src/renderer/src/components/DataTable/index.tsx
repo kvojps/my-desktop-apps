@@ -1,0 +1,160 @@
+import {
+  Box,
+  Paper,
+  Skeleton,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TableSortLabel,
+  Typography,
+} from '@mui/material';
+import { ReactNode } from 'react';
+import { Pagination } from '@/components/Pagination';
+
+export interface Column<T> {
+  key: string;
+  label: string;
+  sortable?: boolean;
+  align?: 'left' | 'right' | 'center';
+  render: (item: T) => ReactNode;
+}
+
+interface DataTableProps<T> {
+  columns: Column<T>[];
+  items: T[];
+  totalCount: number;
+  start: number;
+  sort?: { key: string | null; direction: 'asc' | 'desc' };
+  onToggleSort?: (key: string) => void;
+  renderActions?: (item: T) => ReactNode;
+  getRowKey: (item: T) => string;
+  footerLabel: string;
+  isLoading?: boolean;
+  onRowClick?: (item: T) => void;
+  /** Estado vazio completo — ícone, frase e a ação que resolve. */
+  empty?: ReactNode;
+  pagination?: {
+    currentPage: number;
+    totalPages: number;
+    onPageChange: (page: number) => void;
+  };
+}
+
+const SKELETON_ROWS = 5;
+
+export function DataTable<T>({
+  columns,
+  items,
+  totalCount,
+  start,
+  sort,
+  onToggleSort,
+  renderActions,
+  getRowKey,
+  footerLabel,
+  isLoading,
+  onRowClick,
+  empty,
+  pagination,
+}: DataTableProps<T>) {
+  const colSpan = columns.length + (renderActions ? 1 : 0);
+
+  function renderBody() {
+    // Enquanto o SQLite responde, a tabela mantém a própria forma em vez de
+    // piscar um "nenhum registro" que ainda não é verdade.
+    if (isLoading) {
+      return Array.from({ length: SKELETON_ROWS }, (_, row) => (
+        <TableRow key={`skeleton-${row}`}>
+          {Array.from({ length: colSpan }, (_, col) => (
+            <TableCell key={col}>
+              <Skeleton variant="text" width={col === 0 ? '60%' : '40%'} />
+            </TableCell>
+          ))}
+        </TableRow>
+      ));
+    }
+
+    if (totalCount === 0) {
+      return (
+        <TableRow>
+          <TableCell colSpan={colSpan} sx={{ borderBottom: 0 }}>
+            {empty}
+          </TableCell>
+        </TableRow>
+      );
+    }
+
+    return items.map((item) => (
+      <TableRow
+        key={getRowKey(item)}
+        hover
+        onClick={onRowClick ? () => onRowClick(item) : undefined}
+        sx={onRowClick ? { cursor: 'pointer' } : undefined}
+      >
+        {columns.map((col) => (
+          <TableCell key={col.key} align={col.align}>
+            {col.render(item)}
+          </TableCell>
+        ))}
+        {renderActions && <TableCell align="right">{renderActions(item)}</TableCell>}
+      </TableRow>
+    ));
+  }
+
+  return (
+    <Paper variant="outlined">
+      <TableContainer>
+        <Table size="small">
+          <TableHead>
+            <TableRow>
+              {columns.map((col) => (
+                <TableCell
+                  key={col.key}
+                  align={col.align}
+                  sortDirection={col.sortable && sort?.key === col.key ? sort.direction : false}
+                >
+                  {col.sortable ? (
+                    <TableSortLabel
+                      active={sort?.key === col.key}
+                      direction={sort?.key === col.key ? sort.direction : 'asc'}
+                      onClick={() => onToggleSort?.(col.key)}
+                    >
+                      {col.label}
+                    </TableSortLabel>
+                  ) : (
+                    col.label
+                  )}
+                </TableCell>
+              ))}
+              {renderActions && <TableCell align="right">Ações</TableCell>}
+            </TableRow>
+          </TableHead>
+          <TableBody>{renderBody()}</TableBody>
+        </Table>
+      </TableContainer>
+
+      <Box sx={{ px: 2, py: 1.5, borderTop: 1, borderColor: 'divider' }}>
+        <Typography variant="body2" color="text.secondary">
+          {isLoading ? (
+            <Skeleton variant="text" width={180} />
+          ) : totalCount > 0 ? (
+            `Mostrando ${start + 1}–${start + items.length} de ${totalCount} ${footerLabel}`
+          ) : (
+            `Mostrando 0 de 0 ${footerLabel}`
+          )}
+        </Typography>
+      </Box>
+
+      {!isLoading && pagination && (
+        <Pagination
+          currentPage={pagination.currentPage}
+          totalPages={pagination.totalPages}
+          onPageChange={pagination.onPageChange}
+        />
+      )}
+    </Paper>
+  );
+}

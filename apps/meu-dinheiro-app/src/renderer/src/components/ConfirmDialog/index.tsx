@@ -8,6 +8,11 @@ import {
 } from '@mui/material';
 import { ReactNode } from 'react';
 
+/**
+ * `Dialog` cru de propósito, e não `Modal`: a §3 lista os dois como primitivas
+ * separadas. Uma confirmação não quer o X de fechar nem os `dividers` do Modal —
+ * ela tem duas saídas, e as duas são botões do rodapé.
+ */
 interface ConfirmDialogProps {
   open: boolean;
   title: string;
