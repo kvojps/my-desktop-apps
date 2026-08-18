@@ -1,18 +1,10 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Check } from '@mui/icons-material';
-import {
-  Box,
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  TextField,
-  Typography,
-} from '@mui/material';
+import { Box, Button, ButtonBase, TextField, Typography } from '@mui/material';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Category } from '@shared/types/category';
+import { Modal } from '@/components/Modal';
 import { CategoryFormValues, categoryFormSchema } from './formSchemas';
 
 export const CATEGORY_COLORS = [
@@ -27,6 +19,19 @@ export const CATEGORY_COLORS = [
   '#B85C38',
   '#757575',
 ];
+
+/**
+ * As cores são escolhidas pelo usuário, então o check não pode ser branco fixo:
+ * sobre as amostras claras da paleta ele sumia. Decide pela luminância relativa
+ * da própria amostra, que é a mesma conta do `contrastText` do tema.
+ */
+function checkColorOn(hex: string): string {
+  const channels = [1, 3, 5]
+    .map((i) => parseInt(hex.substr(i, 2), 16) / 255)
+    .map((c) => (c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)));
+  const luminance = 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2];
+  return luminance > 0.4 ? 'rgba(0, 0, 0, 0.87)' : '#fff';
+}
 
 interface CategoryFormProps {
   open: boolean;
@@ -54,50 +59,52 @@ export function CategoryForm({ open, onClose, onSave, initial }: CategoryFormPro
   });
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>{initial ? 'Editar Categoria' : 'Nova Categoria'}</DialogTitle>
-      <DialogContent>
-        <TextField
-          autoFocus
-          label="Nome da categoria"
-          fullWidth
-          error={!!errors.name}
-          helperText={errors.name?.message}
-          sx={{ mt: 1, mb: 2 }}
-          {...register('name')}
-        />
-        <Typography variant="body2" color="text.secondary" gutterBottom>
-          Cor
-        </Typography>
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-          {CATEGORY_COLORS.map((swatch) => (
-            <Box
-              key={swatch}
-              onClick={() => setColor(swatch)}
-              sx={{
-                width: 32,
-                height: 32,
-                borderRadius: '50%',
-                bgcolor: swatch,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                border: '2px solid',
-                borderColor: color === swatch ? 'text.primary' : 'transparent',
-              }}
-            >
-              {color === swatch && <Check fontSize="small" sx={{ color: '#fff' }} />}
-            </Box>
-          ))}
-        </Box>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose}>Cancelar</Button>
-        <Button variant="contained" onClick={() => onSubmit()}>
-          Salvar
-        </Button>
-      </DialogActions>
-    </Dialog>
+    <Modal
+      open={open}
+      onClose={onClose}
+      title={initial ? 'Editar Categoria' : 'Nova Categoria'}
+      onSubmit={onSubmit}
+      footer={
+        <>
+          <Button onClick={onClose}>Cancelar</Button>
+          <Button variant="contained" type="submit">
+            Salvar
+          </Button>
+        </>
+      }
+    >
+      <TextField
+        autoFocus
+        label="Nome da categoria"
+        fullWidth
+        error={!!errors.name}
+        helperText={errors.name?.message}
+        sx={{ mt: 1, mb: 2 }}
+        {...register('name')}
+      />
+      <Typography variant="body2" color="text.secondary" gutterBottom>
+        Cor
+      </Typography>
+      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+        {CATEGORY_COLORS.map((swatch) => (
+          <ButtonBase
+            key={swatch}
+            onClick={() => setColor(swatch)}
+            aria-label={`Cor ${swatch}`}
+            aria-pressed={color === swatch}
+            sx={{
+              width: 32,
+              height: 32,
+              borderRadius: '50%',
+              bgcolor: swatch,
+              border: '2px solid',
+              borderColor: color === swatch ? 'text.primary' : 'transparent',
+            }}
+          >
+            {color === swatch && <Check fontSize="small" sx={{ color: checkColorOn(swatch) }} />}
+          </ButtonBase>
+        ))}
+      </Box>
+    </Modal>
   );
 }
