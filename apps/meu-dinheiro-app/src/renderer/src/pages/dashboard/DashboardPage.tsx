@@ -25,7 +25,7 @@ import { useBankAccounts } from '@/hooks/bank-accounts/useBankAccounts';
 import { computeMonthBalance, useMonthsBalance } from '@/hooks/months/useMonthBalance';
 import { useMonths } from '@/hooks/months/useMonths';
 import { ROUTES, monthDetailPath } from '@/routes';
-import { cardGrid, tabularNums } from '@/theme';
+import { cardGrid } from '@/theme';
 import { formatCurrency } from '@/utils/format';
 import { FirstRunGuide } from './components/FirstRunGuide';
 
@@ -333,10 +333,10 @@ export function DashboardPage() {
 
                   {(balance.totalExpense > 0 || balance.totalIncome > 0) && (
                     <Stack direction="row" spacing={2} flexWrap="wrap" useFlexGap sx={{ mt: 0.5 }}>
-                      <Typography variant="body2" color="text.secondary" sx={tabularNums}>
+                      <Typography variant="body2" color="text.secondary">
                         Entradas: {formatCurrency(balance.totalIncome)}
                       </Typography>
-                      <Typography variant="body2" color="text.secondary" sx={tabularNums}>
+                      <Typography variant="body2" color="text.secondary">
                         Despesas: {formatCurrency(balance.totalExpense)}
                       </Typography>
                     </Stack>

@@ -52,7 +52,6 @@ import {
 } from '@/hooks/months/useMonthBalance';
 import { useMonths } from '@/hooks/months/useMonths';
 import { monthDetailPath } from '@/routes';
-import { tabularNums } from '@/theme';
 import { formatCurrency } from '@/utils/format';
 import { StatTile } from './components/StatTile';
 
@@ -360,7 +359,7 @@ export function HistoryPage() {
                 </ResponsiveContainer>
               ) : (
                 <Paper sx={{ overflowX: 'auto' }}>
-                  <Table size="small" sx={tabularNums}>
+                  <Table size="small">
                     <TableHead>
                       <TableRow>
                         <TableCell>Mês</TableCell>
@@ -463,7 +462,7 @@ export function HistoryPage() {
                     </ResponsiveContainer>
                   ) : (
                     <Paper sx={{ overflowX: 'auto' }}>
-                      <Table size="small" sx={tabularNums}>
+                      <Table size="small">
                         <TableHead>
                           <TableRow>
                             <TableCell>Categoria</TableCell>

@@ -20,7 +20,7 @@ import {
   Typography,
 } from '@mui/material';
 import { KeyboardEvent, MouseEvent, ReactNode, useState } from 'react';
-import { contentQuery, tabularNums } from '@/theme';
+import { contentQuery } from '@/theme';
 import { formatCurrencyOrFallback } from '@/utils/format';
 
 export interface ItemRowStatus {
@@ -214,13 +214,13 @@ export function ItemRow({
         <Typography
           variant="body2"
           color={metaHighlight ? 'error.main' : 'text.primary'}
-          sx={{ fontWeight: metaHighlight ? 600 : 400, ...tabularNums }}
+          sx={{ fontWeight: metaHighlight ? 600 : 400 }}
         >
           {metaValue}
         </Typography>
       </Box>
 
-      <Typography variant="subtitle1" sx={{ fontWeight: 700, textAlign: 'right', ...tabularNums }}>
+      <Typography variant="subtitle1" sx={{ fontWeight: 700, textAlign: 'right' }}>
         {formatCurrencyOrFallback(amount, '—')}
       </Typography>
 
