@@ -1,26 +1,8 @@
-import {
-  AttachFile,
-  Delete as DeleteIcon,
-  Edit as EditIcon,
-  MoreVert,
-  StickyNote2Outlined,
-  Visibility,
-} from '@mui/icons-material';
-import {
-  Box,
-  Button,
-  IconButton,
-  ListItemIcon,
-  ListItemText,
-  Menu,
-  MenuItem,
-  Paper,
-  Stack,
-  Tooltip,
-  Typography,
-} from '@mui/material';
-import { KeyboardEvent, MouseEvent, ReactNode, useState } from 'react';
-import { contentQuery } from '@/theme';
+import { AttachFile, StickyNote2Outlined } from '@mui/icons-material';
+import { Box, Button, Paper, Stack, Tooltip, Typography } from '@mui/material';
+import { KeyboardEvent, MouseEvent, ReactNode } from 'react';
+import { ActionsMenu } from '@/components/ActionsMenu';
+import { CONTROL_RADIUS, contentQuery } from '@/theme';
 import { formatCurrencyOrFallback } from '@/utils/format';
 
 export interface ItemRowStatus {
@@ -35,7 +17,8 @@ export interface ItemRowAction {
   label: string;
   onClick: () => void;
   variant: 'contained' | 'text';
-  color: 'primary' | 'success' | 'warning';
+  /** Sem `warning`: como rótulo de botão o âmbar dá 1.83:1 sobre o papel. */
+  color: 'primary' | 'success';
 }
 
 interface ItemRowProps {
@@ -85,12 +68,6 @@ export function ItemRow({
   onEdit,
   onDelete,
 }: ItemRowProps) {
-  const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
-
-  function closeMenu() {
-    setMenuAnchor(null);
-  }
-
   /** As ações da linha não devem disparar o clique de "ver detalhes". */
   function stopRowClick(event: MouseEvent) {
     event.stopPropagation();
@@ -138,18 +115,27 @@ export function ItemRow({
             duration: theme.transitions.duration.shortest,
           }),
         '&:hover': { bgcolor: 'action.hover' },
-        '&:focus-visible': {
-          outline: '2px solid',
-          outlineColor: 'primary.main',
-          outlineOffset: 2,
-        },
       }}
     >
       <Stack direction="row" spacing={1} alignItems="center" sx={{ minWidth: 0 }}>
         <Tooltip title={status.label}>
+          {/* Ladrilho preenchido, e não glifo colorido: âmbar sobre papel dá
+              1.83:1, abaixo até do limiar de 3:1 de gráfico não-textual. No
+              preenchimento a cor é legível e o rótulo sai do `contrastText`.
+              O ícone e o tooltip seguem dizendo a mesma coisa sem a cor. */}
           <Box
             aria-label={status.label}
-            sx={{ display: 'flex', color: `${status.color}.main`, flexShrink: 0 }}
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+              width: 26,
+              height: 26,
+              borderRadius: `${CONTROL_RADIUS / 2}px`,
+              bgcolor: `${status.color}.main`,
+              color: `${status.color}.contrastText`,
+            }}
           >
             {status.icon}
           </Box>
@@ -238,48 +224,12 @@ export function ItemRow({
         <Button size="small" variant={action.variant} color={action.color} onClick={action.onClick}>
           {action.label}
         </Button>
-        <IconButton
-          size="small"
-          aria-label={`Mais ações para ${name}`}
-          onClick={(e) => setMenuAnchor(e.currentTarget)}
-        >
-          <MoreVert fontSize="small" />
-        </IconButton>
-        <Menu anchorEl={menuAnchor} open={!!menuAnchor} onClose={closeMenu}>
-          <MenuItem
-            onClick={() => {
-              closeMenu();
-              onViewDetail();
-            }}
-          >
-            <ListItemIcon>
-              <Visibility fontSize="small" />
-            </ListItemIcon>
-            <ListItemText>Ver detalhes</ListItemText>
-          </MenuItem>
-          <MenuItem
-            onClick={() => {
-              closeMenu();
-              onEdit();
-            }}
-          >
-            <ListItemIcon>
-              <EditIcon fontSize="small" />
-            </ListItemIcon>
-            <ListItemText>Editar</ListItemText>
-          </MenuItem>
-          <MenuItem
-            onClick={() => {
-              closeMenu();
-              onDelete();
-            }}
-          >
-            <ListItemIcon>
-              <DeleteIcon fontSize="small" />
-            </ListItemIcon>
-            <ListItemText>Excluir</ListItemText>
-          </MenuItem>
-        </Menu>
+        <ActionsMenu
+          ariaLabel={`Mais ações para ${name}`}
+          onView={onViewDetail}
+          onEdit={onEdit}
+          onDelete={onDelete}
+        />
       </Stack>
     </Paper>
   );

@@ -36,7 +36,7 @@ export function ExpenseRow({
   }
 
   const action: ItemRowAction = expense.isPaid
-    ? { label: 'Desmarcar', onClick: onUnpay, variant: 'text', color: 'warning' }
+    ? { label: 'Desmarcar', onClick: onUnpay, variant: 'text', color: 'primary' }
     : { label: 'Pagar', onClick: onPay, variant: 'contained', color: 'primary' };
 
   return (

@@ -1,22 +1,27 @@
-import { GridViewOutlined, Search, ViewListOutlined } from '@mui/icons-material';
+import {
+  FilterAltOffOutlined,
+  GridViewOutlined,
+  Search,
+  ViewListOutlined,
+} from '@mui/icons-material';
 import {
   Box,
   Button,
+  Card,
   FormControl,
   InputAdornment,
   InputLabel,
   MenuItem,
-  Pagination,
-  Paper,
   Select,
   Stack,
   TextField,
   ToggleButton,
   ToggleButtonGroup,
   Tooltip,
-  Typography,
 } from '@mui/material';
 import { Key, ReactNode } from 'react';
+import { EmptyState } from '@/components/EmptyState';
+import { Pagination } from '@/components/Pagination';
 import { ItemsFilter } from '@/hooks/useItemsFilter';
 import { ListView, useListView } from '@/hooks/useListView';
 import { cardGrid } from '@/theme';
@@ -33,6 +38,8 @@ interface ItemsTabProps<T, Status extends string, Sort extends string> {
   searchPlaceholder: string;
   /** Quando o mês não tem nenhum item. */
   emptyMessage: string;
+  /** Ícone da aba, usado nos dois estados vazios. */
+  emptyIcon: ReactNode;
   /** Quando os filtros não deixaram nada. */
   noResultsMessage: string;
   addLabel: string;
@@ -54,6 +61,7 @@ export function ItemsTab<T, Status extends string, Sort extends string>({
   totalCount,
   searchPlaceholder,
   emptyMessage,
+  emptyIcon,
   noResultsMessage,
   addLabel,
   statusOptions,
@@ -68,14 +76,17 @@ export function ItemsTab<T, Status extends string, Sort extends string>({
 
   if (totalCount === 0) {
     return (
-      <Paper sx={{ p: 6, textAlign: 'center' }}>
-        <Typography color="text.secondary" gutterBottom>
-          {emptyMessage}
-        </Typography>
-        <Button variant="contained" onClick={onAdd} sx={{ mt: 1 }}>
-          {addLabel}
-        </Button>
-      </Paper>
+      <Card variant="outlined">
+        <EmptyState
+          icon={emptyIcon}
+          title={emptyMessage}
+          action={
+            <Button variant="contained" onClick={onAdd}>
+              {addLabel}
+            </Button>
+          }
+        />
+      </Card>
     );
   }
 
@@ -184,9 +195,11 @@ export function ItemsTab<T, Status extends string, Sort extends string>({
       </Stack>
 
       {filter.filtered.length === 0 ? (
-        <Typography color="text.secondary" sx={{ textAlign: 'center', mt: 4 }}>
-          {noResultsMessage}
-        </Typography>
+        <EmptyState
+          icon={<FilterAltOffOutlined sx={{ fontSize: 40 }} />}
+          title={noResultsMessage}
+          action={<Button onClick={filter.reset}>Limpar filtros</Button>}
+        />
       ) : view === 'list' ? (
         <Stack spacing={1}>
           {filter.visible.map((item) => (
@@ -203,16 +216,11 @@ export function ItemsTab<T, Status extends string, Sort extends string>({
         </Box>
       )}
 
-      {filter.totalPages > 1 && (
-        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
-          <Pagination
-            count={filter.totalPages}
-            page={filter.page}
-            onChange={(_, value) => filter.setPage(value)}
-            color="primary"
-          />
-        </Box>
-      )}
+      <Pagination
+        currentPage={filter.page}
+        totalPages={filter.totalPages}
+        onPageChange={filter.setPage}
+      />
     </>
   );
 }

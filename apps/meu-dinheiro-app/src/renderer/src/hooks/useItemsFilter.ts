@@ -31,6 +31,10 @@ export interface ItemsFilter<T, Status extends string, Sort extends string> {
   setExtra: (value: string) => void;
   setSort: (value: Sort) => void;
   setPage: (value: number) => void;
+  /** Devolve busca, status e filtro extra ao padrão. A ordenação não é filtro. */
+  reset: () => void;
+  /** Se algum filtro está estreitando a lista — decide qual estado vazio mostrar. */
+  isFiltered: boolean;
 }
 
 export interface ItemsSelection<T> {
@@ -103,6 +107,13 @@ export function useItemsFilter<T, Status extends string, Sort extends string>({
     };
   }
 
+  function reset() {
+    setSearch('');
+    setStatus(defaultStatus);
+    setExtra('');
+    setPage(1);
+  }
+
   return {
     search,
     status,
@@ -117,5 +128,7 @@ export function useItemsFilter<T, Status extends string, Sort extends string>({
     setExtra: withPageReset(setExtra),
     setSort: withPageReset(setSort),
     setPage,
+    reset,
+    isFiltered: search.trim() !== '' || status !== defaultStatus || extra !== '',
   };
 }

@@ -1,11 +1,9 @@
 import {
   AttachFile,
   CheckCircle,
-  Delete as DeleteIcon,
-  Edit as EditIcon,
-  MoreVert,
+  ReportProblemOutlined,
+  ScheduleOutlined,
   StickyNote2Outlined,
-  Visibility,
 } from '@mui/icons-material';
 import {
   Box,
@@ -13,21 +11,16 @@ import {
   Card,
   CardActions,
   CardContent,
-  Chip,
   Divider,
-  IconButton,
-  ListItemIcon,
-  ListItemText,
-  Menu,
-  MenuItem,
   Stack,
   Tooltip,
   Typography,
 } from '@mui/material';
-import { useState } from 'react';
 import { Expense } from '@shared/types/expense';
 import { api } from '@/api/client';
+import { ActionsMenu } from '@/components/ActionsMenu';
 import { CategoryTag } from '@/components/CategoryTag';
+import { StatusChip } from '@/components/StatusChip';
 import { formatDateOnly, formatPaidDate, todayDateString } from '@/utils/date';
 import { formatCurrencyOrFallback } from '@/utils/format';
 
@@ -48,17 +41,11 @@ export function ExpenseCard({
   onEdit,
   onDelete,
 }: ExpenseCardProps) {
-  const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
-
   const isOverdue = !expense.isPaid && !!expense.dueDate && expense.dueDate < todayDateString();
 
   let borderColor: string = 'warning.main';
   if (expense.isPaid) borderColor = 'success.main';
   else if (isOverdue) borderColor = 'error.main';
-
-  function closeMenu() {
-    setMenuAnchor(null);
-  }
 
   return (
     <Card
@@ -84,11 +71,11 @@ export function ExpenseCard({
           </Stack>
           <Stack direction="row" spacing={0.5}>
             {expense.isPaid ? (
-              <Chip label="Paga" color="success" size="small" icon={<CheckCircle />} />
+              <StatusChip label="Paga" color="success" icon={<CheckCircle />} />
             ) : isOverdue ? (
-              <Chip label="Vencida" color="error" size="small" />
+              <StatusChip label="Vencida" color="error" icon={<ReportProblemOutlined />} />
             ) : (
-              <Chip label="Pendente" color="warning" size="small" />
+              <StatusChip label="Pendente" color="warning" icon={<ScheduleOutlined />} />
             )}
           </Stack>
         </Box>
@@ -154,7 +141,7 @@ export function ExpenseCard({
       </CardContent>
       <CardActions sx={{ justifyContent: 'space-between' }}>
         {expense.isPaid ? (
-          <Button size="small" color="warning" onClick={onUnpay}>
+          <Button size="small" onClick={onUnpay}>
             Desmarcar
           </Button>
         ) : (
@@ -162,44 +149,12 @@ export function ExpenseCard({
             Pagar
           </Button>
         )}
-        <IconButton size="small" onClick={(e) => setMenuAnchor(e.currentTarget)}>
-          <MoreVert fontSize="small" />
-        </IconButton>
-        <Menu anchorEl={menuAnchor} open={!!menuAnchor} onClose={closeMenu}>
-          <MenuItem
-            onClick={() => {
-              closeMenu();
-              onViewDetail();
-            }}
-          >
-            <ListItemIcon>
-              <Visibility fontSize="small" />
-            </ListItemIcon>
-            <ListItemText>Ver detalhes</ListItemText>
-          </MenuItem>
-          <MenuItem
-            onClick={() => {
-              closeMenu();
-              onEdit();
-            }}
-          >
-            <ListItemIcon>
-              <EditIcon fontSize="small" />
-            </ListItemIcon>
-            <ListItemText>Editar</ListItemText>
-          </MenuItem>
-          <MenuItem
-            onClick={() => {
-              closeMenu();
-              onDelete();
-            }}
-          >
-            <ListItemIcon>
-              <DeleteIcon fontSize="small" />
-            </ListItemIcon>
-            <ListItemText>Excluir</ListItemText>
-          </MenuItem>
-        </Menu>
+        <ActionsMenu
+          ariaLabel={`Mais ações para ${expense.name}`}
+          onView={onViewDetail}
+          onEdit={onEdit}
+          onDelete={onDelete}
+        />
       </CardActions>
     </Card>
   );

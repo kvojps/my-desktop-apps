@@ -1,29 +1,17 @@
-import {
-  CheckCircle,
-  Delete as DeleteIcon,
-  Edit as EditIcon,
-  MoreVert,
-  StickyNote2Outlined,
-  Visibility,
-} from '@mui/icons-material';
+import { CheckCircle, ScheduleOutlined, StickyNote2Outlined } from '@mui/icons-material';
 import {
   Box,
   Button,
   Card,
   CardActions,
   CardContent,
-  Chip,
-  IconButton,
-  ListItemIcon,
-  ListItemText,
-  Menu,
-  MenuItem,
   Stack,
   Tooltip,
   Typography,
 } from '@mui/material';
-import { useState } from 'react';
 import { Income } from '@shared/types/income';
+import { ActionsMenu } from '@/components/ActionsMenu';
+import { StatusChip } from '@/components/StatusChip';
 import { formatDateOnly, formatPaidDate } from '@/utils/date';
 import { formatCurrencyOrFallback } from '@/utils/format';
 
@@ -44,13 +32,7 @@ export function IncomeCard({
   onEdit,
   onDelete,
 }: IncomeCardProps) {
-  const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
-
   const borderColor = income.isReceived ? 'success.main' : 'warning.main';
-
-  function closeMenu() {
-    setMenuAnchor(null);
-  }
 
   return (
     <Card
@@ -76,9 +58,9 @@ export function IncomeCard({
           </Stack>
           <Stack direction="row" spacing={0.5}>
             {income.isReceived ? (
-              <Chip label="Recebida" color="success" size="small" icon={<CheckCircle />} />
+              <StatusChip label="Recebida" color="success" icon={<CheckCircle />} />
             ) : (
-              <Chip label="Pendente" color="warning" size="small" />
+              <StatusChip label="Pendente" color="warning" icon={<ScheduleOutlined />} />
             )}
           </Stack>
         </Box>
@@ -103,7 +85,7 @@ export function IncomeCard({
       </CardContent>
       <CardActions sx={{ justifyContent: 'space-between' }}>
         {income.isReceived ? (
-          <Button size="small" color="warning" onClick={onUnreceive}>
+          <Button size="small" onClick={onUnreceive}>
             Desmarcar
           </Button>
         ) : (
@@ -111,44 +93,12 @@ export function IncomeCard({
             Receber
           </Button>
         )}
-        <IconButton size="small" onClick={(e) => setMenuAnchor(e.currentTarget)}>
-          <MoreVert fontSize="small" />
-        </IconButton>
-        <Menu anchorEl={menuAnchor} open={!!menuAnchor} onClose={closeMenu}>
-          <MenuItem
-            onClick={() => {
-              closeMenu();
-              onViewDetail();
-            }}
-          >
-            <ListItemIcon>
-              <Visibility fontSize="small" />
-            </ListItemIcon>
-            <ListItemText>Ver detalhes</ListItemText>
-          </MenuItem>
-          <MenuItem
-            onClick={() => {
-              closeMenu();
-              onEdit();
-            }}
-          >
-            <ListItemIcon>
-              <EditIcon fontSize="small" />
-            </ListItemIcon>
-            <ListItemText>Editar</ListItemText>
-          </MenuItem>
-          <MenuItem
-            onClick={() => {
-              closeMenu();
-              onDelete();
-            }}
-          >
-            <ListItemIcon>
-              <DeleteIcon fontSize="small" />
-            </ListItemIcon>
-            <ListItemText>Excluir</ListItemText>
-          </MenuItem>
-        </Menu>
+        <ActionsMenu
+          ariaLabel={`Mais ações para ${income.name}`}
+          onView={onViewDetail}
+          onEdit={onEdit}
+          onDelete={onDelete}
+        />
       </CardActions>
     </Card>
   );

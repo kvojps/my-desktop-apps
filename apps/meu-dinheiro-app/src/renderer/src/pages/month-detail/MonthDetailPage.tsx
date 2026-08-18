@@ -3,36 +3,38 @@ import {
   ArrowBack,
   ArrowBackIosNew,
   ArrowForwardIos,
-  DeleteOutline,
-  MoreVert,
+  CalendarMonthOutlined,
+  PaymentsOutlined,
+  ReceiptLongOutlined,
+  SearchOffOutlined,
 } from '@mui/icons-material';
 import {
   Box,
   Button,
-  Divider,
+  Card,
+  CardContent,
   FormControl,
   IconButton,
   InputLabel,
-  ListItemIcon,
-  ListItemText,
-  Menu,
   MenuItem,
-  Paper,
   Select,
   Skeleton,
   Stack,
   Tab,
   Tabs,
   Tooltip,
-  Typography,
 } from '@mui/material';
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Expense } from '@shared/types/expense';
 import { Income } from '@shared/types/income';
+import { ActionsMenu } from '@/components/ActionsMenu';
 import { CategoryTag } from '@/components/CategoryTag';
+import { ConfirmDialog } from '@/components/ConfirmDialog';
+import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { MonthBalanceBreakdown, MonthBalanceHeadline } from '@/components/MonthBalance';
+import { PageHeader } from '@/components/PageHeader';
 import { useBankAccounts } from '@/hooks/bank-accounts/useBankAccounts';
 import { useCategories } from '@/hooks/categories/useCategories';
 import { useMonth } from '@/hooks/months/useMonth';
@@ -43,7 +45,6 @@ import { contentQuery } from '@/theme';
 import { todayDateString } from '@/utils/date';
 import { AddExpenseDialog } from './components/AddExpenseDialog';
 import { AddIncomeDialog } from './components/AddIncomeDialog';
-import { DeleteMonthDialog } from './components/DeleteMonthDialog';
 import { EditExpenseDialog } from './components/EditExpenseDialog';
 import { EditIncomeDialog } from './components/EditIncomeDialog';
 import { ExpenseCard } from './components/ExpenseCard';
@@ -120,7 +121,6 @@ export function MonthDetailPage() {
 
   const [tab, setTab] = useState<'expenses' | 'incomes'>('expenses');
   const [deleteMonthOpen, setDeleteMonthOpen] = useState(false);
-  const [headerMenuAnchor, setHeaderMenuAnchor] = useState<HTMLElement | null>(null);
 
   const today = todayDateString();
 
@@ -176,16 +176,17 @@ export function MonthDetailPage() {
     return (
       /* Espelha o layout real: cabeçalho + saldo num bloco, barra de abas e a
          lista densa — para o conteúdo não saltar quando os dados chegam. */
-      <Box>
-        <Skeleton variant="rounded" height={232} sx={{ mb: 3 }} />
-        <Skeleton variant="rounded" height={56} sx={{ mb: 3 }} />
-        <Skeleton variant="rounded" height={56} sx={{ mb: 3 }} />
+      <Stack spacing={3}>
+        <Skeleton variant="text" width={240} height={48} />
+        <Skeleton variant="rounded" height={180} />
+        <Skeleton variant="rounded" height={56} />
+        <Skeleton variant="rounded" height={56} />
         <Stack spacing={1}>
           {Array.from({ length: 6 }).map((_, i) => (
             <Skeleton key={i} variant="rounded" height={76} />
           ))}
         </Stack>
-      </Box>
+      </Stack>
     );
   }
 
@@ -195,12 +196,20 @@ export function MonthDetailPage() {
 
   if (notFound || !month) {
     return (
-      <Box sx={{ textAlign: 'center', mt: 8 }}>
-        <Typography variant="h5">Mês não encontrado</Typography>
-        <Button startIcon={<ArrowBack />} onClick={() => navigate(ROUTES.DASHBOARD)} sx={{ mt: 2 }}>
-          Voltar
-        </Button>
-      </Box>
+      <EmptyState
+        icon={<SearchOffOutlined sx={{ fontSize: 48 }} />}
+        title="Mês não encontrado"
+        description="O mês que você tentou abrir não existe mais."
+        action={
+          <Button
+            variant="contained"
+            startIcon={<ArrowBack />}
+            onClick={() => navigate(ROUTES.DASHBOARD)}
+          >
+            Voltar para a Visão Geral
+          </Button>
+        }
+      />
     );
   }
 
@@ -214,78 +223,59 @@ export function MonthDetailPage() {
   const editingIncome = incomeActions.editing;
 
   return (
-    <Box>
-      {/* Identificação do mês e saldo são a mesma informação — "que mês é este
-          e como ele está" — então moram no mesmo bloco, em vez de duas caixas
-          empilhadas. O rótulo cede o peso tipográfico para o saldo, que é o
-          número que a tela existe para mostrar. */}
-      <Paper sx={{ p: 3, mb: 3 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2.5 }}>
-          <Tooltip title="Voltar para a visão geral">
-            <IconButton onClick={() => navigate(ROUTES.DASHBOARD)} sx={{ ml: -1 }}>
-              <ArrowBack />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Mês anterior">
-            <span>
-              <IconButton
-                disabled={!prevMonthId}
-                onClick={() => prevMonthId && navigate(monthDetailPath(prevMonthId))}
-              >
-                <ArrowBackIosNew fontSize="small" />
+    <Stack spacing={3}>
+      <PageHeader
+        icon={<CalendarMonthOutlined />}
+        title={month.label}
+        subtitle={`${paidCount}/${month.expenses.length} despesas pagas · ${receivedCount}/${month.incomes.length} entradas recebidas`}
+        actions={
+          <Stack direction="row" spacing={0.5} alignItems="center">
+            <Tooltip title="Voltar para a visão geral">
+              <IconButton onClick={() => navigate(ROUTES.DASHBOARD)}>
+                <ArrowBack />
               </IconButton>
-            </span>
-          </Tooltip>
-          {/* `minWidth: 0` para o título ceder espaço aos botões de navegação em
-              vez de empurrá-los para fora do cabeçalho. */}
-          <Typography variant="h5" noWrap sx={{ flex: 1, minWidth: 0 }}>
-            {month.label}
-          </Typography>
-          <Tooltip title="Próximo mês">
-            <span>
-              <IconButton
-                disabled={!nextMonthId}
-                onClick={() => nextMonthId && navigate(monthDetailPath(nextMonthId))}
-              >
-                <ArrowForwardIos fontSize="small" />
-              </IconButton>
-            </span>
-          </Tooltip>
-          <IconButton
-            aria-label="Mais ações do mês"
-            onClick={(e) => setHeaderMenuAnchor(e.currentTarget)}
-            sx={{ mr: -1 }}
-          >
-            <MoreVert />
-          </IconButton>
-          <Menu
-            anchorEl={headerMenuAnchor}
-            open={!!headerMenuAnchor}
-            onClose={() => setHeaderMenuAnchor(null)}
-          >
-            <MenuItem
-              onClick={() => {
-                setHeaderMenuAnchor(null);
-                setDeleteMonthOpen(true);
-              }}
-            >
-              <ListItemIcon>
-                <DeleteOutline fontSize="small" color="error" />
-              </ListItemIcon>
-              <ListItemText sx={{ color: 'error.main' }}>Excluir mês</ListItemText>
-            </MenuItem>
-          </Menu>
-        </Box>
+            </Tooltip>
+            <Tooltip title="Mês anterior">
+              <span>
+                <IconButton
+                  disabled={!prevMonthId}
+                  onClick={() => prevMonthId && navigate(monthDetailPath(prevMonthId))}
+                >
+                  <ArrowBackIosNew fontSize="small" />
+                </IconButton>
+              </span>
+            </Tooltip>
+            <Tooltip title="Próximo mês">
+              <span>
+                <IconButton
+                  disabled={!nextMonthId}
+                  onClick={() => nextMonthId && navigate(monthDetailPath(nextMonthId))}
+                >
+                  <ArrowForwardIos fontSize="small" />
+                </IconButton>
+              </span>
+            </Tooltip>
+            <ActionsMenu
+              ariaLabel="Mais ações do mês"
+              deleteLabel="Excluir mês"
+              onDelete={() => setDeleteMonthOpen(true)}
+            />
+          </Stack>
+        }
+      />
 
-        <Divider sx={{ mb: 2.5 }} />
-
-        <MonthBalanceHeadline balance={balance} scope="no mês" variant="h4" />
-        <MonthBalanceBreakdown balance={balance} />
-      </Paper>
+      {/* O saldo é o número que a tela existe para mostrar, e por isso tem
+          superfície própria logo abaixo da identificação do mês. */}
+      <Card variant="outlined">
+        <CardContent>
+          <MonthBalanceHeadline balance={balance} scope="no mês" variant="h4" />
+          <MonthBalanceBreakdown balance={balance} />
+        </CardContent>
+      </Card>
 
       {/* A ação mais frequente da tela fica aqui, ao lado das abas e sempre
           visível — antes ela era um botão discreto no rodapé da lista. */}
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
         <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ flex: 1, minWidth: 0 }}>
           <Tab value="expenses" label={`Despesas (${paidCount}/${month.expenses.length})`} />
           <Tab value="incomes" label={`Entradas (${receivedCount}/${month.incomes.length})`} />
@@ -306,6 +296,7 @@ export function MonthDetailPage() {
           totalCount={month.expenses.length}
           searchPlaceholder="Buscar despesa..."
           emptyMessage="Nenhuma despesa cadastrada neste mês."
+          emptyIcon={<ReceiptLongOutlined sx={{ fontSize: 40 }} />}
           noResultsMessage="Nenhuma despesa encontrada com esses filtros."
           addLabel="Adicionar Despesa"
           statusOptions={EXPENSE_STATUS_OPTIONS}
@@ -364,6 +355,7 @@ export function MonthDetailPage() {
           totalCount={month.incomes.length}
           searchPlaceholder="Buscar entrada..."
           emptyMessage="Nenhuma entrada cadastrada neste mês."
+          emptyIcon={<PaymentsOutlined sx={{ fontSize: 40 }} />}
           noResultsMessage="Nenhuma entrada encontrada com esses filtros."
           addLabel="Adicionar Entrada"
           statusOptions={INCOME_STATUS_OPTIONS}
@@ -469,13 +461,20 @@ export function MonthDetailPage() {
 
       <ItemActionDialogs actions={incomeActions} itemNoun="entrada" undoNoun="recebimento" />
 
-      <DeleteMonthDialog
+      <ConfirmDialog
         open={deleteMonthOpen}
-        monthLabel={month.label}
-        deleting={deleting}
+        title="Excluir mês?"
+        message={
+          <>
+            Tem certeza que deseja excluir <strong>{month.label}</strong>? Todas as despesas e
+            pagamentos serão removidos.
+          </>
+        }
+        loadingLabel="Excluindo..."
+        loading={deleting}
         onClose={() => setDeleteMonthOpen(false)}
         onConfirm={handleDeleteMonth}
       />
-    </Box>
+    </Stack>
   );
 }

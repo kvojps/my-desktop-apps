@@ -27,7 +27,7 @@ export function IncomeRow({
     : { color: 'warning', label: 'Pendente', icon: <ScheduleOutlined fontSize="small" /> };
 
   const action: ItemRowAction = income.isReceived
-    ? { label: 'Desmarcar', onClick: onUnreceive, variant: 'text', color: 'warning' }
+    ? { label: 'Desmarcar', onClick: onUnreceive, variant: 'text', color: 'primary' }
     : { label: 'Receber', onClick: onReceive, variant: 'contained', color: 'success' };
 
   // Depois de recebida, a data que importa é a do recebimento, não a previsão.
