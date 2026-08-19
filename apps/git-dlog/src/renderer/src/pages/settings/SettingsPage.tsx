@@ -1,10 +1,15 @@
-import { CheckCircle, DeleteOutline, RadioButtonUnchecked, Refresh } from '@mui/icons-material';
+import {
+  CheckCircle,
+  DeleteOutline,
+  RadioButtonUnchecked,
+  Refresh,
+  SettingsOutlined,
+} from '@mui/icons-material';
 import {
   Alert,
   Button,
   Card,
   CardContent,
-  CircularProgress,
   Divider,
   Link,
   Stack,
@@ -14,6 +19,8 @@ import {
 import { useCallback, useEffect, useState } from 'react';
 import type { PrIntegrationStatus, PrProviderKind } from '@shared/types/pullRequest';
 import { api } from '@/api/client';
+import { Modal } from '@/components/Modal';
+import { PageHeader } from '@/components/PageHeader';
 import { useSnackbar } from '@/contexts/SnackbarContext';
 import { openExternal } from '@/utils/pullRequest';
 
@@ -73,6 +80,7 @@ export function SettingsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [token, setToken] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [tokenModalOpen, setTokenModalOpen] = useState(false);
 
   const loadStatus = useCallback(
     async (redetect = false) => {
@@ -97,6 +105,7 @@ export function SettingsPage() {
     try {
       const login = await api.savePrToken(token);
       setToken('');
+      setTokenModalOpen(false);
       showSnackbar(`Token salvo e validado como "${login}".`);
       await loadStatus();
     } catch (err) {
@@ -118,12 +127,11 @@ export function SettingsPage() {
 
   return (
     <Stack spacing={2}>
-      <Stack>
-        <Typography variant="h5">Configurações</Typography>
-        <Typography variant="body2" color="text.secondary">
-          Integração com pull requests e informações do aplicativo
-        </Typography>
-      </Stack>
+      <PageHeader
+        icon={<SettingsOutlined sx={{ fontSize: 22 }} color="action" />}
+        title="Configurações"
+        subtitle="Integração com pull requests e informações do aplicativo"
+      />
 
       <Card variant="outlined">
         <CardContent>
@@ -131,11 +139,11 @@ export function SettingsPage() {
             <Typography variant="h6">Pull requests</Typography>
             <Button
               size="small"
-              startIcon={isLoading ? <CircularProgress size={14} /> : <Refresh />}
+              startIcon={<Refresh />}
               onClick={() => loadStatus(true)}
               disabled={isLoading}
             >
-              Redetectar
+              {isLoading ? 'Redetectando...' : 'Redetectar'}
             </Button>
           </Stack>
 
@@ -184,42 +192,58 @@ export function SettingsPage() {
               </Button>
             </Stack>
           ) : (
-            <Stack spacing={1}>
-              <Stack direction="row" spacing={1} alignItems="flex-start">
-                <TextField
-                  size="small"
-                  fullWidth
-                  type="password"
-                  placeholder="ghp_..."
-                  label="Personal access token"
-                  value={token}
-                  onChange={(event) => setToken(event.target.value)}
-                  autoComplete="off"
-                  helperText="Precisa do escopo repo (ou read-only equivalente em tokens fine-grained)."
-                />
-                <Button
-                  variant="contained"
-                  onClick={handleSaveToken}
-                  disabled={isSaving || token.trim().length < 8}
-                  sx={{ mt: 0.25 }}
-                >
-                  {isSaving ? 'Validando...' : 'Salvar'}
-                </Button>
-              </Stack>
-              <Typography variant="caption" color="text.secondary">
-                O token é validado antes de ser salvo e nunca volta para a interface.{' '}
-                <Link
-                  component="button"
-                  variant="caption"
-                  onClick={() => openExternal(TOKEN_DOCS_URL)}
-                >
-                  Gerar um token no GitHub
-                </Link>
+            <Stack direction="row" spacing={1} alignItems="center">
+              <Typography variant="body2" color="text.secondary" sx={{ flex: 1 }}>
+                Sem token salvo. É a alternativa a `gh`/`glab` para mostrar PRs.
               </Typography>
+              <Button variant="outlined" size="small" onClick={() => setTokenModalOpen(true)}>
+                Configurar token
+              </Button>
             </Stack>
           )}
         </CardContent>
       </Card>
+
+      <Modal
+        open={tokenModalOpen}
+        title="Configurar token do GitHub"
+        onClose={() => !isSaving && setTokenModalOpen(false)}
+        onSubmit={handleSaveToken}
+        actions={
+          <>
+            <Button type="button" onClick={() => setTokenModalOpen(false)} disabled={isSaving}>
+              Cancelar
+            </Button>
+            <Button
+              type="submit"
+              variant="contained"
+              disabled={isSaving || token.trim().length < 8}
+            >
+              {isSaving ? 'Validando...' : 'Salvar'}
+            </Button>
+          </>
+        }
+      >
+        <Stack spacing={1.5} sx={{ pt: 0.5 }}>
+          <TextField
+            autoFocus
+            fullWidth
+            type="password"
+            placeholder="ghp_..."
+            label="Personal access token"
+            value={token}
+            onChange={(event) => setToken(event.target.value)}
+            autoComplete="off"
+            helperText="Precisa do escopo repo (ou read-only equivalente em tokens fine-grained)."
+          />
+          <Typography variant="caption" color="text.secondary">
+            O token é validado antes de ser salvo e nunca volta para a interface.{' '}
+            <Link component="button" variant="caption" onClick={() => openExternal(TOKEN_DOCS_URL)}>
+              Gerar um token no GitHub
+            </Link>
+          </Typography>
+        </Stack>
+      </Modal>
 
       <Card variant="outlined">
         <CardContent>

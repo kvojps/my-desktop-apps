@@ -1,23 +1,22 @@
 import { CssBaseline, PaletteMode, ThemeProvider } from '@mui/material';
 import { ReactNode, useMemo, useState } from 'react';
+import { api } from '@/api/client';
 import { getAppTheme } from './index';
 import { ThemeModeContext } from './themeModeContext';
 
+// Cache do renderer, não fonte da verdade — essa é o banco, lido pelo main
+// antes de criar a janela (docs/design-system.md §5.1). `getInitialThemeMode`
+// já reflete o banco: é o mesmo valor que decidiu a cor de fundo da janela.
 const STORAGE_KEY = 'git-dlog-theme-mode';
 
-function getInitialMode(): PaletteMode {
-  const stored = localStorage.getItem(STORAGE_KEY);
-  if (stored === 'light' || stored === 'dark') return stored;
-  return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-}
-
 export function ThemeModeProvider({ children }: { children: ReactNode }) {
-  const [mode, setMode] = useState<PaletteMode>(getInitialMode);
+  const [mode, setMode] = useState<PaletteMode>(() => api.getInitialThemeMode());
 
   const toggleMode = () => {
     setMode((prev) => {
       const next = prev === 'light' ? 'dark' : 'light';
       localStorage.setItem(STORAGE_KEY, next);
+      void api.saveThemeMode(next);
       return next;
     });
   };

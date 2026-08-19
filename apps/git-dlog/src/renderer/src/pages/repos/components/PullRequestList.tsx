@@ -8,6 +8,7 @@ import {
 } from '@mui/icons-material';
 import { Box, Chip, Link, Stack, Tooltip, Typography } from '@mui/material';
 import type { ChecksState, PullRequest, ReviewDecision } from '@shared/types/pullRequest';
+import { StatusChip, StatusChipTone } from '@/components/StatusChip';
 import { formatRelativeDate } from '@/utils/date';
 import { needsAction, openExternal } from '@/utils/pullRequest';
 
@@ -15,48 +16,32 @@ function ChecksChip({ checks }: { checks: ChecksState }) {
   if (!checks) return null;
 
   const config = {
-    passing: { color: 'success' as const, icon: <CheckCircleOutline />, label: 'CI ok' },
-    failing: { color: 'error' as const, icon: <CancelOutlined />, label: 'CI falhou' },
-    pending: { color: 'default' as const, icon: <HourglassEmpty />, label: 'CI rodando' },
+    passing: { tone: 'success' as StatusChipTone, icon: <CheckCircleOutline />, label: 'CI ok' },
+    failing: { tone: 'error' as StatusChipTone, icon: <CancelOutlined />, label: 'CI falhou' },
+    pending: { tone: 'neutral' as StatusChipTone, icon: <HourglassEmpty />, label: 'CI rodando' },
   }[checks];
 
-  return (
-    <Chip
-      size="small"
-      variant="outlined"
-      color={config.color}
-      icon={config.icon}
-      label={config.label}
-    />
-  );
+  return <StatusChip tone={config.tone} icon={config.icon} label={config.label} />;
 }
 
 function ReviewChip({ decision }: { decision: ReviewDecision }) {
   if (!decision) return null;
 
   const config = {
-    approved: { color: 'success' as const, icon: <TaskAltOutlined />, label: 'aprovado' },
+    approved: { tone: 'success' as StatusChipTone, icon: <TaskAltOutlined />, label: 'aprovado' },
     changes_requested: {
-      color: 'error' as const,
+      tone: 'error' as StatusChipTone,
       icon: <RateReviewOutlined />,
       label: 'mudanças pedidas',
     },
     review_required: {
-      color: 'warning' as const,
+      tone: 'warning' as StatusChipTone,
       icon: <RateReviewOutlined />,
       label: 'aguardando revisão',
     },
   }[decision];
 
-  return (
-    <Chip
-      size="small"
-      variant="outlined"
-      color={config.color}
-      icon={config.icon}
-      label={config.label}
-    />
-  );
+  return <StatusChip tone={config.tone} icon={config.icon} label={config.label} />;
 }
 
 export function PullRequestRow({

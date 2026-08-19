@@ -1,14 +1,20 @@
 import {
+  AddCircleOutline,
   ArrowDownward,
   ArrowUpward,
   CallSplit,
   CheckCircleOutline,
   CloudOffOutlined,
+  EditOutlined,
   ExpandMore,
+  HelpOutline,
+  HourglassEmptyOutlined,
   Inventory2Outlined,
   LanguageOutlined,
   LinkOffOutlined,
   MergeOutlined,
+  ReportProblemOutlined,
+  WarningAmberOutlined,
 } from '@mui/icons-material';
 import {
   Alert,
@@ -27,6 +33,7 @@ import {
 import { ReactNode, useState } from 'react';
 import type { RepoScanResult, RepoSeverity } from '@shared/types/repoScan';
 import { isWorktreeDirty } from '@shared/types/repoScan';
+import { StatusChip } from '@/components/StatusChip';
 import { formatDateTime, formatRelativeDate, formatRelativeSeconds } from '@/utils/date';
 import { getCurrentBranchPr, getOpenPrs, openExternal } from '@/utils/pullRequest';
 import { PullRequestRow } from './PullRequestList';
@@ -81,63 +88,43 @@ function SyncChips({ repo }: { repo: RepoScanResult }) {
   const { sync, head } = repo;
 
   if (head?.detached) {
-    return <Chip size="small" color="warning" variant="outlined" label="HEAD detached" />;
+    return <StatusChip tone="warning" icon={<WarningAmberOutlined />} label="HEAD detached" />;
   }
 
   // Repositório inicializado mas ainda sem nenhum commit: não faz sentido falar
   // em upstream aqui, e o alerta vermelho seria só ruído.
   if (head && !head.commitHash) {
-    return <Chip size="small" variant="outlined" label="sem commits" />;
+    return <StatusChip icon={<HourglassEmptyOutlined />} label="sem commits" />;
   }
 
   if (!sync.upstream) {
     return (
       <Tooltip title="Esta branch nunca foi publicada: os commits existem só nesta máquina">
-        <Chip
-          size="small"
-          color="error"
-          variant="outlined"
-          icon={<CloudOffOutlined />}
-          label="sem upstream"
-        />
+        <span>
+          <StatusChip tone="error" icon={<CloudOffOutlined />} label="sem upstream" />
+        </span>
       </Tooltip>
     );
   }
 
   if (sync.ahead === 0 && sync.behind === 0) {
-    return (
-      <Chip
-        size="small"
-        color="success"
-        variant="outlined"
-        icon={<CheckCircleOutline />}
-        label="sincronizada"
-      />
-    );
+    return <StatusChip tone="success" icon={<CheckCircleOutline />} label="sincronizada" />;
   }
 
   return (
     <Stack direction="row" spacing={0.5}>
       {sync.ahead > 0 && (
         <Tooltip title={`${sync.ahead} commit(s) para enviar (push) para ${sync.upstream}`}>
-          <Chip
-            size="small"
-            color="warning"
-            variant="outlined"
-            icon={<ArrowUpward />}
-            label={sync.ahead}
-          />
+          <span>
+            <StatusChip tone="warning" icon={<ArrowUpward />} label={sync.ahead} />
+          </span>
         </Tooltip>
       )}
       {sync.behind > 0 && (
         <Tooltip title={`${sync.behind} commit(s) para receber (pull) de ${sync.upstream}`}>
-          <Chip
-            size="small"
-            color="warning"
-            variant="outlined"
-            icon={<ArrowDownward />}
-            label={sync.behind}
-          />
+          <span>
+            <StatusChip tone="warning" icon={<ArrowDownward />} label={sync.behind} />
+          </span>
         </Tooltip>
       )}
     </Stack>
@@ -158,25 +145,37 @@ function WorktreeChips({ repo }: { repo: RepoScanResult }) {
   return (
     <Stack direction="row" spacing={0.75} flexWrap="wrap" useFlexGap>
       {worktree.conflicted > 0 && (
-        <Chip size="small" color="error" label={`${worktree.conflicted} em conflito`} />
+        <StatusChip
+          tone="error"
+          icon={<ReportProblemOutlined />}
+          label={`${worktree.conflicted} em conflito`}
+        />
       )}
       {worktree.staged > 0 && (
-        <Chip size="small" color="warning" label={`${worktree.staged} staged`} />
+        <StatusChip
+          tone="warning"
+          icon={<AddCircleOutline />}
+          label={`${worktree.staged} staged`}
+        />
       )}
       {worktree.modified > 0 && (
-        <Chip size="small" color="warning" label={`${worktree.modified} modificados`} />
+        <StatusChip
+          tone="warning"
+          icon={<EditOutlined />}
+          label={`${worktree.modified} modificados`}
+        />
       )}
       {worktree.untracked > 0 && (
-        <Chip size="small" variant="outlined" label={`${worktree.untracked} não rastreados`} />
+        <StatusChip icon={<HelpOutline />} label={`${worktree.untracked} não rastreados`} />
       )}
       {worktree.stashes > 0 && (
         <Tooltip title="Stashes existem só nesta máquina e são fáceis de esquecer">
-          <Chip
-            size="small"
-            variant="outlined"
-            icon={<Inventory2Outlined />}
-            label={`${worktree.stashes} stash${worktree.stashes > 1 ? 'es' : ''}`}
-          />
+          <span>
+            <StatusChip
+              icon={<Inventory2Outlined />}
+              label={`${worktree.stashes} stash${worktree.stashes > 1 ? 'es' : ''}`}
+            />
+          </span>
         </Tooltip>
       )}
     </Stack>

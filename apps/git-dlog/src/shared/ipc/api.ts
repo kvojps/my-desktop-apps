@@ -1,6 +1,7 @@
 import type { PrIntegrationStatus } from '@shared/types/pullRequest';
 import type { RepoFetchProgress, RepoFetchResult, RepoScanResult } from '@shared/types/repoScan';
 import type { ScanPath } from '@shared/types/scanPath';
+import type { ThemeMode } from '@shared/types/theme';
 
 export interface ScanPathsApi {
   getAll: () => Promise<ScanPath[]>;
@@ -44,6 +45,16 @@ export interface DataApi {
   openFolder: () => Promise<void>;
 }
 
+export interface SettingsApi {
+  /**
+   * Modo inicial resolvido pelo processo main antes de criar a janela — lido
+   * de forma síncrona (argumento de linha de comando), não por IPC, porque o
+   * primeiro render precisa dele (docs/design-system.md §5.1).
+   */
+  getInitialThemeMode: () => ThemeMode;
+  saveThemeMode: (mode: ThemeMode) => Promise<void>;
+}
+
 export interface ElectronApi {
   scanPaths: ScanPathsApi;
   repos: ReposApi;
@@ -51,4 +62,5 @@ export interface ElectronApi {
   dialog: DialogApi;
   shell: ShellApi;
   data: DataApi;
+  settings: SettingsApi;
 }

@@ -1,4 +1,5 @@
 import type { RepoFetchProgress } from '@shared/types/repoScan';
+import type { ThemeMode } from '@shared/types/theme';
 
 function unwrapIpcError(err: unknown): never {
   if (err instanceof Error) {
@@ -80,5 +81,13 @@ export const api = {
 
   openDataFolder() {
     return call(() => window.api.data.openFolder());
+  },
+
+  getInitialThemeMode() {
+    return window.api.settings.getInitialThemeMode();
+  },
+
+  saveThemeMode(mode: ThemeMode) {
+    return call(() => window.api.settings.saveThemeMode(mode));
   },
 };

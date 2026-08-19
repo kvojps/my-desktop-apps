@@ -12,4 +12,5 @@ export const IPC_CHANNELS = {
   dialogSelectDirectory: 'dialog:selectDirectory',
   shellOpenExternal: 'shell:openExternal',
   dataOpenFolder: 'data:openFolder',
+  settingsSaveThemeMode: 'settings:saveThemeMode',
 } as const;

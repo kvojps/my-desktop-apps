@@ -1,23 +1,13 @@
 import { Add, DeleteOutline, FolderOutlined } from '@mui/icons-material';
-import {
-  Button,
-  Card,
-  CircularProgress,
-  IconButton,
-  Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Typography,
-} from '@mui/material';
+import { Button, IconButton, Skeleton, Stack, Typography } from '@mui/material';
 import { useState } from 'react';
 import type { ScanPath } from '@shared/types/scanPath';
 import { api } from '@/api/client';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
+import { DataTable, DataTableColumn } from '@/components/DataTable';
+import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
+import { PageHeader } from '@/components/PageHeader';
 import { useSnackbar } from '@/contexts/SnackbarContext';
 import { useScanPaths } from '@/hooks/scanPaths/useScanPaths';
 
@@ -63,65 +53,70 @@ export function DirectoriesPage() {
     );
   }
 
+  const columns: DataTableColumn<ScanPath>[] = [
+    {
+      key: 'path',
+      header: 'Caminho',
+      render: (scanPath) => (
+        <Stack direction="row" alignItems="center" spacing={1}>
+          <FolderOutlined fontSize="small" color="action" />
+          <Typography variant="body2">{scanPath.path}</Typography>
+        </Stack>
+      ),
+    },
+    {
+      key: 'actions',
+      header: 'Ações',
+      align: 'right',
+      render: (scanPath) => (
+        <IconButton
+          size="small"
+          aria-label="Remover diretório"
+          color="error"
+          onClick={() => setDeleting(scanPath)}
+        >
+          <DeleteOutline fontSize="small" />
+        </IconButton>
+      ),
+    },
+  ];
+
   return (
     <Stack spacing={2}>
-      <Stack direction="row" alignItems="center" justifyContent="space-between">
-        <Stack>
-          <Typography variant="h5">Diretórios</Typography>
-          <Typography variant="body2" color="text.secondary">
-            Pastas-base escaneadas recursivamente em busca de repositórios git
-          </Typography>
-        </Stack>
-        <Button variant="contained" startIcon={<Add />} onClick={handleAdd} disabled={isAdding}>
-          {isAdding ? 'Adicionando...' : 'Adicionar diretório'}
-        </Button>
-      </Stack>
+      <PageHeader
+        icon={<FolderOutlined sx={{ fontSize: 22 }} color="action" />}
+        title="Diretórios"
+        subtitle="Pastas-base escaneadas recursivamente em busca de repositórios git"
+        actions={
+          <Button variant="contained" startIcon={<Add />} onClick={handleAdd} disabled={isAdding}>
+            {isAdding ? 'Adicionando...' : 'Adicionar diretório'}
+          </Button>
+        }
+      />
 
       {isLoading ? (
-        <Stack alignItems="center" sx={{ py: 8 }}>
-          <CircularProgress />
+        <Stack spacing={1}>
+          {Array.from({ length: 4 }, (_, index) => (
+            <Skeleton key={index} variant="rounded" height={40} />
+          ))}
         </Stack>
-      ) : scanPaths.length === 0 ? (
-        <Card variant="outlined" sx={{ p: 4, textAlign: 'center' }}>
-          <Typography variant="body1" color="text.secondary">
-            Nenhum diretório cadastrado ainda. Clique em “Adicionar diretório” para começar.
-          </Typography>
-        </Card>
       ) : (
-        <TableContainer component={Card} variant="outlined">
-          <Table size="small">
-            <TableHead>
-              <TableRow>
-                <TableCell>Caminho</TableCell>
-                <TableCell align="right" sx={{ width: 80 }}>
-                  Ações
-                </TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {scanPaths.map((scanPath) => (
-                <TableRow key={scanPath.id} hover>
-                  <TableCell>
-                    <Stack direction="row" alignItems="center" spacing={1}>
-                      <FolderOutlined fontSize="small" color="action" />
-                      <Typography variant="body2">{scanPath.path}</Typography>
-                    </Stack>
-                  </TableCell>
-                  <TableCell align="right">
-                    <IconButton
-                      size="small"
-                      aria-label="Remover diretório"
-                      color="error"
-                      onClick={() => setDeleting(scanPath)}
-                    >
-                      <DeleteOutline fontSize="small" />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+        <DataTable
+          columns={columns}
+          items={scanPaths}
+          getRowKey={(scanPath) => scanPath.id}
+          empty={
+            <EmptyState
+              icon={<FolderOutlined />}
+              description="Nenhum diretório cadastrado ainda. Cadastre uma pasta-base para o app procurar repositórios git dentro dela."
+              action={
+                <Button variant="outlined" size="small" onClick={handleAdd} disabled={isAdding}>
+                  Adicionar diretório
+                </Button>
+              }
+            />
+          }
+        />
       )}
 
       <ConfirmDialog

@@ -1,8 +1,10 @@
 import type Database from 'better-sqlite3';
 import { safeStorage } from 'electron';
+import type { ThemeMode } from '@shared/types/theme';
 import { AppError } from '../errors/AppError';
 
 const GITHUB_TOKEN_KEY = 'githubToken';
+const THEME_MODE_KEY = 'themeMode';
 
 interface SettingRow {
   value: string;
@@ -60,4 +62,19 @@ export function hasGithubToken(db: Database.Database): boolean {
 
 export function deleteGithubToken(db: Database.Database): void {
   db.prepare('DELETE FROM settings WHERE key = ?').run(GITHUB_TOKEN_KEY);
+}
+
+/**
+ * A preferência de tema mora no banco, não no `localStorage`: o processo main
+ * precisa dela antes de existir renderer, para pintar a janela e o
+ * `nativeTheme.themeSource` sem flash branco (docs/design-system.md §5.1).
+ * Texto plano — não é segredo, ao contrário do token do GitHub.
+ */
+export function getThemeMode(db: Database.Database): ThemeMode | null {
+  const stored = getSetting(db, THEME_MODE_KEY);
+  return stored === 'light' || stored === 'dark' ? stored : null;
+}
+
+export function saveThemeMode(db: Database.Database, mode: ThemeMode): void {
+  setSetting(db, THEME_MODE_KEY, mode);
 }

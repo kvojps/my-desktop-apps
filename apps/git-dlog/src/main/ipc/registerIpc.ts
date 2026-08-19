@@ -3,12 +3,14 @@ import { app, shell } from 'electron';
 import { IPC_CHANNELS } from '@shared/ipc/channels';
 import type { PrIntegrationStatus } from '@shared/types/pullRequest';
 import type { RepoFetchResult } from '@shared/types/repoScan';
+import type { ThemeMode } from '@shared/types/theme';
 import { addScanPath, deleteScanPath, getAllScanPaths } from '../db/scanPathsRepository';
 import {
   deleteGithubToken,
   getGithubToken,
   hasGithubToken,
   saveGithubToken,
+  saveThemeMode,
 } from '../db/settingsRepository';
 import { fetchRepos, filterReposWithRemote } from '../git/repoFetcher';
 import { listRepoDirs, scanRepos } from '../git/repoScanner';
@@ -23,12 +25,18 @@ import {
 import { externalUrlSchema, githubTokenSchema } from '../schemas/prs.schema';
 import { fetchReposSchema } from '../schemas/repoFetch.schema';
 import { createScanPathSchema } from '../schemas/scanPath.schema';
+import { themeModeSchema } from '../schemas/settings.schema';
 import { parseId } from '../utils/parseId';
 import { parseOrThrow } from '../utils/validate';
 import { registerDialogHandlers } from './dialogHandlers';
 import { handle } from './handle';
 
-export function registerIpcHandlers(db: Database.Database): void {
+interface RegisterIpcOptions {
+  /** Aplica o novo modo à janela (nativeTheme, backgroundColor) além de persistir. */
+  onThemeModeChange: (mode: ThemeMode) => void;
+}
+
+export function registerIpcHandlers(db: Database.Database, options: RegisterIpcOptions): void {
   registerDialogHandlers();
 
   handle(IPC_CHANNELS.scanPathsGetAll, () => getAllScanPaths(db));
@@ -108,5 +116,11 @@ export function registerIpcHandlers(db: Database.Database): void {
 
   handle(IPC_CHANNELS.dataOpenFolder, async () => {
     await shell.openPath(app.getPath('userData'));
+  });
+
+  handle(IPC_CHANNELS.settingsSaveThemeMode, (_event, data: unknown) => {
+    const mode = parseOrThrow(themeModeSchema, data);
+    saveThemeMode(db, mode);
+    options.onThemeModeChange(mode);
   });
 }

@@ -10,7 +10,6 @@ import {
   Button,
   Card,
   Chip,
-  CircularProgress,
   IconButton,
   InputAdornment,
   LinearProgress,
@@ -21,13 +20,16 @@ import {
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { RepoScanResult, RepoSeverity } from '@shared/types/repoScan';
+import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
+import { PageHeader } from '@/components/PageHeader';
 import { useRepos } from '@/hooks/repos/useRepos';
 import { useScanPaths } from '@/hooks/scanPaths/useScanPaths';
 import { formatDateTime } from '@/utils/date';
 import { getOpenPrs, needsAction } from '@/utils/pullRequest';
 import { ROUTES } from '../../routes';
 import { RepoCard } from './components/RepoCard';
+import { RepoCardSkeletonList } from './components/RepoCardSkeleton';
 
 type Filter = 'all' | RepoSeverity | 'error' | 'prAction' | 'prOpen';
 
@@ -99,44 +101,35 @@ export function ReposPage() {
 
   return (
     <Stack spacing={2}>
-      <Stack
-        direction="row"
-        alignItems="center"
-        justifyContent="space-between"
-        flexWrap="wrap"
-        useFlexGap
-        sx={{ rowGap: 1 }}
-      >
-        <Stack>
-          <Typography variant="h5">Repositórios</Typography>
-          <Typography variant="body2" color="text.secondary">
-            {lastScanAt
-              ? `Última leitura local: ${formatDateTime(lastScanAt)}`
-              : 'Clique em "Atualizar" para ler o estado dos repositórios'}
-          </Typography>
-        </Stack>
-
-        <Stack direction="row" spacing={1}>
-          <Button
-            variant="outlined"
-            startIcon={isScanning ? <CircularProgress size={16} color="inherit" /> : <Refresh />}
-            onClick={scan}
-            disabled={busy || hasNoPaths}
-          >
-            {isScanning ? 'Lendo...' : 'Atualizar'}
-          </Button>
-          <Button
-            variant="contained"
-            startIcon={
-              isFetching ? <CircularProgress size={16} color="inherit" /> : <CloudSyncOutlined />
-            }
-            onClick={fetchRemote}
-            disabled={busy || hasNoPaths}
-          >
-            {isFetching ? 'Buscando...' : 'Buscar do remoto'}
-          </Button>
-        </Stack>
-      </Stack>
+      <PageHeader
+        icon={<AccountTreeOutlined sx={{ fontSize: 22 }} color="action" />}
+        title="Repositórios"
+        subtitle={
+          lastScanAt
+            ? `Última leitura local: ${formatDateTime(lastScanAt)}`
+            : 'Clique em "Atualizar" para ler o estado dos repositórios'
+        }
+        actions={
+          <Stack direction="row" spacing={1}>
+            <Button
+              variant="outlined"
+              startIcon={<Refresh />}
+              onClick={scan}
+              disabled={busy || hasNoPaths}
+            >
+              {isScanning ? 'Lendo...' : 'Atualizar'}
+            </Button>
+            <Button
+              variant="contained"
+              startIcon={<CloudSyncOutlined />}
+              onClick={fetchRemote}
+              disabled={busy || hasNoPaths}
+            >
+              {isFetching ? 'Buscando...' : 'Buscar do remoto'}
+            </Button>
+          </Stack>
+        }
+      />
 
       {isFetching && (
         <Card variant="outlined" sx={{ p: 2 }}>
@@ -217,33 +210,35 @@ export function ReposPage() {
       )}
 
       {hasNoPaths ? (
-        <Card variant="outlined" sx={{ p: 4, textAlign: 'center' }}>
-          <Stack spacing={1} alignItems="center">
-            <AccountTreeOutlined color="disabled" sx={{ fontSize: 40 }} />
-            <Typography variant="body1" color="text.secondary">
-              Nenhum diretório cadastrado ainda.
-            </Typography>
+        <EmptyState
+          icon={<AccountTreeOutlined />}
+          description="Nenhum diretório cadastrado ainda. Cadastre uma pasta-base para o app procurar repositórios git dentro dela."
+          action={
             <Button variant="outlined" size="small" onClick={() => navigate(ROUTES.DIRECTORIES)}>
               Ir para Diretórios
             </Button>
-          </Stack>
-        </Card>
-      ) : busy && results.length === 0 ? (
-        <Stack alignItems="center" sx={{ py: 8 }}>
-          <CircularProgress />
-        </Stack>
-      ) : results.length === 0 ? (
-        <Card variant="outlined" sx={{ p: 4, textAlign: 'center' }}>
-          <Typography variant="body1" color="text.secondary">
-            Nenhum resultado ainda. Clique em “Atualizar” para ler os repositórios.
-          </Typography>
-        </Card>
+          }
+        />
+      ) : busy || results.length === 0 ? (
+        <RepoCardSkeletonList />
       ) : visible.length === 0 ? (
-        <Card variant="outlined" sx={{ p: 4, textAlign: 'center' }}>
-          <Typography variant="body1" color="text.secondary">
-            Nenhum repositório corresponde à busca.
-          </Typography>
-        </Card>
+        <EmptyState
+          size="section"
+          icon={<SearchOutlined />}
+          description="Nenhum repositório corresponde aos filtros aplicados."
+          action={
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={() => {
+                setSearch('');
+                setFilter('all');
+              }}
+            >
+              Limpar filtros
+            </Button>
+          }
+        />
       ) : (
         <Box sx={{ display: 'grid', gap: 2 }}>
           {visible.map((repo) => (

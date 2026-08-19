@@ -2,6 +2,19 @@ import { IpcRendererEvent, contextBridge, ipcRenderer } from 'electron';
 import type { ElectronApi } from '@shared/ipc/api';
 import { IPC_CHANNELS } from '@shared/ipc/channels';
 import type { RepoFetchProgress } from '@shared/types/repoScan';
+import type { ThemeMode } from '@shared/types/theme';
+
+/**
+ * Lido de forma síncrona do argumento de linha de comando que o main passou
+ * na construção da janela (`additionalArguments`) — o renderer precisa do
+ * modo antes do primeiro render, e uma chamada IPC chegaria tarde
+ * (docs/design-system.md §5.1).
+ */
+function readInitialThemeMode(): ThemeMode {
+  const arg = process.argv.find((value) => value.startsWith('--initial-theme-mode='));
+  const mode = arg?.split('=')[1];
+  return mode === 'dark' ? 'dark' : 'light';
+}
 
 const api: ElectronApi = {
   scanPaths: {
@@ -34,6 +47,11 @@ const api: ElectronApi = {
   },
   data: {
     openFolder: () => ipcRenderer.invoke(IPC_CHANNELS.dataOpenFolder),
+  },
+  settings: {
+    getInitialThemeMode: readInitialThemeMode,
+    saveThemeMode: (mode: ThemeMode) =>
+      ipcRenderer.invoke(IPC_CHANNELS.settingsSaveThemeMode, mode),
   },
 };
 

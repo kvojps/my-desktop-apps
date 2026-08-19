@@ -57,7 +57,7 @@ export function ErrorState({ title, error, onRetry }: ErrorStateProps) {
       <Typography
         variant="caption"
         color="text.disabled"
-        sx={{ display: 'block', mt: 3, fontFamily: 'monospace', wordBreak: 'break-word' }}
+        sx={{ display: 'block', mt: 3, fontFamily: 'mono', wordBreak: 'break-word' }}
       >
         {message}
       </Typography>
