@@ -11,11 +11,11 @@ os outros dois. O que não é compartilhado é código: cada app tem o seu próp
 
 ## 1. Apps
 
-| App                                   | Diretório               | O que faz                                                                               | Versão |
-| ------------------------------------- | ----------------------- | --------------------------------------------------------------------------------------- | ------ |
-| [Meu Dinheiro](apps/meu-dinheiro-app) | `apps/meu-dinheiro-app` | Finanças pessoais por mês: receitas, despesas, contas, categorias, recibos e backup     | 2.0.0  |
-| [Meu Negócio](apps/meu-negocio-app)   | `apps/meu-negocio-app`  | Gestão de produtos, pedidos e vendas, com estoque e relatórios                          | 1.1.0  |
-| [Git Dlog](apps/git-dlog)             | `apps/git-dlog`         | Varre pastas locais em busca de repositórios git e acompanha seus PRs via `gh` e `glab` | 2.0.0  |
+| App                                   | Diretório               | O que faz                                                                                     |
+| ------------------------------------- | ----------------------- | --------------------------------------------------------------------------------------------- |
+| [Meu Dinheiro](apps/meu-dinheiro-app) | `apps/meu-dinheiro-app` | Finanças pessoais por mês: entradas, despesas, contas bancárias, categorias, recibos e backup |
+| [Meu Negócio](apps/meu-negocio-app)   | `apps/meu-negocio-app`  | Gestão de produtos, pedidos e vendas, com estoque e relatórios                                |
+| [Git Dlog](apps/git-dlog)             | `apps/git-dlog`         | Varre pastas locais em busca de repositórios git e acompanha seus PRs via `gh` e `glab`       |
 
 ## 2. Decisões de arquitetura
 

@@ -12,6 +12,14 @@ o seu próprio `src/shared` — **os apps não compartilham código de propósit
   e é a própria referência: não há app canônico, e divergência entre o documento
   e o código é bug do código.
 - **Arquitetura, camadas, IPC, banco, convenções de nome:** [`README.md`](README.md), §2.
+- **Regra de negócio e vocabulário de domínio de um app específico:** o `README.md`
+  daquele app — é ele que documenta o produto, não a arquitetura.
+
+## Estrutura dos READMEs de app
+
+Título → parágrafo de pitch → screenshot → `## 1. Funcionalidades`, com
+`### 1.1 Manual de uso` sempre primeiro, seguido das demais seções do produto.
+Mesmo nível de heading do README raiz (título é o único `#`).
 
 ## Regras que não se descobrem lendo o código
 

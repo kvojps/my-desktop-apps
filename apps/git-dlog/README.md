@@ -6,9 +6,9 @@ Nasceu do script `gitdlog.sh` original — que continua no repositório, para qu
 
 ![image](https://github.com/user-attachments/assets/30876287-a91e-4bc2-a3be-1923e65f1582)
 
-# 1. Funcionalidades
+## 1. Funcionalidades
 
-## 1.1 Manual de uso
+### 1.1 Manual de uso
 
 O app tem três telas, na ordem em que você as usa: **Diretórios** (cadastro), **Repositórios** (a tela inicial e o motivo do app existir) e **Configurações** (integração de PRs e informações do app).
 
@@ -20,13 +20,13 @@ O app tem três telas, na ordem em que você as usa: **Diretórios** (cadastro),
 
 Nada no app escreve nos seus repositórios: as únicas operações são leitura e `git fetch`, que é estritamente aditivo — não toca a working tree nem move branches locais.
 
-## 1.2 Cadastro dos diretórios-base
+### 1.2 Cadastro dos diretórios-base
 
 Você cadastra pastas-base, não repositórios um a um. O caminho vem do seletor nativo do sistema e é **validado no processo main** antes de ser salvo: precisa existir e ser um diretório, e caminho repetido é recusado com uma mensagem clara em vez de virar linha duplicada.
 
 Os diretórios ficam em SQLite local, então o cadastro é feito uma vez só. Remover um diretório da lista pede confirmação e **não apaga nada do disco** — apenas para de escanear aquela pasta.
 
-## 1.3 Varredura dos repositórios
+### 1.3 Varredura dos repositórios
 
 A partir de cada pasta-base o app desce a árvore procurando por `.git`, com três limites que existem para a varredura não custar caro em I/O:
 
@@ -38,7 +38,7 @@ Repositório que apareça sob dois diretórios-base é contado uma vez só, e wo
 
 Um repositório que falha na leitura não derruba a varredura: ele aparece no topo da lista com a mensagem de erro do próprio git no card.
 
-## 1.4 Atualizar e buscar do remoto — só uma das duas vai à rede
+### 1.4 Atualizar e buscar do remoto — só uma das duas vai à rede
 
 A distinção é proposital, e é o que mantém o app instantâneo no uso normal:
 
@@ -51,7 +51,7 @@ O "Buscar do remoto" mostra o progresso das **duas etapas separadamente** (fetch
 
 **A leitura é sempre fresca.** O resultado da varredura não é salvo em banco, é recalculado na hora. O "remoto lido há X" de cada card vem do mtime de `.git/FETCH_HEAD`, então também reflete fetches feitos fora do app, pela IDE ou pelo terminal.
 
-## 1.5 O que cada card de repositório mostra
+### 1.5 O que cada card de repositório mostra
 
 - **Nome**, que é link para o projeto no GitHub/GitLab quando há remote reconhecido, e o **caminho completo** no disco.
 - **Branch atual** e o **commit de topo**: hash curto, assunto, autor e quanto tempo faz.
@@ -63,7 +63,7 @@ O "Buscar do remoto" mostra o progresso das **duas etapas separadamente** (fetch
 - **Último contato com o remoto** ("remoto lido há 2 horas", "nunca buscado"), com a data exata no tooltip.
 - **Contagem de branches** locais e remotas, com a lista completa atrás de um clique.
 
-## 1.6 Severidade
+### 1.6 Severidade
 
 Cada repositório é classificado em um de três níveis, e a lista vem ordenada pela urgência: erros primeiro, depois risco, atenção e limpos; empate é resolvido pelo nome, para a lista não "dançar" entre leituras.
 
@@ -81,7 +81,7 @@ Como isso aparece na tela:
 - os limpos ficam **sem cor e reduzidos a uma linha**, com o resto atrás de um botão de detalhes. É o contraste de altura que faz o que precisa de atenção saltar aos olhos; uma barra verde em cada repositório limpo seria só ruído;
 - um repositório limpo mas com **PR aberto** ou **branch para apagar** continua expandido, porque ainda tem algo a dizer.
 
-## 1.7 Branches
+### 1.7 Branches
 
 O card lista as branches **agrupadas por commit** — as que apontam para o mesmo lugar aparecem juntas, com o commit uma vez só, e os grupos vêm do mais recente para o mais antigo. Branches locais e remotas se distinguem pelo estilo do chip, e o `origin/HEAD` é filtrado por ser apenas um ponteiro para a branch default do remoto, que duplicaria informação em toda a interface.
 
@@ -91,7 +91,7 @@ Além da lista, três sinais que passam despercebidos no dia a dia ganham destaq
 - **Branch `gone`** — o upstream foi apagado no remoto (PR mergeado, por exemplo) e a branch local ficou para trás. Candidata a limpeza. Só aparece depois de um "Buscar do remoto", que é quem roda o `--prune`.
 - **Branch com PR já mergeado** — sai do cruzamento entre os PRs e as branches locais: o trabalho está no remoto e a branch local só ocupa espaço. Pode ser apagada com segurança.
 
-## 1.8 Pull requests
+### 1.8 Pull requests
 
 Cada card mostra os **PRs abertos** do repositório, com o **da branch atual destacado no topo** — é o que você está tocando agora. Cada linha traz número e título (link para o navegador), marcação de rascunho, o **resultado da revisão** (aprovado, mudanças pedidas, aguardando revisão), o **estado do CI** (ok, falhou, rodando), a branch de origem com o destino no tooltip e quando foi atualizado pela última vez.
 
@@ -107,7 +107,7 @@ O `gh` é o caminho mais simples, porque não exige gerenciar token nenhum. O to
 
 Sem nenhum provedor disponível o app funciona normalmente, apenas sem a parte de PRs. Duas limitações a conhecer: os PRs são consultados só no "Buscar do remoto", porque vão à rede; e esse cache é em memória, então ao reabrir o app eles só reaparecem depois do primeiro "Buscar do remoto". Uma releitura local, essa sim, reaproveita os PRs já baixados em vez de esvaziar a tela.
 
-## 1.9 Site publicado
+### 1.9 Site publicado
 
 Projetos que estão no ar podem ganhar o endereço público, exibido como um ícone de globo ao lado do nome. O nome do card leva ao código no GitHub/GitLab; o globo leva ao site que o usuário final acessa. Para anotar, dentro do repositório:
 
@@ -117,7 +117,7 @@ git config dlog.url https://loja.com.br
 
 Fica no `.git/config` do próprio repositório, então sobrevive a mover ou renomear a pasta e não é versionado — é uma anotação sua, não do projeto. Só endereços `http`/`https` viram link.
 
-## 1.10 Filtros e busca
+### 1.10 Filtros e busca
 
 Contadores no topo funcionam como filtro, um clique para ligar e outro para desligar: **só nesta máquina**, **fora de sincronia**, **PR pedindo ação**, **com PR aberto**, **sincronizados** e **com erro**. Um chip com contagem zero simplesmente não aparece, então a barra de filtros já é um resumo do estado geral.
 
@@ -125,7 +125,7 @@ Contadores no topo funcionam como filtro, um clique para ligar e outro para desl
 
 O campo de busca filtra por nome ou caminho, e é aplicado **antes** das contagens — os números sempre descrevem o que está visível, não um total escondido atrás da busca.
 
-# 2. Alternativa: script de linha de comando
+## 2. Alternativa: script de linha de comando
 
 O script bash original, `gitdlog.sh`, continua no repositório e funciona de forma independente do app, para quem preferir usar via terminal:
 
