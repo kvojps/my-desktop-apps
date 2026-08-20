@@ -114,21 +114,29 @@ export function OrdersPage() {
         title="Pedidos"
         subtitle="Registro e acompanhamento de pedidos"
         actions={
-          <Button variant="contained" startIcon={<Add />} onClick={form.open}>
-            Novo Pedido
-          </Button>
+          // Filtro sobre lista que nunca teve pedido só dá o que filtrar de
+          // nada (§4).
+          orders.length > 0 && (
+            <MonthRangeFilter
+              orders={orders}
+              filters={filters}
+              onChange={setFilters}
+              defaultToThisYear={false}
+            />
+          )
         }
       />
 
-      {/* Filtro sobre lista que nunca teve pedido só dá o que filtrar de nada (§4). */}
       {orders.length > 0 && (
         <OrderFilters filters={filters} onChange={setFilters} hideStatuses={['completed']}>
-          <MonthRangeFilter
-            orders={orders}
-            filters={filters}
-            onChange={setFilters}
-            defaultToThisYear={false}
-          />
+          <Button
+            variant="contained"
+            startIcon={<Add />}
+            onClick={form.open}
+            sx={{ ml: 'auto' }}
+          >
+            Novo Pedido
+          </Button>
         </OrderFilters>
       )}
 
