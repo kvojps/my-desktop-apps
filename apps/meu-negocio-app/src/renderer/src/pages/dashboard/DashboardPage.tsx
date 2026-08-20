@@ -37,7 +37,6 @@ import {
 import { formatCurrency, formatCurrencyCompact, formatPercent } from '@/utils/format';
 import { ROUTES } from '../../routes';
 import { AccountsReceivable } from './components/AccountsReceivable';
-import { DashboardCards } from './components/DashboardCards';
 import { MonthRangeFilter } from './components/MonthRangeFilter';
 import { CHART_HEIGHT, axisTick, tooltipProps } from './chartTheme';
 
@@ -385,8 +384,6 @@ export function DashboardPage() {
         actions={<MonthRangeFilter orders={allOrders} filters={filters} onChange={setFilters} />}
       />
 
-      <DashboardCards isLoading={isLoading} lowStockCount={lowStockCount} />
-
       <SectionCard
         title="Faturamento e Lucro por Mês"
         isLoading={isLoading}
@@ -475,6 +472,12 @@ export function DashboardPage() {
               label="Ticket Médio"
               value={formatCurrency(avgTicket)}
               color={theme.palette.info.main}
+            />
+            <SummaryTag
+              label="Estoque Baixo"
+              value={String(lowStockCount)}
+              color={theme.palette.warning.main}
+              tone={lowStockCount > 0 ? 'alert' : 'neutral'}
             />
           </Stack>
         }
