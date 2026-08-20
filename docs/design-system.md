@@ -200,6 +200,25 @@ O que prende aqui é o contraste **contra a superfície**, não a separação en
 vizinhos: o gráfico de categorias rotula cada barra no eixo, então a cor não é o
 canal de identidade — é só o que precisa continuar visível.
 
+**A regra acima é sobre categorias, e escala ordinal não é categoria.** Faixa de
+idade, nível de risco, grau de severidade: são muitas séries de um **mesmo**
+assunto, ordenadas, e mandá-las para a paleta categórica é o erro simétrico ao de
+gastar `error` numa categoria — dá dez cores sem relação a uma coisa que tem
+ordem, e a leitura de "está piorando" se perde. Escala ordinal fica na paleta
+semântica, com a rampa amarrada ao significado de cada degrau: `primary` no que
+está em dia, `warning` no que preocupa, `error` no que alarma. Degraus vizinhos
+podem repetir cor — a posição no eixo é que os separa, e ela é o segundo canal
+que o item acima já exige.
+
+Duas consequências que caem junto. A rampa é toda **preenchimento**, então o
+âmbar é legal aqui e continua ilegal como rótulo (§1.4): o número ao lado da
+barra não herda a cor dela, e só o degrau de `error` pode pintar número. E
+**degrau vazio continua desenhado** — a linha com valor zero é o que diz "não há
+nada nesta faixa", enquanto a linha ausente obriga a reparar no que não está lá.
+
+Rampa ordinal não usa degradê. `<Cell>` por item e `fill="url(#gradiente)"` não
+convivem, e entre as duas quem carrega significado é a cor do degrau.
+
 Ao escolher a cor de um swatch, medir o rótulo _sobre_ ele não substitui medir ele
 contra o papel. São duas contas diferentes, e é a segunda que costuma faltar.
 

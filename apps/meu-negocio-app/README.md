@@ -20,7 +20,9 @@ O app tem cinco telas: **Dashboard** (a inicial, com o resumo do período), **Pr
 
 ### 1.2 Dashboard
 
-Visão geral do período: receita e lucro por mês, produtos mais vendidos, distribuição dos pedidos por status, alertas de estoque baixo e as vendas mais recentes. O filtro de meses vale para todos os cards da tela.
+Visão geral do período: receita e lucro por mês, produtos mais vendidos, distribuição dos pedidos por status, alertas de estoque baixo e as vendas mais recentes. O filtro de meses vale para todos os cards da tela, com **uma exceção deliberada**: **Contas a Receber** mostra sempre a posição de hoje, sobre o histórico inteiro. Um saldo devido não pertence ao mês em que a venda aconteceu — ele existe até ser pago —, e filtrar por período esconderia justamente a conta mais velha, que é a que importa. O card diz isso no próprio subtítulo.
+
+As contas a receber aparecem agrupadas por **faixa de dias desde a venda** (0–15, 16–30, 31–60 e 60+), com o valor de cada faixa em barra e a contagem de contas no tooltip. As quatro faixas aparecem sempre, zeradas inclusive: "nada acima de 60 dias" é informação. Repare que a faixa mede **idade da venda, não atraso** — o app não tem data de vencimento, então nenhuma conta está formalmente atrasada; a cor de alerta em 60+ dias é convenção sobre quanto tempo é tempo demais. Para ver as contas uma a uma, o caminho é a tela de **Vendas**.
 
 ### 1.3 Produtos
 

@@ -39,6 +39,8 @@ import { ROUTES } from '../../routes';
 import { AccountsReceivable } from './components/AccountsReceivable';
 import { MonthRangeFilter } from './components/MonthRangeFilter';
 import { CHART_HEIGHT, axisTick, tooltipProps } from './chartTheme';
+import { buildReceivables } from './receivables';
+import { renderLeftAlignedTick, useTextMeasure } from './textMeasure';
 
 function formatShortMonth(monthKey: string, withYear: boolean): string {
   const date = monthKeyToDate(monthKey);
@@ -114,23 +116,6 @@ function sumProfit(orders: Order[]): number {
 }
 
 const MAX_TOP_PRODUCTS = 5;
-const TICK_LEFT_PADDING = 4;
-const TICK_BAR_GAP = 8;
-
-let measureCanvas: HTMLCanvasElement | null = null;
-function measureTextWidth(text: string): number {
-  measureCanvas ??= document.createElement('canvas');
-  const ctx = measureCanvas.getContext('2d');
-  if (!ctx) return text.length * 7;
-  ctx.font = '12px Inter, Roboto, Helvetica, Arial, sans-serif';
-  return ctx.measureText(text).width;
-}
-
-function getYAxisWidth(labels: string[]): number {
-  if (labels.length === 0) return 0;
-  const maxTextWidth = Math.max(...labels.map(measureTextWidth));
-  return Math.ceil(TICK_LEFT_PADDING + maxTextWidth + TICK_BAR_GAP);
-}
 
 /**
  * As seções do dashboard eram becos sem saída: mostravam um recorte e não
@@ -151,6 +136,11 @@ function SectionLink({ to, children }: { to: string; children: React.ReactNode }
  * antiga legenda: não é `<Legend>` do Recharts porque as barras são pintadas
  * com `url(#gradiente)`, e o quadradinho derivado da barra sairia tentando
  * resolver essa URL, sem cor.
+ *
+ * Daí o `color` ser opcional: o quadradinho existe para amarrar a tag a **uma**
+ * série. Um indicador que resume o gráfico inteiro — o total de uma seção cuja
+ * série é uma rampa de quatro cores — não tem cor a que se amarrar, e um
+ * quadradinho ali apontaria para uma barra que não existe.
  */
 function SummaryTag({
   label,
@@ -161,7 +151,8 @@ function SummaryTag({
 }: {
   label: string;
   value: string;
-  color: string;
+  /** Cor da série que a tag identifica. Ausente quando ela resume o gráfico todo. */
+  color?: string;
   tone?: StatTone;
   /** Fração do valor sobre o faturamento, ex. "R$ 1.234,56 (↑10%)". */
   marginPct?: number;
@@ -171,7 +162,9 @@ function SummaryTag({
 
   return (
     <Stack direction="row" spacing={0.75} alignItems="center">
-      <Box sx={{ width: 10, height: 10, borderRadius: '3px', flexShrink: 0, bgcolor: color }} />
+      {color && (
+        <Box sx={{ width: 10, height: 10, borderRadius: '3px', flexShrink: 0, bgcolor: color }} />
+      )}
       <Typography variant="body2" color="text.secondary">
         {label}
       </Typography>
@@ -202,6 +195,7 @@ function SummaryTag({
  */
 function SectionCard({
   title,
+  subtitle,
   isLoading,
   chart,
   tags,
@@ -209,6 +203,12 @@ function SectionCard({
   children,
 }: {
   title: string;
+  /**
+   * Ressalva que vale para a seção inteira — o recorte que ela usa, quando não é
+   * o da página. Não é indicador, então não vira mais uma tag: ele qualifica
+   * tudo que está abaixo, inclusive as próprias tags.
+   */
+  subtitle?: string;
   isLoading?: boolean;
   /** A seção é um gráfico: o esqueleto é o retângulo da altura dele. */
   chart?: boolean;
@@ -229,7 +229,14 @@ function SectionCard({
           sx={{ mb: 2 }}
         >
           <Stack direction="row" alignItems="center" spacing={2} flexWrap="wrap" useFlexGap>
-            <Typography variant="h6">{title}</Typography>
+            <Stack>
+              <Typography variant="h6">{title}</Typography>
+              {subtitle && (
+                <Typography variant="caption" color="text.secondary">
+                  {subtitle}
+                </Typography>
+              )}
+            </Stack>
             {!isLoading && tags}
           </Stack>
           {!isLoading && action}
@@ -240,20 +247,9 @@ function SectionCard({
   );
 }
 
-function renderLeftAlignedTick(
-  props: { y?: number | string; payload?: { value: string } },
-  fill: string,
-) {
-  const { y, payload } = props;
-  return (
-    <text x={TICK_LEFT_PADDING} y={y} dy={4} textAnchor="start" fontSize={12} fill={fill}>
-      {payload?.value}
-    </text>
-  );
-}
-
 export function DashboardPage() {
   const theme = useTheme();
+  const measure = useTextMeasure();
   const {
     products,
     isLoading: productsLoading,
@@ -297,6 +293,10 @@ export function DashboardPage() {
     () => products.filter((p) => p.stock <= p.minStock).length,
     [products],
   );
+
+  // `allOrders`, e não `orders`: conta a receber é a posição de hoje, não um
+  // recorte do período. Filtrar por mês esconderia justamente a conta velha.
+  const receivables = useMemo(() => buildReceivables(allOrders), [allOrders]);
 
   // Os meses do gráfico saem do período selecionado, e não de uma janela fixa a
   // partir de hoje. As bordas ainda se esticam para cobrir qualquer venda do
@@ -358,8 +358,8 @@ export function DashboardPage() {
   }, [topProducts]);
 
   const productYAxisWidth = useMemo(
-    () => getYAxisWidth(topProducts.map((p) => p.name)),
-    [topProducts],
+    () => measure.getYAxisWidth(topProducts.map((p) => p.name)),
+    [topProducts, measure],
   );
 
   // Carregando → erro → vazio. Sem o ramo de erro, um banco que não abre
@@ -524,10 +524,26 @@ export function DashboardPage() {
 
       <SectionCard
         title="Contas a Receber"
+        subtitle="Posição de hoje — não segue o filtro de meses"
         isLoading={isLoading}
+        chart
+        tags={
+          // Sem conta nenhuma as tags diriam "R$ 0,00" e "0 contas" logo acima
+          // de "Nenhuma conta a receber" — a mesma frase três vezes. Quem fala
+          // no estado vazio é o `EmptyState`, sozinho.
+          receivables.count > 0 && (
+            <Stack direction="row" spacing={2} flexWrap="wrap" useFlexGap>
+              <SummaryTag label="Total a receber" value={formatCurrency(receivables.total)} />
+              <SummaryTag
+                label="Em aberto"
+                value={receivables.count === 1 ? '1 conta' : `${receivables.count} contas`}
+              />
+            </Stack>
+          )
+        }
         action={<SectionLink to={ROUTES.SALES}>Ver em Vendas</SectionLink>}
       >
-        <AccountsReceivable orders={allOrders} />
+        <AccountsReceivable receivables={receivables} />
       </SectionCard>
     </Stack>
   );
