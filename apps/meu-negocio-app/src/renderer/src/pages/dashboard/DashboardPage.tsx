@@ -490,7 +490,7 @@ export function DashboardPage() {
         </SectionCard>
 
         <SectionCard
-          title="Produtos"
+          title="Vendas"
           isLoading={isLoading}
           chart
           tags={
@@ -558,7 +558,7 @@ export function DashboardPage() {
         </SectionCard>
 
         <SectionCard
-          title="Contas a Receber"
+          title="Cobranças"
           subtitle="Posição de hoje — não segue o filtro de meses"
           isLoading={isLoading}
           chart
