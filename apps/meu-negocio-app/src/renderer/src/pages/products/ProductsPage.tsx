@@ -152,11 +152,6 @@ export function ProductsPage() {
         icon={<Inventory2Outlined />}
         title="Produtos"
         subtitle="Cadastro e controle de estoque do seu catálogo"
-        actions={
-          <Button variant="contained" startIcon={<Add />} onClick={form.openNew}>
-            Novo Produto
-          </Button>
-        }
       />
 
       <ProductStats products={products} isLoading={isLoading} />
@@ -167,7 +162,16 @@ export function ProductsPage() {
           categories={categories}
           lowStockCount={lowStockCount}
           onChange={setFilters}
-        />
+        >
+          <Button
+            variant="contained"
+            startIcon={<Add />}
+            onClick={form.openNew}
+            sx={{ ml: 'auto' }}
+          >
+            Novo Produto
+          </Button>
+        </ProductFilters>
       )}
 
       <DataTable

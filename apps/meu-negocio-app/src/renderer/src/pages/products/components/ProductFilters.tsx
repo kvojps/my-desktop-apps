@@ -16,6 +16,7 @@ interface ProductFiltersProps {
   categories: string[];
   lowStockCount: number;
   onChange: (filters: FilterState) => void;
+  children?: React.ReactNode;
 }
 
 export function ProductFilters({
@@ -23,6 +24,7 @@ export function ProductFilters({
   categories,
   lowStockCount,
   onChange,
+  children,
 }: ProductFiltersProps) {
   return (
     // Sem superfície própria: a tabela logo abaixo já é um `Paper` com borda, e
@@ -114,6 +116,7 @@ export function ProductFilters({
           />
         </ToggleButton>
       )}
+      {children}
     </Stack>
   );
 }
