@@ -76,21 +76,18 @@ export function ProductsPage() {
         key: 'costPrice',
         label: 'Custo',
         sortable: true,
-        align: 'right',
         render: (p: Product) => formatCurrency(p.costPrice),
       },
       {
         key: 'salePrice',
         label: 'Venda',
         sortable: true,
-        align: 'right',
         render: (p: Product) => formatCurrency(p.salePrice),
       },
       {
         key: 'margin',
         label: 'Margem',
         sortable: true,
-        align: 'right',
         render: (p: Product) => {
           const margin = getProductMargin(p);
           if (margin === undefined) {

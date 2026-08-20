@@ -77,10 +77,9 @@ const columns: Column<Receivable>[] = [
   {
     key: 'balanceDue',
     label: 'Valor',
-    align: 'right',
     render: (r) => formatCurrency(r.balanceDue),
   },
-  { key: 'days', label: 'Dias', align: 'right', render: (r) => r.days },
+  { key: 'days', label: 'Dias', render: (r) => r.days },
   {
     key: 'bucket',
     label: 'Faixa',

@@ -14,17 +14,15 @@ import {
 import type { KeyboardEvent, ReactNode } from 'react';
 import { Pagination } from '@/components/Pagination';
 
+/**
+ * Sem `align`: cabeçalho, rótulo e valor vão todos à esquerda (§2.1). A única
+ * célula à direita é a de ações, e ela é do próprio componente — a regra é
+ * imposta aqui, em vez de depender de cada tela repetir a escolha.
+ */
 export interface Column<T> {
   key: (keyof T & string) | (string & {});
   label: string;
   sortable?: boolean;
-  /**
-   * Valor monetário alinha à direita; texto e rótulo, à esquerda. É o
-   * alinhamento à direita que faz o `tabular-nums` global valer alguma coisa:
-   * com as casas decimais empilhadas, comparar linhas vira leitura de
-   * comprimento, e não de dígito.
-   */
-  align?: 'left' | 'right' | 'center';
   render: (item: T) => ReactNode;
 }
 
@@ -127,9 +125,7 @@ export function DataTable<T>({
         sx={onRowClick ? { cursor: 'pointer' } : undefined}
       >
         {columns.map((col) => (
-          <TableCell key={col.key} align={col.align}>
-            {col.render(item)}
-          </TableCell>
+          <TableCell key={col.key}>{col.render(item)}</TableCell>
         ))}
         {renderActions && (
           // A ação da linha não pode disparar o clique da linha: "Ver" abriria o
@@ -155,7 +151,6 @@ export function DataTable<T>({
               {columns.map((col) => (
                 <TableCell
                   key={col.key}
-                  align={col.align}
                   sortDirection={col.sortable && sort?.key === col.key ? sort.direction : false}
                 >
                   {col.sortable ? (

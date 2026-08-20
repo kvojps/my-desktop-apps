@@ -83,14 +83,12 @@ export function OrdersPage() {
         key: 'items',
         label: 'Itens',
         sortable: false,
-        align: 'right',
         render: (o: Order) => o.items.length,
       },
       {
         key: 'total',
         label: 'Total',
         sortable: true,
-        align: 'right',
         render: (o: Order) => formatCurrency(getOrderTotal(o)),
       },
       {

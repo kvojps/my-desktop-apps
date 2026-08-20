@@ -130,7 +130,7 @@ export function OrderFormModal({ formState, products }: OrderFormModalProps) {
             <Typography variant="caption" color="text.secondary">
               Preço unit.
             </Typography>
-            <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'right' }}>
+            <Typography variant="caption" color="text.secondary">
               Subtotal
             </Typography>
             <span />
@@ -177,7 +177,7 @@ export function OrderFormModal({ formState, products }: OrderFormModalProps) {
                   }}
                   {...register(`items.${index}.unitPrice`)}
                 />
-                <Typography variant="body2" sx={{ textAlign: 'right' }}>
+                <Typography variant="body2">
                   {formatCurrency((Number(item?.quantity) || 0) * (Number(item?.unitPrice) || 0))}
                 </Typography>
                 <IconButton

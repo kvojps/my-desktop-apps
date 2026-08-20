@@ -67,21 +67,18 @@ export function SalesPage() {
         key: 'items',
         label: 'Itens',
         sortable: false,
-        align: 'right',
         render: (o: Order) => o.items.length,
       },
       {
         key: 'total',
         label: 'Total',
         sortable: true,
-        align: 'right',
         render: (o: Order) => formatCurrency(getOrderTotal(o)),
       },
       {
         key: 'profit',
         label: 'Lucro',
         sortable: false,
-        align: 'right',
         render: (o: Order) => {
           const profit = getOrderProfit(o);
           const total = getOrderTotal(o);
@@ -107,7 +104,6 @@ export function SalesPage() {
         key: 'paymentStatus',
         label: 'Pagamento',
         sortable: false,
-        align: 'right',
         render: (o: Order) => <PaymentProgress order={o} />,
       },
       {

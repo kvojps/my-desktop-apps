@@ -108,7 +108,7 @@ export function OrderViewModal({
             </Table>
           </TableContainer>
 
-          <Typography variant="subtitle1" sx={{ textAlign: 'right' }}>
+          <Typography variant="subtitle1">
             {viewTarget.manualTotal !== undefined && (
               <Typography component="span" variant="caption" color="text.secondary" sx={{ mr: 1 }}>
                 (valor personalizado)

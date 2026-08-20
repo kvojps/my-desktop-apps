@@ -281,19 +281,38 @@ Card: `1px solid divider` mais `0 1px 2px rgba(16,24,40,0.04)` no claro e
 com borda.
 
 `fontVariantNumeric: 'tabular-nums'` no `body` inteiro, uma vez, no `MuiCssBaseline`.
-Os três apps são quase só número empilhado em coluna; dígitos de largura fixa
-alinham sozinhos, e nenhuma tela precisa pedir de novo.
+Os três apps são quase só número empilhado em coluna; dígito de largura fixa
+mantém a coluna estável quando o valor muda, e nenhuma tela precisa pedir de novo.
+Ele não alinha nada sozinho — quem alinha é o §2.1.
 
 ### 2.1 Alinhamento em tabela
 
-Valor monetário alinha **à direita**; texto e rótulo, **à esquerda**. É o
-alinhamento à direita que faz o `fontVariantNumeric: 'tabular-nums'` global valer
-alguma coisa: com as casas decimais empilhadas, comparar magnitudes entre linhas
-vira leitura de comprimento, e não de dígito.
+Cabeçalho, texto e valor alinham **à esquerda** — inclusive valor monetário. A
+coluna tem uma borda só, e é nela que o rótulo e o número começam: o título de
+`Custo` fica sobre o primeiro dígito de `R$ 1.250,00`.
 
-Um medidor dentro de uma coluna alinhada à direita vai por último, depois do seu
-rótulo — assim ele encosta na borda e todos os medidores da coluna começam no
-mesmo ponto.
+A regra anterior mandava moeda à direita, e era ela que produzia o desalinhamento
+que se via na tela. O `TableSortLabel` da MUI **sempre** renderiza a seta, mesmo
+inativa: `opacity: 0`, mas `fontSize: 18` com 4px de margem de cada lado. Numa
+coluna à direita isso empurra o rótulo 26px para dentro enquanto os números
+encostam na borda — e a coluna não ordenável ao lado não sofre o mesmo empurrão,
+então a mesma tabela alinhava de duas maneiras. À esquerda a seta cai depois do
+rótulo, onde não desloca nada.
+
+Não existe `align` em `Column<T>`. A única célula à direita é a de **Ações**, e
+ela é do próprio `DataTable`, não configurável: o que a regra impõe, o componente
+impõe junto.
+
+Um medidor dentro de uma coluna vai por último, depois do seu rótulo, com largura
+fixa e o `Stack` em `alignItems="flex-start"` — assim todas as barras da coluna
+começam no mesmo ponto.
+
+**Pendência (2026-08-20):** o `meu-dinheiro-app` ainda segue a regra antiga —
+`align: 'right'` em `pages/settings/components/columns.tsx`,
+`pages/month-detail/components/{income,expense}Columns.tsx` e
+`pages/dashboard/DashboardPage.tsx`, mais o medidor `PaidProgress`. É divergência
+conhecida, não licença: o app está fora do §2.1 até ser convertido. O `git-dlog`
+já está conforme — o único `align: 'right'` dele é a coluna de ações.
 
 ### 2.2 Densidade e largura de conteúdo
 
