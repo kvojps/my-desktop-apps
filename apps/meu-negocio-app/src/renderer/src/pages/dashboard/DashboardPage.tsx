@@ -137,10 +137,11 @@ function SectionLink({ to, children }: { to: string; children: React.ReactNode }
  * com `url(#gradiente)`, e o quadradinho derivado da barra sairia tentando
  * resolver essa URL, sem cor.
  *
- * Daí o `color` ser opcional: o quadradinho existe para amarrar a tag a **uma**
- * série. Um indicador que resume o gráfico inteiro — o total de uma seção cuja
- * série é uma rampa de quatro cores — não tem cor a que se amarrar, e um
- * quadradinho ali apontaria para uma barra que não existe.
+ * O quadradinho é identidade da tag, não legenda de série: numa seção cuja série
+ * é uma rampa ordinal de quatro degraus, o indicador resume o gráfico inteiro e
+ * não há um degrau a que se amarrar. Ele continua obrigatório porque é o que
+ * mantém a fileira de tags legível como fileira — a cor separa uma tag da
+ * seguinte, e quem lê o valor lê o rótulo ao lado, não o quadradinho.
  */
 function SummaryTag({
   label,
@@ -151,8 +152,8 @@ function SummaryTag({
 }: {
   label: string;
   value: string;
-  /** Cor da série que a tag identifica. Ausente quando ela resume o gráfico todo. */
-  color?: string;
+  /** Cor que identifica a tag — a da série, quando a tag identifica uma. */
+  color: string;
   tone?: StatTone;
   /** Fração do valor sobre o faturamento, ex. "R$ 1.234,56 (↑10%)". */
   marginPct?: number;
@@ -162,9 +163,7 @@ function SummaryTag({
 
   return (
     <Stack direction="row" spacing={0.75} alignItems="center">
-      {color && (
-        <Box sx={{ width: 10, height: 10, borderRadius: '3px', flexShrink: 0, bgcolor: color }} />
-      )}
+      <Box sx={{ width: 10, height: 10, borderRadius: '3px', flexShrink: 0, bgcolor: color }} />
       <Typography variant="body2" color="text.secondary">
         {label}
       </Typography>
@@ -228,16 +227,20 @@ function SectionCard({
           spacing={1}
           sx={{ mb: 2 }}
         >
-          <Stack direction="row" alignItems="center" spacing={2} flexWrap="wrap" useFlexGap>
-            <Stack>
+          {/* As tags acompanham a linha do título, e não o bloco título +
+              subtítulo: centradas contra o bloco elas descem para o meio das
+              duas linhas, alinhadas a nada. O subtítulo fica embaixo da fileira
+              inteira, que é o alcance dele — ele qualifica também as tags. */}
+          <Stack sx={{ minWidth: 0 }}>
+            <Stack direction="row" alignItems="center" spacing={2} flexWrap="wrap" useFlexGap>
               <Typography variant="h6">{title}</Typography>
-              {subtitle && (
-                <Typography variant="caption" color="text.secondary">
-                  {subtitle}
-                </Typography>
-              )}
+              {!isLoading && tags}
             </Stack>
-            {!isLoading && tags}
+            {subtitle && (
+              <Typography variant="caption" color="text.secondary">
+                {subtitle}
+              </Typography>
+            )}
           </Stack>
           {!isLoading && action}
         </Stack>
@@ -533,10 +536,19 @@ export function DashboardPage() {
           // no estado vazio é o `EmptyState`, sozinho.
           receivables.count > 0 && (
             <Stack direction="row" spacing={2} flexWrap="wrap" useFlexGap>
-              <SummaryTag label="Total a receber" value={formatCurrency(receivables.total)} />
+              {/* `primary` é o primeiro degrau da rampa de idade, o das contas
+                  em dia — não o âmbar nem o vermelho: um total que soma as
+                  quatro faixas pintado da cor do degrau que alarma leria como
+                  se tudo estivesse vencido. */}
+              <SummaryTag
+                label="Total a receber"
+                value={formatCurrency(receivables.total)}
+                color={theme.palette.primary.main}
+              />
               <SummaryTag
                 label="Em aberto"
                 value={receivables.count === 1 ? '1 conta' : `${receivables.count} contas`}
+                color={theme.palette.info.main}
               />
             </Stack>
           )
