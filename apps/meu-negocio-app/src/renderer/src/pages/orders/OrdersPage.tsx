@@ -1,4 +1,4 @@
-import { Add, ReceiptLongOutlined } from '@mui/icons-material';
+import { Add, FilterAltOutlined, ReceiptLongOutlined } from '@mui/icons-material';
 import { Button, Stack } from '@mui/material';
 import { useCallback, useMemo, useState } from 'react';
 import type { Order, OrderStatus } from '@shared/types/order';
@@ -7,6 +7,7 @@ import { ActionsMenu } from '@/components/ActionsMenu';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { DataTable } from '@/components/DataTable';
 import type { Column } from '@/components/DataTable';
+import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { PageHeader } from '@/components/PageHeader';
 import { useOrderConfirm } from '@/hooks/orders/useOrderConfirm';
@@ -82,12 +83,14 @@ export function OrdersPage() {
         key: 'items',
         label: 'Itens',
         sortable: false,
+        align: 'right',
         render: (o: Order) => o.items.length,
       },
       {
         key: 'total',
         label: 'Total',
         sortable: true,
+        align: 'right',
         render: (o: Order) => formatCurrency(getOrderTotal(o)),
       },
       {
@@ -107,27 +110,29 @@ export function OrdersPage() {
   }
 
   return (
-    <Stack spacing={2}>
+    <Stack spacing={3}>
       <PageHeader
         icon={<ReceiptLongOutlined />}
         title="Pedidos"
         subtitle="Registro e acompanhamento de pedidos"
         actions={
-          <Button variant="contained" startIcon={<Add sx={{ fontSize: 16 }} />} onClick={form.open}>
+          <Button variant="contained" startIcon={<Add />} onClick={form.open}>
             Novo Pedido
           </Button>
         }
       />
 
-      <OrderFilters filters={filters} onChange={setFilters} hideStatuses={['completed']}>
-        <MonthRangeFilter
-          orders={orders}
-          filters={filters}
-          onChange={setFilters}
-          embedded
-          defaultToThisYear={false}
-        />
-      </OrderFilters>
+      {/* Filtro sobre lista que nunca teve pedido só dá o que filtrar de nada (§4). */}
+      {orders.length > 0 && (
+        <OrderFilters filters={filters} onChange={setFilters} hideStatuses={['completed']}>
+          <MonthRangeFilter
+            orders={orders}
+            filters={filters}
+            onChange={setFilters}
+            defaultToThisYear={false}
+          />
+        </OrderFilters>
+      )}
 
       <DataTable
         columns={columns}
@@ -138,6 +143,8 @@ export function OrdersPage() {
         onToggleSort={(key) => toggleSort(key as OrderSortKey)}
         renderActions={(order: Order) => (
           <ActionsMenu
+            ariaLabel={`Ações do pedido de ${order.customerName}`}
+            deleteLabel="Excluir pedido"
             onView={() => setViewTarget(order)}
             onEdit={order.status === 'pending' ? () => form.openForEdit(order) : undefined}
             onDelete={
@@ -150,35 +157,39 @@ export function OrdersPage() {
         getRowKey={(order) => order.id}
         footerLabel="pedidos"
         isLoading={isLoading}
-        emptyIcon={<ReceiptLongOutlined sx={{ fontSize: 32 }} />}
-        emptyMessage={
-          hasOpenOrders
-            ? 'Nenhum pedido corresponde aos filtros.'
-            : 'Nenhum pedido em aberto. As vendas concluídas ficam na tela de Vendas.'
-        }
-        emptyAction={
+        empty={
           hasOpenOrders ? (
-            <Button
-              onClick={() =>
-                setFilters({
-                  search: '',
-                  status: '',
-                  paymentStatus: '',
-                  dateFrom: '',
-                  dateTo: '',
-                })
+            <EmptyState
+              icon={<FilterAltOutlined sx={{ fontSize: 40 }} />}
+              title="Nenhum pedido corresponde aos filtros."
+              description="Ajuste a busca, o status ou o período para ver os pedidos em aberto de novo."
+              action={
+                <Button
+                  onClick={() =>
+                    setFilters({
+                      search: '',
+                      status: '',
+                      paymentStatus: '',
+                      dateFrom: '',
+                      dateTo: '',
+                    })
+                  }
+                >
+                  Limpar filtros
+                </Button>
               }
-            >
-              Limpar filtros
-            </Button>
+            />
           ) : (
-            <Button
-              variant="contained"
-              startIcon={<Add sx={{ fontSize: 16 }} />}
-              onClick={form.open}
-            >
-              Criar primeiro pedido
-            </Button>
+            <EmptyState
+              icon={<ReceiptLongOutlined sx={{ fontSize: 48 }} />}
+              title="Nenhum pedido em aberto."
+              description="Registre um pedido por cliente e acompanhe o fluxo pendente → em andamento → concluído. As vendas já concluídas ficam na tela de Vendas."
+              action={
+                <Button variant="contained" startIcon={<Add />} onClick={form.open}>
+                  Novo Pedido
+                </Button>
+              }
+            />
           )
         }
         pagination={{ currentPage: page, totalPages, onPageChange: setPage }}
@@ -190,7 +201,7 @@ export function OrdersPage() {
 
       {confirm.confirmTarget &&
         (() => {
-          const { title, message, confirmLabel, danger } = confirm.buildProps();
+          const { title, message, confirmLabel, loadingLabel, danger } = confirm.buildProps();
           return (
             <ConfirmDialog
               open
@@ -198,6 +209,8 @@ export function OrdersPage() {
               onConfirm={confirm.handleAction}
               onClose={() => confirm.setConfirmTarget(null)}
               confirmLabel={confirmLabel}
+              loadingLabel={loadingLabel}
+              loading={confirm.isPending}
               confirmColor={danger ? 'error' : 'primary'}
               message={message}
             />

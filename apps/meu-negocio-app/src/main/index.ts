@@ -1,16 +1,18 @@
 import { BrowserWindow, app, dialog, shell } from 'electron';
 import path from 'node:path';
 import { APP_ERROR_DESCRIPTIONS } from '@shared/errors/appError';
+import type { ThemeMode } from '@shared/types/theme';
 import icon from '../../resources/icon.png?asset';
 import { initDb } from './db/connection';
 import { classifyError } from './errors/toIpcError';
 import { registerIpcHandlers } from './ipc/registerIpc';
+import { applyThemeMode, getThemeMode, resolveThemeMode, themeBackground } from './theme/themeMode';
 
 // Fixa a pasta userData existente (%APPDATA%/meu-negocio-app);
 // mudar este nome deixa o banco de dados dos usuários órfão.
 app.setName('meu-negocio-app');
 
-function createWindow() {
+function createWindow(mode: ThemeMode) {
   const mainWindow = new BrowserWindow({
     width: 1280,
     height: 800,
@@ -18,11 +20,19 @@ function createWindow() {
     minHeight: 640,
     show: false,
     icon,
+    // Sem isto a janela nasce branca. Não é o flash de boot (`show: false` +
+    // `ready-to-show` já cobre esse): é a faixa branca ao redimensionar e no
+    // `maximize()`, com o app em modo escuro.
+    backgroundColor: themeBackground(mode),
     webPreferences: {
       preload: path.join(__dirname, '../preload/index.js'),
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: false,
+      // O renderer escolhe o tema no primeiro render, e o banco só é alcançável
+      // por IPC assíncrono. Passar o modo por argumento o entrega ao preload de
+      // forma síncrona, antes de qualquer render.
+      additionalArguments: [`--initial-theme-mode=${mode}`],
     },
   });
 
@@ -73,11 +83,16 @@ app.whenReady().then(() => {
 
   registerIpcHandlers(db);
 
-  createWindow();
+  // Precisa vir antes da janela: é o modo que decide a cor com que ela nasce e
+  // a da moldura nativa.
+  const mode = resolveThemeMode(db);
+  applyThemeMode(mode);
+
+  createWindow(mode);
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
-      createWindow();
+      createWindow(getThemeMode());
     }
   });
 });

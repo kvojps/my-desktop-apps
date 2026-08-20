@@ -53,6 +53,15 @@ CREATE TABLE IF NOT EXISTS settings (
   phone TEXT NOT NULL DEFAULT '',
   address TEXT NOT NULL DEFAULT ''
 );
+
+-- Preferências internas do app, sem tela própria e fora do backup: hoje só o
+-- modo de tema, que precisa ser lido pelo processo main antes de existir
+-- renderer. Não confundir com a tabela settings, que são os dados da empresa.
+CREATE TABLE IF NOT EXISTS app_settings (
+  key TEXT PRIMARY KEY,
+  value TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
 `;
 
 export function getDb(): Database.Database {

@@ -1,4 +1,4 @@
-import { Add, Inventory2Outlined } from '@mui/icons-material';
+import { Add, FilterAltOutlined, Inventory2Outlined } from '@mui/icons-material';
 import { Button, Stack, Typography } from '@mui/material';
 import { useMemo } from 'react';
 import type { Product } from '@shared/types/product';
@@ -7,6 +7,7 @@ import { ActionsMenu } from '@/components/ActionsMenu';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { DataTable } from '@/components/DataTable';
 import type { Column } from '@/components/DataTable';
+import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { PageHeader } from '@/components/PageHeader';
 import { StockBadge } from '@/components/StockBadge';
@@ -75,23 +76,28 @@ export function ProductsPage() {
         key: 'costPrice',
         label: 'Custo',
         sortable: true,
+        align: 'right',
         render: (p: Product) => formatCurrency(p.costPrice),
       },
       {
         key: 'salePrice',
         label: 'Venda',
         sortable: true,
+        align: 'right',
         render: (p: Product) => formatCurrency(p.salePrice),
       },
       {
         key: 'margin',
         label: 'Margem',
         sortable: true,
+        align: 'right',
         render: (p: Product) => {
           const margin = getProductMargin(p);
           if (margin === undefined) {
+            // Valor ausente é conteúdo, não controle desabilitado: vai em
+            // `text.secondary`, que passa em AA nos dois modos (§1.4).
             return (
-              <Typography variant="body2" color="text.disabled">
+              <Typography variant="body2" color="text.secondary">
                 —
               </Typography>
             );
@@ -101,13 +107,14 @@ export function ProductsPage() {
               <Typography
                 variant="body2"
                 // Margem negativa é venda no prejuízo: o único caso da tabela
-                // que pede alarme.
+                // que pede alarme. Numa coluna, só a condição que pede atenção
+                // é pintada (§1.5).
                 color={margin < 0 ? 'error.main' : 'text.primary'}
                 sx={{ fontWeight: margin < 0 ? 600 : 400 }}
               >
                 {formatPercent(margin)}
               </Typography>
-              <Typography variant="caption" color="text.disabled">
+              <Typography variant="caption" color="text.secondary">
                 {formatCurrency(getProductUnitProfit(p))} / un
               </Typography>
             </Stack>
@@ -135,18 +142,18 @@ export function ProductsPage() {
     );
   }
 
+  // Filtro sobre catálogo que nunca teve produto só dá o que filtrar de nada; a
+  // tela nesse momento tem uma coisa a dizer, que é o estado vazio (§4).
+  const hasProducts = products.length > 0;
+
   return (
-    <Stack spacing={2}>
+    <Stack spacing={3}>
       <PageHeader
         icon={<Inventory2Outlined />}
         title="Produtos"
         subtitle="Cadastro e controle de estoque do seu catálogo"
         actions={
-          <Button
-            variant="contained"
-            startIcon={<Add sx={{ fontSize: 16 }} />}
-            onClick={form.openNew}
-          >
+          <Button variant="contained" startIcon={<Add />} onClick={form.openNew}>
             Novo Produto
           </Button>
         }
@@ -154,12 +161,14 @@ export function ProductsPage() {
 
       <ProductStats products={products} isLoading={isLoading} />
 
-      <ProductFilters
-        filters={filters}
-        categories={categories}
-        lowStockCount={lowStockCount}
-        onChange={setFilters}
-      />
+      {hasProducts && (
+        <ProductFilters
+          filters={filters}
+          categories={categories}
+          lowStockCount={lowStockCount}
+          onChange={setFilters}
+        />
+      )}
 
       <DataTable
         columns={columns}
@@ -170,6 +179,8 @@ export function ProductsPage() {
         onToggleSort={(key) => toggleSort(key as SortKey)}
         renderActions={(product: Product) => (
           <ActionsMenu
+            ariaLabel={`Ações de ${product.name}`}
+            deleteLabel="Excluir produto"
             onEdit={() => form.openEdit(product)}
             onDelete={() => confirm.setDeleteTarget(product)}
           />
@@ -177,25 +188,35 @@ export function ProductsPage() {
         getRowKey={(product) => product.id}
         footerLabel="produtos"
         isLoading={isLoading}
-        emptyIcon={<Inventory2Outlined sx={{ fontSize: 32 }} />}
-        emptyMessage={
-          filtered.length === 0 && products.length > 0
-            ? 'Nenhum produto corresponde aos filtros.'
-            : 'Seu catálogo ainda está vazio.'
-        }
-        emptyAction={
-          products.length === 0 ? (
-            <Button
-              variant="contained"
-              startIcon={<Add sx={{ fontSize: 16 }} />}
-              onClick={form.openNew}
-            >
-              Cadastrar primeiro produto
-            </Button>
+        empty={
+          // Um só predicado decide a frase e a ação: antes a mensagem olhava
+          // para o filtro e o botão olhava para o catálogo, então um catálogo
+          // cheio com filtro que não acha nada dizia "corresponde aos filtros"
+          // e oferecia "Limpar filtros" — mas o inverso também podia acontecer.
+          hasProducts ? (
+            <EmptyState
+              icon={<FilterAltOutlined sx={{ fontSize: 40 }} />}
+              title="Nenhum produto corresponde aos filtros."
+              description="Ajuste a busca, a categoria ou o filtro de estoque baixo para ver o catálogo de novo."
+              action={
+                <Button
+                  onClick={() => setFilters({ search: '', category: '', lowStockOnly: false })}
+                >
+                  Limpar filtros
+                </Button>
+              }
+            />
           ) : (
-            <Button onClick={() => setFilters({ search: '', category: '', lowStockOnly: false })}>
-              Limpar filtros
-            </Button>
+            <EmptyState
+              icon={<Inventory2Outlined sx={{ fontSize: 48 }} />}
+              title="Seu catálogo ainda está vazio."
+              description="Cadastre os produtos com preço de custo, preço de venda e estoque — é deles que saem a margem, o capital parado e os alertas de reposição."
+              action={
+                <Button variant="contained" startIcon={<Add />} onClick={form.openNew}>
+                  Novo Produto
+                </Button>
+              }
+            />
           )
         }
         pagination={{ currentPage: page, totalPages, onPageChange: setPage }}
@@ -205,7 +226,7 @@ export function ProductsPage() {
 
       {confirm.deleteTarget &&
         (() => {
-          const { title, message, confirmLabel, danger } = confirm.buildProps();
+          const { title, message, confirmLabel, loadingLabel, danger } = confirm.buildProps();
           return (
             <ConfirmDialog
               open
@@ -213,6 +234,8 @@ export function ProductsPage() {
               onConfirm={confirm.handleAction}
               onClose={() => confirm.setDeleteTarget(null)}
               confirmLabel={confirmLabel}
+              loadingLabel={loadingLabel}
+              loading={confirm.isDeleting}
               confirmColor={danger ? 'error' : 'primary'}
               message={message}
             />

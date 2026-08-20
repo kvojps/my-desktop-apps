@@ -14,12 +14,16 @@ interface ConfirmProps {
   title: string;
   message: string;
   confirmLabel: string;
+  /** Rótulo enquanto o IPC não volta — ação em andamento troca o rótulo (§5.3). */
+  loadingLabel: string;
   danger: boolean;
 }
 
 export type UseOrderConfirmReturn = {
   confirmTarget: ConfirmTarget | null;
   setConfirmTarget: (target: ConfirmTarget | null) => void;
+  /** A ação está em andamento: o botão de confirmar não pode seguir clicável. */
+  isPending: boolean;
   buildProps: () => ConfirmProps;
   handleAction: () => Promise<void>;
 };
@@ -29,6 +33,7 @@ export function useOrderConfirm(
   deleteOrder: (id: string) => Promise<void>,
 ): UseOrderConfirmReturn {
   const [confirmTarget, setConfirmTarget] = useState<ConfirmTarget | null>(null);
+  const [isPending, setIsPending] = useState(false);
   const { showSnackbar, showError } = useSnackbar();
 
   function buildProps(): ConfirmProps {
@@ -41,6 +46,7 @@ export function useOrderConfirm(
           title: `Avançar para "${next}"`,
           message: `Tem certeza que deseja avançar o pedido de ${order.customerName} para "${next}"?`,
           confirmLabel: `Avançar para "${next}"`,
+          loadingLabel: 'Avançando...',
           danger: false,
         };
       }
@@ -49,6 +55,7 @@ export function useOrderConfirm(
           title: 'Cancelar Pedido',
           message: `Tem certeza que deseja cancelar o pedido de ${order.customerName}?`,
           confirmLabel: 'Confirmar Cancelamento',
+          loadingLabel: 'Cancelando...',
           danger: false,
         };
       case 'reopen':
@@ -56,6 +63,7 @@ export function useOrderConfirm(
           title: 'Reabrir Pedido',
           message: `O pedido de ${order.customerName} deixa de ser uma venda e volta para a tela de Pedidos como pendente, com o estoque devolvido. O valor já pago é mantido.`,
           confirmLabel: 'Reabrir Pedido',
+          loadingLabel: 'Reabrindo...',
           danger: false,
         };
       case 'delete': {
@@ -65,6 +73,7 @@ export function useOrderConfirm(
           title: 'Excluir Pedido',
           message: `Tem certeza que deseja excluir o pedido de ${order.customerName}? Esta ação não pode ser desfeita.${stockNote}`,
           confirmLabel: 'Confirmar Exclusão',
+          loadingLabel: 'Excluindo...',
           danger: true,
         };
       }
@@ -74,6 +83,7 @@ export function useOrderConfirm(
           title: 'Alterar Status',
           message: `Tem certeza que deseja alterar o status do pedido de ${order.customerName} para "${label}"?`,
           confirmLabel: `Alterar para "${label}"`,
+          loadingLabel: 'Alterando...',
           danger: confirmTarget!.newStatus === 'cancelled',
         };
       }
@@ -85,6 +95,7 @@ export function useOrderConfirm(
 
     const { type, order } = confirmTarget;
 
+    setIsPending(true);
     try {
       switch (type) {
         case 'advance':
@@ -115,12 +126,15 @@ export function useOrderConfirm(
       setConfirmTarget(null);
     } catch (err) {
       showError(err, 'Erro ao atualizar o pedido.');
+    } finally {
+      setIsPending(false);
     }
   }
 
   return {
     confirmTarget,
     setConfirmTarget,
+    isPending,
     buildProps,
     handleAction,
   };

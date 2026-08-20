@@ -3,6 +3,7 @@ import type { BackupData } from '@shared/types/backup';
 import type { CreateOrderData, Order, OrderStatus, UpdateOrderData } from '@shared/types/order';
 import type { Product } from '@shared/types/product';
 import type { CompanySettings } from '@shared/types/settings';
+import type { ThemeMode } from '@shared/types/theme';
 
 export type { BackupData };
 
@@ -58,10 +59,22 @@ export interface AppInfoApi {
   getInfo: () => Promise<AppInfo>;
 }
 
+export interface ThemeApi {
+  /**
+   * O modo já resolvido pelo main, entregue por argumento de linha de comando e
+   * lido de forma síncrona pelo preload. É um valor, não uma chamada: o
+   * renderer precisa dele antes do primeiro render, e um `invoke` chega tarde.
+   */
+  initialMode: ThemeMode | null;
+  get: () => Promise<ThemeMode>;
+  set: (mode: ThemeMode) => Promise<ThemeMode>;
+}
+
 export interface ElectronApi {
   products: ProductsApi;
   orders: OrdersApi;
   settings: SettingsApi;
   data: DataApi;
   app: AppInfoApi;
+  theme: ThemeApi;
 }

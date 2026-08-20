@@ -1,6 +1,6 @@
 import { Check, DeleteOutline, Edit, MoreVert, Replay, Visibility } from '@mui/icons-material';
 import { IconButton, ListItemIcon, ListItemText, Menu, MenuItem } from '@mui/material';
-import { useState } from 'react';
+import { MouseEvent, useState } from 'react';
 
 interface ActionsMenuProps {
   onView?: () => void;
@@ -8,9 +8,21 @@ interface ActionsMenuProps {
   onPayment?: () => void;
   onReopen?: () => void;
   onDelete?: () => void;
+  /** Rótulo do botão. Numa lista, diga de qual item são as ações. */
+  ariaLabel?: string;
+  /** "Excluir pedido", "Excluir produto" — quando o genérico não basta. */
+  deleteLabel?: string;
 }
 
-export function ActionsMenu({ onView, onEdit, onPayment, onReopen, onDelete }: ActionsMenuProps) {
+export function ActionsMenu({
+  onView,
+  onEdit,
+  onPayment,
+  onReopen,
+  onDelete,
+  ariaLabel = 'Ações',
+  deleteLabel = 'Excluir',
+}: ActionsMenuProps) {
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const open = Boolean(anchorEl);
 
@@ -18,19 +30,28 @@ export function ActionsMenu({ onView, onEdit, onPayment, onReopen, onDelete }: A
     setAnchorEl(null);
   }
 
-  function handle(action: () => void) {
+  function run(action: () => void) {
     action();
     close();
   }
 
   return (
     <>
-      <IconButton size="small" aria-label="Ações" onClick={(e) => setAnchorEl(e.currentTarget)}>
+      <IconButton
+        size="small"
+        aria-label={ariaLabel}
+        onClick={(event: MouseEvent<HTMLElement>) => {
+          // A linha inteira costuma ser clicável; sem isto, abrir o menu
+          // abriria também o detalhe do item.
+          event.stopPropagation();
+          setAnchorEl(event.currentTarget);
+        }}
+      >
         <MoreVert />
       </IconButton>
-      <Menu anchorEl={anchorEl} open={open} onClose={close}>
+      <Menu anchorEl={anchorEl} open={open} onClose={close} onClick={(e) => e.stopPropagation()}>
         {onView && (
-          <MenuItem onClick={() => handle(onView)}>
+          <MenuItem onClick={() => run(onView)}>
             <ListItemIcon>
               <Visibility sx={{ fontSize: 16 }} />
             </ListItemIcon>
@@ -38,7 +59,7 @@ export function ActionsMenu({ onView, onEdit, onPayment, onReopen, onDelete }: A
           </MenuItem>
         )}
         {onEdit && (
-          <MenuItem onClick={() => handle(onEdit)}>
+          <MenuItem onClick={() => run(onEdit)}>
             <ListItemIcon>
               <Edit sx={{ fontSize: 16 }} />
             </ListItemIcon>
@@ -46,7 +67,7 @@ export function ActionsMenu({ onView, onEdit, onPayment, onReopen, onDelete }: A
           </MenuItem>
         )}
         {onPayment && (
-          <MenuItem onClick={() => handle(onPayment)}>
+          <MenuItem onClick={() => run(onPayment)}>
             <ListItemIcon>
               <Check sx={{ fontSize: 16 }} />
             </ListItemIcon>
@@ -54,7 +75,7 @@ export function ActionsMenu({ onView, onEdit, onPayment, onReopen, onDelete }: A
           </MenuItem>
         )}
         {onReopen && (
-          <MenuItem onClick={() => handle(onReopen)}>
+          <MenuItem onClick={() => run(onReopen)}>
             <ListItemIcon>
               <Replay sx={{ fontSize: 16 }} />
             </ListItemIcon>
@@ -62,11 +83,11 @@ export function ActionsMenu({ onView, onEdit, onPayment, onReopen, onDelete }: A
           </MenuItem>
         )}
         {onDelete && (
-          <MenuItem onClick={() => handle(onDelete)} sx={{ color: 'error.main' }}>
+          <MenuItem onClick={() => run(onDelete)} sx={{ color: 'error.main' }}>
             <ListItemIcon sx={{ color: 'error.main' }}>
               <DeleteOutline sx={{ fontSize: 16 }} />
             </ListItemIcon>
-            <ListItemText>Excluir</ListItemText>
+            <ListItemText>{deleteLabel}</ListItemText>
           </MenuItem>
         )}
       </Menu>

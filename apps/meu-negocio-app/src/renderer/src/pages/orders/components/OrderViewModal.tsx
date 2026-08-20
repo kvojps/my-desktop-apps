@@ -21,6 +21,7 @@ import {
 } from '@shared/types/order';
 import { Modal } from '@/components/Modal';
 import { StatusChip } from '@/components/StatusChip';
+import { ORDER_STATUS_ICON, PAYMENT_STATUS_ICON } from '@/components/StatusChip/statusIcons';
 import { formatDate } from '@/utils/date';
 import { formatCurrency } from '@/utils/format';
 
@@ -60,6 +61,7 @@ export function OrderViewModal({
               <StatusChip
                 label={ORDER_STATUS_LABELS[viewTarget.status]}
                 color={ORDER_STATUS_COLOR[viewTarget.status]}
+                icon={ORDER_STATUS_ICON[viewTarget.status]}
               />
             </Stack>
             <Typography variant="body2">
@@ -72,6 +74,7 @@ export function OrderViewModal({
               <StatusChip
                 label={PAYMENT_STATUS_LABELS[getOrderPaymentStatus(viewTarget)]}
                 color={PAYMENT_STATUS_COLOR[getOrderPaymentStatus(viewTarget)]}
+                icon={PAYMENT_STATUS_ICON[getOrderPaymentStatus(viewTarget)]}
               />
             </Stack>
             {getOrderPaymentStatus(viewTarget) !== 'paid' && (

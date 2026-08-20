@@ -2,7 +2,6 @@ import {
   Box,
   Paper,
   Skeleton,
-  Stack,
   Table,
   TableBody,
   TableCell,
@@ -12,13 +11,21 @@ import {
   TableSortLabel,
   Typography,
 } from '@mui/material';
+import type { KeyboardEvent, ReactNode } from 'react';
 import { Pagination } from '@/components/Pagination';
 
 export interface Column<T> {
   key: (keyof T & string) | (string & {});
   label: string;
   sortable?: boolean;
-  render: (item: T) => React.ReactNode;
+  /**
+   * Valor monetário alinha à direita; texto e rótulo, à esquerda. É o
+   * alinhamento à direita que faz o `tabular-nums` global valer alguma coisa:
+   * com as casas decimais empilhadas, comparar linhas vira leitura de
+   * comprimento, e não de dígito.
+   */
+  align?: 'left' | 'right' | 'center';
+  render: (item: T) => ReactNode;
 }
 
 interface DataTableProps<T> {
@@ -26,17 +33,23 @@ interface DataTableProps<T> {
   items: T[];
   totalCount: number;
   start: number;
-  sort: { key: string | null; direction: 'asc' | 'desc' };
+  sort?: { key: string | null; direction: 'asc' | 'desc' };
   onToggleSort?: (key: string) => void;
-  renderActions?: (item: T) => React.ReactNode;
+  renderActions?: (item: T) => ReactNode;
   getRowKey: (item: T) => string;
+  /** Como a linha se anuncia quando ela é clicável. Sem isto ela vira "button". */
+  getRowLabel?: (item: T) => string;
   footerLabel: string;
   isLoading?: boolean;
-  emptyMessage?: string;
-  /** Ícone grande do estado vazio — reforça que a lista está vazia de propósito. */
-  emptyIcon?: React.ReactNode;
-  /** Ação que resolve o vazio, no próprio lugar onde o usuário percebeu a falta. */
-  emptyAction?: React.ReactNode;
+  onRowClick?: (item: T) => void;
+  /**
+   * Sem a superfície própria, para quando a tabela já mora dentro de uma — os
+   * cards de seção do Dashboard. Um `Paper` com borda dentro de outro vira
+   * caixa dentro de caixa.
+   */
+  flush?: boolean;
+  /** Estado vazio completo — ícone, frase e a ação que resolve. Use `EmptyState`. */
+  empty?: ReactNode;
   pagination?: {
     currentPage: number;
     totalPages: number;
@@ -55,14 +68,27 @@ export function DataTable<T>({
   onToggleSort,
   renderActions,
   getRowKey,
+  getRowLabel,
   footerLabel,
   isLoading,
-  emptyMessage,
-  emptyIcon,
-  emptyAction,
+  onRowClick,
+  flush,
+  empty,
   pagination,
 }: DataTableProps<T>) {
   const colSpan = columns.length + (renderActions ? 1 : 0);
+
+  /**
+   * Linha clicável é um controle, e controle precisa existir para o teclado
+   * (§5.5). O `Enter`/`Espaço` só valem quando o foco está na própria linha —
+   * dentro da célula de ações eles pertencem ao botão que os recebeu.
+   */
+  function handleRowKeyDown(event: KeyboardEvent<HTMLTableRowElement>, item: T) {
+    if (event.target !== event.currentTarget) return;
+    if (event.key !== 'Enter' && event.key !== ' ') return;
+    event.preventDefault();
+    onRowClick?.(item);
+  }
 
   function renderBody() {
     // Enquanto o SQLite responde, a tabela mantém a própria forma em vez de
@@ -82,44 +108,60 @@ export function DataTable<T>({
     if (totalCount === 0) {
       return (
         <TableRow>
-          <TableCell colSpan={colSpan} align="center" sx={{ borderBottom: 0 }}>
-            <Stack alignItems="center" spacing={1.5} sx={{ py: 6 }}>
-              {emptyIcon && <Box sx={{ display: 'flex', color: 'text.disabled' }}>{emptyIcon}</Box>}
-              <Typography variant="body2" color="text.secondary">
-                {emptyMessage ?? 'Nenhum registro encontrado.'}
-              </Typography>
-              {emptyAction}
-            </Stack>
+          <TableCell colSpan={colSpan} sx={{ borderBottom: 0 }}>
+            {empty}
           </TableCell>
         </TableRow>
       );
     }
 
     return items.map((item) => (
-      <TableRow key={getRowKey(item)} hover>
+      <TableRow
+        key={getRowKey(item)}
+        hover
+        role={onRowClick ? 'button' : undefined}
+        tabIndex={onRowClick ? 0 : undefined}
+        aria-label={onRowClick ? getRowLabel?.(item) : undefined}
+        onClick={onRowClick ? () => onRowClick(item) : undefined}
+        onKeyDown={onRowClick ? (event) => handleRowKeyDown(event, item) : undefined}
+        sx={onRowClick ? { cursor: 'pointer' } : undefined}
+      >
         {columns.map((col) => (
-          <TableCell key={col.key}>{col.render(item)}</TableCell>
+          <TableCell key={col.key} align={col.align}>
+            {col.render(item)}
+          </TableCell>
         ))}
-        {renderActions && <TableCell align="right">{renderActions(item)}</TableCell>}
+        {renderActions && (
+          // A ação da linha não pode disparar o clique da linha: "Ver" abriria o
+          // detalhe do pedido e o menu de ações ao mesmo tempo. É o par de mouse
+          // da guarda de teclado acima.
+          <TableCell align="right" onClick={(event) => event.stopPropagation()}>
+            {renderActions(item)}
+          </TableCell>
+        )}
       </TableRow>
     ));
   }
 
-  return (
-    <Paper variant="outlined">
+  // O miolo é o mesmo nos dois modos; só o invólucro muda. Sem a borda do
+  // `Paper`, quem abre e fecha a tabela são a faixa tonal do cabeçalho e a
+  // régua superior do rodapé.
+  const body = (
+    <>
       <TableContainer>
-        <Table>
+        <Table size="small">
           <TableHead>
             <TableRow>
               {columns.map((col) => (
                 <TableCell
                   key={col.key}
-                  sortDirection={col.sortable && sort.key === col.key ? sort.direction : false}
+                  align={col.align}
+                  sortDirection={col.sortable && sort?.key === col.key ? sort.direction : false}
                 >
                   {col.sortable ? (
                     <TableSortLabel
-                      active={sort.key === col.key}
-                      direction={sort.key === col.key ? sort.direction : 'asc'}
+                      active={sort?.key === col.key}
+                      direction={sort?.key === col.key ? sort.direction : 'asc'}
                       onClick={() => onToggleSort?.(col.key)}
                     >
                       {col.label}
@@ -136,14 +178,7 @@ export function DataTable<T>({
         </Table>
       </TableContainer>
 
-      <Box
-        sx={{
-          px: 2,
-          py: 1.5,
-          borderTop: 1,
-          borderColor: 'divider',
-        }}
-      >
+      <Box sx={{ px: 2, py: 1.5, borderTop: 1, borderColor: 'divider' }}>
         <Typography variant="body2" color="text.secondary">
           {isLoading ? (
             <Skeleton variant="text" width={180} />
@@ -162,6 +197,8 @@ export function DataTable<T>({
           onPageChange={pagination.onPageChange}
         />
       )}
-    </Paper>
+    </>
   );
+
+  return flush ? <Box>{body}</Box> : <Paper variant="outlined">{body}</Paper>;
 }

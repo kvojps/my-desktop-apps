@@ -15,4 +15,6 @@ export const IPC_CHANNELS = {
   dataExport: 'data:export',
   dataImport: 'data:import',
   dataOpenFolder: 'data:openFolder',
+  themeGet: 'theme:get',
+  themeSet: 'theme:set',
 } as const;

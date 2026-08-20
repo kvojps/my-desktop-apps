@@ -1,6 +1,7 @@
 import type { CreateOrderData, OrderStatus, UpdateOrderData } from '@shared/types/order';
 import type { Product } from '@shared/types/product';
 import type { CompanySettings } from '@shared/types/settings';
+import type { ThemeMode } from '@shared/types/theme';
 
 function unwrapIpcError(err: unknown): never {
   if (err instanceof Error) {
@@ -88,5 +89,21 @@ export const api = {
 
   openDataFolder() {
     return call(() => window.api.data.openFolder());
+  },
+
+  /**
+   * Síncrono de propósito, e por isso fora do `call`: é o modo que o main já
+   * resolveu, entregue pelo preload antes do primeiro render.
+   */
+  initialThemeMode() {
+    return window.api.theme.initialMode;
+  },
+
+  getThemeMode() {
+    return call<ThemeMode>(() => window.api.theme.get());
+  },
+
+  setThemeMode(mode: ThemeMode) {
+    return call<ThemeMode>(() => window.api.theme.set(mode));
   },
 };

@@ -1,4 +1,9 @@
-import { Inventory2, Percent, Sell, WarningAmber } from '@mui/icons-material';
+import {
+  Inventory2Outlined,
+  PercentOutlined,
+  SellOutlined,
+  WarningAmberOutlined,
+} from '@mui/icons-material';
 import { useMemo } from 'react';
 import type { Product } from '@shared/types/product';
 import { getProductMargin, getProductStockValue } from '@shared/types/product';
@@ -32,21 +37,21 @@ export function ProductStats({ products, isLoading }: ProductStatsProps) {
         label: 'Produtos',
         value: String(products.length),
         sub: 'itens no catálogo',
-        icon: Inventory2,
+        icon: Inventory2Outlined,
         accent: 'primary',
       },
       {
         label: 'Valor em Estoque',
         value: formatCurrency(stockValue),
         sub: 'a preço de custo',
-        icon: Sell,
+        icon: SellOutlined,
         accent: 'info',
       },
       {
         label: 'Margem Média',
         value: avgMargin === undefined ? '—' : formatPercent(avgMargin),
         sub: avgMargin === undefined ? 'sem itens precificados' : 'ponderada pelo estoque',
-        icon: Percent,
+        icon: PercentOutlined,
         accent: 'success',
       },
       {
@@ -56,7 +61,7 @@ export function ProductStats({ products, isLoading }: ProductStatsProps) {
           potentialRevenue > 0
             ? `${formatCurrency(potentialRevenue)} de venda potencial`
             : 'nada em estoque',
-        icon: WarningAmber,
+        icon: WarningAmberOutlined,
         tone: lowStockCount > 0 ? 'alert' : 'neutral',
       },
     ];

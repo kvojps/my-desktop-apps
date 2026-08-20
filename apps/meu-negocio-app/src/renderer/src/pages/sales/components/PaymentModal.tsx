@@ -1,5 +1,6 @@
 import { Button, Stack, TextField, Typography } from '@mui/material';
 import { useEffect, useState } from 'react';
+import type { BaseSyntheticEvent } from 'react';
 import type { Order } from '@shared/types/order';
 import {
   PAYMENT_STATUS_COLOR,
@@ -9,6 +10,7 @@ import {
 } from '@shared/types/order';
 import { Modal } from '@/components/Modal';
 import { StatusChip } from '@/components/StatusChip';
+import { PAYMENT_STATUS_ICON } from '@/components/StatusChip/statusIcons';
 import { useSnackbar } from '@/contexts/SnackbarContext';
 import { formatCurrency } from '@/utils/format';
 
@@ -33,7 +35,8 @@ export function PaymentModal({ order, onClose, onSave }: PaymentModalProps) {
   const parsedAmount = Math.min(Math.max(Number(amount) || 0, 0), total);
   const balanceDue = Math.max(total - parsedAmount, 0);
 
-  async function handleSave() {
+  async function handleSave(event?: BaseSyntheticEvent) {
+    event?.preventDefault();
     if (!order) return;
     setIsSaving(true);
     try {
@@ -53,13 +56,14 @@ export function PaymentModal({ order, onClose, onSave }: PaymentModalProps) {
       onClose={onClose}
       title="Registrar Pagamento"
       maxWidth="420px"
+      onSubmit={handleSave}
       footer={
         <>
           <Button onClick={onClose} disabled={isSaving} color="inherit">
             Cancelar
           </Button>
-          <Button onClick={handleSave} disabled={isSaving} variant="contained">
-            Salvar
+          <Button type="submit" disabled={isSaving} variant="contained">
+            {isSaving ? 'Salvando...' : 'Salvar'}
           </Button>
         </>
       }
@@ -79,6 +83,7 @@ export function PaymentModal({ order, onClose, onSave }: PaymentModalProps) {
             <StatusChip
               label={PAYMENT_STATUS_LABELS[getOrderPaymentStatus(order)]}
               color={PAYMENT_STATUS_COLOR[getOrderPaymentStatus(order)]}
+              icon={PAYMENT_STATUS_ICON[getOrderPaymentStatus(order)]}
             />
           </Stack>
         </Stack>

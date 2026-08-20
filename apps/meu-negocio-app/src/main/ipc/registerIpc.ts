@@ -2,6 +2,7 @@ import type Database from 'better-sqlite3';
 import { app } from 'electron';
 import { IPC_CHANNELS } from '@shared/ipc/channels';
 import type { AppInfo } from '@shared/types/appInfo';
+import { setAppSetting } from '../db/appSettingsRepository';
 import { getDbPath } from '../db/connection';
 import {
   addOrder,
@@ -21,6 +22,8 @@ import {
 } from '../schemas/orders.schema';
 import { createProductSchema, updateProductSchema } from '../schemas/products.schema';
 import { companySettingsSchema } from '../schemas/settings.schema';
+import { themeModeSchema } from '../schemas/theme.schema';
+import { THEME_MODE_KEY, applyThemeMode, getThemeMode } from '../theme/themeMode';
 import { parseId } from '../utils/parseId';
 import { parseOrThrow } from '../utils/validate';
 import { registerBackupHandlers } from './backupHandlers';
@@ -62,4 +65,12 @@ export function registerIpcHandlers(db: Database.Database): void {
     version: app.getVersion(),
     dbPath: getDbPath(),
   }));
+
+  handle(IPC_CHANNELS.themeGet, () => getThemeMode());
+  handle(IPC_CHANNELS.themeSet, (_event, mode: unknown) => {
+    const value = parseOrThrow(themeModeSchema, mode);
+    setAppSetting(db, THEME_MODE_KEY, value);
+    applyThemeMode(value);
+    return value;
+  });
 }

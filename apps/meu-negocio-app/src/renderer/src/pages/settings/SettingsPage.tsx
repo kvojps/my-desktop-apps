@@ -22,7 +22,7 @@ export function SettingsPage() {
   } = useDataTransfer();
 
   return (
-    <Stack spacing={2}>
+    <Stack spacing={3}>
       <PageHeader
         icon={<SettingsOutlined />}
         title="Configurações"
@@ -44,7 +44,7 @@ export function SettingsPage() {
           <Stack direction="row" spacing={1.5}>
             <Button
               variant="contained"
-              startIcon={<Download sx={{ fontSize: 16 }} />}
+              startIcon={<Download />}
               onClick={handleExport}
               disabled={exporting}
             >
@@ -53,7 +53,7 @@ export function SettingsPage() {
 
             <Button
               variant="outlined"
-              startIcon={<Upload sx={{ fontSize: 16 }} />}
+              startIcon={<Upload />}
               onClick={requestImport}
               disabled={importing}
             >
@@ -71,6 +71,8 @@ export function SettingsPage() {
         onConfirm={confirmImport}
         onClose={cancelImport}
         confirmLabel="Importar"
+        loadingLabel="Importando..."
+        loading={importing}
         message={
           <>
             Importar um arquivo de backup substituirá todos os produtos e pedidos atuais. Essa ação

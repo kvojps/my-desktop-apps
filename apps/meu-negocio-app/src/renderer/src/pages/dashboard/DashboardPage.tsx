@@ -1,19 +1,11 @@
-import { ChevronRight, DashboardOutlined } from '@mui/icons-material';
 import {
-  Box,
-  Button,
-  Card,
-  CardContent,
-  Skeleton,
-  Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Typography,
-} from '@mui/material';
+  ChevronRight,
+  DashboardOutlined,
+  Inventory2Outlined,
+  ReceiptLongOutlined,
+  SellOutlined,
+} from '@mui/icons-material';
+import { Box, Button, Card, CardContent, Skeleton, Stack, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { useMemo } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
@@ -34,9 +26,15 @@ import {
   getOrderTotal,
 } from '@shared/types/order';
 import type { Order, OrderStatus } from '@shared/types/order';
+import type { Product } from '@shared/types/product';
+import { DataTable } from '@/components/DataTable';
+import type { Column } from '@/components/DataTable';
+import { EmptyState } from '@/components/EmptyState';
+import { ErrorState } from '@/components/ErrorState';
 import { PageHeader } from '@/components/PageHeader';
 import { useOrders } from '@/hooks/orders/useOrders';
 import { useProducts } from '@/hooks/products/useProducts';
+import { contentQuery } from '@/theme';
 import {
   enumerateMonthKeys,
   formatDate,
@@ -50,6 +48,7 @@ import { ROUTES } from '../../routes';
 import { AccountsReceivable } from './components/AccountsReceivable';
 import { DashboardCards } from './components/DashboardCards';
 import { MonthRangeFilter } from './components/MonthRangeFilter';
+import { CHART_HEIGHT, axisTick, tooltipProps } from './chartTheme';
 
 function formatShortMonth(monthKey: string, withYear: boolean): string {
   const date = monthKeyToDate(monthKey);
@@ -129,7 +128,6 @@ function sumProfit(orders: Order[]): number {
   return orders.reduce((s, o) => s + getOrderProfit(o), 0);
 }
 
-const HORIZONTAL_CHART_HEIGHT = 220;
 const MAX_TOP_PRODUCTS = 5;
 const TICK_LEFT_PADDING = 4;
 const TICK_BAR_GAP = 8;
@@ -148,6 +146,34 @@ function getYAxisWidth(labels: string[]): number {
   const maxTextWidth = Math.max(...labels.map(measureTextWidth));
   return Math.ceil(TICK_LEFT_PADDING + maxTextWidth + TICK_BAR_GAP);
 }
+
+const lowStockColumns: Column<Product>[] = [
+  { key: 'name', label: 'Produto', render: (p) => p.name },
+  {
+    key: 'stock',
+    label: 'Estoque',
+    align: 'right',
+    // Só a condição que pede atenção é pintada; toda linha desta tabela está
+    // abaixo do mínimo, e é o saldo atual que se compara com ele (§1.5).
+    render: (p) => (
+      <Box component="span" sx={{ color: 'error.main', fontWeight: 600 }}>
+        {p.stock}
+      </Box>
+    ),
+  },
+  { key: 'minStock', label: 'Mínimo', align: 'right', render: (p) => p.minStock },
+];
+
+const recentSalesColumns: Column<Order>[] = [
+  { key: 'customerName', label: 'Cliente', render: (o) => o.customerName },
+  {
+    key: 'total',
+    label: 'Valor',
+    align: 'right',
+    render: (o) => formatCurrency(getOrderTotal(o)),
+  },
+  { key: 'createdAt', label: 'Data', render: (o) => formatDate(o.createdAt) },
+];
 
 /**
  * As seções do dashboard eram becos sem saída: mostravam um recorte e não
@@ -182,14 +208,22 @@ function ChartLegend({ items }: { items: { label: string; color: string }[] }) {
   );
 }
 
+/**
+ * O esqueleto da seção reserva a forma do que vem: um retângulo da altura exata
+ * do gráfico onde há gráfico, e nada onde há tabela — ali quem desenha a espera
+ * é o próprio `DataTable`, com linhas do tamanho das linhas reais (§5.3).
+ */
 function SectionCard({
   title,
   isLoading,
+  chart,
   action,
   children,
 }: {
   title: string;
   isLoading?: boolean;
+  /** A seção é um gráfico: o esqueleto é o retângulo da altura dele. */
+  chart?: boolean;
   /** Saída para a tela que lista o assunto por inteiro. */
   action?: React.ReactNode;
   children: React.ReactNode;
@@ -207,7 +241,7 @@ function SectionCard({
           <Typography variant="h6">{title}</Typography>
           {!isLoading && action}
         </Stack>
-        {isLoading ? <Skeleton variant="rounded" height={HORIZONTAL_CHART_HEIGHT} /> : children}
+        {isLoading && chart ? <Skeleton variant="rounded" height={CHART_HEIGHT} /> : children}
       </CardContent>
     </Card>
   );
@@ -227,16 +261,31 @@ function renderLeftAlignedTick(
 
 export function DashboardPage() {
   const theme = useTheme();
-  const { products, isLoading: productsLoading } = useProducts();
+  const {
+    products,
+    isLoading: productsLoading,
+    error: productsError,
+    retry: retryProducts,
+  } = useProducts();
   const {
     orders: allOrders,
     filtered: orders,
     filters,
     isLoading: ordersLoading,
+    error: ordersError,
+    retry: retryOrders,
     setFilters,
   } = useOrders();
 
   const isLoading = productsLoading || ordersLoading;
+  // A tela inteira é uma leitura só do banco: se qualquer um dos dois domínios
+  // não carregou, não há dashboard a mostrar — não faz sentido desenhar meio
+  // resumo do período e chamá-lo de resumo.
+  const error = productsError ?? ordersError;
+  const retry = () => {
+    retryProducts();
+    retryOrders();
+  };
 
   const period = useMemo(
     () => resolvePeriod(allOrders, filters.dateFrom, filters.dateTo),
@@ -373,15 +422,27 @@ export function DashboardPage() {
     [completedOrders],
   );
 
+  // Carregando → erro → vazio. Sem o ramo de erro, um banco que não abre
+  // desenhava seis cards zerados e gráficos vazios, dizendo ao usuário que ele
+  // não vendeu nada quando o que houve foi uma falha (§5.3).
+  if (error && !isLoading) {
+    return (
+      <ErrorState title="Não foi possível carregar o dashboard" error={error} onRetry={retry} />
+    );
+  }
+
   return (
-    <Stack spacing={2}>
+    <Stack spacing={3}>
+      {/* O recorte de período governa a tela inteira, então mora nas `actions`
+          do cabeçalho e não numa faixa própria: uma faixa acrescentaria uma
+          superfície que não delimita nada e um segundo lugar onde procurar por
+          controle de página (§4). */}
       <PageHeader
         icon={<DashboardOutlined />}
         title="Dashboard"
         subtitle="Visão geral do seu negócio"
+        actions={<MonthRangeFilter orders={allOrders} filters={filters} onChange={setFilters} />}
       />
-
-      <MonthRangeFilter orders={allOrders} filters={filters} onChange={setFilters} />
 
       <DashboardCards
         isLoading={isLoading}
@@ -401,6 +462,7 @@ export function DashboardPage() {
       <SectionCard
         title={`Faturamento e Lucro por Mês · ${period.label}`}
         isLoading={isLoading}
+        chart
         action={
           <ChartLegend
             items={[
@@ -410,7 +472,7 @@ export function DashboardPage() {
           />
         }
       >
-        <ResponsiveContainer width="100%" height={220}>
+        <ResponsiveContainer width="100%" height={CHART_HEIGHT}>
           <BarChart
             data={monthlyRevenue}
             margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
@@ -433,13 +495,13 @@ export function DashboardPage() {
             <XAxis
               dataKey="monthLabel"
               interval="preserveStartEnd"
-              tick={{ fill: theme.palette.text.secondary, fontSize: 12 }}
+              tick={axisTick(theme)}
               axisLine={{ stroke: theme.palette.divider }}
               tickLine={false}
             />
             <YAxis
               tickFormatter={formatCurrencyCompact}
-              tick={{ fill: theme.palette.text.secondary, fontSize: 12 }}
+              tick={axisTick(theme)}
               axisLine={false}
               tickLine={false}
               width={64}
@@ -449,14 +511,7 @@ export function DashboardPage() {
                 formatCurrency(Number(value)),
                 name === 'total' ? 'Faturamento' : 'Lucro',
               ]}
-              contentStyle={{
-                background: theme.palette.background.paper,
-                border: `1px solid ${theme.palette.divider}`,
-                borderRadius: 8,
-              }}
-              labelStyle={{ color: theme.palette.text.primary }}
-              itemStyle={{ color: theme.palette.text.primary }}
-              cursor={{ fill: theme.palette.action.hover }}
+              {...tooltipProps(theme)}
             />
             <Bar dataKey="total" name="total" fill="url(#barRevenue)" radius={[4, 4, 0, 0]} />
             <Bar dataKey="profit" name="profit" fill="url(#barProfit)" radius={[4, 4, 0, 0]} />
@@ -464,24 +519,38 @@ export function DashboardPage() {
         </ResponsiveContainer>
       </SectionCard>
 
+      {/* Duas colunas só quando a *faixa de conteúdo* comporta — o breakpoint
+          `md` do MUI mede a janela, e o rail mais o padding cobram ~128px, de
+          modo que ele dispara quando não há espaço de `md` (§2.2). O limiar é o
+          `wide`: um gráfico de barras horizontais precisa de largura para o
+          eixo de nomes mais a barra, e a metade de 640px não dá isso.
+
+          `minWidth: 0` em cada filho porque o `ResponsiveContainer` mede o pai
+          para se dimensionar: sem o piso, os dois se realimentam e o card
+          engorda a cada quadro (§7). */}
       <Box
         sx={{
           display: 'grid',
           gap: 2,
-          gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+          gridTemplateColumns: '1fr',
+          '& > *': { minWidth: 0 },
+          [contentQuery.wide]: { gridTemplateColumns: '1fr 1fr' },
         }}
       >
         <SectionCard
           title="Produtos Mais Vendidos"
           isLoading={isLoading}
+          chart
           action={<SectionLink to={ROUTES.PRODUCTS}>Ver produtos</SectionLink>}
         >
           {topProducts.length === 0 ? (
-            <Typography variant="body2" color="text.secondary">
-              Nenhuma venda realizada
-            </Typography>
+            <EmptyState
+              icon={<SellOutlined sx={{ fontSize: 40 }} />}
+              title="Nenhuma venda no período."
+              description="A partir da primeira venda concluída, os cinco produtos que mais saíram aparecem aqui."
+            />
           ) : (
-            <ResponsiveContainer width="100%" height={HORIZONTAL_CHART_HEIGHT}>
+            <ResponsiveContainer width="100%" height={CHART_HEIGHT}>
               <BarChart
                 data={topProductsChartData}
                 layout="vertical"
@@ -509,14 +578,7 @@ export function DashboardPage() {
                 />
                 <RechartsTooltip
                   formatter={(value) => [`${Number(value)} un`, 'Quantidade']}
-                  contentStyle={{
-                    background: theme.palette.background.paper,
-                    border: `1px solid ${theme.palette.divider}`,
-                    borderRadius: 8,
-                  }}
-                  labelStyle={{ color: theme.palette.text.primary }}
-                  itemStyle={{ color: theme.palette.text.primary }}
-                  cursor={{ fill: theme.palette.action.hover }}
+                  {...tooltipProps(theme)}
                 />
                 <Bar dataKey="qty" fill="url(#barTopProducts)" radius={[0, 4, 4, 0]} barSize={16} />
               </BarChart>
@@ -527,42 +589,44 @@ export function DashboardPage() {
         <SectionCard
           title="Pedidos por Status"
           isLoading={isLoading}
+          chart
           action={<SectionLink to={ROUTES.ORDERS}>Ver pedidos</SectionLink>}
         >
-          <ResponsiveContainer width="100%" height={HORIZONTAL_CHART_HEIGHT}>
-            <BarChart
-              data={orderStatusData}
-              layout="vertical"
-              margin={{ top: 0, right: 24, left: 0, bottom: 0 }}
-              barCategoryGap="30%"
-            >
-              <XAxis type="number" hide allowDecimals={false} domain={[0, 'dataMax']} />
-              <YAxis
-                type="category"
-                dataKey="label"
-                width={statusYAxisWidth}
-                tick={(props) => renderLeftAlignedTick(props, theme.palette.text.secondary)}
-                axisLine={false}
-                tickLine={false}
-              />
-              <RechartsTooltip
-                formatter={(value) => [Number(value), 'Pedidos']}
-                contentStyle={{
-                  background: theme.palette.background.paper,
-                  border: `1px solid ${theme.palette.divider}`,
-                  borderRadius: 8,
-                }}
-                labelStyle={{ color: theme.palette.text.primary }}
-                itemStyle={{ color: theme.palette.text.primary }}
-                cursor={{ fill: theme.palette.action.hover }}
-              />
-              <Bar dataKey="count" radius={[0, 4, 4, 0]} barSize={16}>
-                {orderStatusData.map((d) => (
-                  <Cell key={d.status} fill={theme.palette[d.color].main} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
+          {orders.length === 0 ? (
+            <EmptyState
+              icon={<ReceiptLongOutlined sx={{ fontSize: 40 }} />}
+              title="Nenhum pedido no período."
+              description="A distribuição entre pendente, em andamento, concluído e cancelado aparece aqui assim que houver pedidos."
+            />
+          ) : (
+            <ResponsiveContainer width="100%" height={CHART_HEIGHT}>
+              <BarChart
+                data={orderStatusData}
+                layout="vertical"
+                margin={{ top: 0, right: 24, left: 0, bottom: 0 }}
+                barCategoryGap="30%"
+              >
+                <XAxis type="number" hide allowDecimals={false} domain={[0, 'dataMax']} />
+                <YAxis
+                  type="category"
+                  dataKey="label"
+                  width={statusYAxisWidth}
+                  tick={(props) => renderLeftAlignedTick(props, theme.palette.text.secondary)}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <RechartsTooltip
+                  formatter={(value) => [Number(value), 'Pedidos']}
+                  {...tooltipProps(theme)}
+                />
+                <Bar dataKey="count" radius={[0, 4, 4, 0]} barSize={16}>
+                  {orderStatusData.map((d) => (
+                    <Cell key={d.status} fill={theme.palette[d.color].main} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          )}
         </SectionCard>
       </Box>
 
@@ -570,7 +634,9 @@ export function DashboardPage() {
         sx={{
           display: 'grid',
           gap: 2,
-          gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+          gridTemplateColumns: '1fr',
+          '& > *': { minWidth: 0 },
+          [contentQuery.wide]: { gridTemplateColumns: '1fr 1fr' },
         }}
       >
         <SectionCard
@@ -578,32 +644,23 @@ export function DashboardPage() {
           isLoading={isLoading}
           action={<SectionLink to={ROUTES.PRODUCTS}>Ver produtos</SectionLink>}
         >
-          {lowStockProducts.length === 0 ? (
-            <Typography variant="body2" color="text.secondary">
-              Nenhum produto com estoque baixo
-            </Typography>
-          ) : (
-            <TableContainer>
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Produto</TableCell>
-                    <TableCell>Estoque</TableCell>
-                    <TableCell>Mínimo</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {lowStockProducts.map((p) => (
-                    <TableRow key={p.id}>
-                      <TableCell>{p.name}</TableCell>
-                      <TableCell sx={{ color: 'error.main', fontWeight: 600 }}>{p.stock}</TableCell>
-                      <TableCell>{p.minStock}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          )}
+          <DataTable
+            flush
+            columns={lowStockColumns}
+            items={lowStockProducts}
+            totalCount={lowStockCount}
+            start={0}
+            getRowKey={(p) => p.id}
+            footerLabel="produtos abaixo do mínimo"
+            isLoading={isLoading}
+            empty={
+              <EmptyState
+                icon={<Inventory2Outlined sx={{ fontSize: 40 }} />}
+                title="Nenhum produto com estoque baixo."
+                description="Todo item do catálogo está acima do estoque mínimo que você definiu."
+              />
+            }
+          />
         </SectionCard>
 
         <SectionCard
@@ -611,32 +668,23 @@ export function DashboardPage() {
           isLoading={isLoading}
           action={<SectionLink to={ROUTES.SALES}>Ver vendas</SectionLink>}
         >
-          {recentSales.length === 0 ? (
-            <Typography variant="body2" color="text.secondary">
-              Nenhuma venda realizada
-            </Typography>
-          ) : (
-            <TableContainer>
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Cliente</TableCell>
-                    <TableCell>Valor</TableCell>
-                    <TableCell>Data</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {recentSales.map((o) => (
-                    <TableRow key={o.id}>
-                      <TableCell>{o.customerName}</TableCell>
-                      <TableCell>{formatCurrency(getOrderTotal(o))}</TableCell>
-                      <TableCell>{formatDate(o.createdAt)}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          )}
+          <DataTable
+            flush
+            columns={recentSalesColumns}
+            items={recentSales}
+            totalCount={completedOrders.length}
+            start={0}
+            getRowKey={(o) => o.id}
+            footerLabel="vendas no período"
+            isLoading={isLoading}
+            empty={
+              <EmptyState
+                icon={<SellOutlined sx={{ fontSize: 40 }} />}
+                title="Nenhuma venda no período."
+                description="As vendas mais recentes aparecem aqui assim que um pedido for concluído."
+              />
+            }
+          />
         </SectionCard>
       </Box>
 

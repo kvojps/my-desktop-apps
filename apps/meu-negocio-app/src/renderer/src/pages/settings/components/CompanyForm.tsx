@@ -1,4 +1,5 @@
 import { Box, Button, Card, CardContent, Stack, TextField, Typography } from '@mui/material';
+import { ErrorState } from '@/components/ErrorState';
 import type { UseSettingsReturn } from '@/hooks/settings/useSettings';
 
 interface CompanyFormProps {
@@ -6,11 +7,29 @@ interface CompanyFormProps {
 }
 
 export function CompanyForm({ formState }: CompanyFormProps) {
-  const { form, isLoading, isSaving, onSubmit } = formState;
+  const { form, isLoading, isSaving, error, retry, onSubmit } = formState;
   const {
     register,
     formState: { errors, isDirty },
   } = form;
+
+  // Erro por seção, e não de página: o perfil da empresa e as informações do
+  // app têm origens independentes, e uma falha aqui não impede o backup nem o
+  // caminho do banco de serem lidos (§5.3).
+  if (error) {
+    return (
+      <Card variant="outlined">
+        <CardContent>
+          <ErrorState
+            dense
+            title="Não foi possível carregar os dados da empresa"
+            error={error}
+            onRetry={retry}
+          />
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card variant="outlined">
@@ -75,7 +94,7 @@ export function CompanyForm({ formState }: CompanyFormProps) {
                 variant="contained"
                 disabled={isLoading || isSaving || !isDirty}
               >
-                {isSaving ? 'Salvando…' : 'Salvar'}
+                {isSaving ? 'Salvando...' : 'Salvar'}
               </Button>
             </Stack>
           </Stack>

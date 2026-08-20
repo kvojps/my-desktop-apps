@@ -1,148 +1,203 @@
 import {
-  Brightness4,
-  Brightness7,
+  DarkModeOutlined,
   DashboardOutlined,
   Inventory2Outlined,
-  Menu as MenuIcon,
+  LightModeOutlined,
   ReceiptLongOutlined,
   SellOutlined,
   SettingsOutlined,
 } from '@mui/icons-material';
-import {
-  AppBar,
-  Box,
-  Button,
-  Drawer,
-  IconButton,
-  List,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
-  Toolbar,
-  Typography,
-  useMediaQuery,
-  useTheme,
-} from '@mui/material';
-import { ReactNode, useState } from 'react';
+import { Box, ButtonBase, IconButton, Tooltip } from '@mui/material';
+import { alpha } from '@mui/material/styles';
+import { ReactNode } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import logo from '@/assets/logo-128x128.png';
 import { useThemeMode } from '@/hooks/useThemeMode';
+import { CONTROL_RADIUS } from '@/theme';
 import { ROUTES } from '../../routes';
 
 interface LayoutProps {
   children: ReactNode;
 }
 
-const NAV_ITEMS = [
+/** Tamanho único de ícone do rail: sem rótulo, o ícone carrega o item sozinho. */
+const ICON_SIZE = 22;
+
+interface NavItem {
+  label: string;
+  path: string;
+  icon: ReactNode;
+}
+
+const NAV_ITEMS: NavItem[] = [
   {
     label: 'Dashboard',
     path: ROUTES.DASHBOARD,
-    icon: <DashboardOutlined sx={{ fontSize: 18 }} />,
+    icon: <DashboardOutlined sx={{ fontSize: ICON_SIZE }} />,
   },
-  { label: 'Produtos', path: ROUTES.PRODUCTS, icon: <Inventory2Outlined sx={{ fontSize: 18 }} /> },
-  { label: 'Pedidos', path: ROUTES.ORDERS, icon: <ReceiptLongOutlined sx={{ fontSize: 18 }} /> },
-  { label: 'Vendas', path: ROUTES.SALES, icon: <SellOutlined sx={{ fontSize: 18 }} /> },
+  {
+    label: 'Produtos',
+    path: ROUTES.PRODUCTS,
+    icon: <Inventory2Outlined sx={{ fontSize: ICON_SIZE }} />,
+  },
+  {
+    label: 'Pedidos',
+    path: ROUTES.ORDERS,
+    icon: <ReceiptLongOutlined sx={{ fontSize: ICON_SIZE }} />,
+  },
+  { label: 'Vendas', path: ROUTES.SALES, icon: <SellOutlined sx={{ fontSize: ICON_SIZE }} /> },
   {
     label: 'Configurações',
     path: ROUTES.SETTINGS,
-    icon: <SettingsOutlined sx={{ fontSize: 18 }} />,
+    icon: <SettingsOutlined sx={{ fontSize: ICON_SIZE }} />,
   },
 ];
 
+const RAIL_WIDTH = 64;
+/** Alvo de clique dos itens e do toggle: quadrado, para o rail ter um só ritmo. */
+const TILE_SIZE = 44;
+
+/**
+ * Rail de navegação fixo à esquerda, no lugar de uma barra superior. Num app
+ * desktop a altura é o recurso escasso — a barra custava ~64px de conteúdo em
+ * toda tela, enquanto o rail cobra largura, que sobra (a janela tem mínimo de
+ * 960px). O rail também não rola junto com a página: só o conteúdo rola, para a
+ * navegação permanecer sempre alcançável.
+ *
+ * É só de ícones, sem rótulo visível e sem colapsar/expandir: o nome de cada
+ * item vive no `Tooltip` e no `aria-label`. Rótulo de rail é a tentação óbvia e
+ * é uma armadilha — para caber, ele desce para 10px, abaixo dos 12px do
+ * `caption` em que os limiares de contraste foram medidos.
+ *
+ * Com o rail, o app deixa de ter layout de janela estreita: não há mais
+ * hambúrguer nem `Drawer`, e nenhum `useMediaQuery`. O que ainda precisa se
+ * adaptar mede a faixa de conteúdo, por container query.
+ */
 export function Layout({ children }: LayoutProps) {
   const navigate = useNavigate();
   const location = useLocation();
-  const theme = useTheme();
   const { mode, toggleMode } = useThemeMode();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const [drawerOpen, setDrawerOpen] = useState(false);
-
-  function go(path: string) {
-    navigate(path);
-    setDrawerOpen(false);
-  }
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-      <AppBar position="sticky" color="default" sx={{ bgcolor: 'background.paper' }}>
-        <Toolbar sx={{ gap: 1 }}>
+    <Box sx={{ display: 'flex', height: '100vh' }}>
+      <Box
+        component="nav"
+        aria-label="Navegação principal"
+        sx={{
+          width: RAIL_WIDTH,
+          flexShrink: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: 1,
+          py: 2,
+          bgcolor: 'background.paper',
+          borderRight: '1px solid',
+          borderColor: 'divider',
+        }}
+      >
+        <Tooltip title="Meu Negócio" placement="right">
           <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 1,
-              cursor: 'pointer',
-              mr: isMobile ? 'auto' : 4,
-            }}
-            onClick={() => go(ROUTES.DASHBOARD)}
-          >
-            <Box
-              component="img"
-              src={logo}
-              alt=""
-              width={24}
-              height={24}
-              sx={{ borderRadius: '3px' }}
-            />
-            <Typography variant="h6" sx={{ fontWeight: 700 }}>
-              Meu Negócio
-            </Typography>
-          </Box>
+            component="img"
+            src={logo}
+            alt="Meu Negócio"
+            onClick={() => navigate(ROUTES.DASHBOARD)}
+            sx={{ width: 32, height: 32, borderRadius: 1, cursor: 'pointer', mb: 2 }}
+          />
+        </Tooltip>
 
-          {isMobile ? (
-            <IconButton onClick={() => setDrawerOpen(true)} aria-label="Abrir menu">
-              <MenuIcon />
-            </IconButton>
-          ) : (
-            <Box sx={{ display: 'flex', gap: 0.5, flex: 1 }}>
-              {NAV_ITEMS.map((item) => {
-                const active = location.pathname === item.path;
-                return (
-                  <Button
-                    key={item.path}
-                    onClick={() => go(item.path)}
-                    startIcon={item.icon}
-                    color={active ? 'primary' : 'inherit'}
-                    sx={{
-                      fontWeight: active ? 700 : 500,
-                      bgcolor: active ? 'action.selected' : 'transparent',
-                    }}
-                  >
-                    {item.label}
-                  </Button>
-                );
-              })}
-            </Box>
-          )}
-
-          <IconButton onClick={toggleMode} aria-label="Alternar tema" color="inherit">
-            {mode === 'dark' ? <Brightness7 fontSize="small" /> : <Brightness4 fontSize="small" />}
-          </IconButton>
-        </Toolbar>
-      </AppBar>
-
-      <Drawer anchor="left" open={drawerOpen} onClose={() => setDrawerOpen(false)}>
-        <Box sx={{ width: 240 }} role="presentation">
-          <List>
-            {NAV_ITEMS.map((item) => (
-              <ListItemButton
-                key={item.path}
-                selected={location.pathname === item.path}
-                onClick={() => go(item.path)}
+        {NAV_ITEMS.map((item) => {
+          const active = location.pathname === item.path;
+          return (
+            <Tooltip key={item.path} title={item.label} placement="right">
+              <ButtonBase
+                onClick={() => navigate(item.path)}
+                aria-label={item.label}
+                aria-current={active ? 'page' : undefined}
+                sx={{
+                  position: 'relative',
+                  width: TILE_SIZE,
+                  height: TILE_SIZE,
+                  borderRadius: `${CONTROL_RADIUS}px`,
+                  color: active ? 'primary.main' : 'text.secondary',
+                  bgcolor: (theme) =>
+                    active
+                      ? alpha(
+                          theme.palette.primary.main,
+                          theme.palette.mode === 'light' ? 0.12 : 0.22,
+                        )
+                      : 'transparent',
+                  transition: (theme) =>
+                    theme.transitions.create(['background-color', 'color'], {
+                      duration: theme.transitions.duration.shortest,
+                    }),
+                  '&:hover': {
+                    bgcolor: active ? undefined : 'action.hover',
+                    color: active ? undefined : 'text.primary',
+                  },
+                  // O item ativo precisa dos dois canais: sem o rótulo em
+                  // negrito da barra antiga, a cor seria o único sinal, e cor
+                  // sozinha não basta. Esta barra encosta na borda esquerda do
+                  // rail e sobrevive a daltonismo e a alto contraste.
+                  ...(active && {
+                    '&::before': {
+                      content: '""',
+                      position: 'absolute',
+                      left: (RAIL_WIDTH - TILE_SIZE) / -2,
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      width: 3,
+                      height: 20,
+                      borderRadius: '0 3px 3px 0',
+                      bgcolor: 'primary.main',
+                    },
+                  }),
+                }}
               >
-                <ListItemIcon>{item.icon}</ListItemIcon>
-                <ListItemText primary={item.label} />
-              </ListItemButton>
-            ))}
-          </List>
-        </Box>
-      </Drawer>
+                {item.icon}
+              </ButtonBase>
+            </Tooltip>
+          );
+        })}
 
-      {/* Em monitores largos o grid de cards viraria uma fileira de oito e as
-          tabelas esticariam até a leitura de cada linha exigir varrer a tela.
-          O conteúdo para de crescer e passa a centralizar. */}
-      <Box component="main" sx={{ flex: 1, width: '100%', maxWidth: 1440, mx: 'auto', p: 3 }}>
-        {children}
+        <Tooltip title="Alternar tema" placement="right">
+          <IconButton
+            onClick={toggleMode}
+            aria-label="Alternar tema"
+            sx={{ mt: 'auto', width: TILE_SIZE, height: TILE_SIZE }}
+          >
+            {mode === 'dark' ? (
+              <LightModeOutlined sx={{ fontSize: ICON_SIZE }} />
+            ) : (
+              <DarkModeOutlined sx={{ fontSize: ICON_SIZE }} />
+            )}
+          </IconButton>
+        </Tooltip>
+      </Box>
+
+      {/* Só o conteúdo rola, para o rail permanecer sempre alcançável. */}
+      <Box component="main" sx={{ flex: 1, minWidth: 0, overflowY: 'auto' }}>
+        {/* Em monitor largo o conteúdo para de crescer e centraliza: sem teto, o
+            grid vira uma fileira de oito cards e ler uma linha da tabela exige
+            varrer a tela.
+
+            Os breakpoints do MUI medem a *janela*, mas o conteúdo mora numa
+            faixa mais estreita: o rail, o padding e a barra de rolagem custam
+            ~128px. Na largura mínima (960) sobram ~832px — ou seja, `md` (900)
+            dispara quando não há espaço de `md`. Este container nomeado deixa os
+            componentes consultarem a largura que realmente têm, via
+            `@container content (min-width: …)`. */}
+        <Box
+          sx={{
+            maxWidth: 1440,
+            mx: 'auto',
+            p: 3,
+            containerType: 'inline-size',
+            containerName: 'content',
+          }}
+        >
+          {children}
+        </Box>
       </Box>
     </Box>
   );

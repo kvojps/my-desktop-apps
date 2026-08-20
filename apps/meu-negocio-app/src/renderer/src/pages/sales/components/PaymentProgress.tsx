@@ -8,6 +8,7 @@ import {
   getOrderTotal,
 } from '@shared/types/order';
 import { StatusChip } from '@/components/StatusChip';
+import { PAYMENT_STATUS_ICON } from '@/components/StatusChip/statusIcons';
 import { formatCurrency } from '@/utils/format';
 
 const BAR_WIDTH = 110;
@@ -24,10 +25,23 @@ export function PaymentProgress({ order }: { order: Order }) {
   const paidPct = total > 0 ? Math.min(100, (order.amountPaid / total) * 100) : 0;
 
   return (
+    // A coluna é alinhada à direita, e o medidor vai por último, depois do
+    // rótulo e do valor que falta: assim ele encosta na borda e todas as barras
+    // da coluna começam no mesmo ponto (§2.1).
+    //
     // alignItems evita que o Stack em coluna estique o chip até a largura da
     // barra — um chip de largura total deixa de parecer um chip.
-    <Stack spacing={0.5} alignItems="flex-start" sx={{ minWidth: BAR_WIDTH }}>
-      <StatusChip label={PAYMENT_STATUS_LABELS[status]} color={PAYMENT_STATUS_COLOR[status]} />
+    <Stack spacing={0.5} alignItems="flex-end" sx={{ minWidth: BAR_WIDTH }}>
+      <StatusChip
+        label={PAYMENT_STATUS_LABELS[status]}
+        color={PAYMENT_STATUS_COLOR[status]}
+        icon={PAYMENT_STATUS_ICON[status]}
+      />
+      {balanceDue > 0 && (
+        <Typography variant="caption" color="text.secondary">
+          faltam {formatCurrency(balanceDue)}
+        </Typography>
+      )}
       <LinearProgress
         variant="determinate"
         value={paidPct}
@@ -35,11 +49,6 @@ export function PaymentProgress({ order }: { order: Order }) {
         aria-label={`${Math.round(paidPct)}% pago`}
         sx={{ width: BAR_WIDTH, height: 4, borderRadius: 2 }}
       />
-      {balanceDue > 0 && (
-        <Typography variant="caption" color="text.secondary">
-          faltam {formatCurrency(balanceDue)}
-        </Typography>
-      )}
     </Stack>
   );
 }

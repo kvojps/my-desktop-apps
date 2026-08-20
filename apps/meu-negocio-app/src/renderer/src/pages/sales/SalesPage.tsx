@@ -1,4 +1,4 @@
-import { SellOutlined } from '@mui/icons-material';
+import { FilterAltOutlined, SellOutlined } from '@mui/icons-material';
 import { Button, Stack, Typography } from '@mui/material';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -8,6 +8,8 @@ import { ActionsMenu } from '@/components/ActionsMenu';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { DataTable } from '@/components/DataTable';
 import type { Column } from '@/components/DataTable';
+import { EmptyState } from '@/components/EmptyState';
+import { ErrorState } from '@/components/ErrorState';
 import { PageHeader } from '@/components/PageHeader';
 import { useOrderConfirm } from '@/hooks/orders/useOrderConfirm';
 import type { OrderSortKey } from '@/hooks/orders/useOrders';
@@ -31,6 +33,8 @@ export function SalesPage() {
     filters,
     sort,
     isLoading,
+    error,
+    retry,
     setFilters,
     toggleSort,
     setOrderStatus,
@@ -63,18 +67,21 @@ export function SalesPage() {
         key: 'items',
         label: 'Itens',
         sortable: false,
+        align: 'right',
         render: (o: Order) => o.items.length,
       },
       {
         key: 'total',
         label: 'Total',
         sortable: true,
+        align: 'right',
         render: (o: Order) => formatCurrency(getOrderTotal(o)),
       },
       {
         key: 'profit',
         label: 'Lucro',
         sortable: false,
+        align: 'right',
         render: (o: Order) => {
           const profit = getOrderProfit(o);
           const total = getOrderTotal(o);
@@ -88,7 +95,7 @@ export function SalesPage() {
                 {formatCurrency(profit)}
               </Typography>
               {total > 0 && (
-                <Typography variant="caption" color="text.disabled">
+                <Typography variant="caption" color="text.secondary">
                   {formatPercent((profit / total) * 100)} de margem
                 </Typography>
               )}
@@ -100,6 +107,7 @@ export function SalesPage() {
         key: 'paymentStatus',
         label: 'Pagamento',
         sortable: false,
+        align: 'right',
         render: (o: Order) => <PaymentProgress order={o} />,
       },
       {
@@ -112,17 +120,26 @@ export function SalesPage() {
     [],
   );
 
+  // Carregando → erro → vazio, nessa ordem. Sem o ramo de erro, um banco que não
+  // abre desenhava cinco cards zerados e "Nenhuma venda concluída ainda" — o app
+  // dizendo ao usuário que ele não tem vendas quando o que houve foi uma falha.
+  if (error && !isLoading) {
+    return <ErrorState title="Não foi possível carregar as vendas" error={error} onRetry={retry} />;
+  }
+
   return (
-    <Stack spacing={2}>
+    <Stack spacing={3}>
       <PageHeader
         icon={<SellOutlined />}
         title="Vendas"
         subtitle="Indicadores e histórico de pedidos concluídos"
       />
 
-      <OrderFilters filters={filters} onChange={setFilters} hideStatusFilter showPaymentFilter>
-        <MonthRangeFilter orders={orders} filters={filters} onChange={setFilters} embedded />
-      </OrderFilters>
+      {hasAnySale && (
+        <OrderFilters filters={filters} onChange={setFilters} hideStatusFilter showPaymentFilter>
+          <MonthRangeFilter orders={orders} filters={filters} onChange={setFilters} />
+        </OrderFilters>
+      )}
 
       <SalesCards completedOrders={completedOrders} isLoading={isLoading} />
 
@@ -135,6 +152,8 @@ export function SalesPage() {
         onToggleSort={(key) => toggleSort(key as OrderSortKey)}
         renderActions={(order: Order) => (
           <ActionsMenu
+            ariaLabel={`Ações da venda de ${order.customerName}`}
+            deleteLabel="Excluir venda"
             onView={() => setViewTarget(order)}
             onPayment={() => setPaymentTarget(order)}
             onReopen={() => confirm.setConfirmTarget({ type: 'reopen', order })}
@@ -144,24 +163,32 @@ export function SalesPage() {
         getRowKey={(order) => order.id}
         footerLabel="vendas"
         isLoading={isLoading}
-        emptyIcon={<SellOutlined sx={{ fontSize: 32 }} />}
-        emptyMessage={
-          hasAnySale
-            ? 'Nenhuma venda corresponde aos filtros.'
-            : 'Nenhuma venda concluída ainda. Um pedido vira venda quando você o marca como “Concluído”.'
-        }
-        emptyAction={
+        empty={
           hasAnySale ? (
-            // Só limpa busca e pagamento: o intervalo de meses tem o próprio
-            // botão de limpar dentro do MonthRangeFilter, que guarda a seleção
-            // em estado local e ficaria dessincronizado se zerado por fora.
-            <Button onClick={() => setFilters({ ...filters, search: '', paymentStatus: '' })}>
-              Limpar filtros
-            </Button>
+            <EmptyState
+              icon={<FilterAltOutlined sx={{ fontSize: 40 }} />}
+              title="Nenhuma venda corresponde aos filtros."
+              description="Ajuste a busca, a situação de pagamento ou o período para ver as vendas de novo."
+              action={
+                // Só limpa busca e pagamento: o intervalo de meses tem o próprio
+                // botão de limpar dentro do MonthRangeFilter, que guarda a seleção
+                // em estado local e ficaria dessincronizado se zerado por fora.
+                <Button onClick={() => setFilters({ ...filters, search: '', paymentStatus: '' })}>
+                  Limpar filtros
+                </Button>
+              }
+            />
           ) : (
-            <Button variant="contained" onClick={() => navigate(ROUTES.ORDERS)}>
-              Ir para Pedidos
-            </Button>
+            <EmptyState
+              icon={<SellOutlined sx={{ fontSize: 48 }} />}
+              title="Nenhuma venda concluída ainda."
+              description="Um pedido vira venda quando você o marca como Concluído — é nesse momento que o estoque é baixado e o valor entra no caixa."
+              action={
+                <Button variant="contained" onClick={() => navigate(ROUTES.ORDERS)}>
+                  Ir para Pedidos
+                </Button>
+              }
+            />
           )
         }
         pagination={{ currentPage: page, totalPages, onPageChange: setPage }}
@@ -181,7 +208,7 @@ export function SalesPage() {
 
       {confirm.confirmTarget &&
         (() => {
-          const { title, message, confirmLabel, danger } = confirm.buildProps();
+          const { title, message, confirmLabel, loadingLabel, danger } = confirm.buildProps();
           return (
             <ConfirmDialog
               open
@@ -189,6 +216,8 @@ export function SalesPage() {
               onConfirm={confirm.handleAction}
               onClose={() => confirm.setConfirmTarget(null)}
               confirmLabel={confirmLabel}
+              loadingLabel={loadingLabel}
+              loading={confirm.isPending}
               confirmColor={danger ? 'error' : 'primary'}
               message={message}
             />

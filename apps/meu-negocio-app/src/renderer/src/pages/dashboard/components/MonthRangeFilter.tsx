@@ -1,13 +1,11 @@
 import {
-  Button,
-  Chip,
   FormControl,
   InputLabel,
   MenuItem,
-  Paper,
   Select,
   Stack,
-  Typography,
+  ToggleButton,
+  ToggleButtonGroup,
 } from '@mui/material';
 import { useEffect, useMemo, useState } from 'react';
 import type { Order } from '@shared/types/order';
@@ -17,6 +15,9 @@ interface MonthOption {
   label: string;
   value: string;
 }
+
+/** Os três recortes prontos, na ordem do mais restrito para o mais amplo. */
+type QuickRange = 'last3' | 'thisYear' | 'all';
 
 function monthKey(year: number, month: number): string {
   return `${year}-${String(month).padStart(2, '0')}`;
@@ -43,7 +44,6 @@ interface MonthRangeFilterProps {
   orders: Order[];
   filters: OrderFilterState;
   onChange: (filters: OrderFilterState) => void;
-  embedded?: boolean;
   /**
    * Aplica "Este ano" sozinho na primeira renderização. Faz sentido onde o
    * recorte é analítico (dashboard, vendas), mas não numa lista de trabalho:
@@ -53,11 +53,19 @@ interface MonthRangeFilterProps {
   defaultToThisYear?: boolean;
 }
 
+/**
+ * O recorte de período da tela. Não tem superfície própria: no Dashboard ele
+ * mora nas `actions` do `PageHeader`, e nas outras telas dentro da barra de
+ * filtros — em nenhuma das duas ele é uma seção (§4).
+ *
+ * Os três recortes prontos são um `ToggleButtonGroup` e não `Chip`s: eles são
+ * mutuamente exclusivos, e um grupo de toggle diz isso pela forma, enquanto
+ * três chips clicáveis parecem três ações independentes.
+ */
 export function MonthRangeFilter({
   orders,
   filters,
   onChange,
-  embedded,
   defaultToThisYear = true,
 }: MonthRangeFilterProps) {
   const [fromOverride, setFromOverride] = useState('');
@@ -102,7 +110,16 @@ export function MonthRangeFilter({
   const isLast3Active = !!last3Range && fromValue === last3Range.from && toValue === last3Range.to;
   const isThisYearActive =
     !!thisYearRange && fromValue === thisYearRange.from && toValue === thisYearRange.to;
-  const isAllActive = !isFiltered;
+
+  // Um intervalo escolhido à mão não é nenhum dos três: aí o grupo fica sem
+  // seleção, que é a leitura correta — nenhum atalho descreve o que está no ar.
+  const activeQuick: QuickRange | null = isLast3Active
+    ? 'last3'
+    : isThisYearActive
+      ? 'thisYear'
+      : !isFiltered
+        ? 'all'
+        : null;
 
   function applyRange(from: string, to: string) {
     setFromOverride(from);
@@ -122,18 +139,18 @@ export function MonthRangeFilter({
     applyRange(value < fromValue ? value : fromOverride, value);
   }
 
-  function handleClearRange() {
-    applyRange('', '');
-  }
-
-  function handleQuickLast3() {
-    if (!last3Range) return;
-    applyRange(last3Range.from, last3Range.to);
-  }
-
   function handleQuickThisYear() {
     if (!thisYearRange) return;
     applyRange(thisYearRange.from, thisYearRange.to);
+  }
+
+  function handleQuickChange(next: QuickRange | null) {
+    // `null` é o clique no botão já selecionado. Desmarcar deixaria a tela sem
+    // recorte nenhum sem dizer qual passou a valer, então o clique é ignorado.
+    if (!next) return;
+    if (next === 'all') return applyRange('', '');
+    if (next === 'thisYear') return handleQuickThisYear();
+    if (last3Range) applyRange(last3Range.from, last3Range.to);
   }
 
   useEffect(() => {
@@ -144,14 +161,21 @@ export function MonthRangeFilter({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [monthOptions, defaultYearApplied, defaultToThisYear]);
 
-  const content = (
-    <>
-      {!embedded && (
-        <Typography variant="subtitle1" sx={{ minWidth: 80 }}>
-          Exibir meses:
-        </Typography>
-      )}
-      <FormControl size="small" sx={{ minWidth: 180 }}>
+  return (
+    <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap" useFlexGap>
+      <ToggleButtonGroup
+        exclusive
+        size="small"
+        value={activeQuick}
+        onChange={(_event, next: QuickRange | null) => handleQuickChange(next)}
+        aria-label="Período exibido"
+      >
+        <ToggleButton value="last3">Últimos 3 meses</ToggleButton>
+        <ToggleButton value="thisYear">Este ano</ToggleButton>
+        <ToggleButton value="all">Tudo</ToggleButton>
+      </ToggleButtonGroup>
+
+      <FormControl size="small" sx={{ minWidth: 150 }}>
         <InputLabel>De</InputLabel>
         <Select value={fromValue} label="De" onChange={(e) => handleFromChange(e.target.value)}>
           {monthOptions.map((opt) => (
@@ -161,7 +185,7 @@ export function MonthRangeFilter({
           ))}
         </Select>
       </FormControl>
-      <FormControl size="small" sx={{ minWidth: 180 }}>
+      <FormControl size="small" sx={{ minWidth: 150 }}>
         <InputLabel>Até</InputLabel>
         <Select value={toValue} label="Até" onChange={(e) => handleToChange(e.target.value)}>
           {monthOptions.map((opt) => (
@@ -171,46 +195,6 @@ export function MonthRangeFilter({
           ))}
         </Select>
       </FormControl>
-
-      <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-        <Chip
-          label="Últimos 3 meses"
-          size="small"
-          variant={isLast3Active ? 'filled' : 'outlined'}
-          color={isLast3Active ? 'primary' : 'default'}
-          onClick={handleQuickLast3}
-        />
-        <Chip
-          label="Este ano"
-          size="small"
-          variant={isThisYearActive ? 'filled' : 'outlined'}
-          color={isThisYearActive ? 'primary' : 'default'}
-          onClick={handleQuickThisYear}
-        />
-        <Chip
-          label="Tudo"
-          size="small"
-          variant={isAllActive ? 'filled' : 'outlined'}
-          color={isAllActive ? 'primary' : 'default'}
-          onClick={handleClearRange}
-        />
-      </Stack>
-
-      {isFiltered && (
-        <Button size="small" onClick={handleClearRange} sx={embedded ? undefined : { ml: 'auto' }}>
-          Limpar filtro
-        </Button>
-      )}
-    </>
-  );
-
-  if (embedded) return content;
-
-  return (
-    <Paper variant="outlined" sx={{ p: 2 }}>
-      <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap" useFlexGap>
-        {content}
-      </Stack>
-    </Paper>
+    </Stack>
   );
 }

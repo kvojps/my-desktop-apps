@@ -18,13 +18,17 @@ export function ProductFormModal({ formState }: ProductFormModalProps) {
       open={isOpen}
       onClose={close}
       title={editingId ? 'Editar Produto' : 'Novo Produto'}
+      // Torna o papel do diálogo um `<form>`: é o que faz o Enter submeter, já
+      // que conteúdo e rodapé moram em slots diferentes e o botão não estaria
+      // dentro de formulário nenhum (§5.5).
+      onSubmit={onSubmit}
       footer={
         <>
           <Button onClick={close} disabled={isSaving} color="inherit">
             Cancelar
           </Button>
-          <Button onClick={() => onSubmit()} disabled={isSaving} variant="contained">
-            {isSaving ? 'Salvando…' : editingId ? 'Salvar' : 'Criar'}
+          <Button type="submit" disabled={isSaving} variant="contained">
+            {isSaving ? 'Salvando...' : editingId ? 'Salvar' : 'Criar'}
           </Button>
         </>
       }

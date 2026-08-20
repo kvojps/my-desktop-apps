@@ -1,18 +1,12 @@
-import {
-  Box,
-  Chip,
-  Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Typography,
-} from '@mui/material';
+import { PriceCheckOutlined, Schedule, WarningAmber } from '@mui/icons-material';
+import { Box, Stack, Typography } from '@mui/material';
 import { useMemo } from 'react';
 import type { Order } from '@shared/types/order';
 import { getOrderBalanceDue } from '@shared/types/order';
+import { DataTable } from '@/components/DataTable';
+import type { Column } from '@/components/DataTable';
+import { EmptyState } from '@/components/EmptyState';
+import { StatusChip } from '@/components/StatusChip';
 import { formatCurrency } from '@/utils/format';
 
 interface AccountsReceivableProps {
@@ -37,10 +31,24 @@ const BUCKET_COLOR: Record<AgingBucket, 'default' | 'warning' | 'error'> = {
   '60+': 'error',
 };
 
+/**
+ * O segundo canal da faixa: sem ele, "0–15 dias" e "16–30 dias" — que dividem a
+ * mesma cor neutra — só se distinguem pelo texto, e "31–60" e "60+" só pela
+ * matiz (§1.7).
+ */
+const BUCKET_ICON: Record<AgingBucket, React.ReactElement> = {
+  '0-15': <PriceCheckOutlined sx={{ fontSize: 14 }} />,
+  '16-30': <Schedule sx={{ fontSize: 14 }} />,
+  '31-60': <WarningAmber sx={{ fontSize: 14 }} />,
+  '60+': <WarningAmber sx={{ fontSize: 14 }} />,
+};
+
 const BUCKET_TEXT_COLOR: Record<AgingBucket, string> = {
   '0-15': 'text.primary',
   '16-30': 'text.primary',
-  '31-60': 'warning.main',
+  // Âmbar nunca é texto (§1.4): a faixa de 31–60 dias é um aviso, e o aviso
+  // fica no chip da linha, que é preenchido. Aqui o total segue legível.
+  '31-60': 'text.primary',
   '60+': 'error.main',
 };
 
@@ -63,6 +71,28 @@ const MS_PER_DAY = 86_400_000;
 
 /** As mais atrasadas primeiro; o restante fica a um clique, na tela de Vendas. */
 const MAX_VISIBLE_ROWS = 5;
+
+const columns: Column<Receivable>[] = [
+  { key: 'customerName', label: 'Cliente', render: (r) => r.customerName },
+  {
+    key: 'balanceDue',
+    label: 'Valor',
+    align: 'right',
+    render: (r) => formatCurrency(r.balanceDue),
+  },
+  { key: 'days', label: 'Dias', align: 'right', render: (r) => r.days },
+  {
+    key: 'bucket',
+    label: 'Faixa',
+    render: (r) => (
+      <StatusChip
+        label={BUCKET_LABELS[r.bucket]}
+        color={BUCKET_COLOR[r.bucket]}
+        icon={BUCKET_ICON[r.bucket]}
+      />
+    ),
+  },
+];
 
 export function AccountsReceivable({ orders }: AccountsReceivableProps) {
   const receivables = useMemo(() => {
@@ -92,13 +122,14 @@ export function AccountsReceivable({ orders }: AccountsReceivableProps) {
   // Sem isso o card crescia sem limite — com cinquenta pedidos em aberto ele
   // ocupava três telas e empurrava o resto do dashboard para longe.
   const visibleReceivables = receivables.slice(0, MAX_VISIBLE_ROWS);
-  const hiddenCount = receivables.length - visibleReceivables.length;
 
   if (receivables.length === 0) {
     return (
-      <Typography variant="body2" color="text.secondary">
-        Nenhuma conta a receber
-      </Typography>
+      <EmptyState
+        icon={<PriceCheckOutlined sx={{ fontSize: 40 }} />}
+        title="Nenhuma conta a receber."
+        description="Toda venda concluída está quitada. Um pedido entregue e ainda não pago apareceria aqui, com os dias em aberto."
+      />
     );
   }
 
@@ -117,7 +148,9 @@ export function AccountsReceivable({ orders }: AccountsReceivableProps) {
               variant="subtitle1"
               sx={{
                 fontWeight: 600,
-                color: bucketTotals[bucket] > 0 ? BUCKET_TEXT_COLOR[bucket] : 'text.disabled',
+                // Faixa zerada é valor ausente, não controle desabilitado:
+                // `text.secondary`, que passa em AA nos dois modos (§1.4).
+                color: bucketTotals[bucket] > 0 ? BUCKET_TEXT_COLOR[bucket] : 'text.secondary',
               }}
             >
               {formatCurrency(bucketTotals[bucket])}
@@ -129,41 +162,20 @@ export function AccountsReceivable({ orders }: AccountsReceivableProps) {
         ))}
       </Box>
 
-      <TableContainer>
-        <Table size="small">
-          <TableHead>
-            <TableRow>
-              <TableCell>Cliente</TableCell>
-              <TableCell>Valor</TableCell>
-              <TableCell>Dias</TableCell>
-              <TableCell>Faixa</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {visibleReceivables.map((r) => (
-              <TableRow key={r.orderId}>
-                <TableCell>{r.customerName}</TableCell>
-                <TableCell>{formatCurrency(r.balanceDue)}</TableCell>
-                <TableCell>{r.days}</TableCell>
-                <TableCell>
-                  <Chip
-                    size="small"
-                    label={BUCKET_LABELS[r.bucket]}
-                    color={BUCKET_COLOR[r.bucket]}
-                    variant={BUCKET_COLOR[r.bucket] === 'default' ? 'outlined' : 'filled'}
-                  />
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+      {/* `flush`: a tabela já mora dentro do `Card` da seção, e um `Paper` com
+          borda dentro de outro vira caixa dentro de caixa (§4).
 
-      {hiddenCount > 0 && (
-        <Typography variant="caption" color="text.secondary">
-          e mais {hiddenCount} conta{hiddenCount !== 1 ? 's' : ''} em aberto
-        </Typography>
-      )}
+          O rodapé é o que diz quantas contas ficaram de fora do corte — antes
+          era uma frase solta abaixo da tabela, dizendo a mesma coisa. */}
+      <DataTable
+        flush
+        columns={columns}
+        items={visibleReceivables}
+        totalCount={receivables.length}
+        start={0}
+        getRowKey={(r) => r.orderId}
+        footerLabel="contas em aberto"
+      />
     </Stack>
   );
 }

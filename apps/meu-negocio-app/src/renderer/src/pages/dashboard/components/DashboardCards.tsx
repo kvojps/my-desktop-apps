@@ -1,10 +1,10 @@
 import {
-  PendingActions,
-  Receipt,
-  Savings,
-  ShoppingCart,
-  TrendingUp,
-  WarningAmber,
+  PendingActionsOutlined,
+  ReceiptOutlined,
+  SavingsOutlined,
+  ShoppingCartOutlined,
+  TrendingUpOutlined,
+  WarningAmberOutlined,
 } from '@mui/icons-material';
 import { StatCard, StatCardGrid, StatCardSkeleton } from '@/components/StatCard';
 import type { StatCardProps } from '@/components/StatCard';
@@ -67,7 +67,7 @@ export function DashboardCards({
       label: 'Faturamento',
       value: formatCurrency(totalRevenue),
       sub: `${periodSales} venda${periodSales !== 1 ? 's' : ''} em ${periodLabel}`,
-      icon: TrendingUp,
+      icon: TrendingUpOutlined,
       accent: 'primary',
       trend: trendOf(revenueTrend),
     },
@@ -78,22 +78,26 @@ export function DashboardCards({
         totalRevenue > 0
           ? `${formatPercent((totalProfit / totalRevenue) * 100)} de margem`
           : 'sem vendas',
-      icon: Savings,
+      icon: SavingsOutlined,
       accent: 'success',
+      // Num card há um número, e pintá-lo é informação: lucro negativo é venda
+      // no prejuízo. Numa coluna de doze meses a mesma pintura saturaria a
+      // coluna inteira, e ali só o negativo é pintado (§1.5).
+      tone: totalProfit < 0 ? 'alert' : 'positive',
       trend: trendOf(profitTrend),
     },
     {
       label: 'Vendas',
       value: String(periodSales),
       sub: 'pedidos concluídos',
-      icon: ShoppingCart,
+      icon: ShoppingCartOutlined,
       accent: 'secondary',
     },
     {
       label: 'Ticket Médio',
       value: formatCurrency(avgTicket),
       sub: 'por venda',
-      icon: Receipt,
+      icon: ReceiptOutlined,
       accent: 'info',
       trend: trendOf(avgTicketTrend),
     },
@@ -101,14 +105,14 @@ export function DashboardCards({
       label: 'Pedidos Pendentes',
       value: String(pendingOrders),
       sub: 'aguardando processamento',
-      icon: PendingActions,
+      icon: PendingActionsOutlined,
       accent: 'warning',
     },
     {
       label: 'Estoque Baixo',
       value: String(lowStockCount),
       sub: lowStockCount === 1 ? 'produto abaixo do mínimo' : 'produtos abaixo do mínimo',
-      icon: WarningAmber,
+      icon: WarningAmberOutlined,
       // Vermelho só quando há de fato produto para repor — um zero em alerta
       // treina o usuário a ignorar a cor.
       tone: lowStockCount > 0 ? 'alert' : 'neutral',

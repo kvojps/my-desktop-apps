@@ -90,8 +90,10 @@ derivação declara — e mede antes.
 
 ### 1.4 Duas cores que nunca são texto: âmbar e `text.disabled`
 
-`#fab219` como texto sobre papel claro dá **1.70:1**. Ele existe para preencher:
-chip, ladrilho de ícone, borda. Nunca `color="warning.main"` num `Typography`.
+`#fab219` como texto dá **1.83:1** sobre `background.paper` (`#FFFFFF`) e **1.70:1**
+sobre `background.default` (`#F4F6FB`) — reprova nas duas superfícies do modo claro,
+e a pior é a página. Ele existe para preencher: chip, ladrilho de ícone, borda.
+Nunca `color="warning.main"` num `Typography`.
 
 `text.disabled` tem o mesmo problema por outro caminho: **2.68:1** sobre `#FFFFFF`,
 **2.47:1** sobre `#F4F6FB`. Ele serve para ícone, para preenchimento e para controle
@@ -117,6 +119,20 @@ que a barra de entradas é `success` e a de despesas é `secondary` — não por
 despesa seja "secundária", mas porque é a identidade que o card já estabeleceu, e
 repetir a cor é o que liga as duas leituras. Alarme continua sendo `tone`, e continua
 sendo a exceção.
+
+**Quanto o `tone` pinta depende da repetição, não da direção.** O mesmo valor —
+um saldo, um realizado — pinta as duas condições num `StatCard` e só a negativa
+numa coluna ou numa série:
+
+| Onde o valor está        | O que pinta                                           |
+| ------------------------ | ----------------------------------------------------- |
+| `StatCard` — valor único | As duas condições: `positive` e `alert`               |
+| Coluna de tabela, série  | Só a que pede atenção; o resto fica em `text.primary` |
+
+Num card há um número, e pintá-lo verde é informação. Numa coluna de doze meses há
+doze, e pintar todo mês positivo satura a coluna inteira: quando tudo é verde, o
+vermelho deixa de saltar e a cor para de significar condição. Vale igual para a
+série do gráfico e para o ponto da linha — o normal fica na cor da própria série.
 
 ### 1.6 Azul nas tabelas
 
@@ -149,6 +165,18 @@ separar entre si, e não só do fundo.
   vale para gráfico como já vale para `StatusChip`.
 - Eixo e tick usam `text.secondary`; a grade usa `divider`. Números no eixo saem
   em `tabular-nums`, como o resto do app.
+- **O texto do tooltip é `text.primary`, mesmo quando a série tem cor.** A cor da
+  série identifica a série na legenda e na marca; dentro do tooltip ela vira texto
+  pequeno sobre papel, onde o limiar volta a ser 4.5:1 e as séries que passam em
+  3:1 não passam.
+- Gráfico **decorativo** — sem eixo, sem tooltip e sem valor legível, como o
+  `spark` do `StatCard` — leva `aria-hidden`. Ele não acrescenta nada a quem lê por
+  leitor de tela, e anunciar uma série de pontos sem rótulo só atravanca.
+
+O par tooltip/eixo mora num **módulo de tema de gráfico** do app, não copiado tela
+a tela. São três objetos de estilo (`contentStyle`, `labelStyle`, `itemStyle`) que
+precisam mudar juntos, mais a altura nomeada da §5.3: copiá-los é garantir que um
+deles fique para trás na próxima mudança de paleta.
 
 Acima de três categorias, pare de tirar cor da paleta semântica e use a paleta
 categórica. Ela é escolhida pelo usuário a partir de dez opções fixas, e as medições
@@ -188,19 +216,48 @@ Os dois raios são nomeados e exportados, não literais espalhados: controle fic
 sempre um degrau abaixo de superfície. `shape.borderRadius` recebe `SURFACE_RADIUS`,
 e os componentes de controle são rebaixados um a um.
 
+Ao lado dos raios, o módulo de tema **exporta** o `contentQuery` da §2.2 — quem
+consulta a largura de conteúdo são os componentes, então ele precisa sair de lá.
+
+As tintas da §1.6 ficam **dentro** do módulo, como helpers nomeados e não como
+literais espalhados pelos overrides. Elas dependem do modo, que só existe ali
+dentro, e é por serem nomeadas que o multiplicador do escuro fica num lugar só:
+
+| Helper       | Valor                                                                    |
+| ------------ | ------------------------------------------------------------------------ |
+| `tint(0.06)` | Cabeçalho de tabela                                                      |
+| `tint(0.1)`  | Linha sob o cursor, item ativo do rail                                   |
+| `stripe()`   | Zebra: `alpha('#000', 0.022)` no claro, `alpha('#FFF', 0.028)` no escuro |
+
+`tint` é o `primary` do modo na opacidade pedida, **×1.8 no escuro**. `stripe` é
+acromático e já traz a diferença de opacidade entre os modos — não é `tint` com
+outra cor, e por isso é outro helper.
+
 Tipografia — Inter (empacotada via `@fontsource/inter`, pesos 400/500/600/700),
 com Roboto/Helvetica/Arial de fallback.
 
 O que o tema **declara** — e é só isto; todo o resto é o default da MUI, de
 propósito:
 
-| Variante    | Override                       |
-| ----------- | ------------------------------ |
-| `h4`        | `700`, `letterSpacing: -0.5`   |
-| `h5`        | `700`, `letterSpacing: -0.3`   |
-| `h6`        | `600`                          |
-| `subtitle1` | `500`                          |
-| `button`    | `600`, `textTransform: 'none'` |
+| Variante    | Override                               |
+| ----------- | -------------------------------------- |
+| `h4`        | `700`, `letterSpacing: -0.5`           |
+| `h5`        | `700`, `letterSpacing: -0.3`           |
+| `h6`        | `600`                                  |
+| `subtitle1` | `500`                                  |
+| `button`    | `600`, `textTransform: 'none'`         |
+| `mono`      | Pilha monoespaçada do sistema — ver §6 |
+
+Fora da tipografia, dois pesos que o tema também fixa uma vez só, porque são
+estrutura e não escolha de tela:
+
+| Componente              | Override                                  |
+| ----------------------- | ----------------------------------------- |
+| `MuiChip`               | `fontWeight: 600`                         |
+| `MuiTableCell` (`head`) | `fontWeight: 600`, `whiteSpace: 'nowrap'` |
+
+O `nowrap` do cabeçalho é o que impede "Preço de venda" de virar duas linhas e
+desalinhar a altura do cabeçalho inteiro quando a coluna aperta.
 
 O que é **convenção de uso**, não token — não declare override para obter isto:
 
@@ -337,6 +394,20 @@ lado, ele é o único portador do significado do item.
 
 O espaçamento vertical é sempre do `Stack` da página.
 
+**Controle que vale para a tela inteira vive nas `actions` do `PageHeader`.** Filtro
+de período, seletor de mês, alternador de escopo: eles governam tudo que está abaixo,
+e o `PageHeader` é o lugar onde o escopo da página já é declarado. Dar a esse controle
+uma faixa própria acrescenta uma superfície que não delimita nada, empurra o conteúdo
+para baixo e cria um segundo lugar onde procurar por controle de página.
+
+Pela mesma razão, **barra de filtro não tem superfície própria**: a tabela logo abaixo
+já é um `Paper` com borda, e dois retângulos empilhados leem como duas seções quando
+são uma. O filtro fica solto sobre a página, no `Stack`.
+
+E **filtro não aparece sobre lista que nunca teve registro**. Campo de busca e seletor
+de status acima de um estado vazio inicial só dão o que filtrar de nada; a tela nesse
+momento tem uma coisa a dizer, que é o `EmptyState` da §5.4.
+
 `Card variant="outlined"` envolve **gráfico**, não tabela — a tabela já traz a
 própria superfície. Dentro de um acordeão, onde a superfície já é a do painel, o
 `DataTable` vai em modo `flush`: sem `Paper`, delimitado pela faixa tingida do
@@ -456,6 +527,31 @@ modelo, e existe exatamente por isso.
   inteira só quando **todas** estão carregando, `ErrorState` de página inteira só
   quando **todas** falharam.
 
+A precedência entre os três estados é fixa, e é onde o erro costuma se perder:
+
+> **carregando → erro → vazio.**
+
+Vazio é a última hipótese, não a primeira: uma tela que testa `items.length === 0`
+antes de olhar o `error` responde "nenhuma venda concluída ainda" para um banco que
+não abriu — dizendo ao usuário que ele não tem dados quando o que houve foi uma falha.
+
+E daí saem dois métodos com nomes diferentes, quando o context precisa dos dois:
+
+| Método   | Quando                | Levanta `loading`? |
+| -------- | --------------------- | ------------------ |
+| `reload` | Depois de gravar algo | Não                |
+| `retry`  | Botão do `ErrorState` | Sim                |
+
+`reload` reaproveita a regra acima — dado já visível não vira skeleton. `retry`
+parte de uma tela que não tem conteúdo nenhum para preservar, e ali o skeleton é
+exatamente o que se quer ver. Um context cujas gravações já atualizam o estado em
+memória não precisa de `reload`; o que ele não pode é usar `retry` como se fosse
+um, porque aí toda gravação pisca a tela.
+
+O skeleton reserva a contagem **final** de cards, não a atual. Reservar quatro para
+depois renderizar seis é o mesmo salto de layout que o skeleton existe para evitar,
+só que mais tarde.
+
 ### 5.4 Estado vazio explica e oferece a saída
 
 Lista vazia é o primeiro contato de todo usuário com toda tela. Uma frase cinza
@@ -480,6 +576,15 @@ O ícone tem duas medidas, e a escolha é pela extensão do que está vazio: **4
 quando a página inteira está vazia, **40** quando é uma seção ou uma tabela dentro
 de uma página que tem outro conteúdo.
 
+O `ErrorState` acompanha a mesma distinção, pela variante `dense`: ícone 40, título
+em `h6` e sem margem superior própria, para caber dentro de um card sem parecer uma
+página de erro encaixada num canto.
+
+| Extensão da falha        | `ErrorState`             |
+| ------------------------ | ------------------------ |
+| A tela inteira não abriu | Padrão — ícone 48, `h5`  |
+| Uma seção da tela falhou | `dense` — ícone 40, `h6` |
+
 ### 5.5 Teclado e foco
 
 São apps de entrada de dados — pedido, despesa, lançamento. O teclado é o modo de
@@ -496,13 +601,22 @@ uso real, não a exceção acessível.
   do mouse é ruído.
 - `Modal` e `ConfirmDialog` prendem o foco enquanto abertos e o devolvem ao
   elemento que os abriu ao fechar.
-- Formulário submete no `Enter`; `Modal` e `ConfirmDialog` fecham no `Esc`.
+- Formulário submete no `Enter`; `Modal` e `ConfirmDialog` fecham no `Esc`. No
+  `Modal` isso é o que a prop `onSubmit` compra: ela torna o papel do diálogo um
+  `<form>`, e sem isso o `Enter` não submete — conteúdo e rodapé moram em slots
+  diferentes, então o botão de submissão não está dentro de formulário nenhum.
 - Ação que só existe como ícone precisa de `aria-label` — vale para todo
-  `IconButton` e para o `ActionsMenu`.
+  `IconButton` e para o `ActionsMenu`. O rótulo identifica **o item**, não a coluna:
+  "Ações" repetido em quarenta linhas não distingue nada; "Ações de Camiseta Azul"
+  sim.
 - Linha clicável é `role="button"` com `tabIndex={0}` e um rótulo acessível, e
   responde a `Enter`/`Espaço` **só quando o evento nasceu na própria linha**
   (`event.target === event.currentTarget`). Sem essa guarda, a tecla apertada dentro
   da célula de ações dispara a linha inteira junto do botão.
+- `stopPropagation` na célula de ações é o par de mouse dessa mesma guarda: sem ele
+  o clique no menu de três pontos abre o menu **e** dispara a linha. As duas precisam
+  existir juntas — uma cobre o teclado, a outra o ponteiro, e quem implementa só uma
+  conserta metade do problema.
 
 ## 6. Extensões locais permitidas
 
@@ -510,10 +624,16 @@ Divergir da paleta, dos raios, da tipografia ou das superfícies é bug. Acresce
 o que só um app precisa é esperado — e a permissão é da **necessidade**, não do app
 que chegou primeiro:
 
-| Necessidade                                         | Extensão                          |
-| --------------------------------------------------- | --------------------------------- |
-| Exibir caminho de arquivo, hash ou saída de comando | Variante `mono`, fonte empacotada |
-| Usar acordeão como estrutura de página              | Overrides de `MuiAccordion`       |
+| Necessidade                                         | Extensão                                               |
+| --------------------------------------------------- | ------------------------------------------------------ |
+| Exibir caminho de arquivo, hash ou saída de comando | Variante `mono`, sobre a pilha monoespaçada do sistema |
+| Usar acordeão como estrutura de página              | Overrides de `MuiAccordion`                            |
+
+A variante `mono` é `ui-monospace, SFMono-Regular, Menlo, Consolas, monospace`. A
+exigência é existir o **token** — `fontFamily: 'monospace'` escrito no `sx` de uma
+tela é a divergência que ele evita. Empacotar um arquivo de fonte para exibir um
+caminho de banco custa peso de instalador por nada: aqui a pilha do sistema resolve,
+e é o que os três apps têm.
 
 Extensão é adição, nunca substituição: ela ocupa espaço que a norma deixou vago. Se
 para caber ela precisa contradizer alguma seção acima, o que está errado é a seção —
@@ -540,7 +660,8 @@ decisão de design, e nada aqui deveria precisar ser redescoberto.
 - **`Tooltip` sobre botão desabilitado precisa de um `<span>` em volta.** Elemento
   desabilitado não emite os eventos de mouse que o tooltip escuta.
 - **A barra de rolagem não segue o tema sozinha.** `scrollbarColor` no `body`, com um
-  par por modo.
+  par por modo: `#c1c1c1 #f4f6fb` no claro e `#3a3f4d #10131c` no escuro (polegar
+  antes, trilho depois).
 - **A MUI só declara `text.*` e `action.*` por default.** Consumir sem declarar
   funciona e é o que o app faz — mas tira esses tokens do alcance de qualquer
   auditoria de contraste, e foi assim que `text.disabled` circulou como texto por um

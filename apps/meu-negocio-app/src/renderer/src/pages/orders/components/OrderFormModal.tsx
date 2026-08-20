@@ -72,13 +72,14 @@ export function OrderFormModal({ formState, products }: OrderFormModalProps) {
       onClose={close}
       title={isEditing ? 'Editar Pedido' : 'Novo Pedido'}
       maxWidth="600px"
+      onSubmit={onSubmit}
       footer={
         <>
           <Button onClick={close} disabled={isSaving} color="inherit">
             Cancelar
           </Button>
-          <Button onClick={() => onSubmit()} disabled={isSaving} variant="contained">
-            {isSaving ? 'Salvando…' : isEditing ? 'Salvar Alterações' : 'Criar Pedido'}
+          <Button type="submit" disabled={isSaving} variant="contained">
+            {isSaving ? 'Salvando...' : isEditing ? 'Salvar Alterações' : 'Criar Pedido'}
           </Button>
         </>
       }

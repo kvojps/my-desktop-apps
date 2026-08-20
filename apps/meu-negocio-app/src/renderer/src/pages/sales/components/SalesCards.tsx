@@ -1,4 +1,10 @@
-import { HourglassBottom, Payments, Receipt, Savings, TrendingUp } from '@mui/icons-material';
+import {
+  HourglassBottomOutlined,
+  PaymentsOutlined,
+  ReceiptOutlined,
+  SavingsOutlined,
+  TrendingUpOutlined,
+} from '@mui/icons-material';
 import { useMemo } from 'react';
 import type { Order } from '@shared/types/order';
 import { getOrderBalanceDue, getOrderProfit, getOrderTotal } from '@shared/types/order';
@@ -28,7 +34,7 @@ export function SalesCards({ completedOrders, isLoading }: SalesCardsProps) {
         label: 'Total Vendido',
         value: formatCurrency(totalRevenue),
         sub: `${totalSales} venda${totalSales !== 1 ? 's' : ''}`,
-        icon: TrendingUp,
+        icon: TrendingUpOutlined,
         accent: 'primary',
       },
       {
@@ -38,8 +44,9 @@ export function SalesCards({ completedOrders, isLoading }: SalesCardsProps) {
           totalRevenue > 0
             ? `${formatPercent((totalProfit / totalRevenue) * 100)} de margem`
             : 'sem vendas',
-        icon: Savings,
+        icon: SavingsOutlined,
         accent: 'success',
+        tone: totalProfit < 0 ? 'alert' : 'positive',
       },
       {
         label: 'Recebido',
@@ -48,7 +55,7 @@ export function SalesCards({ completedOrders, isLoading }: SalesCardsProps) {
           totalRevenue > 0
             ? `${formatPercent((totalPaid / totalRevenue) * 100)} do total`
             : 'sem vendas',
-        icon: Payments,
+        icon: PaymentsOutlined,
         accent: 'info',
       },
       {
@@ -58,7 +65,7 @@ export function SalesCards({ completedOrders, isLoading }: SalesCardsProps) {
           pendingCount > 0
             ? `${pendingCount} pedido${pendingCount !== 1 ? 's' : ''} em aberto`
             : 'tudo recebido',
-        icon: HourglassBottom,
+        icon: HourglassBottomOutlined,
         // Só há o que cobrar quando sobra saldo; sem isso o card ficaria em
         // alerta permanente mesmo com tudo quitado.
         tone: totalBalanceDue > 0 ? 'alert' : 'neutral',
@@ -67,7 +74,7 @@ export function SalesCards({ completedOrders, isLoading }: SalesCardsProps) {
         label: 'Ticket Médio',
         value: formatCurrency(avgTicket),
         sub: 'por venda',
-        icon: Receipt,
+        icon: ReceiptOutlined,
         accent: 'secondary',
       },
     ];
