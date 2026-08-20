@@ -326,12 +326,17 @@ Um medidor dentro de uma coluna vai por último, depois do seu rótulo, com larg
 fixa e o `Stack` em `alignItems="flex-start"` — assim todas as barras da coluna
 começam no mesmo ponto.
 
-**Pendência (2026-08-20):** o `meu-dinheiro-app` ainda segue a regra antiga —
-`align: 'right'` em `pages/settings/components/columns.tsx`,
-`pages/month-detail/components/{income,expense}Columns.tsx` e
-`pages/dashboard/DashboardPage.tsx`, mais o medidor `PaidProgress`. É divergência
-conhecida, não licença: o app está fora do §2.1 até ser convertido. O `git-dlog`
-já está conforme — o único `align: 'right'` dele é a coluna de ações.
+Se o rótulo dividir a linha com o medidor, é o **rótulo** que precisa de largura
+reservada: à esquerda quem empurra a barra é ele, e `7/8` e `104/117` não têm a
+mesma largura. A reserva é medida sobre a coluna inteira, nunca cravada numa
+constante — `paidFractionWidth`, no `meu-dinheiro-app`, é o exemplo.
+
+**Pendência (2026-08-20):** o `git-dlog` cumpre a regra no resultado, mas não no
+mecanismo. O `DataTableColumn<T>` dele ainda declara `align`, e a coluna de ações
+é uma coluna comum, declarada pela página (`pages/directories/DirectoriesPage.tsx`)
+em vez de ser do componente. O único `align: 'right'` dele é justamente essa
+coluna, então a tela está certa hoje — o que falta é a regra parar de depender
+disso. O `meu-dinheiro-app` e o `meu-negocio-app` estão conformes.
 
 ### 2.2 Densidade e largura de conteúdo
 

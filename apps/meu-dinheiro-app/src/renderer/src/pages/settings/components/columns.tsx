@@ -62,7 +62,6 @@ export const bankAccountColumns: Column<BankAccount>[] = [
   {
     key: 'balance',
     label: 'Saldo',
-    align: 'right',
     // Só o negativo é pintado, como a coluna de Realizado da Visão Geral:
     // saldo positivo é o estado normal, não um aviso (§1.5).
     render: (account) => (
@@ -105,7 +104,6 @@ export const defaultExpenseColumns: Column<DefaultExpense>[] = [
   {
     key: 'amount',
     label: 'Valor',
-    align: 'right',
     render: (expense) => (
       <Box component="span" sx={{ fontWeight: 600 }}>
         {formatCurrencyOrFallback(expense.amount, 'Variável')}
@@ -137,7 +135,6 @@ export const defaultIncomeColumns: Column<DefaultIncome>[] = [
   {
     key: 'amount',
     label: 'Valor',
-    align: 'right',
     render: (income) => (
       <Box component="span" sx={{ fontWeight: 600 }}>
         {formatCurrencyOrFallback(income.amount, 'Variável')}

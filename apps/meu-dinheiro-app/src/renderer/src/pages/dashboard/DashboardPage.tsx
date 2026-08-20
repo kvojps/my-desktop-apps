@@ -28,7 +28,7 @@ import { useMonths } from '@/hooks/months/useMonths';
 import { ROUTES, monthDetailPath } from '@/routes';
 import { formatCurrency } from '@/utils/format';
 import { FirstRunGuide } from './components/FirstRunGuide';
-import { PaidProgress } from './components/PaidProgress';
+import { PaidProgress, paidFractionWidth } from './components/PaidProgress';
 import { PeriodRangeControl, resolvePresets } from './components/PeriodRangeControl';
 import { useYearForecast } from './hooks/useYearForecast';
 
@@ -159,6 +159,11 @@ export function DashboardPage() {
     return mapped.sort((a, b) => compare(a, b) * direction);
   }, [filteredMonths, currentKey, sort]);
 
+  // Medida sobre `rows`, e não sobre a página: a largura da fração é o que
+  // decide onde cada barra da coluna "Pagas" começa, e medi-la por página faria
+  // a coluna mudar de largura a cada navegação.
+  const fractionWidth = useMemo(() => paidFractionWidth(rows), [rows]);
+
   const totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
   // O intervalo pode encolher com a página atual já fora dele - trocar "De" para
   // um mês recente estando na página 3 deixava a tabela vazia sem estar vazia.
@@ -197,21 +202,18 @@ export function DashboardPage() {
       key: 'income',
       label: 'Entradas',
       sortable: true,
-      align: 'right',
       render: (row) => formatCurrency(row.totalIncome),
     },
     {
       key: 'expense',
       label: 'Despesas',
       sortable: true,
-      align: 'right',
       render: (row) => formatCurrency(row.totalExpense),
     },
     {
       key: 'realized',
       label: BALANCE_LABELS.realized,
       sortable: true,
-      align: 'right',
       // Só o negativo é pintado. Verde em todo mês positivo saturava a coluna
       // inteira - no escuro o `success` é `#0ca30c` puro - e, pela §1.5, cor
       // sinaliza condição: fechar no azul é o estado normal, não um aviso.
@@ -228,8 +230,13 @@ export function DashboardPage() {
       key: 'paid',
       label: 'Pagas',
       sortable: true,
-      align: 'right',
-      render: (row) => <PaidProgress paidCount={row.paidCount} expenseCount={row.expenseCount} />,
+      render: (row) => (
+        <PaidProgress
+          paidCount={row.paidCount}
+          expenseCount={row.expenseCount}
+          labelWidth={fractionWidth}
+        />
+      ),
     },
   ];
 

@@ -69,7 +69,7 @@ Cada despesa ou entrada tem um status, que é o que define a cor do chip e o íc
 
 A cor nunca vem sozinha: o ícone e o texto no tooltip dizem a mesma coisa, para quem não distingue as cores.
 
-As duas abas são **tabelas**, a mesma da Visão Geral: nome, categoria (ou conta bancária, nas entradas), data, status, valor e as ações da linha. O valor alinha à direita e o resto à esquerda, que é o que faz os dígitos de largura fixa alinharem sozinhos e comparar magnitudes virar leitura de comprimento.
+As duas abas são **tabelas**, a mesma da Visão Geral: nome, categoria (ou conta bancária, nas entradas), data, status, valor e as ações da linha.
 
 **Ordenar é clicar no cabeçalho** — nome, data ou valor —, e clicar de novo inverte o sentido. A aba abre ordenada pela data crescente: o que vence primeiro é o que a tela existe para resolver. São **12 linhas por página**.
 

@@ -81,7 +81,6 @@ export function incomeColumns(): Column<Income>[] {
       key: 'amount',
       label: 'Valor',
       sortable: true,
-      align: 'right',
       render: (income) => (
         <Box component="span" sx={{ fontWeight: 600 }}>
           {formatCurrencyOrFallback(income.amount, '—')}
