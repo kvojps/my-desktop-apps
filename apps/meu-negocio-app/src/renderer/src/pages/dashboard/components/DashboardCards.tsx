@@ -1,16 +1,15 @@
-import { PendingActionsOutlined, WarningAmberOutlined } from '@mui/icons-material';
+import { WarningAmberOutlined } from '@mui/icons-material';
 import { StatCard, StatCardGrid, StatCardSkeleton } from '@/components/StatCard';
 import type { StatCardProps } from '@/components/StatCard';
 
-const CARD_COUNT = 2;
+const CARD_COUNT = 1;
 
 interface DashboardCardsProps {
   isLoading?: boolean;
-  pendingOrders: number;
   lowStockCount: number;
 }
 
-export function DashboardCards({ isLoading, pendingOrders, lowStockCount }: DashboardCardsProps) {
+export function DashboardCards({ isLoading, lowStockCount }: DashboardCardsProps) {
   if (isLoading) {
     return (
       <StatCardGrid count={CARD_COUNT}>
@@ -27,18 +26,12 @@ export function DashboardCards({ isLoading, pendingOrders, lowStockCount }: Dash
   // Total de Vendas e Ticket Médio saíram daqui: viraram tags ao lado do
   // título de "Produtos Mais Vendidos", assim como Faturamento e Lucro viraram
   // tags do gráfico mensal — repeti-los em card duplicava o número sem
-  // acrescentar contexto.
+  // acrescentar contexto. Pedidos Pendentes seguiu o mesmo caminho, virando
+  // tag do gráfico de Faturamento e Lucro.
   //
   // O `accent` de cada card é o mesmo em todas as telas onde o indicador
   // reaparece — para o usuário reconhecer o número antes de ler o rótulo.
   const cards: StatCardProps[] = [
-    {
-      label: 'Pedidos Pendentes',
-      value: String(pendingOrders),
-      sub: 'aguardando processamento',
-      icon: PendingActionsOutlined,
-      accent: 'warning',
-    },
     {
       label: 'Estoque Baixo',
       value: String(lowStockCount),

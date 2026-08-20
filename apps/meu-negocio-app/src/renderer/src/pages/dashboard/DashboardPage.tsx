@@ -385,11 +385,7 @@ export function DashboardPage() {
         actions={<MonthRangeFilter orders={allOrders} filters={filters} onChange={setFilters} />}
       />
 
-      <DashboardCards
-        isLoading={isLoading}
-        pendingOrders={pendingOrders.length}
-        lowStockCount={lowStockCount}
-      />
+      <DashboardCards isLoading={isLoading} lowStockCount={lowStockCount} />
 
       <SectionCard
         title="Faturamento e Lucro por Mês"
@@ -408,6 +404,11 @@ export function DashboardPage() {
               color={theme.palette.success.main}
               tone={totalProfit < 0 ? 'alert' : 'positive'}
               marginPct={profitMargin}
+            />
+            <SummaryTag
+              label="Pedidos Pendentes"
+              value={String(pendingOrders.length)}
+              color={theme.palette.warning.main}
             />
           </Stack>
         }
