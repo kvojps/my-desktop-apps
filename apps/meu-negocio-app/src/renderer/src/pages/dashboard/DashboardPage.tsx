@@ -1,14 +1,7 @@
-import {
-  ArrowDownward,
-  ArrowUpward,
-  ChevronRight,
-  DashboardOutlined,
-  SellOutlined,
-} from '@mui/icons-material';
-import { Box, Button, Card, CardContent, Skeleton, Stack, Typography } from '@mui/material';
+import { ArrowDownward, ArrowUpward, DashboardOutlined, SellOutlined } from '@mui/icons-material';
+import { Box, Card, CardContent, Skeleton, Stack, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { useMemo } from 'react';
-import { Link as RouterLink } from 'react-router-dom';
 import {
   Bar,
   BarChart,
@@ -27,6 +20,7 @@ import { TONE_COLOR } from '@/components/StatCard';
 import type { StatTone } from '@/components/StatCard';
 import { useOrders } from '@/hooks/orders/useOrders';
 import { useProducts } from '@/hooks/products/useProducts';
+import { contentQuery } from '@/theme';
 import {
   enumerateMonthKeys,
   monthDiff,
@@ -35,7 +29,6 @@ import {
   parseLocalDate,
 } from '@/utils/date';
 import { formatCurrency, formatCurrencyCompact, formatPercent } from '@/utils/format';
-import { ROUTES } from '../../routes';
 import { AccountsReceivable } from './components/AccountsReceivable';
 import { MonthRangeFilter } from './components/MonthRangeFilter';
 import { CHART_HEIGHT, axisTick, tooltipProps } from './chartTheme';
@@ -118,18 +111,6 @@ function sumProfit(orders: Order[]): number {
 const MAX_TOP_PRODUCTS = 5;
 
 /**
- * As seções do dashboard eram becos sem saída: mostravam um recorte e não
- * levavam a lugar nenhum. Este link é a continuação natural de cada uma.
- */
-function SectionLink({ to, children }: { to: string; children: React.ReactNode }) {
-  return (
-    <Button component={RouterLink} to={to} size="small" endIcon={<ChevronRight />}>
-      {children}
-    </Button>
-  );
-}
-
-/**
  * Faturamento e Lucro eram cards no topo da página; agora vivem como tags ao
  * lado do título do gráfico que os detalha mês a mês — o card duplicava um
  * número que o próprio gráfico já mostra. O quadradinho de cor substitui a
@@ -198,7 +179,6 @@ function SectionCard({
   isLoading,
   chart,
   tags,
-  action,
   children,
 }: {
   title: string;
@@ -213,36 +193,25 @@ function SectionCard({
   chart?: boolean;
   /** Indicadores que o gráfico detalha, ao lado do título. */
   tags?: React.ReactNode;
-  /** Saída para a tela que lista o assunto por inteiro. */
-  action?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
     <Card variant="outlined" sx={{ height: '100%' }}>
       <CardContent>
-        <Stack
-          direction="row"
-          alignItems="center"
-          justifyContent="space-between"
-          spacing={1}
-          sx={{ mb: 2 }}
-        >
-          {/* As tags acompanham a linha do título, e não o bloco título +
-              subtítulo: centradas contra o bloco elas descem para o meio das
-              duas linhas, alinhadas a nada. O subtítulo fica embaixo da fileira
-              inteira, que é o alcance dele — ele qualifica também as tags. */}
-          <Stack sx={{ minWidth: 0 }}>
-            <Stack direction="row" alignItems="center" spacing={2} flexWrap="wrap" useFlexGap>
-              <Typography variant="h6">{title}</Typography>
-              {!isLoading && tags}
-            </Stack>
-            {subtitle && (
-              <Typography variant="caption" color="text.secondary">
-                {subtitle}
-              </Typography>
-            )}
+        {/* As tags acompanham a linha do título, e não o bloco título +
+            subtítulo: centradas contra o bloco elas descem para o meio das
+            duas linhas, alinhadas a nada. O subtítulo fica embaixo da fileira
+            inteira, que é o alcance dele — ele qualifica também as tags. */}
+        <Stack sx={{ minWidth: 0, mb: 2 }}>
+          <Stack direction="row" alignItems="center" spacing={2} flexWrap="wrap" useFlexGap>
+            <Typography variant="h6">{title}</Typography>
+            {!isLoading && tags}
           </Stack>
-          {!isLoading && action}
+          {subtitle && (
+            <Typography variant="caption" color="text.secondary">
+              {subtitle}
+            </Typography>
+          )}
         </Stack>
         {isLoading && chart ? <Skeleton variant="rounded" height={CHART_HEIGHT} /> : children}
       </CardContent>
@@ -460,103 +429,121 @@ export function DashboardPage() {
         </ResponsiveContainer>
       </SectionCard>
 
-      <SectionCard
-        title="Produtos Mais Vendidos"
-        isLoading={isLoading}
-        chart
-        tags={
-          <Stack direction="row" spacing={2} flexWrap="wrap" useFlexGap>
-            <SummaryTag
-              label="Total de Vendas"
-              value={String(completedOrders.length)}
-              color={theme.palette.secondary.main}
-            />
-            <SummaryTag
-              label="Ticket Médio"
-              value={formatCurrency(avgTicket)}
-              color={theme.palette.info.main}
-            />
-            <SummaryTag
-              label="Estoque Baixo"
-              value={String(lowStockCount)}
-              color={theme.palette.warning.main}
-              tone={lowStockCount > 0 ? 'alert' : 'neutral'}
-            />
-          </Stack>
-        }
-        action={<SectionLink to={ROUTES.PRODUCTS}>Ver produtos</SectionLink>}
+      {/* Os dois gráficos horizontais dividem a linha quando a faixa de conteúdo
+          comporta — a medida é a do container, não a da janela, que erra por
+          ~128px de rail e padding (§2.2). Abaixo de 1000px eles voltam a
+          empilhar, com o mesmo respiro vertical do `Stack` da página. O
+          `minWidth: 0` é o que impede o `ResponsiveContainer` de realimentar a
+          própria largura e engordar o card a cada frame (§7). */}
+      <Box
+        sx={{
+          display: 'grid',
+          gap: 3,
+          gridTemplateColumns: '1fr',
+          '& > *': { minWidth: 0 },
+          [contentQuery.wide]: { gridTemplateColumns: 'repeat(2, 1fr)' },
+        }}
       >
-        {topProducts.length === 0 ? (
-          <EmptyState
-            icon={<SellOutlined sx={{ fontSize: 40 }} />}
-            title="Nenhuma venda no período."
-            description="A partir da primeira venda concluída, os cinco produtos que mais saíram aparecem aqui."
-          />
-        ) : (
-          <ResponsiveContainer width="100%" height={CHART_HEIGHT}>
-            <BarChart
-              data={topProductsChartData}
-              layout="vertical"
-              margin={{ top: 0, right: 24, left: 0, bottom: 0 }}
-              barCategoryGap="30%"
-            >
-              <defs>
-                <linearGradient id="barTopProducts" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0%" stopColor={theme.palette.primary.main} stopOpacity={1} />
-                  <stop offset="100%" stopColor={theme.palette.secondary.main} stopOpacity={0.9} />
-                </linearGradient>
-              </defs>
-              <XAxis type="number" hide domain={[0, 'dataMax']} />
-              <YAxis
-                type="category"
-                dataKey="name"
-                width={productYAxisWidth}
-                tick={(props) => renderLeftAlignedTick(props, theme.palette.text.secondary)}
-                axisLine={false}
-                tickLine={false}
-              />
-              <RechartsTooltip
-                formatter={(value) => [`${Number(value)} un`, 'Quantidade']}
-                {...tooltipProps(theme)}
-              />
-              <Bar dataKey="qty" fill="url(#barTopProducts)" radius={[0, 4, 4, 0]} barSize={16} />
-            </BarChart>
-          </ResponsiveContainer>
-        )}
-      </SectionCard>
-
-      <SectionCard
-        title="Contas a Receber"
-        subtitle="Posição de hoje — não segue o filtro de meses"
-        isLoading={isLoading}
-        chart
-        tags={
-          // Sem conta nenhuma as tags diriam "R$ 0,00" e "0 contas" logo acima
-          // de "Nenhuma conta a receber" — a mesma frase três vezes. Quem fala
-          // no estado vazio é o `EmptyState`, sozinho.
-          receivables.count > 0 && (
+        <SectionCard
+          title="Produtos"
+          isLoading={isLoading}
+          chart
+          tags={
             <Stack direction="row" spacing={2} flexWrap="wrap" useFlexGap>
-              {/* `primary` é o primeiro degrau da rampa de idade, o das contas
-                  em dia — não o âmbar nem o vermelho: um total que soma as
-                  quatro faixas pintado da cor do degrau que alarma leria como
-                  se tudo estivesse vencido. */}
               <SummaryTag
-                label="Total a receber"
-                value={formatCurrency(receivables.total)}
-                color={theme.palette.primary.main}
+                label="Total de Vendas"
+                value={String(completedOrders.length)}
+                color={theme.palette.secondary.main}
               />
               <SummaryTag
-                label="Em aberto"
-                value={receivables.count === 1 ? '1 conta' : `${receivables.count} contas`}
+                label="Ticket Médio"
+                value={formatCurrency(avgTicket)}
                 color={theme.palette.info.main}
               />
+              <SummaryTag
+                label="Estoque Baixo"
+                value={String(lowStockCount)}
+                color={theme.palette.warning.main}
+                tone={lowStockCount > 0 ? 'alert' : 'neutral'}
+              />
             </Stack>
-          )
-        }
-        action={<SectionLink to={ROUTES.SALES}>Ver em Vendas</SectionLink>}
-      >
-        <AccountsReceivable receivables={receivables} />
-      </SectionCard>
+          }
+        >
+          {topProducts.length === 0 ? (
+            <EmptyState
+              icon={<SellOutlined sx={{ fontSize: 40 }} />}
+              title="Nenhuma venda no período."
+              description="A partir da primeira venda concluída, os cinco produtos que mais saíram aparecem aqui."
+            />
+          ) : (
+            <ResponsiveContainer width="100%" height={CHART_HEIGHT}>
+              <BarChart
+                data={topProductsChartData}
+                layout="vertical"
+                margin={{ top: 0, right: 24, left: 0, bottom: 0 }}
+                barCategoryGap="30%"
+              >
+                <defs>
+                  <linearGradient id="barTopProducts" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%" stopColor={theme.palette.primary.main} stopOpacity={1} />
+                    <stop
+                      offset="100%"
+                      stopColor={theme.palette.secondary.main}
+                      stopOpacity={0.9}
+                    />
+                  </linearGradient>
+                </defs>
+                <XAxis type="number" hide domain={[0, 'dataMax']} />
+                <YAxis
+                  type="category"
+                  dataKey="name"
+                  width={productYAxisWidth}
+                  tick={(props) => renderLeftAlignedTick(props, theme.palette.text.secondary)}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <RechartsTooltip
+                  formatter={(value) => [`${Number(value)} un`, 'Quantidade']}
+                  {...tooltipProps(theme)}
+                />
+                <Bar dataKey="qty" fill="url(#barTopProducts)" radius={[0, 4, 4, 0]} barSize={16} />
+              </BarChart>
+            </ResponsiveContainer>
+          )}
+        </SectionCard>
+
+        <SectionCard
+          title="Contas a Receber"
+          subtitle="Posição de hoje — não segue o filtro de meses"
+          isLoading={isLoading}
+          chart
+          tags={
+            // Sem conta nenhuma as tags diriam "R$ 0,00" e "0 contas" logo acima
+            // de "Nenhuma conta a receber" — a mesma frase três vezes. Quem fala
+            // no estado vazio é o `EmptyState`, sozinho.
+            receivables.count > 0 && (
+              <Stack direction="row" spacing={2} flexWrap="wrap" useFlexGap>
+                {/* `primary` é o primeiro degrau da rampa de idade, o das contas
+                    em dia — não o âmbar nem o vermelho: um total que soma as
+                    quatro faixas pintado da cor do degrau que alarma leria como
+                    se tudo estivesse vencido. */}
+                <SummaryTag
+                  label="Total a receber"
+                  value={formatCurrency(receivables.total)}
+                  color={theme.palette.primary.main}
+                />
+                <SummaryTag
+                  label="Em aberto"
+                  value={receivables.count === 1 ? '1 conta' : `${receivables.count} contas`}
+                  color={theme.palette.info.main}
+                />
+              </Stack>
+            )
+          }
+        >
+          <AccountsReceivable receivables={receivables} />
+        </SectionCard>
+      </Box>
     </Stack>
   );
 }
