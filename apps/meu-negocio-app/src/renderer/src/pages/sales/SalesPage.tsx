@@ -15,7 +15,7 @@ import { useOrderConfirm } from '@/hooks/orders/useOrderConfirm';
 import type { OrderSortKey } from '@/hooks/orders/useOrders';
 import { useOrders } from '@/hooks/orders/useOrders';
 import { usePagination } from '@/hooks/usePagination';
-import { formatDate } from '@/utils/date';
+import { formatDate, parseLocalDate } from '@/utils/date';
 import { formatCurrency, formatPercent } from '@/utils/format';
 import { ROUTES } from '../../routes';
 import { MonthRangeFilter } from '../dashboard/components/MonthRangeFilter';
@@ -46,12 +46,30 @@ export function SalesPage() {
   const [viewTarget, setViewTarget] = useState<Order | null>(null);
   const [paymentTarget, setPaymentTarget] = useState<Order | null>(null);
 
-  const completedOrders = useMemo(
-    () => filtered.filter((o) => o.status === 'completed'),
-    [filtered],
-  );
+  // Cards resumem o período (MonthRangeFilter), não a busca/pagamento — só a
+  // tabela abaixo reflete esses dois filtros.
+  const cardOrders = useMemo(() => {
+    let result = orders.filter((o) => o.status === 'completed');
 
-  const { page, setPage, totalPages, paginatedItems, start } = usePagination(completedOrders, 10);
+    if (filters.dateFrom) {
+      const from = parseLocalDate(filters.dateFrom);
+      if (from) result = result.filter((o) => new Date(o.createdAt) >= from);
+    }
+
+    if (filters.dateTo) {
+      const to = parseLocalDate(filters.dateTo);
+      if (to) {
+        to.setHours(23, 59, 59, 999);
+        result = result.filter((o) => new Date(o.createdAt) <= to);
+      }
+    }
+
+    return result;
+  }, [orders, filters.dateFrom, filters.dateTo]);
+
+  const tableOrders = useMemo(() => filtered.filter((o) => o.status === 'completed'), [filtered]);
+
+  const { page, setPage, totalPages, paginatedItems, start } = usePagination(tableOrders, 10);
 
   const hasAnySale = useMemo(() => orders.some((o) => o.status === 'completed'), [orders]);
 
@@ -129,20 +147,23 @@ export function SalesPage() {
         icon={<SellOutlined />}
         title="Vendas"
         subtitle="Indicadores e histórico de pedidos concluídos"
+        actions={
+          // Filtro sobre lista que nunca teve venda só dá o que filtrar de
+          // nada (§4).
+          hasAnySale && <MonthRangeFilter orders={orders} filters={filters} onChange={setFilters} />
+        }
       />
 
-      {hasAnySale && (
-        <OrderFilters filters={filters} onChange={setFilters} hideStatusFilter showPaymentFilter>
-          <MonthRangeFilter orders={orders} filters={filters} onChange={setFilters} />
-        </OrderFilters>
-      )}
+      <SalesCards completedOrders={cardOrders} isLoading={isLoading} />
 
-      <SalesCards completedOrders={completedOrders} isLoading={isLoading} />
+      {hasAnySale && (
+        <OrderFilters filters={filters} onChange={setFilters} hideStatusFilter showPaymentFilter />
+      )}
 
       <DataTable
         columns={columns}
         items={paginatedItems}
-        totalCount={completedOrders.length}
+        totalCount={tableOrders.length}
         start={start}
         sort={sort}
         onToggleSort={(key) => toggleSort(key as OrderSortKey)}

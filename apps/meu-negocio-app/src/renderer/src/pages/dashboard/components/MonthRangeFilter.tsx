@@ -57,9 +57,9 @@ interface MonthRangeFilterProps {
 }
 
 /**
- * O recorte de período da tela. Não tem superfície própria: no Dashboard ele
- * mora nas `actions` do `PageHeader`, e nas outras telas dentro da barra de
- * filtros — em nenhuma das duas ele é uma seção (§4).
+ * O recorte de período da tela. Não tem superfície própria: mora sempre nas
+ * `actions` do `PageHeader`, nunca na barra de filtros — ele governa a tela
+ * inteira, e o cabeçalho é o lugar onde esse escopo já é declarado (§4).
  *
  * Os três recortes prontos são um `ToggleButtonGroup` e não `Chip`s: eles são
  * mutuamente exclusivos, e um grupo de toggle diz isso pela forma, enquanto
