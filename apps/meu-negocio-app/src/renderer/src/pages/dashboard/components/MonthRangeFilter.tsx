@@ -1,11 +1,14 @@
+import { DateRangeOutlined } from '@mui/icons-material';
 import {
   FormControl,
   InputLabel,
   MenuItem,
+  Popover,
   Select,
   Stack,
   ToggleButton,
   ToggleButtonGroup,
+  Tooltip,
 } from '@mui/material';
 import { useEffect, useMemo, useState } from 'react';
 import type { Order } from '@shared/types/order';
@@ -60,7 +63,10 @@ interface MonthRangeFilterProps {
  *
  * Os três recortes prontos são um `ToggleButtonGroup` e não `Chip`s: eles são
  * mutuamente exclusivos, e um grupo de toggle diz isso pela forma, enquanto
- * três chips clicáveis parecem três ações independentes.
+ * três chips clicáveis parecem três ações independentes. "De/Até" só aparece
+ * num popover, para quem precisa de um recorte que os atalhos não dão — os
+ * dois campos sempre visíveis custavam quase a largura de um card só para um
+ * controle que na prática se usa pelos atalhos.
  */
 export function MonthRangeFilter({
   orders,
@@ -71,6 +77,7 @@ export function MonthRangeFilter({
   const [fromOverride, setFromOverride] = useState('');
   const [toOverride, setToOverride] = useState('');
   const [defaultYearApplied, setDefaultYearApplied] = useState(false);
+  const [anchor, setAnchor] = useState<HTMLElement | null>(null);
 
   const monthOptions = useMemo<MonthOption[]>(() => {
     const keys = new Set<string>();
@@ -144,10 +151,11 @@ export function MonthRangeFilter({
     applyRange(thisYearRange.from, thisYearRange.to);
   }
 
-  function handleQuickChange(next: QuickRange | null) {
+  function handleQuickChange(next: QuickRange | 'custom' | null) {
     // `null` é o clique no botão já selecionado. Desmarcar deixaria a tela sem
     // recorte nenhum sem dizer qual passou a valer, então o clique é ignorado.
-    if (!next) return;
+    // `custom` abre o popover pelo próprio `onClick` do botão, não por aqui.
+    if (!next || next === 'custom') return;
     if (next === 'all') return applyRange('', '');
     if (next === 'thisYear') return handleQuickThisYear();
     if (last3Range) applyRange(last3Range.from, last3Range.to);
@@ -162,39 +170,60 @@ export function MonthRangeFilter({
   }, [monthOptions, defaultYearApplied, defaultToThisYear]);
 
   return (
-    <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap" useFlexGap>
+    <>
       <ToggleButtonGroup
         exclusive
         size="small"
-        value={activeQuick}
-        onChange={(_event, next: QuickRange | null) => handleQuickChange(next)}
+        // Sem atalho correspondente, quem fica marcado é o botão do popover —
+        // ele é a representação de "personalizado" dentro do grupo.
+        value={activeQuick ?? 'custom'}
+        onChange={(_event, next: QuickRange | 'custom' | null) => handleQuickChange(next)}
         aria-label="Período exibido"
       >
         <ToggleButton value="last3">Últimos 3 meses</ToggleButton>
         <ToggleButton value="thisYear">Este ano</ToggleButton>
         <ToggleButton value="all">Tudo</ToggleButton>
+        <ToggleButton
+          value="custom"
+          aria-label="Período personalizado"
+          onClick={(e) => setAnchor(e.currentTarget)}
+        >
+          <Tooltip title="Período personalizado">
+            <DateRangeOutlined fontSize="small" />
+          </Tooltip>
+        </ToggleButton>
       </ToggleButtonGroup>
 
-      <FormControl size="small" sx={{ minWidth: 150 }}>
-        <InputLabel>De</InputLabel>
-        <Select value={fromValue} label="De" onChange={(e) => handleFromChange(e.target.value)}>
-          {monthOptions.map((opt) => (
-            <MenuItem key={opt.value} value={opt.value}>
-              {opt.label}
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
-      <FormControl size="small" sx={{ minWidth: 150 }}>
-        <InputLabel>Até</InputLabel>
-        <Select value={toValue} label="Até" onChange={(e) => handleToChange(e.target.value)}>
-          {monthOptions.map((opt) => (
-            <MenuItem key={opt.value} value={opt.value}>
-              {opt.label}
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
-    </Stack>
+      <Popover
+        open={!!anchor}
+        anchorEl={anchor}
+        onClose={() => setAnchor(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        <Stack direction="row" spacing={2} sx={{ p: 2 }}>
+          <FormControl size="small" sx={{ minWidth: 180 }}>
+            <InputLabel>De</InputLabel>
+            <Select value={fromValue} label="De" onChange={(e) => handleFromChange(e.target.value)}>
+              {monthOptions.map((opt) => (
+                <MenuItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <FormControl size="small" sx={{ minWidth: 180 }}>
+            <InputLabel>Até</InputLabel>
+            <Select value={toValue} label="Até" onChange={(e) => handleToChange(e.target.value)}>
+              {monthOptions.map((opt) => (
+                <MenuItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Stack>
+      </Popover>
+    </>
   );
 }
