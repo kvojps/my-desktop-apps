@@ -31,7 +31,7 @@ import {
 import { formatCurrency, formatCurrencyCompact, formatPercent } from '@/utils/format';
 import { AccountsReceivable } from './components/AccountsReceivable';
 import { MonthRangeFilter } from './components/MonthRangeFilter';
-import { CHART_HEIGHT, axisTick, tooltipProps } from './chartTheme';
+import { CHART_MIN_HEIGHT, axisTick, tooltipProps } from './chartTheme';
 import { buildReceivables } from './receivables';
 import { renderLeftAlignedTick, useTextMeasure } from './textMeasure';
 
@@ -172,6 +172,11 @@ function SummaryTag({
  * O esqueleto da seção reserva a forma do que vem: um retângulo da altura exata
  * do gráfico onde há gráfico, e nada onde há tabela — ali quem desenha a espera
  * é o próprio `DataTable`, com linhas do tamanho das linhas reais (§5.3).
+ *
+ * O corpo é a caixa elástica da seção: o card estica até a linha da grade e o
+ * corpo fica com o que sobra do cabeçalho. É a mesma caixa para gráfico,
+ * esqueleto e estado vazio — reservar "a altura do gráfico" continua valendo
+ * quando a altura do gráfico é a da linha.
  */
 function SectionCard({
   title,
@@ -189,20 +194,23 @@ function SectionCard({
    */
   subtitle?: string;
   isLoading?: boolean;
-  /** A seção é um gráfico: o esqueleto é o retângulo da altura dele. */
+  /** A seção é um gráfico: o esqueleto é o retângulo que ocupa a caixa dele. */
   chart?: boolean;
   /** Indicadores que o gráfico detalha, ao lado do título. */
   tags?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
-    <Card variant="outlined" sx={{ height: '100%' }}>
-      <CardContent>
+    <Card variant="outlined" sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      {/* Sem `minHeight: 0` de propósito: o mínimo automático do item flex é o
+          que carrega o piso do gráfico até a linha da grade, e é ele que faz a
+          página voltar a rolar em janela baixa em vez de espremer o card. */}
+      <CardContent sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
         {/* As tags acompanham a linha do título, e não o bloco título +
             subtítulo: centradas contra o bloco elas descem para o meio das
             duas linhas, alinhadas a nada. O subtítulo fica embaixo da fileira
             inteira, que é o alcance dele — ele qualifica também as tags. */}
-        <Stack sx={{ minWidth: 0, mb: 2 }}>
+        <Stack sx={{ minWidth: 0, mb: 2, flexShrink: 0 }}>
           <Stack direction="row" alignItems="center" spacing={2} flexWrap="wrap" useFlexGap>
             <Typography variant="h6">{title}</Typography>
             {!isLoading && tags}
@@ -213,7 +221,23 @@ function SectionCard({
             </Typography>
           )}
         </Stack>
-        {isLoading && chart ? <Skeleton variant="rounded" height={CHART_HEIGHT} /> : children}
+        <Box
+          sx={{
+            flex: 1,
+            minHeight: CHART_MIN_HEIGHT,
+            display: 'flex',
+            flexDirection: 'column',
+            // O estado vazio não estica: ele fica no meio da caixa que sobrou,
+            // e não colado no cabeçalho com um vão embaixo.
+            justifyContent: 'center',
+          }}
+        >
+          {isLoading && chart ? (
+            <Skeleton variant="rounded" sx={{ flex: 1, height: 'auto' }} />
+          ) : (
+            children
+          )}
+        </Box>
       </CardContent>
     </Card>
   );
@@ -344,7 +368,11 @@ export function DashboardPage() {
   }
 
   return (
-    <Stack spacing={3}>
+    // A tela é uma leitura, não uma lista: ela cabe na viewport e não rola. Num
+    // app desktop a altura é o recurso escasso (§4), e um dashboard que pede
+    // rolagem para mostrar o terceiro gráfico esconde justamente o que o usuário
+    // abriu a tela para comparar. `flex: 1` reclama a faixa inteira do `Layout`.
+    <Stack spacing={3} sx={{ flex: 1 }}>
       {/* O recorte de período governa a tela inteira, então mora nas `actions`
           do cabeçalho e não numa faixa própria: uma faixa acrescentaria uma
           superfície que não delimita nada e um segundo lugar onde procurar por
@@ -356,94 +384,111 @@ export function DashboardPage() {
         actions={<MonthRangeFilter orders={allOrders} filters={filters} onChange={setFilters} />}
       />
 
-      <SectionCard
-        title="Faturamento e Lucro por Mês"
-        isLoading={isLoading}
-        chart
-        tags={
-          <Stack direction="row" spacing={2} flexWrap="wrap" useFlexGap>
-            <SummaryTag
-              label="Faturamento"
-              value={formatCurrency(totalRevenue)}
-              color={theme.palette.primary.main}
-            />
-            <SummaryTag
-              label="Lucro"
-              value={formatCurrency(totalProfit)}
-              color={theme.palette.success.main}
-              tone={totalProfit < 0 ? 'alert' : 'positive'}
-              marginPct={profitMargin}
-            />
-            <SummaryTag
-              label="Pedidos Pendentes"
-              value={String(pendingOrders.length)}
-              color={theme.palette.warning.main}
-            />
-          </Stack>
-        }
-      >
-        <ResponsiveContainer width="100%" height={CHART_HEIGHT}>
-          <BarChart
-            data={monthlyRevenue}
-            margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
-            barGap={4}
-          >
-            {/* A barra chapada empilhava um bloco sólido de cor a cada mês. O
-                degradê vertical alivia a base e deixa o topo — que é onde se lê
-                a altura — como o ponto mais saturado. */}
-            <defs>
-              <linearGradient id="barRevenue" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor={theme.palette.primary.main} stopOpacity={1} />
-                <stop offset="100%" stopColor={theme.palette.primary.main} stopOpacity={0.5} />
-              </linearGradient>
-              <linearGradient id="barProfit" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor={theme.palette.success.main} stopOpacity={1} />
-                <stop offset="100%" stopColor={theme.palette.success.main} stopOpacity={0.5} />
-              </linearGradient>
-            </defs>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={theme.palette.divider} />
-            <XAxis
-              dataKey="monthLabel"
-              interval="preserveStartEnd"
-              tick={axisTick(theme)}
-              axisLine={{ stroke: theme.palette.divider }}
-              tickLine={false}
-            />
-            <YAxis
-              tickFormatter={formatCurrencyCompact}
-              tick={axisTick(theme)}
-              axisLine={false}
-              tickLine={false}
-              width={64}
-            />
-            <RechartsTooltip
-              formatter={(value, name) => [
-                formatCurrency(Number(value)),
-                name === 'total' ? 'Faturamento' : 'Lucro',
-              ]}
-              {...tooltipProps(theme)}
-            />
-            <Bar dataKey="total" name="total" fill="url(#barRevenue)" radius={[4, 4, 0, 0]} />
-            <Bar dataKey="profit" name="profit" fill="url(#barProfit)" radius={[4, 4, 0, 0]} />
-          </BarChart>
-        </ResponsiveContainer>
-      </SectionCard>
+      {/* As três seções são uma grade só, e não um card solto mais uma linha de
+          dois: é o que deixa as linhas dividirem a altura que sobra do cabeçalho
+          em partes iguais. Os dois gráficos horizontais dividem a linha de baixo
+          quando a faixa de conteúdo comporta — a medida é a do container, não a
+          da janela, que erra por ~128px de rail e padding (§2.2). Abaixo de
+          1000px eles voltam a empilhar.
 
-      {/* Os dois gráficos horizontais dividem a linha quando a faixa de conteúdo
-          comporta — a medida é a do container, não a da janela, que erra por
-          ~128px de rail e padding (§2.2). Abaixo de 1000px eles voltam a
-          empilhar, com o mesmo respiro vertical do `Stack` da página. O
-          `minWidth: 0` é o que impede o `ResponsiveContainer` de realimentar a
-          própria largura e engordar o card a cada frame (§7). */}
+          `gridAutoRows: '1fr'` reparte a altura; o mínimo automático de cada
+          linha continua sendo o conteúdo, então em janela baixa a grade cresce e
+          a página rola, em vez de espremer os três gráficos. O `minWidth: 0` é o
+          que impede o `ResponsiveContainer` de realimentar a própria largura e
+          engordar o card a cada frame (§7). */}
       <Box
         sx={{
+          flex: 1,
           display: 'grid',
           gap: 3,
           gridTemplateColumns: '1fr',
+          gridAutoRows: '1fr',
           '& > *': { minWidth: 0 },
-          [contentQuery.wide]: { gridTemplateColumns: 'repeat(2, 1fr)' },
+          [contentQuery.wide]: {
+            gridTemplateColumns: 'repeat(2, 1fr)',
+            // O gráfico de meses é o assunto da tela: ele fica com a linha
+            // inteira, e os dois recortes dividem a de baixo.
+            '& > :first-of-type': { gridColumn: '1 / -1' },
+          },
         }}
       >
+        <SectionCard
+          title="Faturamento e Lucro por Mês"
+          isLoading={isLoading}
+          chart
+          tags={
+            <Stack direction="row" spacing={2} flexWrap="wrap" useFlexGap>
+              <SummaryTag
+                label="Faturamento"
+                value={formatCurrency(totalRevenue)}
+                color={theme.palette.primary.main}
+              />
+              <SummaryTag
+                label="Lucro"
+                value={formatCurrency(totalProfit)}
+                color={theme.palette.success.main}
+                tone={totalProfit < 0 ? 'alert' : 'positive'}
+                marginPct={profitMargin}
+              />
+              <SummaryTag
+                label="Pedidos Pendentes"
+                value={String(pendingOrders.length)}
+                color={theme.palette.warning.main}
+              />
+            </Stack>
+          }
+        >
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart
+              data={monthlyRevenue}
+              margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
+              barGap={4}
+            >
+              {/* A barra chapada empilhava um bloco sólido de cor a cada mês. O
+                degradê vertical alivia a base e deixa o topo — que é onde se lê
+                a altura — como o ponto mais saturado. */}
+              <defs>
+                <linearGradient id="barRevenue" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor={theme.palette.primary.main} stopOpacity={1} />
+                  <stop offset="100%" stopColor={theme.palette.primary.main} stopOpacity={0.5} />
+                </linearGradient>
+                <linearGradient id="barProfit" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor={theme.palette.success.main} stopOpacity={1} />
+                  <stop offset="100%" stopColor={theme.palette.success.main} stopOpacity={0.5} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid
+                strokeDasharray="3 3"
+                vertical={false}
+                stroke={theme.palette.divider}
+              />
+              <XAxis
+                dataKey="monthLabel"
+                interval="preserveStartEnd"
+                tick={axisTick(theme)}
+                axisLine={{ stroke: theme.palette.divider }}
+                tickLine={false}
+              />
+              <YAxis
+                tickFormatter={formatCurrencyCompact}
+                tick={axisTick(theme)}
+                axisLine={false}
+                tickLine={false}
+                width={64}
+              />
+              <RechartsTooltip
+                formatter={(value, name) => [
+                  formatCurrency(Number(value)),
+                  name === 'total' ? 'Faturamento' : 'Lucro',
+                ]}
+                {...tooltipProps(theme)}
+              />
+              <Bar dataKey="total" name="total" fill="url(#barRevenue)" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="profit" name="profit" fill="url(#barProfit)" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </SectionCard>
+
         <SectionCard
           title="Produtos"
           isLoading={isLoading}
@@ -476,7 +521,7 @@ export function DashboardPage() {
               description="A partir da primeira venda concluída, os cinco produtos que mais saíram aparecem aqui."
             />
           ) : (
-            <ResponsiveContainer width="100%" height={CHART_HEIGHT}>
+            <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={topProductsChartData}
                 layout="vertical"

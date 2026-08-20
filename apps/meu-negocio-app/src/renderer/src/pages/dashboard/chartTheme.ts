@@ -2,11 +2,16 @@ import type { Theme } from '@mui/material/styles';
 import { CONTROL_RADIUS } from '@/theme';
 
 /**
- * Altura constante e nomeada, e não derivada do conteúdo: é o que permite ao
- * skeleton reservar exatamente o espaço que o gráfico vai ocupar, sem a página
+ * Piso da altura de gráfico — nomeado e nunca derivado do conteúdo, que é o que
+ * permite ao skeleton reservar exatamente o espaço do gráfico e a página não
  * pular quando os dados chegam (§5.3).
+ *
+ * É piso, e não altura fixa, porque o Dashboard preenche a viewport: a altura de
+ * cada gráfico é a da linha da grade, e o skeleton ocupa essa mesma caixa. O piso
+ * é o que sobra quando a janela é baixa demais para as três seções — aí a página
+ * volta a rolar em vez de espremer gráfico a ponto de não se ler mais a barra.
  */
-export const CHART_HEIGHT = 220;
+export const CHART_MIN_HEIGHT = 160;
 
 /**
  * O tooltip do Recharts escreve `color: entry.color || '#000'` inline, então

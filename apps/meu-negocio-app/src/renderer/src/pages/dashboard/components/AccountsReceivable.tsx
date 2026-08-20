@@ -15,7 +15,7 @@ import {
 } from 'recharts';
 import { EmptyState } from '@/components/EmptyState';
 import { formatCurrency } from '@/utils/format';
-import { CHART_HEIGHT, tooltipProps } from '../chartTheme';
+import { tooltipProps } from '../chartTheme';
 import type { AgingBucket, BucketRow, Receivables } from '../receivables';
 import { LABEL_BAR_GAP, renderLeftAlignedTick, useTextMeasure } from '../textMeasure';
 
@@ -133,11 +133,11 @@ export function AccountsReceivable({ receivables }: AccountsReceivableProps) {
   }
 
   return (
-    <ResponsiveContainer width="100%" height={CHART_HEIGHT}>
+    <ResponsiveContainer width="100%" height="100%">
       {/* As quatro faixas aparecem sempre, zeradas inclusive: "nada acima de 60
           dias" é informação, e a linha ausente obrigaria o usuário a reparar no
-          que não está lá. É também o que mantém a altura constante da §5.3 sem
-          precisar preencher o conjunto com linhas falsas. */}
+          que não está lá. É também o que mantém a altura da seção estável sem
+          precisar preencher o conjunto com linhas falsas (§5.3). */}
       <BarChart
         data={rows}
         layout="vertical"

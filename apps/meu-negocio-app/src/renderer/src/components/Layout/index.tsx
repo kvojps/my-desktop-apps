@@ -186,12 +186,20 @@ export function Layout({ children }: LayoutProps) {
             ~128px. Na largura mínima (960) sobram ~832px — ou seja, `md` (900)
             dispara quando não há espaço de `md`. Este container nomeado deixa os
             componentes consultarem a largura que realmente têm, via
-            `@container content (min-width: …)`. */}
+            `@container content (min-width: …)`.
+
+            A faixa é uma coluna flex de altura mínima cheia para que uma página
+            possa ocupar a viewport inteira pedindo `flex: 1` — sem isso ela só
+            saberia a própria altura via `100vh`, que ignora o padding daqui. Uma
+            página que não pede nada continua do tamanho do conteúdo. */}
         <Box
           sx={{
             maxWidth: 1440,
             mx: 'auto',
             p: 3,
+            minHeight: '100%',
+            display: 'flex',
+            flexDirection: 'column',
             containerType: 'inline-size',
             containerName: 'content',
           }}

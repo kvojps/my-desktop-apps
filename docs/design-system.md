@@ -446,6 +446,19 @@ E **filtro não aparece sobre lista que nunca teve registro**. Campo de busca e 
 de status acima de um estado vazio inicial só dão o que filtrar de nada; a tela nesse
 momento tem uma coisa a dizer, que é o `EmptyState` da §5.4.
 
+**Tela de leitura preenche a viewport; tela de lista rola.** Uma lista é longa por
+natureza e rolar é como se lê uma. Um painel de gráficos não: ele existe para ser
+comparado de uma vez, e o gráfico que só aparece rolando é o gráfico que ninguém
+compara. Numa tela dessas as seções são **uma grade só**, com `gridAutoRows: '1fr'`
+repartindo a altura que sobra do `PageHeader`, e a página pede `flex: 1` da faixa de
+conteúdo — que é uma coluna flex de `minHeight: '100%'` justamente para isso. `100vh`
+não serve: ignora o `p: 3` da faixa, e erra pelo mesmo tanto.
+
+O mínimo automático de cada linha continua sendo o conteúdo, então nada é espremido:
+quando a janela é baixa demais, a grade cresce e a página volta a rolar. É por isso
+que a medida nomeada da §5.3 vira um **piso**, e não uma altura fixa — e é ela que
+diz quando a tela desiste de caber.
+
 `Card variant="outlined"` envolve **gráfico**, não tabela — a tabela já traz a
 própria superfície. Dentro de um acordeão, onde a superfície já é a do painel, o
 `DataTable` vai em modo `flush`: sem `Paper`, delimitado pela faixa tingida do
@@ -472,7 +485,9 @@ barra é o canal de posição — é ela que sobrevive quando a cor não chega. 
 `main` com `maxWidth: 1440`, `mx: 'auto'` e `p: 3`. Em monitor largo o conteúdo
 para de crescer e centraliza, senão o grid vira uma fileira de oito cards e ler
 uma linha da tabela exige varrer a tela. É esse mesmo elemento que declara o
-contexto de container query da §2.2.
+contexto de container query da §2.2, e é ele a coluna flex de `minHeight: '100%'`
+de onde a tela que preenche a viewport tira a altura. Página que não pede nada
+continua do tamanho do próprio conteúdo.
 
 ## 5. Comportamento
 
@@ -553,8 +568,11 @@ modelo, e existe exatamente por isso.
 
 - Toda tela que busca dados tem estado de carregamento; toda lista pagina com o
   espaço da página já reservado.
-- Altura de gráfico é **constante e nomeada**, não derivada do conteúdo: é o que
-  permite ao skeleton reservar exatamente o espaço que o gráfico vai ocupar.
+- Altura de gráfico **nunca é derivada do conteúdo**: é o que permite ao skeleton
+  reservar exatamente o espaço que o gráfico vai ocupar. Ou ela é constante e
+  nomeada, ou — numa tela que preenche a viewport (§4) — é a da caixa da seção,
+  e aí o skeleton ocupa essa mesma caixa. Nos dois casos existe uma **medida
+  nomeada**: altura, no primeiro; piso da altura, no segundo.
 - Ação pontual em andamento **troca o rótulo do botão** — "Excluindo...",
   "Criando...", "Importando..." — e não ganha spinner. O botão já é onde o olho
   está, e o rótulo diz _o que_ está demorando, coisa que um giro não diz. Não há
