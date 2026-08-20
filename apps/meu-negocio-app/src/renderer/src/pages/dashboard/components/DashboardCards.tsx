@@ -1,46 +1,33 @@
 import {
   PendingActionsOutlined,
   ReceiptOutlined,
-  SavingsOutlined,
   ShoppingCartOutlined,
-  TrendingUpOutlined,
   WarningAmberOutlined,
 } from '@mui/icons-material';
 import { StatCard, StatCardGrid, StatCardSkeleton } from '@/components/StatCard';
 import type { StatCardProps } from '@/components/StatCard';
-import { formatCurrency, formatPercent } from '@/utils/format';
+import { formatCurrency } from '@/utils/format';
 
-const CARD_COUNT = 6;
+const CARD_COUNT = 4;
 
 interface DashboardCardsProps {
   isLoading?: boolean;
-  totalRevenue: number;
-  totalProfit: number;
   periodSales: number;
   avgTicket: number;
   pendingOrders: number;
   lowStockCount: number;
-  revenueTrend?: number;
-  profitTrend?: number;
   avgTicketTrend?: number;
-  /** Período analisado, ex. "jan/2026 – mar/2026". */
-  periodLabel: string;
   /** Período de comparação das tendências, de mesma duração. */
   prevPeriodLabel: string;
 }
 
 export function DashboardCards({
   isLoading,
-  totalRevenue,
-  totalProfit,
   periodSales,
   avgTicket,
   pendingOrders,
   lowStockCount,
-  revenueTrend,
-  profitTrend,
   avgTicketTrend,
-  periodLabel,
   prevPeriodLabel,
 }: DashboardCardsProps) {
   if (isLoading) {
@@ -59,33 +46,13 @@ export function DashboardCards({
   // Os rótulos não repetem "no Período": o recorte já está no filtro acima e na
   // linha de apoio de cada card.
   //
+  // Faturamento e Lucro saíram daqui: viraram tags ao lado do título do
+  // gráfico "Faturamento e Lucro por Mês", que já é a leitura detalhada dos
+  // dois — repeti-los em card duplicava o número sem acrescentar contexto.
+  //
   // O `accent` de cada card é o mesmo em todas as telas onde o indicador
-  // reaparece — faturamento é sempre azul, lucro sempre verde — para o usuário
-  // reconhecer o número antes de ler o rótulo.
+  // reaparece — para o usuário reconhecer o número antes de ler o rótulo.
   const cards: StatCardProps[] = [
-    {
-      label: 'Faturamento',
-      value: formatCurrency(totalRevenue),
-      sub: `${periodSales} venda${periodSales !== 1 ? 's' : ''} em ${periodLabel}`,
-      icon: TrendingUpOutlined,
-      accent: 'primary',
-      trend: trendOf(revenueTrend),
-    },
-    {
-      label: 'Lucro',
-      value: formatCurrency(totalProfit),
-      sub:
-        totalRevenue > 0
-          ? `${formatPercent((totalProfit / totalRevenue) * 100)} de margem`
-          : 'sem vendas',
-      icon: SavingsOutlined,
-      accent: 'success',
-      // Num card há um número, e pintá-lo é informação: lucro negativo é venda
-      // no prejuízo. Numa coluna de doze meses a mesma pintura saturaria a
-      // coluna inteira, e ali só o negativo é pintado (§1.5).
-      tone: totalProfit < 0 ? 'alert' : 'positive',
-      trend: trendOf(profitTrend),
-    },
     {
       label: 'Vendas',
       value: String(periodSales),

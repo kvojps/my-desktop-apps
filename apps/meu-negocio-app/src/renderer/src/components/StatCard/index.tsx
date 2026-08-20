@@ -30,7 +30,7 @@ export type StatTone = 'neutral' | 'positive' | 'alert';
  */
 export type StatAccent = TileAccent;
 
-const TONE_COLOR: Record<StatTone, string> = {
+export const TONE_COLOR: Record<StatTone, string> = {
   neutral: 'text.primary',
   positive: 'success.main',
   alert: 'error.main',
@@ -58,7 +58,7 @@ export interface StatCardProps {
   trend?: StatTrend;
 }
 
-function TrendBadge({ pct, comparedTo, increaseIsGood = true }: StatTrend) {
+export function TrendBadge({ pct, comparedTo, increaseIsGood = true }: StatTrend) {
   const isIncrease = pct >= 0;
   const Icon = isIncrease ? ArrowUpward : ArrowDownward;
   const isGood = isIncrease === increaseIsGood;

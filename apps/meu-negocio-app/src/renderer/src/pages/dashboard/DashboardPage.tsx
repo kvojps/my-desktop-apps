@@ -1,4 +1,10 @@
-import { ChevronRight, DashboardOutlined, SellOutlined } from '@mui/icons-material';
+import {
+  ArrowDownward,
+  ArrowUpward,
+  ChevronRight,
+  DashboardOutlined,
+  SellOutlined,
+} from '@mui/icons-material';
 import { Box, Button, Card, CardContent, Skeleton, Stack, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { useMemo } from 'react';
@@ -17,6 +23,8 @@ import type { Order } from '@shared/types/order';
 import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { PageHeader } from '@/components/PageHeader';
+import { TONE_COLOR, TrendBadge } from '@/components/StatCard';
+import type { StatTone, StatTrend } from '@/components/StatCard';
 import { useOrders } from '@/hooks/orders/useOrders';
 import { useProducts } from '@/hooks/products/useProducts';
 import {
@@ -26,7 +34,7 @@ import {
   monthKeyToDate,
   parseLocalDate,
 } from '@/utils/date';
-import { formatCurrency, formatCurrencyCompact } from '@/utils/format';
+import { formatCurrency, formatCurrencyCompact, formatPercent } from '@/utils/format';
 import { ROUTES } from '../../routes';
 import { AccountsReceivable } from './components/AccountsReceivable';
 import { DashboardCards } from './components/DashboardCards';
@@ -143,22 +151,55 @@ function SectionLink({ to, children }: { to: string; children: React.ReactNode }
 }
 
 /**
- * A legenda é markup próprio, e não `<Legend>` do Recharts: as barras são
- * pintadas com `url(#gradiente)` e o quadradinho derivado da barra sairia
- * tentando resolver essa URL, sem cor. Fora do gráfico ela ainda ganha a
- * tipografia do tema e libera a altura que o Recharts reservava.
+ * Faturamento e Lucro eram cards no topo da página; agora vivem como tags ao
+ * lado do título do gráfico que os detalha mês a mês — o card duplicava um
+ * número que o próprio gráfico já mostra. O quadradinho de cor substitui a
+ * antiga legenda: não é `<Legend>` do Recharts porque as barras são pintadas
+ * com `url(#gradiente)`, e o quadradinho derivado da barra sairia tentando
+ * resolver essa URL, sem cor.
  */
-function ChartLegend({ items }: { items: { label: string; color: string }[] }) {
+function SummaryTag({
+  label,
+  value,
+  color,
+  tone = 'neutral',
+  marginPct,
+  trend,
+}: {
+  label: string;
+  value: string;
+  color: string;
+  tone?: StatTone;
+  /** Fração do valor sobre o faturamento, ex. "R$ 1.234,56 (↑10%)". */
+  marginPct?: number;
+  trend?: StatTrend;
+}) {
+  const toneColor = TONE_COLOR[tone];
+  const MarginIcon = (marginPct ?? 0) < 0 ? ArrowDownward : ArrowUpward;
+
   return (
-    <Stack direction="row" spacing={1.5} alignItems="center">
-      {items.map((item) => (
-        <Stack key={item.label} direction="row" spacing={0.625} alignItems="center">
-          <Box sx={{ width: 10, height: 10, borderRadius: '3px', bgcolor: item.color }} />
-          <Typography variant="caption" color="text.secondary">
-            {item.label}
-          </Typography>
-        </Stack>
-      ))}
+    <Stack direction="row" spacing={0.75} alignItems="center">
+      <Box sx={{ width: 10, height: 10, borderRadius: '3px', flexShrink: 0, bgcolor: color }} />
+      <Typography variant="body2" color="text.secondary">
+        {label}
+      </Typography>
+      <Stack direction="row" alignItems="center" spacing={0.25}>
+        <Typography variant="body2" sx={{ fontWeight: 600, color: toneColor }}>
+          {value}
+        </Typography>
+        {marginPct !== undefined && (
+          <>
+            <Typography variant="body2" sx={{ fontWeight: 600, color: toneColor }}>
+              (
+            </Typography>
+            <MarginIcon sx={{ fontSize: 14, color: toneColor }} />
+            <Typography variant="body2" sx={{ fontWeight: 600, color: toneColor }}>
+              {formatPercent(Math.abs(marginPct), 0)})
+            </Typography>
+          </>
+        )}
+      </Stack>
+      {trend && <TrendBadge {...trend} />}
     </Stack>
   );
 }
@@ -172,6 +213,7 @@ function SectionCard({
   title,
   isLoading,
   chart,
+  tags,
   action,
   children,
 }: {
@@ -179,6 +221,8 @@ function SectionCard({
   isLoading?: boolean;
   /** A seção é um gráfico: o esqueleto é o retângulo da altura dele. */
   chart?: boolean;
+  /** Indicadores que o gráfico detalha, ao lado do título. */
+  tags?: React.ReactNode;
   /** Saída para a tela que lista o assunto por inteiro. */
   action?: React.ReactNode;
   children: React.ReactNode;
@@ -193,7 +237,10 @@ function SectionCard({
           spacing={1}
           sx={{ mb: 2 }}
         >
-          <Typography variant="h6">{title}</Typography>
+          <Stack direction="row" alignItems="center" spacing={2} flexWrap="wrap" useFlexGap>
+            <Typography variant="h6">{title}</Typography>
+            {!isLoading && tags}
+          </Stack>
           {!isLoading && action}
         </Stack>
         {isLoading && chart ? <Skeleton variant="rounded" height={CHART_HEIGHT} /> : children}
@@ -253,6 +300,7 @@ export function DashboardPage() {
   const totalRevenue = useMemo(() => sumRevenue(completedOrders), [completedOrders]);
   const totalProfit = useMemo(() => sumProfit(completedOrders), [completedOrders]);
   const avgTicket = completedOrders.length > 0 ? totalRevenue / completedOrders.length : 0;
+  const profitMargin = totalRevenue > 0 ? (totalProfit / totalRevenue) * 100 : undefined;
 
   // Sai de allOrders, não de orders: o período anterior está fora do filtro atual.
   const prevPeriodOrders = useMemo(
@@ -272,6 +320,9 @@ export function DashboardPage() {
   const revenueTrend = calcTrend(totalRevenue, prevRevenue);
   const profitTrend = calcTrend(totalProfit, prevProfit);
   const avgTicketTrend = calcTrend(avgTicket, prevAvgTicket);
+
+  const trendOf = (pct?: number): StatTrend | undefined =>
+    pct === undefined ? undefined : { pct, comparedTo: period.prevLabel };
 
   const lowStockCount = useMemo(
     () => products.filter((p) => p.stock <= p.minStock).length,
@@ -366,16 +417,11 @@ export function DashboardPage() {
 
       <DashboardCards
         isLoading={isLoading}
-        totalRevenue={totalRevenue}
-        totalProfit={totalProfit}
         periodSales={completedOrders.length}
         avgTicket={avgTicket}
         pendingOrders={pendingOrders.length}
         lowStockCount={lowStockCount}
-        revenueTrend={revenueTrend}
-        profitTrend={profitTrend}
         avgTicketTrend={avgTicketTrend}
-        periodLabel={period.label}
         prevPeriodLabel={period.prevLabel}
       />
 
@@ -383,13 +429,23 @@ export function DashboardPage() {
         title={`Faturamento e Lucro por Mês · ${period.label}`}
         isLoading={isLoading}
         chart
-        action={
-          <ChartLegend
-            items={[
-              { label: 'Faturamento', color: theme.palette.primary.main },
-              { label: 'Lucro', color: theme.palette.success.main },
-            ]}
-          />
+        tags={
+          <Stack direction="row" spacing={2} flexWrap="wrap" useFlexGap>
+            <SummaryTag
+              label="Faturamento"
+              value={formatCurrency(totalRevenue)}
+              color={theme.palette.primary.main}
+              trend={trendOf(revenueTrend)}
+            />
+            <SummaryTag
+              label="Lucro"
+              value={formatCurrency(totalProfit)}
+              color={theme.palette.success.main}
+              tone={totalProfit < 0 ? 'alert' : 'positive'}
+              marginPct={profitMargin}
+              trend={trendOf(profitTrend)}
+            />
+          </Stack>
         }
       >
         <ResponsiveContainer width="100%" height={CHART_HEIGHT}>
