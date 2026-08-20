@@ -23,8 +23,8 @@ import type { Order } from '@shared/types/order';
 import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { PageHeader } from '@/components/PageHeader';
-import { TONE_COLOR, TrendBadge } from '@/components/StatCard';
-import type { StatTone, StatTrend } from '@/components/StatCard';
+import { TONE_COLOR } from '@/components/StatCard';
+import type { StatTone } from '@/components/StatCard';
 import { useOrders } from '@/hooks/orders/useOrders';
 import { useProducts } from '@/hooks/products/useProducts';
 import {
@@ -58,11 +58,6 @@ function formatPeriodLabel(start: Date, end: Date): string {
   const to = monthKeyOf(end);
   if (from === to) return formatMonthYear(from);
   return `${formatMonthYear(from)} – ${formatMonthYear(to)}`;
-}
-
-function calcTrend(current: number, previous: number): number | undefined {
-  if (previous <= 0) return undefined;
-  return ((current - previous) / previous) * 100;
 }
 
 interface Period {
@@ -164,7 +159,6 @@ function SummaryTag({
   color,
   tone = 'neutral',
   marginPct,
-  trend,
 }: {
   label: string;
   value: string;
@@ -172,7 +166,6 @@ function SummaryTag({
   tone?: StatTone;
   /** Fração do valor sobre o faturamento, ex. "R$ 1.234,56 (↑10%)". */
   marginPct?: number;
-  trend?: StatTrend;
 }) {
   const toneColor = TONE_COLOR[tone];
   const MarginIcon = (marginPct ?? 0) < 0 ? ArrowDownward : ArrowUpward;
@@ -199,7 +192,6 @@ function SummaryTag({
           </>
         )}
       </Stack>
-      {trend && <TrendBadge {...trend} />}
     </Stack>
   );
 }
@@ -301,28 +293,6 @@ export function DashboardPage() {
   const totalProfit = useMemo(() => sumProfit(completedOrders), [completedOrders]);
   const avgTicket = completedOrders.length > 0 ? totalRevenue / completedOrders.length : 0;
   const profitMargin = totalRevenue > 0 ? (totalProfit / totalRevenue) * 100 : undefined;
-
-  // Sai de allOrders, não de orders: o período anterior está fora do filtro atual.
-  const prevPeriodOrders = useMemo(
-    () =>
-      allOrders.filter((o) => {
-        if (o.status !== 'completed') return false;
-        const d = new Date(o.createdAt);
-        return d >= period.prevStart && d <= period.prevEnd;
-      }),
-    [allOrders, period],
-  );
-
-  const prevRevenue = useMemo(() => sumRevenue(prevPeriodOrders), [prevPeriodOrders]);
-  const prevProfit = useMemo(() => sumProfit(prevPeriodOrders), [prevPeriodOrders]);
-  const prevAvgTicket = prevPeriodOrders.length > 0 ? prevRevenue / prevPeriodOrders.length : 0;
-
-  const revenueTrend = calcTrend(totalRevenue, prevRevenue);
-  const profitTrend = calcTrend(totalProfit, prevProfit);
-  const avgTicketTrend = calcTrend(avgTicket, prevAvgTicket);
-
-  const trendOf = (pct?: number): StatTrend | undefined =>
-    pct === undefined ? undefined : { pct, comparedTo: period.prevLabel };
 
   const lowStockCount = useMemo(
     () => products.filter((p) => p.stock <= p.minStock).length,
@@ -431,7 +401,6 @@ export function DashboardPage() {
               label="Faturamento"
               value={formatCurrency(totalRevenue)}
               color={theme.palette.primary.main}
-              trend={trendOf(revenueTrend)}
             />
             <SummaryTag
               label="Lucro"
@@ -439,7 +408,6 @@ export function DashboardPage() {
               color={theme.palette.success.main}
               tone={totalProfit < 0 ? 'alert' : 'positive'}
               marginPct={profitMargin}
-              trend={trendOf(profitTrend)}
             />
           </Stack>
         }
@@ -506,7 +474,6 @@ export function DashboardPage() {
               label="Ticket Médio"
               value={formatCurrency(avgTicket)}
               color={theme.palette.info.main}
-              trend={trendOf(avgTicketTrend)}
             />
           </Stack>
         }
