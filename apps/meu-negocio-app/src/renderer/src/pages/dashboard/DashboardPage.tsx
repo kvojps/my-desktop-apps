@@ -417,16 +417,12 @@ export function DashboardPage() {
 
       <DashboardCards
         isLoading={isLoading}
-        periodSales={completedOrders.length}
-        avgTicket={avgTicket}
         pendingOrders={pendingOrders.length}
         lowStockCount={lowStockCount}
-        avgTicketTrend={avgTicketTrend}
-        prevPeriodLabel={period.prevLabel}
       />
 
       <SectionCard
-        title={`Faturamento e Lucro por Mês · ${period.label}`}
+        title="Faturamento e Lucro por Mês"
         isLoading={isLoading}
         chart
         tags={
@@ -499,6 +495,21 @@ export function DashboardPage() {
         title="Produtos Mais Vendidos"
         isLoading={isLoading}
         chart
+        tags={
+          <Stack direction="row" spacing={2} flexWrap="wrap" useFlexGap>
+            <SummaryTag
+              label="Total de Vendas"
+              value={String(completedOrders.length)}
+              color={theme.palette.secondary.main}
+            />
+            <SummaryTag
+              label="Ticket Médio"
+              value={formatCurrency(avgTicket)}
+              color={theme.palette.info.main}
+              trend={trendOf(avgTicketTrend)}
+            />
+          </Stack>
+        }
         action={<SectionLink to={ROUTES.PRODUCTS}>Ver produtos</SectionLink>}
       >
         {topProducts.length === 0 ? (
