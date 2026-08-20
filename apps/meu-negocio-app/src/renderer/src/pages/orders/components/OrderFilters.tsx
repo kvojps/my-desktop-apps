@@ -44,8 +44,10 @@ export function OrderFilters({
             onChange={(e) => onChange({ ...filters, search: e.target.value })}
             sx={{
               minWidth: 220,
-              '& .MuiInputBase-input': { fontSize: '0.875rem' },
-              '& .MuiInputBase-input::placeholder': {
+              maxWidth: 320,
+              '& .MuiInputBase-input': {
+                fontSize: '0.875rem',
+                overflow: 'hidden',
                 textOverflow: 'ellipsis',
               },
             }}
@@ -67,15 +69,29 @@ export function OrderFilters({
           size="small"
           value={filters.status}
           onChange={(e) => onChange({ ...filters, status: e.target.value })}
-          sx={{ minWidth: 180, '& .MuiInputBase-input': { fontSize: '0.875rem' } }}
+          sx={{ minWidth: 180, maxWidth: 260, '& .MuiInputBase-input': { fontSize: '0.875rem' } }}
           slotProps={{
             select: {
               displayEmpty: true,
               renderValue: (value) =>
                 value ? (
-                  ORDER_STATUS_LABELS[value as OrderStatus]
+                  <Typography
+                    component="span"
+                    variant="body2"
+                    noWrap
+                    title={ORDER_STATUS_LABELS[value as OrderStatus]}
+                    sx={{ display: 'block' }}
+                  >
+                    {ORDER_STATUS_LABELS[value as OrderStatus]}
+                  </Typography>
                 ) : (
-                  <Typography component="span" variant="body2" color="text.secondary">
+                  <Typography
+                    component="span"
+                    variant="body2"
+                    color="text.secondary"
+                    noWrap
+                    sx={{ display: 'block' }}
+                  >
                     Todos os status
                   </Typography>
                 ),
@@ -96,15 +112,29 @@ export function OrderFilters({
           size="small"
           value={filters.paymentStatus}
           onChange={(e) => onChange({ ...filters, paymentStatus: e.target.value })}
-          sx={{ minWidth: 180, '& .MuiInputBase-input': { fontSize: '0.875rem' } }}
+          sx={{ minWidth: 180, maxWidth: 260, '& .MuiInputBase-input': { fontSize: '0.875rem' } }}
           slotProps={{
             select: {
               displayEmpty: true,
               renderValue: (value) =>
                 value ? (
-                  PAYMENT_STATUS_LABELS[value as PaymentStatus]
+                  <Typography
+                    component="span"
+                    variant="body2"
+                    noWrap
+                    title={PAYMENT_STATUS_LABELS[value as PaymentStatus]}
+                    sx={{ display: 'block' }}
+                  >
+                    {PAYMENT_STATUS_LABELS[value as PaymentStatus]}
+                  </Typography>
                 ) : (
-                  <Typography component="span" variant="body2" color="text.secondary">
+                  <Typography
+                    component="span"
+                    variant="body2"
+                    color="text.secondary"
+                    noWrap
+                    sx={{ display: 'block' }}
+                  >
                     Todos os pagamentos
                   </Typography>
                 ),

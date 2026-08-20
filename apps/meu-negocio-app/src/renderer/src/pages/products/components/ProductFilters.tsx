@@ -28,16 +28,18 @@ export function ProductFilters({
     // Sem superfície própria: a tabela logo abaixo já é um `Paper` com borda, e
     // dois retângulos empilhados leem como duas seções quando são uma (§4).
     <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap" useFlexGap>
-      <Tooltip title="Buscar por nome, categoria, fornecedor...">
+      <Tooltip title="Buscar por nome, categoria, fornecedor">
         <TextField
           size="small"
-          placeholder="Buscar por nome, categoria, fornecedor..."
+          placeholder="Buscar por nome, categoria, fornecedor"
           value={filters.search}
           onChange={(e) => onChange({ ...filters, search: e.target.value })}
           sx={{
             minWidth: 220,
-            '& .MuiInputBase-input': { fontSize: '0.875rem' },
-            '& .MuiInputBase-input::placeholder': {
+            maxWidth: 320,
+            '& .MuiInputBase-input': {
+              fontSize: '0.875rem',
+              overflow: 'hidden',
               textOverflow: 'ellipsis',
             },
           }}
@@ -57,15 +59,29 @@ export function ProductFilters({
         size="small"
         value={filters.category}
         onChange={(e) => onChange({ ...filters, category: e.target.value })}
-        sx={{ minWidth: 200, '& .MuiInputBase-input': { fontSize: '0.875rem' } }}
+        sx={{ minWidth: 200, maxWidth: 280, '& .MuiInputBase-input': { fontSize: '0.875rem' } }}
         slotProps={{
           select: {
             displayEmpty: true,
             renderValue: (value) =>
               value ? (
-                (value as string)
+                <Typography
+                  component="span"
+                  variant="body2"
+                  noWrap
+                  title={value as string}
+                  sx={{ display: 'block' }}
+                >
+                  {value as string}
+                </Typography>
               ) : (
-                <Typography component="span" variant="body2" color="text.secondary">
+                <Typography
+                  component="span"
+                  variant="body2"
+                  color="text.secondary"
+                  noWrap
+                  sx={{ display: 'block' }}
+                >
                   Todas as categorias
                 </Typography>
               ),
