@@ -153,6 +153,28 @@ export function StatCardSkeleton() {
   );
 }
 
+const GRID_MAX_COLUMNS = 4;
+
+/**
+ * Colunas da faixa larga acima de quatro cards: entre 2 e `GRID_MAX_COLUMNS`,
+ * a que deixa a última linha mais cheia — menos "vão" de células vazias no
+ * fim da grade — preferindo mais colunas em caso de empate. Com cinco cards
+ * isso dá 3+2 em vez de um card órfão sozinho (4+1); com seis, 3+3 em vez de
+ * uma segunda linha pela metade (4+2).
+ */
+function resolveWideColumns(count: number): number {
+  let best = GRID_MAX_COLUMNS;
+  let bestGap = (GRID_MAX_COLUMNS - (count % GRID_MAX_COLUMNS)) % GRID_MAX_COLUMNS;
+  for (let k = GRID_MAX_COLUMNS - 1; k >= 2; k--) {
+    const gap = (k - (count % k)) % k;
+    if (gap < bestGap) {
+      best = k;
+      bestGap = gap;
+    }
+  }
+  return best;
+}
+
 /**
  * Grade dos indicadores. As colunas são explícitas porque `auto-fit` deixava
  * órfãos — com seis cards numa janela larga ele produzia cinco numa linha e um
@@ -164,10 +186,8 @@ export function StatCardSkeleton() {
  */
 export function StatCardGrid({ count, children }: { count: number; children: ReactNode }) {
   // Quatro é o teto: na faixa larga (1152px) cinco cards dariam 216px cada, e um
-  // valor em reais com o ladrilho ao lado não cabe nisso. Acima de quatro cai
-  // para três quando quatro deixaria um card sozinho na última linha — com
-  // cinco cards, 3+2 lê melhor que 4+1.
-  const wideColumns = count <= 4 ? count : count % 4 === 1 ? 3 : 4;
+  // valor em reais com o ladrilho ao lado não cabe nisso.
+  const wideColumns = count <= GRID_MAX_COLUMNS ? count : resolveWideColumns(count);
 
   return (
     <Box

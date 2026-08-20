@@ -1,10 +1,4 @@
-import {
-  ChevronRight,
-  DashboardOutlined,
-  Inventory2Outlined,
-  ReceiptLongOutlined,
-  SellOutlined,
-} from '@mui/icons-material';
+import { ChevronRight, DashboardOutlined, SellOutlined } from '@mui/icons-material';
 import { Box, Button, Card, CardContent, Skeleton, Stack, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { useMemo } from 'react';
@@ -13,31 +7,20 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
-  Cell,
   Tooltip as RechartsTooltip,
   ResponsiveContainer,
   XAxis,
   YAxis,
 } from 'recharts';
-import {
-  ORDER_STATUS_COLOR,
-  ORDER_STATUS_LABELS,
-  getOrderProfit,
-  getOrderTotal,
-} from '@shared/types/order';
-import type { Order, OrderStatus } from '@shared/types/order';
-import type { Product } from '@shared/types/product';
-import { DataTable } from '@/components/DataTable';
-import type { Column } from '@/components/DataTable';
+import { getOrderProfit, getOrderTotal } from '@shared/types/order';
+import type { Order } from '@shared/types/order';
 import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { PageHeader } from '@/components/PageHeader';
 import { useOrders } from '@/hooks/orders/useOrders';
 import { useProducts } from '@/hooks/products/useProducts';
-import { contentQuery } from '@/theme';
 import {
   enumerateMonthKeys,
-  formatDate,
   monthDiff,
   monthKeyOf,
   monthKeyToDate,
@@ -146,34 +129,6 @@ function getYAxisWidth(labels: string[]): number {
   const maxTextWidth = Math.max(...labels.map(measureTextWidth));
   return Math.ceil(TICK_LEFT_PADDING + maxTextWidth + TICK_BAR_GAP);
 }
-
-const lowStockColumns: Column<Product>[] = [
-  { key: 'name', label: 'Produto', render: (p) => p.name },
-  {
-    key: 'stock',
-    label: 'Estoque',
-    align: 'right',
-    // Só a condição que pede atenção é pintada; toda linha desta tabela está
-    // abaixo do mínimo, e é o saldo atual que se compara com ele (§1.5).
-    render: (p) => (
-      <Box component="span" sx={{ color: 'error.main', fontWeight: 600 }}>
-        {p.stock}
-      </Box>
-    ),
-  },
-  { key: 'minStock', label: 'Mínimo', align: 'right', render: (p) => p.minStock },
-];
-
-const recentSalesColumns: Column<Order>[] = [
-  { key: 'customerName', label: 'Cliente', render: (o) => o.customerName },
-  {
-    key: 'total',
-    label: 'Valor',
-    align: 'right',
-    render: (o) => formatCurrency(getOrderTotal(o)),
-  },
-  { key: 'createdAt', label: 'Data', render: (o) => formatDate(o.createdAt) },
-];
 
 /**
  * As seções do dashboard eram becos sem saída: mostravam um recorte e não
@@ -382,44 +337,9 @@ export function DashboardPage() {
     return padded;
   }, [topProducts]);
 
-  const orderStatusData = useMemo(() => {
-    const counts: Record<OrderStatus, number> = {
-      pending: 0,
-      in_progress: 0,
-      completed: 0,
-      cancelled: 0,
-    };
-    for (const order of orders) {
-      counts[order.status]++;
-    }
-    return (Object.keys(counts) as OrderStatus[]).map((status) => ({
-      status,
-      label: ORDER_STATUS_LABELS[status],
-      count: counts[status],
-      color: ORDER_STATUS_COLOR[status],
-    }));
-  }, [orders]);
-
   const productYAxisWidth = useMemo(
     () => getYAxisWidth(topProducts.map((p) => p.name)),
     [topProducts],
-  );
-  const statusYAxisWidth = useMemo(
-    () => getYAxisWidth(orderStatusData.map((d) => d.label)),
-    [orderStatusData],
-  );
-
-  const lowStockProducts = useMemo(
-    () => products.filter((p) => p.stock <= p.minStock).slice(0, 5),
-    [products],
-  );
-
-  const recentSales = useMemo(
-    () =>
-      [...completedOrders]
-        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-        .slice(0, 5),
-    [completedOrders],
   );
 
   // Carregando → erro → vazio. Sem o ramo de erro, um banco que não abre
@@ -519,174 +439,50 @@ export function DashboardPage() {
         </ResponsiveContainer>
       </SectionCard>
 
-      {/* Duas colunas só quando a *faixa de conteúdo* comporta — o breakpoint
-          `md` do MUI mede a janela, e o rail mais o padding cobram ~128px, de
-          modo que ele dispara quando não há espaço de `md` (§2.2). O limiar é o
-          `wide`: um gráfico de barras horizontais precisa de largura para o
-          eixo de nomes mais a barra, e a metade de 640px não dá isso.
-
-          `minWidth: 0` em cada filho porque o `ResponsiveContainer` mede o pai
-          para se dimensionar: sem o piso, os dois se realimentam e o card
-          engorda a cada quadro (§7). */}
-      <Box
-        sx={{
-          display: 'grid',
-          gap: 2,
-          gridTemplateColumns: '1fr',
-          '& > *': { minWidth: 0 },
-          [contentQuery.wide]: { gridTemplateColumns: '1fr 1fr' },
-        }}
+      <SectionCard
+        title="Produtos Mais Vendidos"
+        isLoading={isLoading}
+        chart
+        action={<SectionLink to={ROUTES.PRODUCTS}>Ver produtos</SectionLink>}
       >
-        <SectionCard
-          title="Produtos Mais Vendidos"
-          isLoading={isLoading}
-          chart
-          action={<SectionLink to={ROUTES.PRODUCTS}>Ver produtos</SectionLink>}
-        >
-          {topProducts.length === 0 ? (
-            <EmptyState
-              icon={<SellOutlined sx={{ fontSize: 40 }} />}
-              title="Nenhuma venda no período."
-              description="A partir da primeira venda concluída, os cinco produtos que mais saíram aparecem aqui."
-            />
-          ) : (
-            <ResponsiveContainer width="100%" height={CHART_HEIGHT}>
-              <BarChart
-                data={topProductsChartData}
-                layout="vertical"
-                margin={{ top: 0, right: 24, left: 0, bottom: 0 }}
-                barCategoryGap="30%"
-              >
-                <defs>
-                  <linearGradient id="barTopProducts" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="0%" stopColor={theme.palette.primary.main} stopOpacity={1} />
-                    <stop
-                      offset="100%"
-                      stopColor={theme.palette.secondary.main}
-                      stopOpacity={0.9}
-                    />
-                  </linearGradient>
-                </defs>
-                <XAxis type="number" hide domain={[0, 'dataMax']} />
-                <YAxis
-                  type="category"
-                  dataKey="name"
-                  width={productYAxisWidth}
-                  tick={(props) => renderLeftAlignedTick(props, theme.palette.text.secondary)}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <RechartsTooltip
-                  formatter={(value) => [`${Number(value)} un`, 'Quantidade']}
-                  {...tooltipProps(theme)}
-                />
-                <Bar dataKey="qty" fill="url(#barTopProducts)" radius={[0, 4, 4, 0]} barSize={16} />
-              </BarChart>
-            </ResponsiveContainer>
-          )}
-        </SectionCard>
-
-        <SectionCard
-          title="Pedidos por Status"
-          isLoading={isLoading}
-          chart
-          action={<SectionLink to={ROUTES.ORDERS}>Ver pedidos</SectionLink>}
-        >
-          {orders.length === 0 ? (
-            <EmptyState
-              icon={<ReceiptLongOutlined sx={{ fontSize: 40 }} />}
-              title="Nenhum pedido no período."
-              description="A distribuição entre pendente, em andamento, concluído e cancelado aparece aqui assim que houver pedidos."
-            />
-          ) : (
-            <ResponsiveContainer width="100%" height={CHART_HEIGHT}>
-              <BarChart
-                data={orderStatusData}
-                layout="vertical"
-                margin={{ top: 0, right: 24, left: 0, bottom: 0 }}
-                barCategoryGap="30%"
-              >
-                <XAxis type="number" hide allowDecimals={false} domain={[0, 'dataMax']} />
-                <YAxis
-                  type="category"
-                  dataKey="label"
-                  width={statusYAxisWidth}
-                  tick={(props) => renderLeftAlignedTick(props, theme.palette.text.secondary)}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <RechartsTooltip
-                  formatter={(value) => [Number(value), 'Pedidos']}
-                  {...tooltipProps(theme)}
-                />
-                <Bar dataKey="count" radius={[0, 4, 4, 0]} barSize={16}>
-                  {orderStatusData.map((d) => (
-                    <Cell key={d.status} fill={theme.palette[d.color].main} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          )}
-        </SectionCard>
-      </Box>
-
-      <Box
-        sx={{
-          display: 'grid',
-          gap: 2,
-          gridTemplateColumns: '1fr',
-          '& > *': { minWidth: 0 },
-          [contentQuery.wide]: { gridTemplateColumns: '1fr 1fr' },
-        }}
-      >
-        <SectionCard
-          title="Estoque Crítico"
-          isLoading={isLoading}
-          action={<SectionLink to={ROUTES.PRODUCTS}>Ver produtos</SectionLink>}
-        >
-          <DataTable
-            flush
-            columns={lowStockColumns}
-            items={lowStockProducts}
-            totalCount={lowStockCount}
-            start={0}
-            getRowKey={(p) => p.id}
-            footerLabel="produtos abaixo do mínimo"
-            isLoading={isLoading}
-            empty={
-              <EmptyState
-                icon={<Inventory2Outlined sx={{ fontSize: 40 }} />}
-                title="Nenhum produto com estoque baixo."
-                description="Todo item do catálogo está acima do estoque mínimo que você definiu."
-              />
-            }
+        {topProducts.length === 0 ? (
+          <EmptyState
+            icon={<SellOutlined sx={{ fontSize: 40 }} />}
+            title="Nenhuma venda no período."
+            description="A partir da primeira venda concluída, os cinco produtos que mais saíram aparecem aqui."
           />
-        </SectionCard>
-
-        <SectionCard
-          title="Últimas Vendas"
-          isLoading={isLoading}
-          action={<SectionLink to={ROUTES.SALES}>Ver vendas</SectionLink>}
-        >
-          <DataTable
-            flush
-            columns={recentSalesColumns}
-            items={recentSales}
-            totalCount={completedOrders.length}
-            start={0}
-            getRowKey={(o) => o.id}
-            footerLabel="vendas no período"
-            isLoading={isLoading}
-            empty={
-              <EmptyState
-                icon={<SellOutlined sx={{ fontSize: 40 }} />}
-                title="Nenhuma venda no período."
-                description="As vendas mais recentes aparecem aqui assim que um pedido for concluído."
+        ) : (
+          <ResponsiveContainer width="100%" height={CHART_HEIGHT}>
+            <BarChart
+              data={topProductsChartData}
+              layout="vertical"
+              margin={{ top: 0, right: 24, left: 0, bottom: 0 }}
+              barCategoryGap="30%"
+            >
+              <defs>
+                <linearGradient id="barTopProducts" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0%" stopColor={theme.palette.primary.main} stopOpacity={1} />
+                  <stop offset="100%" stopColor={theme.palette.secondary.main} stopOpacity={0.9} />
+                </linearGradient>
+              </defs>
+              <XAxis type="number" hide domain={[0, 'dataMax']} />
+              <YAxis
+                type="category"
+                dataKey="name"
+                width={productYAxisWidth}
+                tick={(props) => renderLeftAlignedTick(props, theme.palette.text.secondary)}
+                axisLine={false}
+                tickLine={false}
               />
-            }
-          />
-        </SectionCard>
-      </Box>
+              <RechartsTooltip
+                formatter={(value) => [`${Number(value)} un`, 'Quantidade']}
+                {...tooltipProps(theme)}
+              />
+              <Bar dataKey="qty" fill="url(#barTopProducts)" radius={[0, 4, 4, 0]} barSize={16} />
+            </BarChart>
+          </ResponsiveContainer>
+        )}
+      </SectionCard>
 
       <SectionCard
         title="Contas a Receber"
