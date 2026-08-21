@@ -165,6 +165,13 @@ export interface ThemeApi {
 }
 
 export interface ElectronApi {
+  /**
+   * Assina o aviso de que os dados mudaram e devolve a função que cancela a
+   * assinatura. É o único ponto da API que não é `invoke`: o main precisa
+   * poder falar primeiro, porque nem toda mudança nasce de uma ação da tela
+   * (o mês corrente criado no foco da janela, por exemplo).
+   */
+  onDataChanged: (listener: () => void) => () => void;
   setup: SetupApi;
   months: MonthsApi;
   defaultExpenses: DefaultExpensesApi;

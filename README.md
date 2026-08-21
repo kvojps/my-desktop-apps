@@ -47,9 +47,15 @@ Cada app tem o seu `shared` — o nome não significa "compartilhado entre apps"
   domínio tem um repositório (`productsRepository.ts`, `monthsRepository.ts`, …)
   e é o único lugar que escreve SQL.
 - **`ipc/`** — `registerIpc.ts` registra os handlers e `handle.ts` embrulha o
-  `ipcMain.handle`. Nenhum handler usa `ipcMain.handle` direto: é o `handle` que
-  passa qualquer falha por `toIpcError` antes de devolvê-la, garantindo que o
-  renderer nunca receba um erro sem código.
+  `ipcMain.handle`. Nenhum handler usa `ipcMain.handle` direto, e é essa
+  exclusividade que dá ao `handle` as duas responsabilidades que ele tem: passar
+  qualquer falha por `toIpcError` antes de devolvê-la, garantindo que o renderer
+  nunca receba um erro sem código; e, quando um canal de **escrita** termina bem,
+  disparar `notifyDataChanged()` — o evento que mantém as telas em dia.
+  Escrita é definido por exclusão: `READ_ONLY_CHANNELS`, em
+  `shared/ipc/channels.ts`, enumera as **leituras**, e todo canal fora dela
+  avisa. A lista é das leituras de propósito — esquecer de classificar um canal
+  novo custa uma recarga a mais, nunca um valor velho na tela.
 - **`schemas/`** — schemas zod por domínio. Toda entrada vinda do renderer passa
   por `parseOrThrow` e todo id por `parseId`, porque o preload é código do próprio
   app mas o contrato de tipos não sobrevive em runtime.
@@ -67,6 +73,12 @@ Um arquivo só, que implementa a interface `ElectronApi` de `@shared/ipc/api` co
 `ipcRenderer.invoke` e a expõe por `contextBridge`. `contextIsolation` fica ligado
 e o renderer não tem acesso a Node: tudo que ele pode fazer está enumerado aqui.
 
+Uma única entrada não é `invoke`: `onDataChanged`, que assina um `ipcRenderer.on`
+e devolve a função de cancelamento. Ela existe porque o main precisa poder falar
+primeiro — nem toda mudança nasce de uma ação da tela, e o mês corrente criado no
+foco da janela é o exemplo. Ver
+[`docs/adr/0001-invalidacao-por-broadcast.md`](docs/adr/0001-invalidacao-por-broadcast.md).
+
 ### 2.4 `src/renderer` — React
 
 `HashRouter` (necessário no `file://` do build), MUI com tema em `theme/`, imports
@@ -83,8 +95,11 @@ alteração de UI começa por ele.
   resto do renderer chama métodos comuns.
 - **`contexts/`** — domínio consumido por mais de uma tela vira context, com um
   hook fino em `hooks/<domínio>/` que só o repassa. Estado que interessa a uma
-  tela só continua no hook da própria tela. Quem altera um domínio de fora do
-  context precisa chamar o `reload` dele.
+  tela só continua no hook da própria tela. **A invalidação é automática**:
+  quem guarda dado assina `useDataChanged(reload)` e o main avisa a cada
+  gravação, de modo que nenhuma mutação precisa lembrar de recarregar nada.
+  O context expõe `reload` para esse aviso e `retry` para o `ErrorState` (a
+  distinção entre os dois está no design system, §5.3).
 - **`components/`** vs **`pages/<tela>/components/`** — o componente nasce na
   pasta da tela e só sobe para `components/` quando uma segunda tela precisa dele.
 - **Avisos e erros** — `useSnackbar` com `showSnackbar` para mensagem própria e
