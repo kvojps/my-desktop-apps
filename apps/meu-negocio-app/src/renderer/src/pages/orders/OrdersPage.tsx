@@ -129,12 +129,7 @@ export function OrdersPage() {
 
       {orders.length > 0 && (
         <OrderFilters filters={filters} onChange={setFilters} hideStatuses={['completed']}>
-          <Button
-            variant="contained"
-            startIcon={<Add />}
-            onClick={form.open}
-            sx={{ ml: 'auto' }}
-          >
+          <Button variant="contained" startIcon={<Add />} onClick={form.open} sx={{ ml: 'auto' }}>
             Novo Pedido
           </Button>
         </OrderFilters>
