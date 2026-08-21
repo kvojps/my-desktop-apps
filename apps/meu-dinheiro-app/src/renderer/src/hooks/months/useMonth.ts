@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { decodeAppError } from '@shared/errors/appError';
 import { MonthDetail } from '@shared/types/month';
 import { api } from '@/api/client';
 import { useMonthsContext } from '@/contexts/MonthsContext';
 import { useSnackbar } from '@/contexts/SnackbarContext';
+import { useDataChanged } from '@/hooks/useDataChanged';
 
 export function useMonth(id: string | undefined) {
   const [month, setMonth] = useState<MonthDetail | null>(null);
@@ -12,7 +13,7 @@ export function useMonth(id: string | undefined) {
   const [error, setError] = useState<unknown>(null);
   const [deleting, setDeleting] = useState(false);
   const { showSnackbar, showError } = useSnackbar();
-  const { months, reload: reloadMonths } = useMonthsContext();
+  const { months } = useMonthsContext();
 
   // A navegação entre meses sai da lista global: se ela ainda estiver
   // carregando quando a tela abre, os vizinhos aparecem assim que chegar.
@@ -50,6 +51,14 @@ export function useMonth(id: string | undefined) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
+  // Enquanto a exclusão corre, recarregar buscaria um mês que já não existe e
+  // faria `notFound` piscar antes da tela navegar para a Visão Geral.
+  const deletingRef = useRef(false);
+  deletingRef.current = deleting;
+  useDataChanged(() => {
+    if (!deletingRef.current) reload();
+  });
+
   function retry() {
     setLoading(true);
     setNotFound(false);
@@ -67,7 +76,6 @@ export function useMonth(id: string | undefined) {
     try {
       await api.payExpense(expenseId, file, notes, paidAt, bankAccountId);
       showSnackbar('Despesa marcada como paga!');
-      await reload();
       return true;
     } catch (err) {
       showError(err);
@@ -79,7 +87,6 @@ export function useMonth(id: string | undefined) {
     try {
       await api.unpayExpense(expenseId);
       showSnackbar('Pagamento desmarcado');
-      await reload();
       return true;
     } catch (err) {
       showError(err);
@@ -97,7 +104,6 @@ export function useMonth(id: string | undefined) {
     try {
       await api.createExpense(Number(id), data);
       showSnackbar('Despesa adicionada');
-      await reload();
       return true;
     } catch (err) {
       showError(err);
@@ -118,7 +124,6 @@ export function useMonth(id: string | undefined) {
     try {
       await api.updateExpense(expenseId, data);
       showSnackbar('Despesa atualizada');
-      await reload();
       return true;
     } catch (err) {
       showError(err);
@@ -130,7 +135,6 @@ export function useMonth(id: string | undefined) {
     try {
       await api.deleteExpense(expenseId);
       showSnackbar('Despesa removida');
-      await reload();
       return true;
     } catch (err) {
       showError(err);
@@ -147,7 +151,6 @@ export function useMonth(id: string | undefined) {
     try {
       await api.receiveIncome(incomeId, notes, receivedAt, bankAccountId);
       showSnackbar('Entrada marcada como recebida!');
-      await reload();
       return true;
     } catch (err) {
       showError(err);
@@ -159,7 +162,6 @@ export function useMonth(id: string | undefined) {
     try {
       await api.unreceiveIncome(incomeId);
       showSnackbar('Recebimento desmarcado');
-      await reload();
       return true;
     } catch (err) {
       showError(err);
@@ -177,7 +179,6 @@ export function useMonth(id: string | undefined) {
     try {
       await api.createIncome(Number(id), data);
       showSnackbar('Entrada adicionada');
-      await reload();
       return true;
     } catch (err) {
       showError(err);
@@ -198,7 +199,6 @@ export function useMonth(id: string | undefined) {
     try {
       await api.updateIncome(incomeId, data);
       showSnackbar('Entrada atualizada');
-      await reload();
       return true;
     } catch (err) {
       showError(err);
@@ -210,7 +210,6 @@ export function useMonth(id: string | undefined) {
     try {
       await api.deleteIncome(incomeId);
       showSnackbar('Entrada removida');
-      await reload();
       return true;
     } catch (err) {
       showError(err);
@@ -223,7 +222,6 @@ export function useMonth(id: string | undefined) {
     setDeleting(true);
     try {
       await api.deleteMonth(Number(id));
-      await reloadMonths();
       return true;
     } catch (err) {
       showError(err);

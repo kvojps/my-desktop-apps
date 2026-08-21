@@ -9,6 +9,7 @@ import {
 } from 'react';
 import { Category } from '@shared/types/category';
 import { api } from '@/api/client';
+import { useDataChanged } from '@/hooks/useDataChanged';
 import { useSnackbar } from './SnackbarContext';
 
 export interface CategoriesContextValue {
@@ -48,6 +49,10 @@ export function CategoriesProvider({ children }: { children: ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // O main avisa toda vez que algo é gravado; ninguém precisa lembrar de
+  // recarregar depois de escrever.
+  useDataChanged(reload);
+
   const retry = useCallback(() => {
     setLoading(true);
     setError(null);
@@ -64,14 +69,13 @@ export function CategoriesProvider({ children }: { children: ReactNode }) {
           await api.createCategory(data);
           showSnackbar('Categoria adicionada');
         }
-        await reload();
         return true;
       } catch (err) {
         showError(err);
         return false;
       }
     },
-    [reload, showError, showSnackbar],
+    [showError, showSnackbar],
   );
 
   const remove = useCallback(
@@ -79,12 +83,11 @@ export function CategoriesProvider({ children }: { children: ReactNode }) {
       try {
         await api.deleteCategory(id);
         showSnackbar('Categoria removida');
-        await reload();
       } catch (err) {
         showError(err);
       }
     },
-    [reload, showError, showSnackbar],
+    [showError, showSnackbar],
   );
 
   const value = useMemo<CategoriesContextValue>(

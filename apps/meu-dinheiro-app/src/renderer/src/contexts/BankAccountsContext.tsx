@@ -9,6 +9,7 @@ import {
 } from 'react';
 import { BankAccount } from '@shared/types/bank-account';
 import { api } from '@/api/client';
+import { useDataChanged } from '@/hooks/useDataChanged';
 import { useSnackbar } from './SnackbarContext';
 
 export interface BankAccountsContextValue {
@@ -48,6 +49,10 @@ export function BankAccountsProvider({ children }: { children: ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // O main avisa toda vez que algo é gravado; ninguém precisa lembrar de
+  // recarregar depois de escrever.
+  useDataChanged(reload);
+
   const retry = useCallback(() => {
     setLoading(true);
     setError(null);
@@ -64,14 +69,13 @@ export function BankAccountsProvider({ children }: { children: ReactNode }) {
           await api.createBankAccount(data);
           showSnackbar('Conta adicionada');
         }
-        await reload();
         return true;
       } catch (err) {
         showError(err);
         return false;
       }
     },
-    [reload, showError, showSnackbar],
+    [showError, showSnackbar],
   );
 
   const remove = useCallback(
@@ -79,12 +83,11 @@ export function BankAccountsProvider({ children }: { children: ReactNode }) {
       try {
         await api.deleteBankAccount(id);
         showSnackbar('Conta removida');
-        await reload();
       } catch (err) {
         showError(err);
       }
     },
-    [reload, showError, showSnackbar],
+    [showError, showSnackbar],
   );
 
   const value = useMemo<BankAccountsContextValue>(

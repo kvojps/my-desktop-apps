@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { DefaultIncome } from '@shared/types/income';
 import { api } from '@/api/client';
 import { useSnackbar } from '@/contexts/SnackbarContext';
+import { useDataChanged } from '@/hooks/useDataChanged';
 
 export function useDefaultIncomes() {
   const { showError, showSnackbar } = useSnackbar();
@@ -28,6 +29,8 @@ export function useDefaultIncomes() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useDataChanged(reload);
+
   function retry() {
     setLoading(true);
     setError(null);
@@ -46,7 +49,6 @@ export function useDefaultIncomes() {
         await api.createDefaultIncome(data);
         showSnackbar('Entrada padrão adicionada');
       }
-      await reload();
       return true;
     } catch (err) {
       showError(err);
@@ -58,7 +60,6 @@ export function useDefaultIncomes() {
     try {
       await api.deleteDefaultIncome(id);
       showSnackbar('Entrada padrão removida');
-      await reload();
     } catch (err) {
       showError(err);
     }

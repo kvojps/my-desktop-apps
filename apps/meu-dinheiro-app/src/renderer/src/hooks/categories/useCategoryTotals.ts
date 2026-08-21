@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { CategoryTotal } from '@shared/types/category';
 import { api } from '@/api/client';
 import { useSnackbar } from '@/contexts/SnackbarContext';
+import { useDataChanged } from '@/hooks/useDataChanged';
 
 export const NEUTRAL_CATEGORY_COLOR = '#9AA0A6';
 const MAX_CHART_CATEGORIES = 7;
@@ -33,40 +34,47 @@ export function useCategoryTotals(year: number) {
   // O erro guardado é o próprio, e não um booleano: o `ErrorState` decodifica o
   // código para saber se oferece "restaurar backup" ou "abrir pasta de dados".
   const [error, setError] = useState<unknown>(null);
-  const [reloadKey, setReloadKey] = useState(0);
+  // Descarta a resposta de uma busca que outra já começou: trocar de ano
+  // depressa nas setas pintaria o ano velho por cima do novo. Substitui o
+  // antigo flag `cancelled`, que só cobria a troca de ano — agora a recarga do
+  // aviso do main concorre com ela.
+  const requestId = useRef(0);
 
-  const retry = useCallback(() => setReloadKey((key) => key + 1), []);
+  const load = useCallback(
+    async (silent = false) => {
+      if (!Number.isInteger(year) || year <= 0) {
+        setRows([]);
+        setError(null);
+        setLoading(false);
+        return;
+      }
 
-  useEffect(() => {
-    if (!Number.isInteger(year) || year <= 0) {
-      setRows([]);
-      setError(null);
-      setLoading(false);
-      return;
-    }
-
-    let cancelled = false;
-    setLoading(true);
-    api
-      .getCategoryTotalsForYear(year)
-      .then((data) => {
-        if (cancelled) return;
+      const id = ++requestId.current;
+      // Recarga em segundo plano não vira skeleton (design system, §5.3).
+      if (!silent) setLoading(true);
+      try {
+        const data = await api.getCategoryTotalsForYear(year);
+        if (id !== requestId.current) return;
         setRows(data);
         setError(null);
-      })
-      .catch((err) => {
-        if (cancelled) return;
+      } catch (err) {
+        if (id !== requestId.current) return;
         setError(err);
         showError(err);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [year, reloadKey]);
+      } finally {
+        if (id === requestId.current) setLoading(false);
+      }
+    },
+    [year, showError],
+  );
+
+  const retry = useCallback(() => load(), [load]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  useDataChanged(() => load(true));
 
   const grandTotal = rows.reduce((sum, r) => sum + r.total, 0);
   const tableRows = rows.map((r) => toRow(r, grandTotal)).sort((a, b) => b.total - a.total);

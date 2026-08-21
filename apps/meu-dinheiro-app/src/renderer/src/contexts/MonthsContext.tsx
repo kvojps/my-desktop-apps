@@ -9,6 +9,7 @@ import {
 } from 'react';
 import { Month } from '@shared/types/month';
 import { api } from '@/api/client';
+import { useDataChanged } from '@/hooks/useDataChanged';
 import { useSnackbar } from './SnackbarContext';
 
 export interface MonthsContextValue {
@@ -17,8 +18,9 @@ export interface MonthsContextValue {
   error: unknown;
   retry: () => void;
   /**
-   * Recarrega a lista. Quem cria ou exclui um mês precisa chamar: a lista vive
-   * acima das rotas e não se refaz sozinha ao trocar de tela.
+   * Recarrega a lista sem levantar `loading`. Chamada pelo aviso do main a cada
+   * gravação — não precisa ser chamada à mão. A lista vive acima das rotas e
+   * não se refaz ao trocar de tela; é o aviso que a mantém viva.
    */
   reload: () => Promise<void>;
 }
@@ -48,6 +50,10 @@ export function MonthsProvider({ children }: { children: ReactNode }) {
     reload();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // O main avisa toda vez que algo é gravado; ninguém precisa lembrar de
+  // recarregar depois de escrever.
+  useDataChanged(reload);
 
   const retry = useCallback(() => {
     setLoading(true);

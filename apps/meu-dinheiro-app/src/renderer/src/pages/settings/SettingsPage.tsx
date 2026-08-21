@@ -62,7 +62,6 @@ export function SettingsPage() {
     retry: retryDefaultExpenses,
     save,
     remove,
-    reload,
   } = useDefaultExpenses();
   const {
     defaultIncomes,
@@ -71,7 +70,6 @@ export function SettingsPage() {
     retry: retryDefaultIncomes,
     save: saveDefaultIncome,
     remove: removeDefaultIncome,
-    reload: reloadDefaultIncomes,
   } = useDefaultIncomes();
   const {
     bankAccounts,
@@ -80,7 +78,6 @@ export function SettingsPage() {
     retry: retryBankAccounts,
     save: saveBankAccount,
     remove: removeBankAccount,
-    reload: reloadBankAccounts,
   } = useBankAccounts();
   const {
     categories,
@@ -89,16 +86,10 @@ export function SettingsPage() {
     retry: retryCategories,
     save: saveCategory,
     remove: removeCategory,
-    reload: reloadCategories,
   } = useCategories();
   const { range, setRange, creating, createRange, monthsCount, rangeValid } =
     useMonthRangeCreator();
-  const { importing, exportData, importData } = useDataTransfer(() => {
-    reload();
-    reloadDefaultIncomes();
-    reloadBankAccounts();
-    reloadCategories();
-  });
+  const { importing, exportData, importData } = useDataTransfer();
 
   const [formOpen, setFormOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<DefaultExpense | null>(null);

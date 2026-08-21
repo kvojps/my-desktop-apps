@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { DefaultExpense } from '@shared/types/expense';
 import { api } from '@/api/client';
 import { useSnackbar } from '@/contexts/SnackbarContext';
+import { useDataChanged } from '@/hooks/useDataChanged';
 
 export function useDefaultExpenses() {
   const { showError, showSnackbar } = useSnackbar();
@@ -28,6 +29,8 @@ export function useDefaultExpenses() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useDataChanged(reload);
+
   function retry() {
     setLoading(true);
     setError(null);
@@ -46,7 +49,6 @@ export function useDefaultExpenses() {
         await api.createDefaultExpense(data);
         showSnackbar('Despesa padrão adicionada');
       }
-      await reload();
       return true;
     } catch (err) {
       showError(err);
@@ -58,7 +60,6 @@ export function useDefaultExpenses() {
     try {
       await api.deleteDefaultExpense(id);
       showSnackbar('Despesa padrão removida');
-      await reload();
     } catch (err) {
       showError(err);
     }
