@@ -25,6 +25,14 @@ async function call<T>(fn: () => Promise<T>): Promise<T> {
 }
 
 export const api = {
+  /**
+   * Assina o aviso de mudança de dados e devolve a função de cancelamento.
+   * Não passa por `call`: não é `invoke` e não produz erro de IPC.
+   */
+  onDataChanged(listener: () => void) {
+    return window.api.onDataChanged(listener);
+  },
+
   setup(initialMonth: number, initialYear: number) {
     return call(() => window.api.setup.run(initialMonth, initialYear));
   },

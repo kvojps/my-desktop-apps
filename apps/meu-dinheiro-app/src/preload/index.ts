@@ -17,6 +17,11 @@ function readInitialThemeMode(): ThemeMode | null {
 }
 
 const api: ElectronApi = {
+  onDataChanged: (listener) => {
+    const handler = () => listener();
+    ipcRenderer.on(IPC_CHANNELS.dataChanged, handler);
+    return () => ipcRenderer.removeListener(IPC_CHANNELS.dataChanged, handler);
+  },
   setup: {
     run: (initialMonth, initialYear) =>
       ipcRenderer.invoke(IPC_CHANNELS.setupRun, initialMonth, initialYear),

@@ -6,6 +6,7 @@ import icon from '../../resources/icon.png?asset';
 import { initDb } from './db/connection';
 import { ensureCurrentMonthExists } from './db/monthsRepository';
 import { classifyError } from './errors/toIpcError';
+import { notifyDataChanged } from './ipc/notifyDataChanged';
 import { registerIpcHandlers } from './ipc/registerIpc';
 import { applyThemeMode, getThemeMode, resolveThemeMode, themeBackground } from './theme/themeMode';
 
@@ -84,7 +85,11 @@ app.whenReady().then(() => {
   registerIpcHandlers(db);
 
   // O app costuma ficar aberto por dias: cobre a virada de mês sem reiniciar.
-  app.on('browser-window-focus', () => ensureCurrentMonthExists(db));
+  // O aviso só sai quando o mês foi de fato criado — sem ele, o mês novo só
+  // apareceria na tela no boot seguinte.
+  app.on('browser-window-focus', () => {
+    if (ensureCurrentMonthExists(db)) notifyDataChanged();
+  });
 
   // Precisa vir antes da janela: é o modo que decide a cor com que ela nasce e
   // a da moldura nativa.
