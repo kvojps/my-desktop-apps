@@ -76,12 +76,15 @@ export function DefaultIncomeForm({
         sx={{ mt: 1, mb: 2 }}
         {...register('name')}
       />
+      {/* `type="number"` assume `step=1`: sem o step em centavos, um valor
+          quebrado vira stepMismatch e o <form> do Modal nem chega a submeter. */}
       <TextField
         label="Valor (R$)"
         type="number"
         fullWidth
         error={!!errors.amount}
         helperText={errors.amount?.message ?? 'Deixe em branco para entradas de valor variável.'}
+        slotProps={{ htmlInput: { step: '0.01' } }}
         sx={{ mb: 2 }}
         {...register('amount')}
       />

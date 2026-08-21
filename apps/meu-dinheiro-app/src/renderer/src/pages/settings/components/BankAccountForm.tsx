@@ -59,6 +59,8 @@ export function BankAccountForm({ open, onClose, onSave, initial }: BankAccountF
         sx={{ mt: 1, mb: 2 }}
         {...register('name')}
       />
+      {/* `type="number"` assume `step=1`: sem o step em centavos, um valor
+          quebrado vira stepMismatch e o <form> do Modal nem chega a submeter. */}
       <TextField
         label="Saldo (R$)"
         type="number"
@@ -68,6 +70,7 @@ export function BankAccountForm({ open, onClose, onSave, initial }: BankAccountF
           errors.balance?.message ??
           (initial ? 'Ajuste manual do saldo atual.' : 'Saldo inicial da conta.')
         }
+        slotProps={{ htmlInput: { step: '0.01' } }}
         {...register('balance')}
       />
     </Modal>
