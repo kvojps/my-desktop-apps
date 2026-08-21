@@ -148,6 +148,54 @@ const getDesignTokens = (mode: PaletteMode): ThemeOptions => {
           },
         },
       },
+      // Configurações usa acordeão como estrutura de página, e é a extensão que
+      // o design system prevê para isso (§6). Os valores são os mesmos do outro
+      // app que já usa o padrão: mesma borda e mesma sombra dos cards, sem o
+      // filete que o MUI desenha entre painéis vizinhos.
+      MuiAccordion: {
+        defaultProps: {
+          disableGutters: true,
+          elevation: 0,
+        },
+        styleOverrides: {
+          root: {
+            border: `1px solid ${border}`,
+            boxShadow:
+              mode === 'light'
+                ? '0 1px 2px rgba(16, 24, 40, 0.04)'
+                : '0 1px 2px rgba(0, 0, 0, 0.2)',
+            '&:before': {
+              display: 'none',
+            },
+          },
+        },
+      },
+      // Altura travada em aberto e fechado: o cabeçalho é o que se lê com a
+      // seção fechada, e ele não pode mudar de tamanho ao abrir.
+      MuiAccordionSummary: {
+        styleOverrides: {
+          root: {
+            minHeight: 72,
+            padding: '0 20px',
+            '&.Mui-expanded': {
+              minHeight: 72,
+            },
+          },
+          content: {
+            margin: '16px 0',
+            '&.Mui-expanded': {
+              margin: '16px 0',
+            },
+          },
+        },
+      },
+      MuiAccordionDetails: {
+        styleOverrides: {
+          root: {
+            padding: '4px 20px 20px',
+          },
+        },
+      },
       MuiButton: { styleOverrides: { root: { borderRadius: CONTROL_RADIUS } } },
       MuiOutlinedInput: { styleOverrides: { root: { borderRadius: CONTROL_RADIUS } } },
       MuiToggleButton: { styleOverrides: { root: { borderRadius: CONTROL_RADIUS } } },

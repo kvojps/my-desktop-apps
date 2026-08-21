@@ -1,12 +1,20 @@
-import { Download, SettingsOutlined, Upload } from '@mui/icons-material';
-import { Button, Card, CardContent, Stack, Typography } from '@mui/material';
+import {
+  Download,
+  ImportExportOutlined,
+  InfoOutlined,
+  SettingsOutlined,
+  StorefrontOutlined,
+  Upload,
+} from '@mui/icons-material';
+import { Button, Stack } from '@mui/material';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { PageHeader } from '@/components/PageHeader';
 import { useAppInfo } from '@/hooks/settings/useAppInfo';
 import { useDataTransfer } from '@/hooks/settings/useDataTransfer';
 import { useSettings } from '@/hooks/settings/useSettings';
-import { AppInfoCard } from './components/AppInfoCard';
+import { AppInfoPanel } from './components/AppInfoPanel';
 import { CompanyForm } from './components/CompanyForm';
+import { SettingsSection } from './components/SettingsSection';
 
 export function SettingsPage() {
   const settingsForm = useSettings();
@@ -29,18 +37,26 @@ export function SettingsPage() {
         subtitle="Dados da empresa, backup e informações do aplicativo"
       />
 
-      <CompanyForm formState={settingsForm} />
+      <Stack spacing={3}>
+        {/* A única seção que nasce aberta: é o que se vem editar aqui. Backup e
+            informações do app são consulta pontual, e fechados eles cabem na
+            tela junto do formulário. */}
+        <SettingsSection
+          icon={StorefrontOutlined}
+          accent="primary"
+          title="Dados da Empresa"
+          description="Cabeçalho dos documentos gerados pelo app e do arquivo de backup"
+          defaultExpanded
+          hasError={!!settingsForm.error}
+        >
+          <CompanyForm formState={settingsForm} />
+        </SettingsSection>
 
-      <Card variant="outlined">
-        <CardContent>
-          <Typography variant="h6" sx={{ mb: 1 }}>
-            Exportar e Importar Dados
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            Exporte todos os produtos e pedidos para um arquivo de backup, ou importe um arquivo
-            existente para restaurar os dados.
-          </Typography>
-
+        <SettingsSection
+          icon={ImportExportOutlined}
+          title="Exportar e Importar Dados"
+          description="Backup dos produtos e pedidos em arquivo, e restauração a partir dele"
+        >
           <Stack direction="row" spacing={1.5}>
             <Button
               variant="contained"
@@ -60,10 +76,17 @@ export function SettingsPage() {
               {importing ? 'Importando...' : 'Importar Dados'}
             </Button>
           </Stack>
-        </CardContent>
-      </Card>
+        </SettingsSection>
 
-      <AppInfoCard info={appInfo} />
+        <SettingsSection
+          icon={InfoOutlined}
+          title="Sobre o Aplicativo"
+          description="Versão e caminho do banco — informe ao pedir ajuda ou ao trocar de computador"
+          hasError={!!appInfo.error}
+        >
+          <AppInfoPanel info={appInfo} />
+        </SettingsSection>
+      </Stack>
 
       <ConfirmDialog
         open={confirmOpen}
