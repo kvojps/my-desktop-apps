@@ -15,7 +15,7 @@ O plano é **snapshot, não derivação**: gerar é uma ação com custo e com r
 - [ ] A tela de Plano preenche a viewport, como manda a norma de tela de leitura.
 - [ ] Cada chapa é desenhada em escala, com as coordenadas do plano entrando no desenho sem conversão de unidade.
 - [ ] Cada peça mostra rótulo e medida quando cabem; "cabe" é **medido**, não estimado, reaproveitando a técnica de medição de texto que já existe no monorepo. Quando não cabe, fica o número da peça e a legenda ao lado.
-- [ ] A cor da peça vem da paleta categórica do design system, agrupada por dimensão; a cor do rótulo é decidida por luminância do preenchimento, por um helper exportado do módulo de tema do app — não solto dentro do componente.
+- [ ] A cor da peça vem da paleta categórica do design system, agrupada por dimensão; a cor do rótulo sai da regra da §1.8 do design system (comparar o contraste medido dos dois rótulos possíveis sobre o preenchimento e ficar com o maior, nunca um limiar fixo de luminância), por um helper exportado do módulo de tema do app — não solto dentro do componente.
 - [ ] A sobra de cada chapa é visualmente distinta das peças.
 - [ ] Navegação entre as chapas do plano.
 - [ ] Aproveitamento visível por chapa e do plano inteiro.

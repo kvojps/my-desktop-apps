@@ -9,7 +9,7 @@ ao explorar o código.
   contexto. Leia cada um relevante ao tópico.
 - **`apps/<app>/CONTEXT.md`**: o glossário do app em que você vai mexer. Cada
   app é um contexto próprio — eles não compartilham vocabulário de propósito.
-  Hoje existem em `git-dlog` e `meu-negocio-app`.
+  Hoje existem em `git-dlog`, `meu-negocio-app` e `meu-movel-planejado`.
 - **`docs/adr/`** na raiz: decisões que valem para o monorepo inteiro.
 - **`apps/<app>/docs/adr/`**: decisões daquele app.
 

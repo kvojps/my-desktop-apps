@@ -222,6 +222,87 @@ convivem, e entre as duas quem carrega significado é a cor do degrau.
 Ao escolher a cor de um swatch, medir o rótulo _sobre_ ele não substitui medir ele
 contra o papel. São duas contas diferentes, e é a segunda que costuma faltar.
 
+### 1.8 Rótulo sobre preenchimento colorido
+
+Toda a §1 decide cor de texto contra uma superfície **conhecida** — o papel claro ou
+o papel escuro — e é daí que sai o par por modo. Quando a superfície é um
+preenchimento que o app não escolheu (a cor de categoria que o usuário pegou, o
+swatch categórico que caiu naquele item), não há par a consultar: o mesmo rótulo vai
+parar sobre `#FB8C00` e sobre `#7B1FA2`.
+
+A decisão, então, é **medida sobre o preenchimento**, não fixada. Calcule a
+luminância relativa do preenchimento, meça o contraste dos dois rótulos possíveis —
+branco e o `rgba(0, 0, 0, 0.87)` que o tema já usa como `contrastText` — e fique com
+o maior.
+
+```ts
+labelOn('#FB8C00'); // → 'rgba(0, 0, 0, 0.87)'  (7.69:1, contra 2.37:1 do branco)
+labelOn('#7B1FA2'); // → '#fff'                 (8.20:1, contra 2.44:1 do preto)
+```
+
+**Não é um limiar de luminância.** O limiar é a implementação tentadora, e o que ele
+esconde é que o ponto de virada **não é uma constante**: o preto do app é 87% opaco,
+então ele compõe com o próprio preenchimento, e a virada anda com a matiz em vez de
+ficar parada em `L = 0.179` (o cruzamento contra preto puro). Medido numa varredura
+do cubo sRGB, as duas janelas se sobrepõem: `#787882` (`L = 0.1904`) prefere branco
+e `#F00019` (`L = 0.1860`) prefere preto. Nenhuma constante separa os dois.
+
+A honestidade cobra uma ressalva, porque é onde este argumento costuma ser esticado
+demais: **as inversões moram na virada**, e ali os dois rótulos medem quase o mesmo
+(4.37:1 contra 4.37:1, no par acima) — errar custa pouco. O que a constante cobra de
+verdade é recalibração. `0.4`, que é o valor que circula neste repo, erra por uma
+distância enorme; `0.179` erra `#B85C38`, que tem `L = 0.1813` e mede 4.23:1 em preto
+contra 4.54:1 em branco; qualquer valor entre `0.1813` e `0.1984` acerta as onze
+amostras da §1.7 — e nada garante a paleta seguinte, nem a cor que o usuário digitar.
+Comparar os dois contrastes não é mais difícil de escrever do que a constante, e não
+precisa ser recalibrado nunca.
+
+Medido sobre a paleta categórica da §1.7 — é a mesma lista de amostras da tabela de
+lá, medindo outra coisa (aqui, o rótulo _sobre_ o swatch; lá, o swatch contra o
+papel), e as duas mudam juntas quando a paleta mudar:
+
+| Swatch             | Rótulo branco | Rótulo preto 87% | Escolhido |
+| ------------------ | ------------- | ---------------- | --------- |
+| `#5C6BC0`          | **4.86**      | 3.96             | branco    |
+| `#FB8C00`          | 2.37          | **7.69**         | preto     |
+| `#1E88E5`          | 3.68          | **5.15**         | preto     |
+| `#E53935`          | 4.23          | **4.56**         | preto     |
+| `#7B1FA2`          | **8.20**      | 2.44             | branco    |
+| `#43A047`          | 3.30          | **5.67**         | preto     |
+| `#00ACC1`          | 2.74          | **6.78**         | preto     |
+| `#D81B60`          | **4.95**      | 3.97             | branco    |
+| `#B85C38`          | **4.54**      | 4.23             | branco    |
+| `#757575`          | **4.61**      | 4.15             | branco    |
+| `#9AA0A6` (neutro) | 2.64          | **6.93**         | preto     |
+
+O pior caso da paleta, com a regra do maior, é **4.54:1**: ela passa inteira em AA
+como base de rótulo.
+
+Três coisas que esta seção **não** afrouxa:
+
+- A §1.4 continua valendo sem exceção. O que muda aqui é a cor **do rótulo**, nunca
+  a do preenchimento: âmbar e `text.disabled` seguem proibidos como texto, e nada
+  nesta seção os promove.
+- Rótulo sobre preenchimento é **texto**, e o limiar dele é 4.5:1. Os 3:1 de objeto
+  gráfico valem para o ícone sobre o preenchimento, não para a palavra.
+- Cor de estado do tema não passa por aqui: ela tem par por modo e `contrastText`
+  declarado (§1.3), e medir de novo em runtime só acrescentaria uma segunda fonte da
+  verdade.
+
+O helper mora no **módulo de tema** do app, exportado e nomeado, ao lado de `tint` e
+`stripe` (§2) — e pela mesma razão: conta que decide contraste fica num lugar só,
+onde uma auditoria a encontre. Dentro do componente que precisou dela primeiro, ela
+é invisível para o próximo.
+
+**Pendência (2026-08-22):** o `meu-dinheiro-app` faz exatamente essa escolha em
+`pages/settings/components/CategoryForm.tsx`, para o check sobre a amostra de cor da
+categoria, com um limiar fixo de `0.4` sobre a luminância. Duas divergências, nesta
+ordem de gravidade: o limiar de 0.4 devolve **branco para os dez swatches**,
+inclusive `#FB8C00` (2.37:1) e `#00ACC1` (2.74:1), que não passam nem no 3:1 de
+objeto gráfico exigido do check; e a conta mora numa tela, fora do módulo de tema.
+Fica registrado como bug do código, que é o que a introdução deste documento manda
+fazer com divergência — corrigi-lo é trabalho de outra feature.
+
 ## 2. Forma, tipografia e espaço
 
 | Token                 | Valor                                             |
@@ -498,7 +579,8 @@ continua do tamanho do próprio conteúdo.
 
 As seções acima descrevem a aparência parada. Esta descreve o que o app faz
 enquanto carrega, enquanto o usuário navega pelo teclado, e antes de ter dados —
-que é onde a maior parte da percepção de qualidade se decide.
+que é onde a maior parte da percepção de qualidade se decide. A última
+subseção sai da tela: o que o app faz quando o destino é o papel.
 
 ### 5.1 A janela é parte do tema
 
@@ -577,7 +659,8 @@ modelo, e existe exatamente por isso.
   reservar exatamente o espaço que o gráfico vai ocupar. Ou ela é constante e
   nomeada, ou — numa tela que preenche a viewport (§4) — é a da caixa da seção,
   e aí o skeleton ocupa essa mesma caixa. Nos dois casos existe uma **medida
-  nomeada**: altura, no primeiro; piso da altura, no segundo.
+  nomeada**: altura, no primeiro; piso da altura, no segundo. A exceção — desenho
+  cuja proporção é o próprio dado — é nomeada no fim desta seção.
 - Ação pontual em andamento **troca o rótulo do botão** — "Excluindo...",
   "Criando...", "Importando..." — e não ganha spinner. O botão já é onde o olho
   está, e o rótulo diz _o que_ está demorando, coisa que um giro não diz. Não há
@@ -612,6 +695,32 @@ um, porque aí toda gravação pisca a tela.
 O skeleton reserva a contagem **final** de cards, não a atual. Reservar quatro para
 depois renderizar seis é o mesmo salto de layout que o skeleton existe para evitar,
 só que mais tarde.
+
+**A exceção nomeada: superfície métrica em escala.** Existe um desenho em que a
+proporção _é_ o dado — a chapa desenhada em escala, com as peças no lugar. Fixar a
+altura dele numa constante desenharia uma chapa de 2750×1850 e uma de 1000×1000 na
+mesma caixa: as duas deixam de ser comparáveis, e a escala, que era o conteúdo,
+some. Nesse caso, e só nele, a altura deriva da proporção do desenho, dentro de uma
+**caixa cuja largura é a da seção**.
+
+O que a exceção cobra em troca:
+
+- **É desenho métrico, não gráfico.** O que qualifica é a proporção carregar medida
+  real. Barra, linha e área continuam sob a regra acima, sem exceção — gráfico cuja
+  altura cresce com o número de séries é justamente o que a regra existe para
+  impedir.
+- **A medida nomeada não desaparece: deixa de ser altura e vira proporção.** A caixa
+  é a mesma antes e depois dos dados, e o que o skeleton reserva é ela, na proporção
+  de referência do app — o formato de chapa mais comum, no caso que trouxe a regra.
+- **A proporção nunca é esticada.** Onde a seção tem altura limitada — tela de
+  leitura que preenche a viewport (§4) — quem cede é a largura: o desenho encolhe
+  para caber e centraliza. Preencher a caixa deformando o desenho é o mesmo erro de
+  normalizar a altura, cometido no outro eixo.
+- **O desenho fica sozinho na caixa.** Cabeçalho, navegação e números ficam fora
+  dela, e é isso que confina o movimento: trocar de chapa muda a altura do desenho,
+  não a posição do resto da tela.
+- Ele **não** é o gráfico decorativo da §1.7. Carrega informação, então leva rótulo
+  acessível que a descreva, nunca `aria-hidden`.
 
 ### 5.4 Estado vazio explica e oferece a saída
 
@@ -678,6 +787,37 @@ uso real, não a exceção acessível.
   o clique no menu de três pontos abre o menu **e** dispara a linha. As duas precisam
   existir juntas — uma cobre o teclado, a outra o ponteiro, e quem implementa só uma
   conserta metade do problema.
+
+### 5.6 Impressão
+
+Nenhum app imprimiu nada até aqui, e por isso não havia norma. O papel é um segundo
+meio, não uma tela menor: não tem tema, não tem cursor, não rola, e a impressora que
+motivou esta seção — a da oficina, do outro lado do app — não tem colorido.
+
+- **A folha não tem cor de fundo.** Nenhuma superfície tingida, nenhuma zebra,
+  nenhum papel escuro: o fundo é o branco da folha. Isso derruba junto o modo
+  escuro — o que sai impresso sai sempre na versão clara, qualquer que seja o tema
+  em que o app está aberto.
+- **Na folha, cor não é canal.** A §1.7 já pede um segundo canal na tela; aqui o
+  segundo canal é o único que sobrevive, porque a impressora joga a matiz fora.
+  **Região que na tela se distingue por preenchimento sai hachurada** — não em
+  cinza, que a impressora achata contra os vizinhos, e não por rótulo apenas, que
+  não desenha a fronteira. Traço e rótulo somam-se à hachura; nenhum dos dois a
+  substitui. A sobra de uma chapa é o caso que trouxe a regra, e sai hachurada.
+- **Uma unidade por página.** O que se executa uma de cada vez ocupa a folha
+  inteira, com quebra de página entre elas. Duas por folha poupam papel e cobram do
+  leitor, que está com a folha na mão e a máquina ligada. Página que não é unidade —
+  resumo, capa, o que se confere antes de começar — vem **antes** de todas elas,
+  nunca no meio.
+- **Toda página se identifica sozinha**, em cabeçalho próprio. O maço se separa, e a
+  folha que ficou na bancada precisa dizer de que documento e de que unidade ela é;
+  sem isso, a segunda página é anônima.
+- **Só o conteúdo é impresso.** Rail, botão, paginação, tooltip, campo de filtro e
+  skeleton não têm sentido no papel — vai para a folha o que o leitor vai executar.
+- **Superfície métrica na folha mantém a proporção, e nada além disso.** Ela não
+  promete escala aferível: ninguém mede a folha com régua, e a ampliação da
+  impressora não é conhecida. A medida vai **escrita**, dentro do desenho ou ao lado
+  dele.
 
 ## 6. Extensões locais permitidas
 
