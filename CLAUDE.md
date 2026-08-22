@@ -47,3 +47,16 @@ npm run format
 ```
 
 Ao terminar uma alteração, rode `npm run typecheck` e `npm run lint`.
+
+## Agent skills
+
+### Issue tracker
+
+Issues e specs vivem como markdown em `.scratch/<feature>/` neste repo — não há
+fluxo de GitHub Issues. Ver [`docs/agents/issue-tracker.md`](docs/agents/issue-tracker.md).
+
+### Domain docs
+
+Multi-context: `CONTEXT-MAP.md` na raiz apontando para o `CONTEXT.md` de cada
+app; ADRs do monorepo em `docs/adr/`, ADRs de app em `apps/<app>/docs/adr/`.
+Ver [`docs/agents/domain.md`](docs/agents/domain.md).
