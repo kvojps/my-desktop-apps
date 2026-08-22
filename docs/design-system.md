@@ -1,10 +1,10 @@
 # Design system
 
-Este documento descreve o padrão visual comum aos três apps. Ele existe porque os
+Este documento descreve o padrão visual comum aos apps do monorepo. Ele existe porque os
 apps deliberadamente **não compartilham código** (ver README, §2): sem um pacote
 `ui` para carregar a norma, é o texto que precisa carregá-la.
 
-**Este documento é a referência.** Não há app canônico: nenhum dos três é o lugar
+**Este documento é a referência.** Não há app canônico: nenhum dos apps é o lugar
 onde se descobre o que é certo. Os valores e as regras aqui foram medidos, e
 divergência entre documento e código é bug do código — vale tanto para regra quanto
 para valor.
@@ -381,7 +381,7 @@ Card: `1px solid divider` mais `0 1px 2px rgba(16,24,40,0.04)` no claro e
 com borda.
 
 `fontVariantNumeric: 'tabular-nums'` no `body` inteiro, uma vez, no `MuiCssBaseline`.
-Os três apps são quase só número empilhado em coluna; dígito de largura fixa
+Os apps são quase só número empilhado em coluna; dígito de largura fixa
 mantém a coluna estável quando o valor muda, e nenhuma tela precisa pedir de novo.
 Ele não alinha nada sozinho — quem alinha é o §2.1.
 
@@ -834,7 +834,7 @@ A variante `mono` é `ui-monospace, SFMono-Regular, Menlo, Consolas, monospace`.
 exigência é existir o **token** — `fontFamily: 'monospace'` escrito no `sx` de uma
 tela é a divergência que ele evita. Empacotar um arquivo de fonte para exibir um
 caminho de banco custa peso de instalador por nada: aqui a pilha do sistema resolve,
-e é o que os três apps têm.
+e é o que todos os apps têm.
 
 Extensão é adição, nunca substituição: ela ocupa espaço que a norma deixou vago. Se
 para caber ela precisa contradizer alguma seção acima, o que está errado é a seção —

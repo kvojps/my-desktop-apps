@@ -4,9 +4,9 @@ Monorepo dos meus aplicativos desktop, gerenciado com **npm workspaces**. Cada a
 é um Electron + React + TypeScript independente, com banco SQLite local, sem
 servidor e sem conta de usuário: tudo roda e fica na máquina de quem instalou.
 
-Os três compartilham o mesmo desenho — mesmas camadas, mesmo tratamento de erro,
+Todos compartilham o mesmo desenho — mesmas camadas, mesmo tratamento de erro,
 mesmas convenções de nome — de modo que mexer em um seja suficiente para entender
-os outros dois. O que não é compartilhado é código: cada app tem o seu próprio
+os outros. O que não é compartilhado é código: cada app tem o seu próprio
 `src/shared`, e a raiz do monorepo só concentra toolchain e configuração.
 
 ## 1. Apps
@@ -16,6 +16,7 @@ os outros dois. O que não é compartilhado é código: cada app tem o seu próp
 | [Meu Dinheiro](apps/meu-dinheiro-app) | `apps/meu-dinheiro-app` | Finanças pessoais por mês: entradas, despesas, contas bancárias, categorias, recibos e backup |
 | [Meu Negócio](apps/meu-negocio-app)   | `apps/meu-negocio-app`  | Gestão de produtos, pedidos e vendas, com estoque e relatórios                                |
 | [Git Dlog](apps/git-dlog)             | `apps/git-dlog`         | Varre pastas locais em busca de repositórios git e acompanha seus PRs via `gh` e `glab`       |
+| [Meu Móvel Planejado](apps/meu-movel-planejado) | `apps/meu-movel-planejado` | Planeja o corte de chapas: distribui as peças de um serviço pelo estoque e diz o que falta comprar |
 
 ## 2. Decisões de arquitetura
 
@@ -85,7 +86,7 @@ foco da janela é o exemplo. Ver
 por alias (`@/` e `@shared/`) sempre que saírem da própria pasta.
 
 O padrão visual — paleta, raios, tipografia, vocabulário de componentes e a
-anatomia de uma tela — é comum aos três e está em
+anatomia de uma tela — é comum a todos e está em
 [`docs/design-system.md`](docs/design-system.md). Como código não é compartilhado
 entre os apps, é aquele documento que faz o papel do pacote `ui` que não existe:
 alteração de UI começa por ele.
@@ -107,7 +108,7 @@ alteração de UI começa por ele.
   carregar uma tela usa `components/ErrorState`, que oferece tentar de novo e
   abrir a pasta de dados. O texto exibido sai sempre de `describeAppError`.
 - **`utils/`** — `date.ts` para datas, `format.ts` para moeda, números e texto. A
-  mesma função tem o mesmo nome nos três apps (`formatCurrency`, `formatDate`,
+  mesma função tem o mesmo nome em todos os apps (`formatCurrency`, `formatDate`,
   `formatDateTime`).
 - **Formulários** — `react-hook-form` com zod; o schema fica ao lado da lógica do
   formulário: junto do hook, quando a lógica está num hook; junto dos componentes,
@@ -150,10 +151,12 @@ Da raiz:
 npm run dev:dinheiro     # roda o Meu Dinheiro em modo dev
 npm run dev:negocio      # roda o Meu Negócio em modo dev
 npm run dev:dlog         # roda o Git Dlog em modo dev
+npm run dev:movel        # roda o Meu Móvel Planejado em modo dev
 
 npm run dist:dinheiro    # gera o instalador Windows (NSIS)
 npm run dist:negocio
 npm run dist:dlog
+npm run dist:movel
 
 npm run build            # build de todos os apps
 npm run typecheck        # tsc --noEmit em todos os apps

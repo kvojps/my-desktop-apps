@@ -1,7 +1,8 @@
 # CLAUDE.md
 
-Monorepo npm workspaces com três apps Electron + React + TypeScript
-(`meu-dinheiro-app`, `meu-negocio-app`, `git-dlog`). Cada um é independente e tem
+Monorepo npm workspaces com quatro apps Electron + React + TypeScript
+(`meu-dinheiro-app`, `meu-negocio-app`, `git-dlog`, `meu-movel-planejado`). Cada
+um é independente e tem
 o seu próprio `src/shared` — **os apps não compartilham código de propósito**.
 
 ## Antes de mexer
@@ -39,8 +40,8 @@ Mesmo nível de heading do README raiz (título é o único `#`).
 ## Comandos
 
 ```bash
-npm install                  # um só install na raiz cobre os três apps
-npm run dev:dinheiro         # dev:negocio, dev:dlog
+npm install                  # um só install na raiz cobre todos os apps
+npm run dev:dinheiro         # dev:negocio, dev:dlog, dev:movel
 npm run typecheck            # tsc --noEmit em todos
 npm run lint
 npm run format

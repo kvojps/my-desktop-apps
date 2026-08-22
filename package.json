@@ -16,9 +16,11 @@
     "dev:dinheiro": "npm run dev -w meu-dinheiro-app",
     "dev:negocio": "npm run dev -w meu-negocio-app",
     "dev:dlog": "npm run dev -w git-dlog",
+    "dev:movel": "npm run dev -w meu-movel-planejado",
     "dist:dinheiro": "npm run dist:win -w meu-dinheiro-app",
     "dist:negocio": "npm run dist:win -w meu-negocio-app",
-    "dist:dlog": "npm run dist:win -w git-dlog"
+    "dist:dlog": "npm run dist:win -w git-dlog",
+    "dist:movel": "npm run dist:win -w meu-movel-planejado"
   },
   "devDependencies": {
     "@electron/rebuild": "^4.1.0",

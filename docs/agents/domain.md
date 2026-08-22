@@ -38,7 +38,7 @@ Repo multi-context — cada app em `apps/` é um contexto:
     └── meu-dinheiro-app/
 ```
 
-Uma decisão de UI que valha para os três apps é ADR de raiz e provavelmente
+Uma decisão de UI que valha para todos os apps é ADR de raiz e provavelmente
 também mexe em `docs/design-system.md`, que é normativo (ver `CLAUDE.md`).
 
 ## Use o vocabulário do glossário

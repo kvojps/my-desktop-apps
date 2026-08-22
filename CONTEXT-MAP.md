@@ -5,9 +5,8 @@ vocabulário, de propósito (README, §2): o mesmo substantivo significa coisas
 diferentes em dois apps, e um glossário comum acoplaria produtos que não têm
 relação nenhuma entre si.
 
-São três apps instalados e um quarto contexto que ainda existe só como glossário —
-o Meu Móvel Planejado, cujo vocabulário foi fixado antes de haver código, porque é
-ele que vai nomear tabela, tipo e rótulo de tela.
+São quatro apps. O vocabulário do Meu Móvel Planejado foi fixado antes de haver
+código, porque é ele que nomeia tabela, tipo e rótulo de tela.
 
 ## Contextos
 
