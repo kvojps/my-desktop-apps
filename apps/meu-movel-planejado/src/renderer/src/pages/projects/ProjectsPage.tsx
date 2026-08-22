@@ -1,6 +1,7 @@
 import { Add, DashboardCustomizeOutlined } from '@mui/icons-material';
 import { Button, Stack, Typography } from '@mui/material';
 import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import type { Project } from '@shared/types/project';
 import { ActionsMenu } from '@/components/ActionsMenu';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
@@ -14,9 +15,11 @@ import type { SortKey } from '@/hooks/projects/useProjects';
 import { useProjects } from '@/hooks/projects/useProjects';
 import { usePagination } from '@/hooks/usePagination';
 import { formatDateTime } from '@/utils/date';
+import { projectPath } from '../../routes';
 import { ProjectFormModal } from './components/ProjectFormModal';
 
 export function ProjectsPage() {
+  const navigate = useNavigate();
   const {
     sortedProjects,
     sort,
@@ -114,6 +117,10 @@ export function ProjectsPage() {
           />
         )}
         getRowKey={(project) => project.id}
+        // A linha inteira abre o projeto: é a ação que se faz com um projeto,
+        // e o menu de três pontos guarda as duas que mexem na lista.
+        onRowClick={(project) => navigate(projectPath(project.id))}
+        getRowLabel={(project) => `Abrir ${project.name}`}
         footerLabel="projetos"
         isLoading={isLoading}
         empty={

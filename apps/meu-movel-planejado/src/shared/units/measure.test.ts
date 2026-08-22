@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { millimetersToTenths, tenthsToMillimeters } from './measure';
+import { millimetersToTenths, parseMillimeters, tenthsToMillimeters } from './measure';
 
 /**
  * O décimo de milímetro é a unidade em que toda medida trafega e é persistida
@@ -26,4 +26,31 @@ describe('tenthsToMillimeters', () => {
   it('preserva a casa decimal do kerf', () => {
     expect(tenthsToMillimeters(3)).toBe(0.3);
   });
+});
+
+describe('parseMillimeters', () => {
+  it('lê a medida inteira', () => {
+    expect(parseMillimeters('2750')).toBe(2750);
+  });
+
+  it('lê a vírgula decimal, que é como se digita em português', () => {
+    expect(parseMillimeters('0,3')).toBe(0.3);
+  });
+
+  it('aceita o ponto decimal do teclado numérico', () => {
+    expect(parseMillimeters('0.3')).toBe(0.3);
+  });
+
+  it('ignora espaço em volta', () => {
+    expect(parseMillimeters('  1850,5  ')).toBe(1850.5);
+  });
+
+  it.each(['', '  ', 'abc', '-5', '2750,55', '2750,', ',5', '1e3'])(
+    'recusa %o, que não é medida em milímetro com uma casa',
+    (input) => {
+      // A segunda casa decimal é recusada, e não arredondada em silêncio: o
+      // usuário digitou uma precisão que a unidade não guarda, e vê isso.
+      expect(parseMillimeters(input)).toBeNull();
+    },
+  );
 });

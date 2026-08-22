@@ -1,7 +1,9 @@
 import { contextBridge, ipcRenderer } from 'electron';
 import type { ElectronApi } from '@shared/ipc/api';
 import { IPC_CHANNELS } from '@shared/ipc/channels';
-import type { ProjectInput } from '@shared/types/project';
+import type { PieceInput } from '@shared/types/piece';
+import type { CuttingParamsInput, ProjectInput } from '@shared/types/project';
+import type { SheetInput } from '@shared/types/sheet';
 import type { ThemeMode } from '@shared/types/theme';
 
 const INITIAL_THEME_MODE_FLAG = '--initial-theme-mode=';
@@ -26,9 +28,28 @@ const api: ElectronApi = {
   projects: {
     list: () => ipcRenderer.invoke(IPC_CHANNELS.projectsList),
     create: (data: ProjectInput) => ipcRenderer.invoke(IPC_CHANNELS.projectsCreate, data),
+    get: (id: string) => ipcRenderer.invoke(IPC_CHANNELS.projectsGet, id),
     update: (id: string, data: ProjectInput) =>
       ipcRenderer.invoke(IPC_CHANNELS.projectsUpdate, id, data),
+    updateCuttingParams: (id: string, data: CuttingParamsInput) =>
+      ipcRenderer.invoke(IPC_CHANNELS.projectsUpdateCuttingParams, id, data),
     delete: (id: string) => ipcRenderer.invoke(IPC_CHANNELS.projectsDelete, id),
+  },
+  pieces: {
+    list: (projectId: string) => ipcRenderer.invoke(IPC_CHANNELS.piecesList, projectId),
+    create: (projectId: string, data: PieceInput) =>
+      ipcRenderer.invoke(IPC_CHANNELS.piecesCreate, projectId, data),
+    update: (id: string, data: PieceInput) =>
+      ipcRenderer.invoke(IPC_CHANNELS.piecesUpdate, id, data),
+    delete: (id: string) => ipcRenderer.invoke(IPC_CHANNELS.piecesDelete, id),
+  },
+  sheets: {
+    list: (projectId: string) => ipcRenderer.invoke(IPC_CHANNELS.sheetsList, projectId),
+    create: (projectId: string, data: SheetInput) =>
+      ipcRenderer.invoke(IPC_CHANNELS.sheetsCreate, projectId, data),
+    update: (id: string, data: SheetInput) =>
+      ipcRenderer.invoke(IPC_CHANNELS.sheetsUpdate, id, data),
+    delete: (id: string) => ipcRenderer.invoke(IPC_CHANNELS.sheetsDelete, id),
   },
   data: {
     openFolder: () => ipcRenderer.invoke(IPC_CHANNELS.dataOpenFolder),

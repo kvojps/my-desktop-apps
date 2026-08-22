@@ -36,3 +36,23 @@ export interface ProjectInput {
   name: string;
   material: string;
 }
+
+/**
+ * 10 mm. Disco de serra fica em 3–4 mm e fresa em 0,3; o teto existe para
+ * barrar a medida digitada na unidade errada — 30 no lugar de 3,0 —, que faria
+ * o plano jogar fora meia chapa em folga.
+ */
+export const MAX_KERF_TENTHS_MM = 100;
+
+/** 100 mm de refile por borda. Acima disso a chapa vira outra chapa. */
+export const MAX_TRIM_TENTHS_MM = 1_000;
+
+/**
+ * Os dois parâmetros de geometria do projeto, editados juntos e separados do
+ * nome e do material: aqueles são os rótulos do serviço, estes são o que a
+ * máquina faz. Cada um se edita na tela em que se lê.
+ */
+export interface CuttingParamsInput {
+  kerfTenthsMm: number;
+  trimTenthsMm: number;
+}

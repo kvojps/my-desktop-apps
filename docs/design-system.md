@@ -731,16 +731,24 @@ O padrão tem três partes: **ícone** da própria tela, **uma frase** que diz o
 vai aparecer ali, e a **ação primária** que cria o primeiro registro — o mesmo
 botão do `PageHeader`, repetido onde o olho já está.
 
-Distinguir três casos, porque pedem textos diferentes:
+Distinguir quatro casos, porque pedem textos diferentes:
 
-| Caso                  | Texto                                        |
-| --------------------- | -------------------------------------------- |
-| Nunca teve registro   | Explica o que a tela faz + ação de criar     |
-| Filtro não achou nada | Diz que é o filtro + ação de limpar o filtro |
-| Falhou ao carregar    | `ErrorState` — não é vazio, é erro           |
+| Caso                  | Texto                                           |
+| --------------------- | ----------------------------------------------- |
+| Nunca teve registro   | Explica o que a tela faz + ação de criar        |
+| Filtro não achou nada | Diz que é o filtro + ação de limpar o filtro    |
+| O registro não existe | Diz que ele sumiu + ação de voltar para a lista |
+| Falhou ao carregar    | `ErrorState` — não é vazio, é erro              |
 
 Confundir os dois primeiros é o erro comum: mandar "cadastre seu primeiro produto"
 para quem tem 400 produtos e digitou um filtro errado.
+
+O terceiro é de **tela de detalhe**, não de lista: a rota traz um id que já não
+existe, porque a lista na outra aba está velha ou porque o registro foi excluído
+noutro lugar. Ele não é "ainda não há nada" — é "não há mais isto", e por isso a
+saída não é criar: é voltar para a lista, com o ícone de busca sem resultado no
+lugar do ícone da tela. Não é erro tampouco: nada falhou, e oferecer "tentar de
+novo" mandaria o usuário repetir uma busca que já respondeu.
 
 O ícone tem duas medidas, e a escolha é pela extensão do que está vazio: **48**
 quando a página inteira está vazia, **40** quando é uma seção ou uma tabela dentro

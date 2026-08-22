@@ -22,3 +22,19 @@ export function millimetersToTenths(millimeters: number): number {
 export function tenthsToMillimeters(tenths: number): number {
   return tenths / 10;
 }
+
+/**
+ * Aceita `2750`, `2750,5` e `2750.5` — vírgula porque é como se digita em
+ * português, ponto porque é o que o teclado numérico oferece. Devolve `null`
+ * para o que não é medida.
+ *
+ * A segunda casa decimal é recusada em vez de arredondada: quem digitou
+ * `2750,55` pediu uma precisão que a unidade não guarda, e precisa ver isso —
+ * arredondar em silêncio faria o campo mostrar depois um número que ninguém
+ * escreveu.
+ */
+export function parseMillimeters(text: string): number | null {
+  const trimmed = text.trim();
+  if (!/^\d+([.,]\d)?$/.test(trimmed)) return null;
+  return Number(trimmed.replace(',', '.'));
+}

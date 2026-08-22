@@ -17,7 +17,14 @@ describe('shouldNotifyDataChanged', () => {
     const writes = [
       IPC_CHANNELS.projectsCreate,
       IPC_CHANNELS.projectsUpdate,
+      IPC_CHANNELS.projectsUpdateCuttingParams,
       IPC_CHANNELS.projectsDelete,
+      IPC_CHANNELS.piecesCreate,
+      IPC_CHANNELS.piecesUpdate,
+      IPC_CHANNELS.piecesDelete,
+      IPC_CHANNELS.sheetsCreate,
+      IPC_CHANNELS.sheetsUpdate,
+      IPC_CHANNELS.sheetsDelete,
     ];
     for (const channel of writes) {
       expect(shouldNotifyDataChanged(channel), channel).toBe(true);

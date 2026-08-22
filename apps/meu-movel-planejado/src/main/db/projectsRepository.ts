@@ -1,6 +1,7 @@
 import type Database from 'better-sqlite3';
 import { randomUUID } from 'node:crypto';
 import {
+  type CuttingParamsInput,
   DEFAULT_KERF_TENTHS_MM,
   DEFAULT_TRIM_TENTHS_MM,
   type Project,
@@ -40,12 +41,22 @@ export function listProjects(db: Database.Database): Project[] {
   return rows.map(rowToProject);
 }
 
-function getProjectOrThrow(db: Database.Database, id: string): Project {
+/**
+ * O projeto que a tela de Projeto abre. `null`, e não 404, porque quem chama
+ * precisa distinguir "este projeto não existe mais" de "o banco falhou": a
+ * primeira é uma tela com saída de volta para a lista, a segunda é erro.
+ */
+export function getProject(db: Database.Database, id: string): Project | null {
   const row = db.prepare('SELECT * FROM projects WHERE id = ?').get(id) as ProjectRow | undefined;
-  if (!row) {
+  return row ? rowToProject(row) : null;
+}
+
+function getProjectOrThrow(db: Database.Database, id: string): Project {
+  const project = getProject(db, id);
+  if (!project) {
     throw new AppError(404, 'Este projeto não existe mais.');
   }
-  return rowToProject(row);
+  return project;
 }
 
 export function createProject(db: Database.Database, data: ProjectInput): Project {
@@ -83,6 +94,46 @@ export function updateProject(db: Database.Database, id: string, data: ProjectIn
   ).run({ id, name: data.name, material: data.material, updatedAt });
 
   return getProjectOrThrow(db, id);
+}
+
+/**
+ * Kerf e refile são escrita à parte do nome e do material: os dois formulários
+ * são de telas diferentes, e um deles enxergando os campos do outro só teria
+ * como não sobrescrevê-los carregando valores que ele não mostra.
+ */
+export function updateCuttingParams(
+  db: Database.Database,
+  id: string,
+  data: CuttingParamsInput,
+): Project {
+  getProjectOrThrow(db, id);
+
+  db.prepare(
+    `UPDATE projects SET kerf_tenths_mm = @kerfTenthsMm, trim_tenths_mm = @trimTenthsMm,
+       updated_at = @updatedAt
+     WHERE id = @id`,
+  ).run({ id, ...data, updatedAt: new Date().toISOString() });
+
+  return getProjectOrThrow(db, id);
+}
+
+/**
+ * Move o carimbo de alteração do projeto. Toda escrita em peça ou em chapa
+ * passa por aqui, dentro da mesma transação: é esse instante que o plano guarda
+ * ao ser gerado, e é comparando com ele que o app sabe que o papel na bancada
+ * ficou para trás.
+ *
+ * Projeto inexistente é 404 aqui também — vale como a checagem de que a peça
+ * está sendo cadastrada em algum lugar que existe.
+ */
+export function touchProject(db: Database.Database, projectId: string): void {
+  const result = db
+    .prepare('UPDATE projects SET updated_at = ? WHERE id = ?')
+    .run(new Date().toISOString(), projectId);
+
+  if (result.changes === 0) {
+    throw new AppError(404, 'Este projeto não existe mais.');
+  }
 }
 
 /**

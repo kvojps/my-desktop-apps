@@ -1,4 +1,6 @@
-import type { Project, ProjectInput } from '@shared/types/project';
+import type { Piece, PieceInput } from '@shared/types/piece';
+import type { CuttingParamsInput, Project, ProjectInput } from '@shared/types/project';
+import type { Sheet, SheetInput } from '@shared/types/sheet';
 import type { ThemeMode } from '@shared/types/theme';
 
 function unwrapIpcError(err: unknown): never {
@@ -37,6 +39,10 @@ export const api = {
     return call<Project[]>(() => window.api.projects.list());
   },
 
+  getProject(id: string) {
+    return call<Project | null>(() => window.api.projects.get(id));
+  },
+
   createProject(data: ProjectInput) {
     return call<Project>(() => window.api.projects.create(data));
   },
@@ -45,8 +51,44 @@ export const api = {
     return call<Project>(() => window.api.projects.update(id, data));
   },
 
+  updateCuttingParams(id: string, data: CuttingParamsInput) {
+    return call<Project>(() => window.api.projects.updateCuttingParams(id, data));
+  },
+
   deleteProject(id: string) {
     return call(() => window.api.projects.delete(id));
+  },
+
+  getPieces(projectId: string) {
+    return call<Piece[]>(() => window.api.pieces.list(projectId));
+  },
+
+  createPiece(projectId: string, data: PieceInput) {
+    return call<Piece>(() => window.api.pieces.create(projectId, data));
+  },
+
+  updatePiece(id: string, data: PieceInput) {
+    return call<Piece>(() => window.api.pieces.update(id, data));
+  },
+
+  deletePiece(id: string) {
+    return call(() => window.api.pieces.delete(id));
+  },
+
+  getSheets(projectId: string) {
+    return call<Sheet[]>(() => window.api.sheets.list(projectId));
+  },
+
+  createSheet(projectId: string, data: SheetInput) {
+    return call<Sheet>(() => window.api.sheets.create(projectId, data));
+  },
+
+  updateSheet(id: string, data: SheetInput) {
+    return call<Sheet>(() => window.api.sheets.update(id, data));
+  },
+
+  deleteSheet(id: string) {
+    return call(() => window.api.sheets.delete(id));
   },
 
   openDataFolder() {

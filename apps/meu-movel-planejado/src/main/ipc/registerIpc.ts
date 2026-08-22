@@ -2,13 +2,19 @@ import type Database from 'better-sqlite3';
 import { app, shell } from 'electron';
 import { IPC_CHANNELS } from '@shared/ipc/channels';
 import type { ThemeMode } from '@shared/types/theme';
+import { createPiece, deletePiece, listPieces, updatePiece } from '../db/piecesRepository';
 import {
   createProject,
   deleteProject,
+  getProject,
   listProjects,
+  updateCuttingParams,
   updateProject,
 } from '../db/projectsRepository';
-import { projectInputSchema } from '../schemas/project.schema';
+import { createSheet, deleteSheet, listSheets, updateSheet } from '../db/sheetsRepository';
+import { pieceInputSchema } from '../schemas/piece.schema';
+import { cuttingParamsInputSchema, projectInputSchema } from '../schemas/project.schema';
+import { sheetInputSchema } from '../schemas/sheet.schema';
 import { themeModeSchema } from '../schemas/theme.schema';
 import { parseId } from '../utils/parseId';
 import { parseOrThrow } from '../utils/validate';
@@ -22,6 +28,8 @@ interface RegisterIpcOptions {
 export function registerIpcHandlers(db: Database.Database, options: RegisterIpcOptions): void {
   handle(IPC_CHANNELS.projectsList, () => listProjects(db));
 
+  handle(IPC_CHANNELS.projectsGet, (_event, id: unknown) => getProject(db, parseId(id)));
+
   handle(IPC_CHANNELS.projectsCreate, (_event, data: unknown) =>
     createProject(db, parseOrThrow(projectInputSchema, data)),
   );
@@ -30,7 +38,39 @@ export function registerIpcHandlers(db: Database.Database, options: RegisterIpcO
     updateProject(db, parseId(id), parseOrThrow(projectInputSchema, data)),
   );
 
+  handle(IPC_CHANNELS.projectsUpdateCuttingParams, (_event, id: unknown, data: unknown) =>
+    updateCuttingParams(db, parseId(id), parseOrThrow(cuttingParamsInputSchema, data)),
+  );
+
   handle(IPC_CHANNELS.projectsDelete, (_event, id: unknown) => deleteProject(db, parseId(id)));
+
+  handle(IPC_CHANNELS.piecesList, (_event, projectId: unknown) =>
+    listPieces(db, parseId(projectId)),
+  );
+
+  handle(IPC_CHANNELS.piecesCreate, (_event, projectId: unknown, data: unknown) =>
+    createPiece(db, parseId(projectId), parseOrThrow(pieceInputSchema, data)),
+  );
+
+  handle(IPC_CHANNELS.piecesUpdate, (_event, id: unknown, data: unknown) =>
+    updatePiece(db, parseId(id), parseOrThrow(pieceInputSchema, data)),
+  );
+
+  handle(IPC_CHANNELS.piecesDelete, (_event, id: unknown) => deletePiece(db, parseId(id)));
+
+  handle(IPC_CHANNELS.sheetsList, (_event, projectId: unknown) =>
+    listSheets(db, parseId(projectId)),
+  );
+
+  handle(IPC_CHANNELS.sheetsCreate, (_event, projectId: unknown, data: unknown) =>
+    createSheet(db, parseId(projectId), parseOrThrow(sheetInputSchema, data)),
+  );
+
+  handle(IPC_CHANNELS.sheetsUpdate, (_event, id: unknown, data: unknown) =>
+    updateSheet(db, parseId(id), parseOrThrow(sheetInputSchema, data)),
+  );
+
+  handle(IPC_CHANNELS.sheetsDelete, (_event, id: unknown) => deleteSheet(db, parseId(id)));
 
   handle(IPC_CHANNELS.dataOpenFolder, async () => {
     await shell.openPath(app.getPath('userData'));

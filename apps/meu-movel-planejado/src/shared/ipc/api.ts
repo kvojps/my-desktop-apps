@@ -1,10 +1,29 @@
-import type { Project, ProjectInput } from '@shared/types/project';
+import type { Piece, PieceInput } from '@shared/types/piece';
+import type { CuttingParamsInput, Project, ProjectInput } from '@shared/types/project';
+import type { Sheet, SheetInput } from '@shared/types/sheet';
 import type { ThemeMode } from '@shared/types/theme';
 
 export interface ProjectsApi {
   list: () => Promise<Project[]>;
+  /** Um projeto só, para a tela que o descreve. `null` quando ele não existe mais. */
+  get: (id: string) => Promise<Project | null>;
   create: (data: ProjectInput) => Promise<Project>;
   update: (id: string, data: ProjectInput) => Promise<Project>;
+  updateCuttingParams: (id: string, data: CuttingParamsInput) => Promise<Project>;
+  delete: (id: string) => Promise<void>;
+}
+
+export interface PiecesApi {
+  list: (projectId: string) => Promise<Piece[]>;
+  create: (projectId: string, data: PieceInput) => Promise<Piece>;
+  update: (id: string, data: PieceInput) => Promise<Piece>;
+  delete: (id: string) => Promise<void>;
+}
+
+export interface SheetsApi {
+  list: (projectId: string) => Promise<Sheet[]>;
+  create: (projectId: string, data: SheetInput) => Promise<Sheet>;
+  update: (id: string, data: SheetInput) => Promise<Sheet>;
   delete: (id: string) => Promise<void>;
 }
 
@@ -27,6 +46,8 @@ export interface ElectronApi {
   /** Assina o aviso de que o banco mudou; devolve a função de cancelamento. */
   onDataChanged: (listener: () => void) => () => void;
   projects: ProjectsApi;
+  pieces: PiecesApi;
+  sheets: SheetsApi;
   data: DataApi;
   theme: ThemeApi;
 }
