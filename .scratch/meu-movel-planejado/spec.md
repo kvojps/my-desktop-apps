@@ -384,3 +384,16 @@ monorepo inteiro por causa de um app. A prancheta é verificada rodando o app.
   vez do atual.
 
 ## Comments
+
+**2026-08-22 — correção da aritmética do kerf (ticket 04).**
+
+A linha de "Corte e geometria" diz que a área útil da chapa é
+`(comprimento − 2·refile + kerf) × (largura − 2·refile + kerf)`. O sinal está
+trocado: com a área **acrescida** de um kerf, a peça mais externa encosta na
+borda com folga zero e uma peça do tamanho exato da chapa cabe — o oposto do que
+a própria linha afirma em seguida ("um kerf de folga em toda fronteira, inclusive
+contra a borda"), da user story 17 e do caso de teste que este mesmo documento
+exige em "Testing Decisions". O empacotamento roda na área útil **diminuída** de
+um kerf. O texto acima fica como está, para preservar o registro; a decisão está
+em `apps/meu-movel-planejado/docs/adr/0001-kerf-como-deslocamento-unico.md`, e o
+verbete "Área útil" do `CONTEXT.md` já foi corrigido.

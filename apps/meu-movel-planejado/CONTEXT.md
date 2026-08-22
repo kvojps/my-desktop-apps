@@ -60,8 +60,8 @@ _Avoid_: margem, aparo, borda
 
 **Área útil**:
 A chapa menos o refile dos dois lados: o material de que o plano dispõe, e a base
-de que o aproveitamento é fração. O retângulo acrescido de um kerf sobre o qual o
-empacotamento roda é artifício de cálculo, não área útil.
+de que o aproveitamento é fração. O retângulo diminuído de um kerf sobre o qual o
+empacotamento roda é artifício de cálculo (ADR-0001), não área útil.
 _Avoid_: área da chapa, área bruta
 
 **Nesting livre**:
@@ -125,10 +125,12 @@ acabou. Resolve-se comprando chapa, e é ela que entra no déficit.
 _Avoid_: peça de fora, peça faltante
 
 **Peça rejeitada**:
-Peça maior que qualquer chapa do projeto: não cabe em nenhuma, e comprar mais
-chapas não muda isso — por isso fica fora do déficit, e tratá-la como não alocada
-faria o app recomendar uma compra inútil. É barrada no cadastro, e o plano ainda
-assim a classifica, porque a chapa que a comportava pode ter sido excluída depois.
+Peça que não cabe na área útil de nenhuma chapa do projeto — o refile e o kerf
+entram nessa conta, e por isso ela pode ser rejeitada sendo menor que a chapa
+bruta. Comprar mais chapas não muda isso: por isso fica fora do déficit, e
+tratá-la como não alocada faria o app recomendar uma compra inútil. É barrada no
+cadastro, e o plano ainda assim a classifica, porque a chapa que a comportava
+pode ter sido excluída depois.
 _Avoid_: peça inválida, peça grande demais
 
 **Déficit**:
@@ -137,7 +139,8 @@ acrescida do kerf. Peça rejeitada não entra nessa conta.
 _Avoid_: falta, saldo negativo
 
 **Chapa equivalente**:
-A tradução do déficit em número de chapas do maior formato do projeto. Como a
-conta por área ignora encaixe, é **limite inferior**: a tela diz "pelo menos N
-chapas", nunca "N chapas".
+A tradução do déficit em número de chapas do maior formato do projeto — dividido
+pela área em que aquele formato de fato empacota, já descontados o refile e o
+kerf, e não pela sua medida bruta. Como a conta por área ignora encaixe, é
+**limite inferior**: a tela diz "pelo menos N chapas", nunca "N chapas".
 _Avoid_: chapas necessárias, chapas faltantes

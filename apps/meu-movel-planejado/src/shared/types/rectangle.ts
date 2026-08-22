@@ -21,12 +21,21 @@ export const MAX_MEASURE_TENTHS_MM = 100_000;
 export const MAX_QUANTITY = 999;
 
 /**
+ * As duas medidas de um retângulo, sem quantidade: a forma de uma peça só, de
+ * uma chapa planejada ou de uma colocação — coisas que existem uma a uma e não
+ * em lote. `lengthTenthsMm` corre no eixo x e `widthTenthsMm` no eixo y em todo
+ * o app, inclusive no desenho do plano.
+ */
+export interface Rectangle {
+  lengthTenthsMm: number;
+  widthTenthsMm: number;
+}
+
+/**
  * O retângulo com quantidade que peça e chapa são, cada uma de um lado do
  * serviço: uma é demanda, a outra é disponibilidade. É o que basta para medir
  * área, e é por isso que a mesma soma serve às duas.
  */
-export interface RectangleBatch {
-  lengthTenthsMm: number;
-  widthTenthsMm: number;
+export interface RectangleBatch extends Rectangle {
   quantity: number;
 }
