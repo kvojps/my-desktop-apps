@@ -1,4 +1,4 @@
-# Meu Corte — planejamento de corte de chapas
+# Meu Móvel Planejado — planejamento de corte de chapas
 
 Status: ready-for-agent
 
@@ -370,9 +370,14 @@ monorepo inteiro por causa de um app. A prancheta é verificada rodando o app.
   disco de serra. Vale registrar que um disco de serra fica em 3–4 mm, para o caso
   de alguém abrir o app com outra máquina em mente — o campo é editável
   justamente por isso.
-- O nome **Meu Corte** segue a família dos outros apps. Foi proposto e não
-  contestado; trocá-lo depois mexe em diretório, identificador de aplicação e nome
-  de produto, então é barato decidir agora e caro decidir depois.
+- O nome **Meu Móvel Planejado** foi escolhido pelo usuário, sobre o diretório
+  `meu-movel-planejado`. Ele segue a família de Meu Dinheiro e Meu Negócio, onde o
+  "Meu" nomeia algo que pertence a quem usa. Fica registrada a ressalva levantada
+  na escolha e assumida conscientemente: *móvel planejado* é termo consagrado da
+  indústria e designa o produto final da marcenaria, então o nome sugere um app de
+  **projetar o móvel**, enquanto este planeja o **corte da chapa** — a etapa
+  seguinte. Se um dia o produto crescer para o desenho do móvel, o nome já cabe;
+  até lá, o README do app precisa ser explícito sobre o que ele faz.
 - A regra de consumir chapas menores primeiro nasceu como recomendação e passou
   sem objeção explícita. É a tradução operacional do desempate "sobra
   concentrada", e é a única regra do plano que privilegia o serviço *seguinte* em
