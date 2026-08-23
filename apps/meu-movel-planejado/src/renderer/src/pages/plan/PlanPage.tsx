@@ -16,11 +16,13 @@ import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { PageHeader } from '@/components/PageHeader';
 import { StatCard, StatCardGrid, StatCardSkeleton } from '@/components/StatCard';
+import { useGeneratePlan } from '@/hooks/plan/useGeneratePlan';
 import { usePlan } from '@/hooks/plan/usePlan';
 import { CATEGORICAL_PALETTE, contentQuery } from '@/theme';
 import { formatDateTime } from '@/utils/date';
 import { formatCount, formatDimensions, formatMillimeters, formatPercent } from '@/utils/format';
 import { ROUTES, projectPath } from '../../routes';
+import { OutdatedPlanNotice } from './components/OutdatedPlanNotice';
 import { PlanLegend } from './components/PlanLegend';
 import { SheetDrawing } from './components/SheetDrawing';
 import { ShortfallPanel } from './components/ShortfallPanel';
@@ -47,7 +49,16 @@ const REFERENCE_SHEET_ASPECT = '2750 / 1850';
 export function PlanPage() {
   const { projectId = '' } = useParams();
   const navigate = useNavigate();
-  const { project, plan, notFound, isLoading, error, retry } = usePlan(projectId);
+  const { project, plan, pieces, sheets, isOutdated, notFound, isLoading, error, retry } =
+    usePlan(projectId);
+  // Gerar mora nas duas telas, com o mesmo hook: aqui ele serve só ao aviso de
+  // plano desatualizado, que é onde a saída precisa estar à mão de quem já está
+  // com o desenho aberto.
+  const { generate, isGenerating, canGenerate, blockedReason } = useGeneratePlan(
+    project,
+    pieces,
+    sheets,
+  );
   const [requestedSheet, setRequestedSheet] = useState(0);
 
   const legend = useMemo(
@@ -169,6 +180,19 @@ export function PlanPage() {
         subtitle={`${project.name} · ${project.material} · Gerado em ${formatDateTime(plan.generatedAt)}`}
         actions={backButton}
       />
+
+      {/* Antes dos indicadores, e não ao lado do desenho: o que ele diz vale
+          para o plano inteiro, inclusive para os números logo abaixo — eles são
+          do desenho de ontem tanto quanto as chapas são. */}
+      {isOutdated && (
+        <OutdatedPlanNotice
+          projectUpdatedAt={project.updatedAt}
+          isGenerating={isGenerating}
+          canGenerate={canGenerate}
+          blockedReason={blockedReason}
+          onGenerate={generate}
+        />
+      )}
 
       <StatCardGrid count={3}>
         <StatCard

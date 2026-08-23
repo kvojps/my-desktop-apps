@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { packCuttingPlanAttempts } from '@shared/nesting/packCuttingPlan';
 import type { CuttingPlan, CuttingPlanInput } from '@shared/nesting/types';
 import { toPlanInput } from '@shared/plan/planSnapshot';
@@ -57,9 +57,16 @@ async function runAttempts(input: CuttingPlanInput): Promise<CuttingPlan> {
   return best;
 }
 
+/**
+ * Sem peça não há o que planejar. Sem chapa há: o plano sai vazio, com tudo de
+ * fora, e é justamente ele que diz quanto comprar.
+ */
+const NO_PIECES_REASON = 'Cadastre ao menos uma peça para gerar o plano';
+
 export function useGeneratePlan(project: Project | null, pieces: Piece[], sheets: Sheet[]) {
   const { showError, showSnackbar } = useSnackbar();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const [isGenerating, setIsGenerating] = useState(false);
 
   const generate = useCallback(async () => {
@@ -84,13 +91,32 @@ export function useGeneratePlan(project: Project | null, pieces: Piece[], sheets
       await api.savePlan(project.id, toPlanInput(input, result, project.updatedAt));
 
       showSnackbar('Plano gerado');
-      navigate(planPath(project.id));
+      // Da tela de Projeto, gerar leva para o desenho. Da própria tela de
+      // Plano, quem gerou já está olhando para ele: repetir a rota empilharia
+      // uma entrada de histórico igual à anterior, e voltar passaria duas vezes
+      // pela mesma tela.
+      const planRoute = planPath(project.id);
+      if (pathname !== planRoute) navigate(planRoute);
     } catch (err) {
       showError(err);
     } finally {
       setIsGenerating(false);
     }
-  }, [isGenerating, navigate, pieces, project, sheets, showError, showSnackbar]);
+  }, [isGenerating, navigate, pathname, pieces, project, sheets, showError, showSnackbar]);
 
-  return { generate, isGenerating };
+  const blockedReason = pieces.length === 0 ? NO_PIECES_REASON : '';
+
+  return {
+    generate,
+    isGenerating,
+    /**
+     * Se o botão de gerar está vivo, e por que não — a mesma resposta para as
+     * duas telas que oferecem gerar. A condição mora aqui, e não em cada uma
+     * delas, porque duas cópias de uma regra são duas chances de a tela de
+     * Plano deixar gerar o que a tela de Projeto barra.
+     */
+    canGenerate: !!project && !isGenerating && blockedReason === '',
+    /** Vazio quando não há o que explicar — é o título do tooltip, que some. */
+    blockedReason,
+  };
 }

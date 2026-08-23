@@ -21,9 +21,13 @@ import { useDataChanged } from '@/hooks/useDataChanged';
  * se há para onde ir depois: um plano salvo que a tela não sabe que existe é um
  * plano inalcançável.
  *
- * Continua sendo hook de tela e não context: projeto é consumido por uma tela
- * só, e a regra do repo é que o context nasce quando a segunda precisa
- * (README, §2.4).
+ * Continua sendo hook de tela e não context, mesmo a tela de Plano lendo o
+ * mesmo serviço para poder gerar de novo dali. O que o §2.4 do README manda
+ * juntar é **estado** compartilhado, e não há nenhum: as duas telas leem o
+ * banco, cada uma para a superfície que ela mostra, e a invalidação por
+ * `useDataChanged` mantém as duas em dia sem que uma precise saber da outra.
+ * Um context aqui compartilharia a busca, não o estado — e cobraria de cada
+ * tela carregar o que ela não usa.
  */
 export function useProjectDetail(projectId: string) {
   const { showError, showSnackbar } = useSnackbar();

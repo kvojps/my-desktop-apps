@@ -66,7 +66,11 @@ export function ProjectPage() {
   const pieceForm = usePieceForm(createPiece, updatePiece, project, sheets);
   const sheetForm = useSheetForm(createSheet, updateSheet);
   const cuttingParamsForm = useCuttingParamsForm(updateCuttingParams);
-  const { generate, isGenerating } = useGeneratePlan(project, pieces, sheets);
+  const { generate, isGenerating, canGenerate, blockedReason } = useGeneratePlan(
+    project,
+    pieces,
+    sheets,
+  );
 
   function goToProjects() {
     navigate(ROUTES.PROJECTS);
@@ -145,17 +149,15 @@ export function ProjectPage() {
                 (design system, §5.3), e é por isso que o laço de tentativas
                 cede o controle entre elas — para que este rótulo repinte.
 
-                Sem peça não há o que planejar. Sem chapa há: o plano sai vazio,
-                com tudo de fora, e é justamente ele que diz quanto comprar. */}
-            <Tooltip
-              title={pieces.length === 0 ? 'Cadastre ao menos uma peça para gerar o plano' : ''}
-            >
+                Quando o botão está desligado, quem diz por quê é o hook: a
+                mesma frase serve o aviso de plano desatualizado, na outra tela.  */}
+            <Tooltip title={blockedReason}>
               <span>
                 <Button
                   variant="contained"
                   startIcon={<AutoAwesomeMosaicOutlined />}
                   onClick={generate}
-                  disabled={isGenerating || pieces.length === 0}
+                  disabled={!canGenerate}
                 >
                   {isGenerating ? 'Gerando...' : plan ? 'Gerar de novo' : 'Gerar plano'}
                 </Button>

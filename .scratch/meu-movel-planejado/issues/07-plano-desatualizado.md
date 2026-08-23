@@ -4,10 +4,10 @@
 
 **Blocked by:** 05.
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Alterar projeto, peça ou chapa depois de gerar faz o plano ser exibido como anterior às alterações.
-- [ ] A detecção é por carimbo de tempo — o plano guarda o instante de alteração do projeto que o originou e está desatualizado quando o projeto foi alterado depois. Sem hash e sem comparação de conteúdo.
-- [ ] O aviso aparece na tela de Plano, com a ação de gerar de novo disponível dali.
-- [ ] Reabrir um projeto sem alterações não acusa desatualizado.
-- [ ] Depois de gerar de novo, o aviso some.
+- [x] Alterar projeto, peça ou chapa depois de gerar faz o plano ser exibido como anterior às alterações.
+- [x] A detecção é por carimbo de tempo — o plano guarda o instante de alteração do projeto que o originou e está desatualizado quando o projeto foi alterado depois. Sem hash e sem comparação de conteúdo.
+- [x] O aviso aparece na tela de Plano, com a ação de gerar de novo disponível dali.
+- [x] Reabrir um projeto sem alterações não acusa desatualizado.
+- [x] Depois de gerar de novo, o aviso some.
