@@ -1,5 +1,6 @@
 import { Card, CardContent, Divider, Stack, Typography } from '@mui/material';
 import type { PlanDeficit, PlanShortfall } from '@shared/types/plan';
+import { describeFitRule } from '@/utils/cuttingGeometry';
 import { formatCount, formatDimensions, formatSquareMeters } from '@/utils/format';
 
 /**
@@ -21,6 +22,13 @@ interface ShortfallPanelProps {
   /** Não cabe em chapa nenhuma do projeto. */
   rejected: PlanShortfall[];
   deficit: PlanDeficit;
+  /**
+   * A geometria com que **este** plano foi feito. Ela entra porque a rejeição
+   * quase sempre é decidida por ela: peça do tamanho exato da chapa não cabe, e
+   * quem não sabe que a fresa cobra contra a borda lê isso como erro do app.
+   */
+  kerfTenthsMm: number;
+  trimTenthsMm: number;
 }
 
 /** Como a peça se identifica onde só cabe um nome: o rótulo, ou a medida dela. */
@@ -99,7 +107,13 @@ function DeficitLines({ deficit }: { deficit: PlanDeficit }) {
   );
 }
 
-export function ShortfallPanel({ unplaced, rejected, deficit }: ShortfallPanelProps) {
+export function ShortfallPanel({
+  unplaced,
+  rejected,
+  deficit,
+  kerfTenthsMm,
+  trimTenthsMm,
+}: ShortfallPanelProps) {
   // Nada de fora, nada a dizer: este card é a própria condição, e uma caixa
   // vazia anunciando que não há notícia é superfície gasta com nada. ("Painel"
   // fica só no nome em inglês do componente: em português o glossário reserva
@@ -142,6 +156,10 @@ export function ShortfallPanel({ unplaced, rejected, deficit }: ShortfallPanelPr
               </Stack>
 
               <ShortfallList entries={rejected} />
+
+              <Typography variant="caption" color="text.secondary">
+                {describeFitRule({ kerfTenthsMm, trimTenthsMm })}
+              </Typography>
             </Stack>
           )}
         </Stack>

@@ -52,6 +52,20 @@ describe('fitsAnySheet', () => {
     );
   });
 
+  it('recusa a peça tão larga quanto a chapa, por comprida que a chapa seja', () => {
+    // A tira de 100 × 10000 mm com peças de 100 × 100: sobra comprimento de
+    // sobra, e é a largura que barra — a peça precisa de 100,3 mm numa faixa
+    // empacotável de 99,7. Comprar mais tiras iguais não mudaria isso, e é por
+    // isso que ela é rejeitada e não fica só sem chapa.
+    const strip = [rect(1000, 100000)];
+    expect(fitsAnySheet(rect(1000, 1000), strip, { kerfTenthsMm: 3, trimTenthsMm: 0 })).toBe(false);
+    expect(fitsAnySheet(rect(1000, 1000), strip, { kerfTenthsMm: 0, trimTenthsMm: 0 })).toBe(true);
+    // O kerf é cobrado nas duas bordas do eixo, então o limite é 100 − 0,3 −
+    // 0,3, e não 100 − 0,3: 99,7 mm ainda não cabe, 99,4 cabe.
+    expect(fitsAnySheet(rect(997, 997), strip, { kerfTenthsMm: 3, trimTenthsMm: 0 })).toBe(false);
+    expect(fitsAnySheet(rect(994, 994), strip, { kerfTenthsMm: 3, trimTenthsMm: 0 })).toBe(true);
+  });
+
   it('gira a peça quando é assim que ela cabe', () => {
     expect(fitsAnySheet(rect(8000, 4000), [rect(5000, 9000)], noGeometry)).toBe(true);
   });

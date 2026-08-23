@@ -144,8 +144,19 @@ export function PlanPage() {
   // fileira do topo: a contagem de cards do esqueleto é reservada antes de o
   // plano existir, e um card que só aparece com déficit a faria saltar (§5.3).
   const shortfallPanel = (
-    <ShortfallPanel unplaced={plan.unplaced} rejected={plan.rejected} deficit={plan.deficit} />
+    <ShortfallPanel
+      unplaced={plan.unplaced}
+      rejected={plan.rejected}
+      deficit={plan.deficit}
+      kerfTenthsMm={plan.kerfTenthsMm}
+      trimTenthsMm={plan.trimTenthsMm}
+    />
   );
+
+  // Plano sem chapa nenhuma tem duas causas opostas, e a saída de cada uma é o
+  // contrário da outra. Só rejeitada: comprar chapa não resolve, e mandar
+  // comprar seria exatamente a compra inútil que este app existe para evitar.
+  const onlyRejected = plan.unplaced.length === 0 && plan.rejected.length > 0;
 
   return (
     // `flex: 1` na faixa de conteúdo do Layout: é assim que uma tela de leitura
@@ -263,8 +274,16 @@ export function PlanPage() {
           <Card variant="outlined">
             <EmptyState
               icon={<GridOffOutlined sx={{ fontSize: 40 }} />}
-              title="Nenhuma chapa foi usada neste plano."
-              description="Nenhuma peça coube nas chapas cadastradas no projeto. Cadastre chapas maiores ou em maior número e gere de novo."
+              title={
+                onlyRejected
+                  ? 'Nenhuma peça cabe nas chapas deste projeto.'
+                  : 'Nenhuma chapa foi usada neste plano.'
+              }
+              description={
+                onlyRejected
+                  ? 'Comprar mais chapas do mesmo tamanho não resolveria. Abaixo estão as peças e a razão de nenhuma delas caber.'
+                  : 'Nenhuma peça coube nas chapas cadastradas no projeto. Cadastre chapas maiores ou em maior número e gere de novo.'
+              }
               action={backButton}
             />
           </Card>

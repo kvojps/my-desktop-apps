@@ -2,6 +2,7 @@ import { Alert, Button, Stack, TextField } from '@mui/material';
 import { PIECE_DOES_NOT_FIT_MESSAGE } from '@shared/nesting/fit';
 import { Modal } from '@/components/Modal';
 import type { UsePieceFormReturn } from '@/hooks/pieces/usePieceForm';
+import { describeFitRule } from '@/utils/cuttingGeometry';
 import { MeasureField } from './MeasureField';
 
 interface PieceFormModalProps {
@@ -9,7 +10,7 @@ interface PieceFormModalProps {
 }
 
 export function PieceFormModal({ formState }: PieceFormModalProps) {
-  const { isOpen, editingId, isSaving, doesNotFit, form, close, onSubmit } = formState;
+  const { isOpen, editingId, isSaving, doesNotFit, geometry, form, close, onSubmit } = formState;
   const {
     register,
     formState: { errors },
@@ -57,7 +58,11 @@ export function PieceFormModal({ formState }: PieceFormModalProps) {
           />
         </Stack>
 
-        {doesNotFit && <Alert severity="error">{PIECE_DOES_NOT_FIT_MESSAGE}</Alert>}
+        {doesNotFit && geometry && (
+          <Alert severity="error">
+            {PIECE_DOES_NOT_FIT_MESSAGE} {describeFitRule(geometry)}
+          </Alert>
+        )}
 
         <TextField
           label="Quantidade"

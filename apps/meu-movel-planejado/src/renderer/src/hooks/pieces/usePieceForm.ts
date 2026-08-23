@@ -97,7 +97,19 @@ export function usePieceForm(
     }
   });
 
-  return { isOpen, editingId, isSaving, doesNotFit, form, openNew, openEdit, close, onSubmit };
+  return {
+    isOpen,
+    editingId,
+    isSaving,
+    doesNotFit,
+    /** A geometria que decidiu a recusa, para o modal poder explicá-la. */
+    geometry,
+    form,
+    openNew,
+    openEdit,
+    close,
+    onSubmit,
+  };
 }
 
 export type UsePieceFormReturn = ReturnType<typeof usePieceForm>;
