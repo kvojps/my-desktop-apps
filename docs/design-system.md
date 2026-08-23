@@ -606,8 +606,9 @@ continua do tamanho do próprio conteúdo.
 
 As seções acima descrevem a aparência parada. Esta descreve o que o app faz
 enquanto carrega, enquanto o usuário navega pelo teclado, e antes de ter dados —
-que é onde a maior parte da percepção de qualidade se decide. A última
-subseção sai da tela: o que o app faz quando o destino é o papel.
+que é onde a maior parte da percepção de qualidade se decide. A §5.6 sai da
+tela: o que o app faz quando o destino é o papel. A última fecha o ciclo de
+entrada de dados — o que ele faz quando recusa o que foi digitado.
 
 ### 5.1 A janela é parte do tema
 
@@ -863,6 +864,38 @@ motivou esta seção — a da oficina, do outro lado do app — não tem colorid
   promete escala aferível: ninguém mede a folha com régua, e a ampliação da
   impressora não é conhecida. A medida vai **escrita**, dentro do desenho ou ao lado
   dele.
+
+### 5.7 Recusa que não cabe num campo
+
+Validação mora no campo: `error` mais `helperText` no `TextField` que o usuário
+errou, que é onde o olho dele já está. Isso cobre quase tudo — formato, limite,
+campo em branco.
+
+O que não cobre é a regra que **não é de um campo**: a que lê dois ou mais juntos,
+ou que compara o digitado com dados que nem aparecem no diálogo. Pendurá-la num dos
+campos afirma que aquele campo está errado, e ele não está — a peça de 3000 × 600 mm
+não tem comprimento errado nem largura errada; ela não cabe em chapa nenhuma de um
+estoque que o formulário não mostra.
+
+Essas ficam num `Alert` dentro do próprio `Modal`, encostado no grupo de campos de
+que a regra fala, e a severidade é o que ele promete:
+
+| Severidade | O que ela promete                                               |
+| ---------- | --------------------------------------------------------------- |
+| `warning`  | O registro é salvo assim mesmo — o aviso é sobre a consequência |
+| `error`    | O registro **não** é salvo enquanto a condição valer            |
+
+O `error` vem sempre com o botão de submissão desligado, e nunca sozinho. Botão
+desligado sem frase é o app recusando sem dizer por quê; frase sem botão desligado é
+um aviso que só se revela recusa depois do clique. Os dois são uma coisa só, e o
+`Alert` é o que torna o botão legível.
+
+O `Alert` fala com quem está digitando — ele não é a fronteira de confiança. A mesma
+regra continua valendo no main, pelas mesmas razões dos limites de medida: o par
+assimétrico deixaria passar por IPC o que a tela recusa.
+
+Prior art das duas linhas da tabela: o aviso de estoque insuficiente do
+`meu-negocio-app` e a peça maior que qualquer chapa do `meu-movel-planejado`.
 
 ## 6. Extensões locais permitidas
 

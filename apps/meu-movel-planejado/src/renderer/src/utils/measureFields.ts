@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { MAX_QUANTITY } from '@shared/types/rectangle';
+import { MAX_QUANTITY, type Rectangle } from '@shared/types/rectangle';
 import { millimetersToTenths, parseMillimeters, tenthsToMillimeters } from '@shared/units/measure';
 
 /**
@@ -67,4 +67,20 @@ export const quantityFieldSchema = z.string().superRefine((value, ctx) => {
  */
 export function fieldToTenths(value: string): number {
   return millimetersToTenths(parseMillimeters(value) ?? 0);
+}
+
+/**
+ * O retângulo que está digitado **agora**, ou `null` enquanto o par ainda não é
+ * medida. É o par de `fieldToTenths` para quem precisa da resposta **antes** do
+ * resolver: o texto pela metade e o zero não são retângulo, e medi-los acusaria
+ * uma peça que ninguém terminou de escrever.
+ */
+export function fieldsToRectangle(length: string, width: string): Rectangle | null {
+  const lengthMm = parseMillimeters(length);
+  const widthMm = parseMillimeters(width);
+  if (!lengthMm || !widthMm) return null;
+  return {
+    lengthTenthsMm: millimetersToTenths(lengthMm),
+    widthTenthsMm: millimetersToTenths(widthMm),
+  };
 }

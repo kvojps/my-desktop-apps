@@ -1,8 +1,10 @@
 import type Database from 'better-sqlite3';
 import { randomUUID } from 'node:crypto';
+import { PIECE_DOES_NOT_FIT_MESSAGE, fitsAnySheet } from '@shared/nesting/fit';
 import type { Piece, PieceInput } from '@shared/types/piece';
 import { AppError } from '../errors/AppError';
-import { touchProject } from './projectsRepository';
+import { getProject, touchProject } from './projectsRepository';
+import { listSheets } from './sheetsRepository';
 
 interface PieceRow {
   id: string;
@@ -55,11 +57,35 @@ function getPieceOrThrow(db: Database.Database, id: string): Piece {
 }
 
 /**
+ * Peça maior que qualquer chapa do projeto é barrada no cadastro — aqui, na
+ * fronteira de confiança, e não só no formulário. O par assimétrico deixaria
+ * passar no main o que a tela recusa, como nos limites de medida do ticket 03.
+ *
+ * A régua é a mesma que o empacotador usa para rejeitar (`shared/nesting/fit`):
+ * duas contas concordando por coincidência divergiriam no dia em que a
+ * aritmética do kerf mudasse, e o app barraria o cadastro de uma peça que o
+ * plano aceita — ou o contrário.
+ *
+ * Projeto inexistente não é assunto desta régua: `touchProject` devolve o 404
+ * logo adiante, e antecipá-lo aqui duplicaria a decisão.
+ */
+function assertFitsSomeSheet(db: Database.Database, projectId: string, data: PieceInput): void {
+  const project = getProject(db, projectId);
+  if (!project) return;
+  if (fitsAnySheet(data, listSheets(db, projectId), project)) return;
+  // 422 e não 404: o dado é que não serve, e `classifyError` o traduz em
+  // `invalid-input`, que é o código cuja mensagem chega inteira à tela.
+  throw new AppError(422, PIECE_DOES_NOT_FIT_MESSAGE);
+}
+
+/**
  * Cadastrar peça também move o carimbo do projeto, e as duas escritas são uma
  * transação só: um carimbo antigo com peça nova é exatamente o estado em que o
  * app diria que o plano continua em dia quando ele não está.
  */
 export function createPiece(db: Database.Database, projectId: string, data: PieceInput): Piece {
+  assertFitsSomeSheet(db, projectId, data);
+
   const now = new Date().toISOString();
   const piece: Piece = { id: randomUUID(), projectId, ...data, createdAt: now, updatedAt: now };
 
@@ -78,6 +104,8 @@ export function createPiece(db: Database.Database, projectId: string, data: Piec
 
 export function updatePiece(db: Database.Database, id: string, data: PieceInput): Piece {
   const current = getPieceOrThrow(db, id);
+  assertFitsSomeSheet(db, current.projectId, data);
+
   const updatedAt = new Date().toISOString();
 
   db.transaction(() => {

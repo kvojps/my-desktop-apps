@@ -63,7 +63,7 @@ export function ProjectPage() {
     updateCuttingParams,
   } = useProjectDetail(projectId);
 
-  const pieceForm = usePieceForm(createPiece, updatePiece);
+  const pieceForm = usePieceForm(createPiece, updatePiece, project, sheets);
   const sheetForm = useSheetForm(createSheet, updateSheet);
   const cuttingParamsForm = useCuttingParamsForm(updateCuttingParams);
   const { generate, isGenerating } = useGeneratePlan(project, pieces, sheets);

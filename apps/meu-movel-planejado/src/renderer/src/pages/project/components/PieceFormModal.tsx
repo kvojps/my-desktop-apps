@@ -1,4 +1,5 @@
-import { Button, Stack, TextField } from '@mui/material';
+import { Alert, Button, Stack, TextField } from '@mui/material';
+import { PIECE_DOES_NOT_FIT_MESSAGE } from '@shared/nesting/fit';
 import { Modal } from '@/components/Modal';
 import type { UsePieceFormReturn } from '@/hooks/pieces/usePieceForm';
 import { MeasureField } from './MeasureField';
@@ -8,7 +9,7 @@ interface PieceFormModalProps {
 }
 
 export function PieceFormModal({ formState }: PieceFormModalProps) {
-  const { isOpen, editingId, isSaving, form, close, onSubmit } = formState;
+  const { isOpen, editingId, isSaving, doesNotFit, form, close, onSubmit } = formState;
   const {
     register,
     formState: { errors },
@@ -27,7 +28,9 @@ export function PieceFormModal({ formState }: PieceFormModalProps) {
           <Button onClick={close} disabled={isSaving} color="inherit">
             Cancelar
           </Button>
-          <Button type="submit" disabled={isSaving} variant="contained">
+          {/* Barrar é recusar o cadastro, não avisar: o `Alert` abaixo das
+              medidas diz por quê, e é ele que torna o botão desligado legível. */}
+          <Button type="submit" disabled={isSaving || doesNotFit} variant="contained">
             {isSaving ? 'Salvando...' : editingId ? 'Salvar' : 'Adicionar'}
           </Button>
         </>
@@ -53,6 +56,8 @@ export function PieceFormModal({ formState }: PieceFormModalProps) {
             {...register('width')}
           />
         </Stack>
+
+        {doesNotFit && <Alert severity="error">{PIECE_DOES_NOT_FIT_MESSAGE}</Alert>}
 
         <TextField
           label="Quantidade"

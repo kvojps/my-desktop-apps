@@ -23,6 +23,7 @@ import { formatCount, formatDimensions, formatMillimeters, formatPercent } from 
 import { ROUTES, projectPath } from '../../routes';
 import { PlanLegend } from './components/PlanLegend';
 import { SheetDrawing } from './components/SheetDrawing';
+import { ShortfallPanel } from './components/ShortfallPanel';
 import { buildPlanLegend } from './planLegend';
 
 /**
@@ -138,6 +139,14 @@ export function PlanPage() {
   const sheet = plan.sheets[sheetIndex];
   const placedPieces = plan.sheets.reduce((total, item) => total + item.placements.length, 0);
 
+  // O painel se apaga sozinho quando nada ficou de fora, e é ele que mantém
+  // separadas as duas listas que o glossário separa. Ele não vira indicador na
+  // fileira do topo: a contagem de cards do esqueleto é reservada antes de o
+  // plano existir, e um card que só aparece com déficit a faria saltar (§5.3).
+  const shortfallPanel = (
+    <ShortfallPanel unplaced={plan.unplaced} rejected={plan.rejected} deficit={plan.deficit} />
+  );
+
   return (
     // `flex: 1` na faixa de conteúdo do Layout: é assim que uma tela de leitura
     // pede a viewport inteira sem recorrer a `100vh`, que ignoraria o padding
@@ -231,24 +240,37 @@ export function PlanPage() {
             </CardContent>
           </Card>
 
-          <Card variant="outlined" sx={{ minHeight: 0, overflowY: 'auto' }}>
-            <CardContent>
-              <Typography variant="h6" sx={{ mb: 2 }}>
-                Peças desta chapa
-              </Typography>
-              <PlanLegend entries={legend.sheetEntries[sheetIndex]} />
-            </CardContent>
-          </Card>
+          {/* A coluna rola, e não cada card: o que falta e a legenda se leem em
+              sequência, e dois campos de rolagem lado a lado obrigariam a
+              descobrir qual deles responde à roda do mouse. */}
+          <Stack sx={{ minHeight: 0, gap: 2, overflowY: 'auto', '& > *': { flexShrink: 0 } }}>
+            {shortfallPanel}
+
+            <Card variant="outlined">
+              <CardContent>
+                <Typography variant="h6" sx={{ mb: 2 }}>
+                  Peças desta chapa
+                </Typography>
+                <PlanLegend entries={legend.sheetEntries[sheetIndex]} />
+              </CardContent>
+            </Card>
+          </Stack>
         </Stack>
       ) : (
-        <Card variant="outlined">
-          <EmptyState
-            icon={<GridOffOutlined sx={{ fontSize: 40 }} />}
-            title="Nenhuma chapa foi usada neste plano."
-            description="Nenhuma peça coube nas chapas cadastradas no projeto. Cadastre chapas maiores ou em maior número e gere de novo."
-            action={backButton}
-          />
-        </Card>
+        // Nenhuma chapa usada não pode ser o fim da tela: é justamente o caso em
+        // que o que falta comprar é a única coisa que o plano tem a dizer.
+        <>
+          <Card variant="outlined">
+            <EmptyState
+              icon={<GridOffOutlined sx={{ fontSize: 40 }} />}
+              title="Nenhuma chapa foi usada neste plano."
+              description="Nenhuma peça coube nas chapas cadastradas no projeto. Cadastre chapas maiores ou em maior número e gere de novo."
+              action={backButton}
+            />
+          </Card>
+
+          {shortfallPanel}
+        </>
       )}
     </Stack>
   );

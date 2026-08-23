@@ -25,7 +25,9 @@
 // suíte da raiz não o resolve — quatro apps declaram o mesmo `@shared` para
 // pastas diferentes. Import de tipo sobrevive porque o transform o apaga; o de
 // valor quebraria em runtime.
+import type { Rectangle } from '../types/rectangle';
 import { tenthsMm2ToSquareMeters } from '../units/area';
+import { fitsPackable, packableSize, usableSize } from './fit';
 import { type FitHeuristic, type Rect, createFreeList, findFit, occupy } from './maxRects';
 import type {
   CuttingPlan,
@@ -57,9 +59,8 @@ interface SheetInstance {
   widthTenthsMm: number;
   /** A chapa menos o refile dos dois lados: a base do aproveitamento. */
   usableAreaTenthsMm2: number;
-  /** A área útil menos um kerf em cada eixo: onde as células cabem. */
-  packableLength: number;
-  packableWidth: number;
+  /** A área útil menos um kerf em cada eixo: onde as células cabem (`fit.ts`). */
+  packable: Rectangle;
 }
 
 type PieceOrdering = 'area' | 'longestSide' | 'width' | 'length';
@@ -124,18 +125,15 @@ function emptyPlan(): CuttingPlan {
  * dois formatos de mesma área trocariam de lugar entre execuções.
  */
 function expandSheets(input: CuttingPlanInput): SheetInstance[] {
-  const { kerfTenthsMm, trimTenthsMm } = input;
   const formats = input.sheets.map((sheet) => {
-    const usableLength = sheet.lengthTenthsMm - 2 * trimTenthsMm;
-    const usableWidth = sheet.widthTenthsMm - 2 * trimTenthsMm;
+    const usable = usableSize(sheet, input.trimTenthsMm);
     return {
       sheetId: sheet.id,
       quantity: sheet.quantity,
       lengthTenthsMm: sheet.lengthTenthsMm,
       widthTenthsMm: sheet.widthTenthsMm,
-      usableAreaTenthsMm2: Math.max(0, usableLength) * Math.max(0, usableWidth),
-      packableLength: usableLength - kerfTenthsMm,
-      packableWidth: usableWidth - kerfTenthsMm,
+      usableAreaTenthsMm2: usable.lengthTenthsMm * usable.widthTenthsMm,
+      packable: packableSize(sheet, input),
     };
   });
 
@@ -176,7 +174,7 @@ function classifyPieces(
   const rejected: PieceShortfall[] = [];
 
   input.pieces.forEach((piece, batchIndex) => {
-    if (sheets.length > 0 && !fitsAnySheet(piece, sheets, kerfTenthsMm)) {
+    if (sheets.length > 0 && !fitsSomeInstance(piece, sheets, kerfTenthsMm)) {
       rejected.push(toShortfall(piece, piece.quantity));
       return;
     }
@@ -196,18 +194,17 @@ function classifyPieces(
   return { placeable, rejected };
 }
 
-function fitsAnySheet(
+/**
+ * A régua da rejeição, aplicada às chapas já expandidas. É a mesma de
+ * `fitsAnySheet`, que o cadastro consulta — o que muda é só que aqui o
+ * retângulo de empacotamento já foi calculado uma vez para todas as peças.
+ */
+function fitsSomeInstance(
   piece: PackablePiece,
   sheets: readonly SheetInstance[],
   kerfTenthsMm: number,
 ): boolean {
-  const length = piece.lengthTenthsMm + kerfTenthsMm;
-  const width = piece.widthTenthsMm + kerfTenthsMm;
-  return sheets.some(
-    (sheet) =>
-      (length <= sheet.packableLength && width <= sheet.packableWidth) ||
-      (width <= sheet.packableLength && length <= sheet.packableWidth),
-  );
+  return sheets.some((sheet) => fitsPackable(piece, sheet.packable, kerfTenthsMm));
 }
 
 function comparePieces(ordering: PieceOrdering): (a: PieceInstance, b: PieceInstance) => number {
@@ -278,7 +275,7 @@ function fillSheet(
   heuristic: FitHeuristic,
 ): { placements: Placement[]; leftovers: PieceInstance[]; placedAreaTenthsMm2: number } {
   const { kerfTenthsMm, trimTenthsMm } = input;
-  let free: Rect[] = createFreeList(sheet.packableLength, sheet.packableWidth);
+  let free: Rect[] = createFreeList(sheet.packable.lengthTenthsMm, sheet.packable.widthTenthsMm);
   const placements: Placement[] = [];
   const leftovers: PieceInstance[] = [];
   let placedAreaTenthsMm2 = 0;
@@ -327,7 +324,7 @@ function computeDeficit(
 ): Deficit {
   const areaTenthsMm2 = unplaced.reduce((total, piece) => total + piece.costAreaTenthsMm2, 0);
   const reference = largestFormat(sheets);
-  const referenceArea = reference === null ? 0 : reference.packableLength * reference.packableWidth;
+  const referenceArea = reference === null ? 0 : packableArea(reference);
 
   return {
     areaTenthsMm2,
@@ -345,11 +342,15 @@ function computeDeficit(
 function largestFormat(sheets: readonly SheetInstance[]): SheetInstance | null {
   let largest: SheetInstance | null = null;
   for (const sheet of sheets) {
-    const area = sheet.packableLength * sheet.packableWidth;
-    if (sheet.packableLength <= 0 || sheet.packableWidth <= 0) continue;
-    if (largest === null || area > largest.packableLength * largest.packableWidth) largest = sheet;
+    if (sheet.packable.lengthTenthsMm <= 0 || sheet.packable.widthTenthsMm <= 0) continue;
+    if (largest === null || packableArea(sheet) > packableArea(largest)) largest = sheet;
   }
   return largest;
+}
+
+/** A área em que o formato de fato empacota — o divisor da chapa equivalente. */
+function packableArea(sheet: SheetInstance): number {
+  return sheet.packable.lengthTenthsMm * sheet.packable.widthTenthsMm;
 }
 
 /** As instâncias que sobraram, de volta a lotes, na ordem de cadastro. */
