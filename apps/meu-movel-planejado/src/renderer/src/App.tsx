@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { ROUTES } from './routes';
 import { NotFoundPage } from './pages/not-found/NotFoundPage';
+import { PlanPage } from './pages/plan/PlanPage';
 import { ProjectPage } from './pages/project/ProjectPage';
 import { ProjectsPage } from './pages/projects/ProjectsPage';
 import { Layout } from './components/Layout';
@@ -14,6 +15,7 @@ export function App() {
           <Route path="/" element={<Navigate replace to={ROUTES.PROJECTS} />} />
           <Route path={ROUTES.PROJECTS} element={<ProjectsPage />} />
           <Route path={ROUTES.PROJECT} element={<ProjectPage />} />
+          <Route path={ROUTES.PLAN} element={<PlanPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </Layout>

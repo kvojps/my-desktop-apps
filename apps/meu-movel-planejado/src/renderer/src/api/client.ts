@@ -1,4 +1,5 @@
 import type { Piece, PieceInput } from '@shared/types/piece';
+import type { Plan, PlanInput } from '@shared/types/plan';
 import type { CuttingParamsInput, Project, ProjectInput } from '@shared/types/project';
 import type { Sheet, SheetInput } from '@shared/types/sheet';
 import type { ThemeMode } from '@shared/types/theme';
@@ -89,6 +90,14 @@ export const api = {
 
   deleteSheet(id: string) {
     return call(() => window.api.sheets.delete(id));
+  },
+
+  getPlan(projectId: string) {
+    return call<Plan | null>(() => window.api.plans.get(projectId));
+  },
+
+  savePlan(projectId: string, data: PlanInput) {
+    return call<Plan>(() => window.api.plans.save(projectId, data));
   },
 
   openDataFolder() {

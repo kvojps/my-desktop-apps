@@ -20,6 +20,19 @@ export const IPC_CHANNELS = {
   sheetsUpdate: 'sheets:update',
   sheetsDelete: 'sheets:delete',
 
+  /**
+   * O plano vigente do projeto. Leitura: o plano é snapshot, e abrir a tela
+   * não o regenera.
+   */
+  plansGet: 'plans:get',
+  /**
+   * Grava o plano que o renderer acabou de empacotar, substituindo o vigente.
+   * Escrita, mas a única que **não** move o carimbo de alteração do projeto:
+   * gerar não altera o serviço, e mexer no carimbo faria todo plano nascer
+   * desatualizado em relação a si mesmo.
+   */
+  plansSave: 'plans:save',
+
   dataOpenFolder: 'data:openFolder',
 
   themeSet: 'theme:set',
@@ -47,6 +60,7 @@ export const READ_ONLY_CHANNELS: ReadonlySet<IpcChannel> = new Set([
   IPC_CHANNELS.projectsGet,
   IPC_CHANNELS.piecesList,
   IPC_CHANNELS.sheetsList,
+  IPC_CHANNELS.plansGet,
 ]);
 
 /**

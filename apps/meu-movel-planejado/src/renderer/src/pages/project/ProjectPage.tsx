@@ -1,9 +1,11 @@
 import {
   ArrowBack,
+  AutoAwesomeMosaicOutlined,
   ContentCut,
   DashboardCustomizeOutlined,
   LayersOutlined,
   SearchOffOutlined,
+  VisibilityOutlined,
   WidgetsOutlined,
 } from '@mui/icons-material';
 import { Button, IconButton, Skeleton, Stack, Tooltip } from '@mui/material';
@@ -13,11 +15,12 @@ import { ErrorState } from '@/components/ErrorState';
 import { PageHeader } from '@/components/PageHeader';
 import { StatCard, StatCardGrid, StatCardSkeleton } from '@/components/StatCard';
 import { usePieceForm } from '@/hooks/pieces/usePieceForm';
+import { useGeneratePlan } from '@/hooks/plan/useGeneratePlan';
 import { useCuttingParamsForm } from '@/hooks/projects/useCuttingParamsForm';
 import { useProjectDetail } from '@/hooks/projects/useProjectDetail';
 import { useSheetForm } from '@/hooks/sheets/useSheetForm';
 import { formatCount, formatMillimeters, formatSquareMeters } from '@/utils/format';
-import { ROUTES } from '../../routes';
+import { ROUTES, planPath } from '../../routes';
 import { CuttingParamsModal } from './components/CuttingParamsModal';
 import { PieceFormModal } from './components/PieceFormModal';
 import { PiecesSection } from './components/PiecesSection';
@@ -46,6 +49,7 @@ export function ProjectPage() {
     notFound,
     pieces,
     sheets,
+    plan,
     totals,
     isLoading,
     error,
@@ -62,6 +66,7 @@ export function ProjectPage() {
   const pieceForm = usePieceForm(createPiece, updatePiece);
   const sheetForm = useSheetForm(createSheet, updateSheet);
   const cuttingParamsForm = useCuttingParamsForm(updateCuttingParams);
+  const { generate, isGenerating } = useGeneratePlan(project, pieces, sheets);
 
   function goToProjects() {
     navigate(ROUTES.PROJECTS);
@@ -126,6 +131,36 @@ export function ProjectPage() {
             >
               Parâmetros de corte
             </Button>
+            {plan && (
+              <Button
+                variant="outlined"
+                startIcon={<VisibilityOutlined />}
+                onClick={() => navigate(planPath(project.id))}
+              >
+                Ver plano
+              </Button>
+            )}
+            {/* A troca de rótulo é o único sinal de ação em andamento no app
+                inteiro: não há indicador circular de progresso em lugar nenhum
+                (design system, §5.3), e é por isso que o laço de tentativas
+                cede o controle entre elas — para que este rótulo repinte.
+
+                Sem peça não há o que planejar. Sem chapa há: o plano sai vazio,
+                com tudo de fora, e é justamente ele que diz quanto comprar. */}
+            <Tooltip
+              title={pieces.length === 0 ? 'Cadastre ao menos uma peça para gerar o plano' : ''}
+            >
+              <span>
+                <Button
+                  variant="contained"
+                  startIcon={<AutoAwesomeMosaicOutlined />}
+                  onClick={generate}
+                  disabled={isGenerating || pieces.length === 0}
+                >
+                  {isGenerating ? 'Gerando...' : plan ? 'Gerar de novo' : 'Gerar plano'}
+                </Button>
+              </span>
+            </Tooltip>
           </Stack>
         }
       />

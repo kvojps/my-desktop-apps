@@ -200,6 +200,30 @@ O que prende aqui é o contraste **contra a superfície**, não a separação en
 vizinhos: o gráfico de categorias rotula cada barra no eixo, então a cor não é o
 canal de identidade — é só o que precisa continuar visível.
 
+**Quando é o app que escolhe o swatch, a paleta encolhe para os que passam nos
+dois modos.** Os dez são oferecidos porque quem escolhe é o usuário, e a cor da
+categoria dele é dele; a tabela acima existe para que a escolha seja informada.
+Um app que pinta sozinho — por dimensão, por índice, por ordem de aparição — não
+tem esse usuário a quem atribuir a falha: mandar `#FB8C00` para a categoria 2 é
+o app assinando 2.37:1 no modo claro. Ele sorteia dentro dos que passam nos dois
+papéis, e os quatro marcados como falha ficam de fora:
+
+| Swatch    | Fora porque    |
+| --------- | -------------- |
+| `#FB8C00` | 2.37 no claro  |
+| `#00ACC1` | 2.74 no claro  |
+| `#9AA0A6` | 2.64 no claro  |
+| `#7B1FA2` | 2.04 no escuro |
+
+Sobram sete, e sete é menos do que o número de categorias que um dado pode ter —
+então a lista **dá a volta**, e duas categorias dividem cor. Isso é legal aqui e
+não seria numa legenda em que a cor fosse identidade: é o mesmo item acima
+cobrando o segundo canal, e quem o carrega é o número junto da forma, repetido na
+legenda ao lado.
+
+O primeiro app a precisar disto foi o `meu-movel-planejado`, pintando peça por
+dimensão na chapa desenhada.
+
 **A regra acima é sobre categorias, e escala ordinal não é categoria.** Faixa de
 idade, nível de risco, grau de severidade: são muitas séries de um **mesmo**
 assunto, ordenadas, e mandá-las para a paleta categórica é o erro simétrico ao de
@@ -293,6 +317,9 @@ O helper mora no **módulo de tema** do app, exportado e nomeado, ao lado de `ti
 `stripe` (§2) — e pela mesma razão: conta que decide contraste fica num lugar só,
 onde uma auditoria a encontre. Dentro do componente que precisou dela primeiro, ela
 é invisível para o próximo.
+
+O `meu-movel-planejado` é a primeira implementação da regra, em
+`renderer/src/theme/categorical.ts`, ao lado da paleta que ela mede.
 
 **Pendência (2026-08-22):** o `meu-dinheiro-app` faz exatamente essa escolha em
 `pages/settings/components/CategoryForm.tsx`, para o check sobre a amostra de cor da
@@ -721,6 +748,16 @@ O que a exceção cobra em troca:
   não a posição do resto da tela.
 - Ele **não** é o gráfico decorativo da §1.7. Carrega informação, então leva rótulo
   acessível que a descreva, nunca `aria-hidden`.
+- **O que sobra da superfície é hachurado, na tela também.** A §5.6 já manda a
+  hachura para o papel, onde a cor não sobrevive; aqui ela vale por outra razão —
+  a sobra não é um objeto que se preenche, é o que ficou sem objeto em cima, e
+  deixá-la à mostra sob a hachura evita calculá-la como região. Preenchê-la de
+  cinza a faria ler como mais uma peça, a maior de todas.
+- **Área que o desenho não pode usar não é sobra, e não sai hachurada.** O refile
+  de uma chapa é material que existe e será descartado: ele está fora do
+  denominador do aproveitamento, então mostrá-lo com a mesma hachura da sobra faz
+  o desenho contradizer o número ao lado. Ele fica liso, entre a borda da
+  superfície e o contorno da área de fato aproveitável.
 
 ### 5.4 Estado vazio explica e oferece a saída
 

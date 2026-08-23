@@ -25,6 +25,7 @@ describe('shouldNotifyDataChanged', () => {
       IPC_CHANNELS.sheetsCreate,
       IPC_CHANNELS.sheetsUpdate,
       IPC_CHANNELS.sheetsDelete,
+      IPC_CHANNELS.plansSave,
     ];
     for (const channel of writes) {
       expect(shouldNotifyDataChanged(channel), channel).toBe(true);

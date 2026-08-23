@@ -38,6 +38,15 @@ export function formatDimensions(lengthTenthsMm: number, widthTenthsMm: number):
   return `${formatMillimetersValue(lengthTenthsMm)} × ${formatMillimetersValue(widthTenthsMm)} mm`;
 }
 
+/**
+ * Aproveitamento e sobra, ex. `87%`. Sem casa decimal: a diferença entre 87,3%
+ * e 87% não muda decisão nenhuma, e a casa a mais sugere uma precisão que o
+ * arranjo — escolhido entre tentativas — não tem.
+ */
+export function formatPercent(fraction: number): string {
+  return `${Math.round(fraction * 100)}%`;
+}
+
 /** `1 peça` / `4 peças` — o número junto do substantivo na forma certa. */
 export function formatCount(count: number, singular: string, plural: string): string {
   return `${count} ${count === 1 ? singular : plural}`;

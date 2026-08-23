@@ -2,6 +2,19 @@ import { PaletteMode, ThemeOptions, createTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import type { CSSProperties } from 'react';
 
+/**
+ * A paleta categórica e a escolha do rótulo que vai por cima dela vivem em
+ * `categorical.ts` e são reexportadas daqui: quem consome fala com o módulo de
+ * tema, como fala para `tint` e `stripe`, e a conta de contraste fica num
+ * arquivo que não arrasta o MUI junto para a suíte de testes.
+ *
+ * Só estes dois saem: `contrastRatio` e `labelContrast` são as medidas de que a
+ * regra é feita, e quem as consulta é a suíte que prende a paleta à tabela do
+ * design system. Reexportá-las daqui ofereceria à tela uma decisão de contraste
+ * para tomar por conta própria, que é o que a §1.8 existe para impedir.
+ */
+export { CATEGORICAL_PALETTE, labelOn } from './categorical';
+
 /** Raio das superfícies (cards, papers, diálogos). */
 export const SURFACE_RADIUS = 12;
 /** Raio dos controles (botões, inputs, toggles), um degrau abaixo das superfícies. */

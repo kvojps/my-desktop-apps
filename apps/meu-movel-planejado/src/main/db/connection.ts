@@ -65,7 +65,12 @@ CREATE TABLE IF NOT EXISTS plans (
   trim_tenths_mm INTEGER NOT NULL,
   utilization REAL NOT NULL,
   deficit_area_tenths_mm2 INTEGER NOT NULL,
-  equivalent_sheets INTEGER NOT NULL
+  equivalent_sheets INTEGER NOT NULL,
+  -- O formato de chapa em que o déficit foi traduzido, copiado como as demais
+  -- medidas do plano. Nulo quando o projeto não tinha chapa nenhuma: sem
+  -- formato não há em que dividir, e a tela precisa distinguir isso de zero.
+  reference_length_tenths_mm INTEGER,
+  reference_width_tenths_mm INTEGER
 );
 
 CREATE TABLE IF NOT EXISTS planned_sheets (

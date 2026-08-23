@@ -24,17 +24,23 @@ interface Migration {
 }
 
 const MIGRATIONS: Migration[] = [
-  // Exemplo do formato esperado (remova ao adicionar a primeira de verdade):
-  //
-  // {
-  //   id: 1,
-  //   name: 'scan_paths.label',
-  //   up: (db) => {
-  //     if (!hasColumn(db, 'scan_paths', 'label')) {
-  //       db.exec("ALTER TABLE scan_paths ADD COLUMN label TEXT NOT NULL DEFAULT ''");
-  //     }
-  //   },
-  // },
+  {
+    id: 1,
+    name: 'plans.reference_sheet',
+    // O déficit já era gravado em área e em número de chapas, mas não dizia
+    // **qual formato** entrou na divisão — e sem isso a tela não tem como
+    // dizer "pelo menos N chapas de 2750 × 1850". Nulo nos planos que já
+    // existiam: eles foram gerados sem essa informação, e inventá-la a partir
+    // do estoque de hoje contaria uma chapa que pode nem existir mais.
+    up: (db) => {
+      if (!hasColumn(db, 'plans', 'reference_length_tenths_mm')) {
+        db.exec('ALTER TABLE plans ADD COLUMN reference_length_tenths_mm INTEGER');
+      }
+      if (!hasColumn(db, 'plans', 'reference_width_tenths_mm')) {
+        db.exec('ALTER TABLE plans ADD COLUMN reference_width_tenths_mm INTEGER');
+      }
+    },
+  },
 ];
 
 /** Helper de idempotência: a coluna já existe nesta tabela? */

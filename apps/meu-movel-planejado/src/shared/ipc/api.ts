@@ -1,4 +1,5 @@
 import type { Piece, PieceInput } from '@shared/types/piece';
+import type { Plan, PlanInput } from '@shared/types/plan';
 import type { CuttingParamsInput, Project, ProjectInput } from '@shared/types/project';
 import type { Sheet, SheetInput } from '@shared/types/sheet';
 import type { ThemeMode } from '@shared/types/theme';
@@ -27,6 +28,16 @@ export interface SheetsApi {
   delete: (id: string) => Promise<void>;
 }
 
+export interface PlansApi {
+  /** O plano vigente do projeto. `null` enquanto ninguém mandou gerar. */
+  get: (projectId: string) => Promise<Plan | null>;
+  /**
+   * Grava o plano que o renderer acabou de empacotar, substituindo o vigente.
+   * O empacotamento roda lá: é função pura, e o main não empacota.
+   */
+  save: (projectId: string, data: PlanInput) => Promise<Plan>;
+}
+
 export interface DataApi {
   /** Abre a pasta de dados do app no explorador de arquivos. */
   openFolder: () => Promise<void>;
@@ -48,6 +59,7 @@ export interface ElectronApi {
   projects: ProjectsApi;
   pieces: PiecesApi;
   sheets: SheetsApi;
+  plans: PlansApi;
   data: DataApi;
   theme: ThemeApi;
 }

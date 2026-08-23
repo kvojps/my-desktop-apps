@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { Piece, PieceInput } from '@shared/types/piece';
+import type { Plan } from '@shared/types/plan';
 import type { CuttingParamsInput, Project } from '@shared/types/project';
 import type { Sheet, SheetInput } from '@shared/types/sheet';
 import { totalAreaTenthsMm2 } from '@shared/units/area';
@@ -8,12 +9,17 @@ import { useSnackbar } from '@/contexts/SnackbarContext';
 import { useDataChanged } from '@/hooks/useDataChanged';
 
 /**
- * Tudo que a tela de Projeto sabe: o projeto, as peças e as chapas dele.
+ * Tudo que a tela de Projeto sabe: o projeto, as peças, as chapas e o plano
+ * vigente dele.
  *
- * As três leituras são uma só, e não uma por seção: elas descrevem o mesmo
+ * As quatro leituras são uma só, e não uma por seção: elas descrevem o mesmo
  * serviço e vêm do mesmo banco. Carregar por seção só se justifica quando as
  * fontes podem falhar em separado (design system, §5.3), e aqui uma falha
  * significa que o banco não respondeu — a tela inteira.
+ *
+ * O plano entra na conta porque é ele que decide o que o botão de gerar diz e
+ * se há para onde ir depois: um plano salvo que a tela não sabe que existe é um
+ * plano inalcançável.
  *
  * Continua sendo hook de tela e não context: projeto é consumido por uma tela
  * só, e a regra do repo é que o context nasce quando a segunda precisa
@@ -24,19 +30,22 @@ export function useProjectDetail(projectId: string) {
   const [project, setProject] = useState<Project | null>(null);
   const [pieces, setPieces] = useState<Piece[]>([]);
   const [sheets, setSheets] = useState<Sheet[]>([]);
+  const [plan, setPlan] = useState<Plan | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<unknown>(null);
 
   const reload = useCallback(async () => {
     try {
-      const [nextProject, nextPieces, nextSheets] = await Promise.all([
+      const [nextProject, nextPieces, nextSheets, nextPlan] = await Promise.all([
         api.getProject(projectId),
         api.getPieces(projectId),
         api.getSheets(projectId),
+        api.getPlan(projectId),
       ]);
       setProject(nextProject);
       setPieces(nextPieces);
       setSheets(nextSheets);
+      setPlan(nextPlan);
       setError(null);
     } catch (err) {
       setError(err);
@@ -159,6 +168,8 @@ export function useProjectDetail(projectId: string) {
     notFound: !isLoading && !error && !project,
     pieces,
     sheets,
+    /** O plano vigente, ou `null` enquanto ninguém mandou gerar. */
+    plan,
     totals,
     isLoading,
     error,

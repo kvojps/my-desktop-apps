@@ -3,6 +3,7 @@ import { app, shell } from 'electron';
 import { IPC_CHANNELS } from '@shared/ipc/channels';
 import type { ThemeMode } from '@shared/types/theme';
 import { createPiece, deletePiece, listPieces, updatePiece } from '../db/piecesRepository';
+import { getPlan, savePlan } from '../db/plansRepository';
 import {
   createProject,
   deleteProject,
@@ -13,6 +14,7 @@ import {
 } from '../db/projectsRepository';
 import { createSheet, deleteSheet, listSheets, updateSheet } from '../db/sheetsRepository';
 import { pieceInputSchema } from '../schemas/piece.schema';
+import { planInputSchema } from '../schemas/plan.schema';
 import { cuttingParamsInputSchema, projectInputSchema } from '../schemas/project.schema';
 import { sheetInputSchema } from '../schemas/sheet.schema';
 import { themeModeSchema } from '../schemas/theme.schema';
@@ -71,6 +73,12 @@ export function registerIpcHandlers(db: Database.Database, options: RegisterIpcO
   );
 
   handle(IPC_CHANNELS.sheetsDelete, (_event, id: unknown) => deleteSheet(db, parseId(id)));
+
+  handle(IPC_CHANNELS.plansGet, (_event, projectId: unknown) => getPlan(db, parseId(projectId)));
+
+  handle(IPC_CHANNELS.plansSave, (_event, projectId: unknown, data: unknown) =>
+    savePlan(db, parseId(projectId), parseOrThrow(planInputSchema, data)),
+  );
 
   handle(IPC_CHANNELS.dataOpenFolder, async () => {
     await shell.openPath(app.getPath('userData'));
