@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { LABEL_FONT_PX } from './pieceLabels';
 
 /**
  * Quanto espaço um rótulo ocupa, para o desenho saber se ele cabe dentro da
@@ -22,14 +23,9 @@ import { useEffect, useMemo, useState } from 'react';
  * seria a divergência que o §6 do design system nomeia — a tipografia é do
  * tema —, e teria o efeito calado de a medida continuar certa depois de o tema
  * trocar de fonte, medindo uma fonte que a tela já não usa. O tamanho, sim, é
- * declarado: 12px é escolha deste desenho, não do `body`.
+ * declarado: 12px é escolha deste desenho, não do `body`, e vem de
+ * `pieceLabels` — de quem decide o rótulo, e não de quem o mede.
  */
-
-/** Tamanho do rótulo dentro da peça, em pixel de tela — o `caption` do tema. */
-export const LABEL_FONT_PX = 12;
-
-/** Altura de uma linha de rótulo, em pixel de tela. */
-export const LABEL_LINE_PX = LABEL_FONT_PX * 1.25;
 
 let measureNode: HTMLSpanElement | null = null;
 

@@ -48,6 +48,18 @@ export interface PlanLegend {
 }
 
 /**
+ * Como a peça se apresenta onde ela precisa ser reconhecida: o número seguido
+ * do rótulo, ou só o número quando ela foi cadastrada sem um.
+ *
+ * Uma redação só, porque o desenho da tela, o desenho da folha e a lista de
+ * peças do papel precisam dizer a mesma coisa — o número impresso dentro de um
+ * retângulo estreito é o que a lista da outra folha traduz.
+ */
+export function pieceIdentity(piece: Pick<PlanPiece, 'number' | 'label'>): string {
+  return piece.label ? `${piece.number}. ${piece.label}` : String(piece.number);
+}
+
+/**
  * A medida com que a peça foi cadastrada. A colocação guarda a medida já
  * trocada quando a peça caiu girada, e desfazer o giro é o que faz a mesma peça
  * ser reconhecida como a mesma nas duas orientações.

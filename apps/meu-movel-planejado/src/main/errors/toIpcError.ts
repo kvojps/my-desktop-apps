@@ -9,6 +9,7 @@ function systemCode(err: unknown): string {
 
 export function classifyError(err: unknown): AppErrorCode {
   if (err instanceof AppError) {
+    if (err.code) return err.code;
     if (err.statusCode === 404) return 'not-found';
     return err.statusCode >= 500 ? 'unknown' : 'invalid-input';
   }

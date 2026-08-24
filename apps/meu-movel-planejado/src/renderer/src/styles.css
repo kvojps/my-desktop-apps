@@ -9,3 +9,233 @@ body,
 body {
   min-height: 100vh;
 }
+
+/*
+ * O papel (docs/design-system.md, §5.6).
+ *
+ * O documento de impressão existe sempre, pendurado no `body` ao lado do app, e
+ * fica escondido na tela. É a mídia que decide qual dos dois aparece — e é por
+ * isso que "só o conteúdo é impresso" é estrutural aqui: no papel some tudo que
+ * é irmão do documento, em vez de o rail, os botões e a navegação serem
+ * escondidos um a um, lista que o próximo controle deixaria desatualizada. Isso
+ * alcança o que uma lista não alcançaria: diálogo, menu e tooltip do MUI moram
+ * em portais no `body`, e sairiam no papel por cima do plano.
+ *
+ * A folha não tem tema. Tudo abaixo é preto sobre branco, com a medida escrita
+ * em milímetro porque quem lê está com a folha na mão.
+ */
+.plan-print {
+  display: none;
+  color: #000;
+  background: #fff;
+}
+
+/* A4 deitada, como a chapa. A opção passada ao Electron diz o mesmo, e as duas
+   precisam continuar dizendo: uma folha em pé desenharia a chapa com pouco mais
+   da metade do tamanho. */
+@page {
+  size: A4 landscape;
+  margin: 10mm;
+}
+
+@media print {
+  html,
+  body {
+    /* A altura cheia da tela prenderia o documento numa viewport; no papel ele
+       flui por quantas folhas precisar. */
+    height: auto;
+    background: #fff;
+  }
+
+  /* Só esconde o app quando **há** documento para pôr no lugar dele. Escondê-lo
+     sempre faria toda tela sem plano imprimir uma folha em branco, que é pior
+     que imprimir a tela: o usuário gasta papel para descobrir que não havia o
+     que imprimir. */
+  body:has(> .plan-print) > *:not(.plan-print) {
+    display: none !important;
+  }
+
+  .plan-print {
+    display: block;
+    font-size: 10pt;
+    line-height: 1.35;
+  }
+}
+
+/* Uma unidade por página, com quebra entre elas. A última não força uma folha
+   em branco atrás de si. */
+.plan-print__page {
+  break-after: page;
+}
+
+.plan-print__page:last-child {
+  break-after: auto;
+}
+
+/* A página de uma chapa não se parte: ela é a unidade que se executa, e meia
+   chapa em cada folha é o contrário do que a §5.6 pede. O resumo **pode**
+   partir-se — ele não é unidade —, e por isso a regra é só da página de chapa. */
+.plan-print__page--unit {
+  break-inside: avoid;
+}
+
+/* Toda página se identifica sozinha: o maço se separa, e a folha que ficou na
+   bancada precisa dizer de que documento e de que unidade ela é.
+
+   São duas peças. O cabeçalho **corrente** carrega o documento e é repetido pela
+   impressão em toda folha, inclusive nas que nascem de um transbordo — é o que
+   impede a segunda folha do resumo de sair anônima. O cabeçalho de **página**
+   carrega a unidade, que muda de folha para folha e por isso não pode ser fixo. */
+/* A moldura existe pelo `thead` que ela carrega, e não por haver dado tabular
+   aqui: cabeçalho de tabela é o que a impressão repete por folha **reservando o
+   espaço dele**. Um elemento `position: fixed` também se repete, mas não
+   reserva, e o texto da folha seguinte passa por baixo dele. */
+.plan-print__doc-frame {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.plan-print__doc-frame th,
+.plan-print__doc-frame td {
+  padding: 0;
+  text-align: left;
+  font-weight: 400;
+  vertical-align: top;
+}
+
+/* O respiro entre o cabeçalho corrente e a página é `padding` da célula: a
+   altura reservada para o `thead` repetido não conta a margem do filho. */
+.plan-print__doc-frame th {
+  padding-bottom: 4mm;
+}
+
+.plan-print__running-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8mm;
+  font-size: 9pt;
+  padding-bottom: 1.5mm;
+  border-bottom: 0.6pt solid #000;
+}
+
+/* Uma linha, sempre. O orçamento da página de chapa é o desenho mais os dois
+   cabeçalhos; um nome de projeto comprido que quebrasse em duas linhas estouraria
+   a folha e partiria o desenho em duas. */
+.plan-print__running-head > * {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.plan-print__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8mm;
+  margin-bottom: 3mm;
+}
+
+.plan-print__doc {
+  margin: 0;
+  font-size: 12pt;
+  font-weight: 600;
+}
+
+.plan-print__meta {
+  margin: 0;
+  font-size: 9pt;
+}
+
+.plan-print__stats {
+  display: flex;
+  gap: 10mm;
+  margin: 0 0 5mm;
+}
+
+.plan-print__stat dt,
+.plan-print__stat dd {
+  margin: 0;
+}
+
+.plan-print__stat-value {
+  font-size: 14pt;
+  font-weight: 600;
+}
+
+.plan-print__section {
+  margin-bottom: 5mm;
+  /* Uma seção curta não se parte entre duas folhas por um par de linhas. */
+  break-inside: avoid;
+}
+
+.plan-print__section p {
+  margin: 0 0 1.5mm;
+}
+
+.plan-print__section-title {
+  margin: 0 0 2mm;
+  font-size: 11pt;
+  font-weight: 600;
+}
+
+.plan-print__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 9.5pt;
+}
+
+.plan-print__table th,
+.plan-print__table td {
+  text-align: left;
+  padding: 1mm 2mm 1mm 0;
+  border-bottom: 0.4pt solid #000;
+}
+
+.plan-print__table th {
+  font-weight: 600;
+}
+
+.plan-print__table tr {
+  break-inside: avoid;
+}
+
+/* Coluna de número é estreita, não alinhada à direita: o design system manda
+   cabeçalho, texto e valor à esquerda (§2.1), e a §5.6 não abre exceção para o
+   papel. O que ela ganha aqui é só não deixar o número quebrar. */
+.plan-print__cell--number {
+  width: 1%;
+  white-space: nowrap;
+}
+
+.plan-print__list {
+  margin: 0 0 2mm;
+  padding-left: 5mm;
+}
+
+/* Duas colunas para o que se varre em vez de ler: rótulo e valor do déficit. */
+.plan-print__facts {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 4mm;
+  row-gap: 0.5mm;
+  margin: 0 0 1.5mm;
+}
+
+.plan-print__facts dt {
+  font-weight: 600;
+}
+
+.plan-print__facts dd {
+  margin: 0;
+}
+
+/* O desenho ocupa o que sobra da folha, e a proporção nunca é esticada: quem
+   cede é a largura, e o desenho centraliza (§5.3). A altura em milímetro é a
+   mesma de `printGeometry.ts`, de onde sai a escala do desenho. */
+.plan-print__drawing {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

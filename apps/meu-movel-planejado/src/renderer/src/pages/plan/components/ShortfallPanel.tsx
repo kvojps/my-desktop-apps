@@ -2,6 +2,7 @@ import { Card, CardContent, Divider, Stack, Typography } from '@mui/material';
 import type { PlanDeficit, PlanShortfall } from '@shared/types/plan';
 import { describeFitRule } from '@/utils/cuttingGeometry';
 import { formatCount, formatDimensions, formatSquareMeters } from '@/utils/format';
+import { SHORTFALL_COPY, describeRejection } from '../shortfallCopy';
 
 /**
  * O que ficou de fora do plano — e é a razão de o app existir em vez de uma
@@ -95,12 +96,12 @@ function DeficitLines({ deficit }: { deficit: PlanDeficit }) {
             , o maior formato do projeto.
           </Typography>
           <Typography variant="caption" color="text.secondary">
-            A conta é por área e ignora o encaixe: o número real pode ser maior, nunca menor.
+            {SHORTFALL_COPY.deficitCaveat}
           </Typography>
         </>
       ) : (
         <Typography variant="body2" color="text.secondary">
-          Sem chapa cadastrada não há formato para traduzir isso em número de chapas.
+          {SHORTFALL_COPY.deficitWithoutReference}
         </Typography>
       )}
     </Stack>
@@ -127,9 +128,9 @@ export function ShortfallPanel({
           {unplaced.length > 0 && (
             <Stack spacing={1.5}>
               <Stack spacing={0.5}>
-                <Typography variant="h6">Faltou chapa</Typography>
+                <Typography variant="h6">{SHORTFALL_COPY.unplacedTitle}</Typography>
                 <Typography variant="body2" color="text.secondary">
-                  Estas peças cabem nas suas chapas — o que acabou foi o estoque.
+                  {SHORTFALL_COPY.unplacedLead}
                 </Typography>
               </Stack>
 
@@ -144,14 +145,9 @@ export function ShortfallPanel({
           {rejected.length > 0 && (
             <Stack spacing={1.5}>
               <Stack spacing={0.5}>
-                <Typography variant="h6">Peças rejeitadas</Typography>
+                <Typography variant="h6">{SHORTFALL_COPY.rejectedTitle}</Typography>
                 <Typography variant="body2" color="text.secondary">
-                  Não cabem em nenhuma chapa do projeto, nem giradas. Comprar mais chapas do mesmo
-                  tamanho não resolveria
-                  {/* A conta só existe quando alguma peça ficou sem chapa.
-                      Apontar para ela quando ela não está na tela mandaria o
-                      leitor procurar um número que não foi escrito. */}
-                  {unplaced.length > 0 ? ' — por isso ficam fora da conta acima.' : '.'}
+                  {describeRejection(unplaced.length > 0)}
                 </Typography>
               </Stack>
 

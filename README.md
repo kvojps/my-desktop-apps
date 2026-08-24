@@ -54,9 +54,12 @@ Cada app tem o seu `shared` — o nome não significa "compartilhado entre apps"
   nunca receba um erro sem código; e, quando um canal de **escrita** termina bem,
   disparar `notifyDataChanged()` — o evento que mantém as telas em dia.
   Escrita é definido por exclusão: `READ_ONLY_CHANNELS`, em
-  `shared/ipc/channels.ts`, enumera as **leituras**, e todo canal fora dela
-  avisa. A lista é das leituras de propósito — esquecer de classificar um canal
-  novo custa uma recarga a mais, nunca um valor velho na tela.
+  `shared/ipc/channels.ts`, enumera os canais que **não alteram dado nenhum**, e
+  todo canal fora dela avisa. Quase todos são leituras, mas nem todos — imprimir
+  não lê nem grava, e mesmo assim não pode avisar: a recarga remontaria o
+  documento no instante em que o diálogo de impressão abre. A lista é dos
+  inofensivos de propósito — esquecer de classificar um canal novo custa uma
+  recarga a mais, nunca um valor velho na tela.
 - **`schemas/`** — schemas zod por domínio. Toda entrada vinda do renderer passa
   por `parseOrThrow` e todo id por `parseId`, porque o preload é código do próprio
   app mas o contrato de tipos não sobrevive em runtime.

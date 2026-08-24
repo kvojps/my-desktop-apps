@@ -32,6 +32,12 @@ export const IPC_CHANNELS = {
    * desatualizado em relação a si mesmo.
    */
   plansSave: 'plans:save',
+  /**
+   * Manda a janela para a impressora. Não lê nem grava nada — o documento é o
+   * que o renderer já tem desenhado —, e por isso ele está na lista de canais
+   * que não avisam mudança de dados.
+   */
+  plansPrint: 'plans:print',
 
   dataOpenFolder: 'data:openFolder',
 
@@ -47,11 +53,11 @@ export const IPC_CHANNELS = {
 export type IpcChannel = (typeof IPC_CHANNELS)[keyof typeof IPC_CHANNELS];
 
 /**
- * As leituras puras. Todo canal fora desta lista é tratado como escrita e
- * dispara `dataChanged` ao terminar.
+ * Os canais que **não alteram dado nenhum**. Todo canal fora desta lista é
+ * tratado como escrita e dispara `dataChanged` ao terminar.
  *
- * A lista enumera as **leituras** de propósito: esquecer de classificar um
- * canal novo custa uma recarga a mais, nunca um valor velho na tela. O tipo
+ * A lista enumera os inofensivos de propósito: esquecer de classificar um canal
+ * novo custa uma recarga a mais, nunca um valor velho na tela. O tipo
  * `IpcChannel` garante que renomear um canal quebre aqui no `tsc`, e não em
  * silêncio no runtime.
  */
@@ -61,6 +67,10 @@ export const READ_ONLY_CHANNELS: ReadonlySet<IpcChannel> = new Set([
   IPC_CHANNELS.piecesList,
   IPC_CHANNELS.sheetsList,
   IPC_CHANNELS.plansGet,
+  // Imprimir não é leitura de dado, mas também não é escrita: avisar aqui
+  // recarregaria toda tela viva no instante em que o diálogo de impressão abre,
+  // remontando o documento que está sendo impresso.
+  IPC_CHANNELS.plansPrint,
 ]);
 
 /**

@@ -850,6 +850,16 @@ motivou esta seção — a da oficina, do outro lado do app — não tem colorid
   cinza, que a impressora achata contra os vizinhos, e não por rótulo apenas, que
   não desenha a fronteira. Traço e rótulo somam-se à hachura; nenhum dos dois a
   substitui. A sobra de uma chapa é o caso que trouxe a regra, e sai hachurada.
+- **A hachura é de uma espécie de região só.** Num desenho em que mais de uma
+  espécie se distingue por preenchimento, hachurar todas é o mesmo que não
+  hachurar nenhuma: textura só separa enquanto houver liso ao lado dela. A
+  hachura fica com a região que o leitor **não** vai executar, e as que ele vai
+  executar se separam entre si por contorno mais grosso e pelo rótulo — que,
+  quando o rótulo não cabe, é o número e a lista que o traduz. O critério é o
+  papel da região na execução, não a ordem em que ela ganhou cor na tela, e é o
+  mesmo critério que na §5.3 tira o refile da hachura. No plano de corte isso dá:
+  sobra hachurada, peça lisa com contorno e número, refile liso sem contorno
+  próprio.
 - **Uma unidade por página.** O que se executa uma de cada vez ocupa a folha
   inteira, com quebra de página entre elas. Duas por folha poupam papel e cobram do
   leitor, que está com a folha na mão e a máquina ligada. Página que não é unidade —

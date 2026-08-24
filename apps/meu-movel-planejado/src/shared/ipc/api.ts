@@ -36,6 +36,15 @@ export interface PlansApi {
    * O empacotamento roda lá: é função pura, e o main não empacota.
    */
   save: (projectId: string, data: PlanInput) => Promise<Plan>;
+  /**
+   * Manda o plano à impressora, pelo diálogo do sistema. Resolve com `false`
+   * quando o usuário cancela: cancelar é resposta, não falha.
+   *
+   * Não leva o plano como argumento porque não é o main que o desenha — o que
+   * vai para o papel é o documento que o renderer já tem montado, revelado pelo
+   * `@media print`.
+   */
+  print: () => Promise<boolean>;
 }
 
 export interface DataApi {

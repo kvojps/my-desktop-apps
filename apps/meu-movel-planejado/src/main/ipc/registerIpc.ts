@@ -13,6 +13,7 @@ import {
   updateProject,
 } from '../db/projectsRepository';
 import { createSheet, deleteSheet, listSheets, updateSheet } from '../db/sheetsRepository';
+import { printDocument } from '../print/printDocument';
 import { pieceInputSchema } from '../schemas/piece.schema';
 import { planInputSchema } from '../schemas/plan.schema';
 import { cuttingParamsInputSchema, projectInputSchema } from '../schemas/project.schema';
@@ -79,6 +80,10 @@ export function registerIpcHandlers(db: Database.Database, options: RegisterIpcO
   handle(IPC_CHANNELS.plansSave, (_event, projectId: unknown, data: unknown) =>
     savePlan(db, parseId(projectId), parseOrThrow(planInputSchema, data)),
   );
+
+  // O documento é o que a janela já tem desenhado, então o handler recebe o
+  // `WebContents` de quem pediu e nada mais.
+  handle(IPC_CHANNELS.plansPrint, (event) => printDocument(event.sender));
 
   handle(IPC_CHANNELS.dataOpenFolder, async () => {
     await shell.openPath(app.getPath('userData'));

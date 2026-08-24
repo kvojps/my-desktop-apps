@@ -100,6 +100,14 @@ export const api = {
     return call<Plan>(() => window.api.plans.save(projectId, data));
   },
 
+  /**
+   * Manda o plano à impressora. `false` é o usuário tendo cancelado o diálogo,
+   * e não uma falha — quem chama não precisa distinguir erro de desistência.
+   */
+  printPlan() {
+    return call<boolean>(() => window.api.plans.print());
+  },
+
   openDataFolder() {
     return call(() => window.api.data.openFolder());
   },

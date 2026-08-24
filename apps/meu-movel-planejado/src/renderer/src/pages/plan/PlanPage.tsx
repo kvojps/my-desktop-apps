@@ -6,6 +6,7 @@ import {
   GridOffOutlined,
   LayersOutlined,
   PercentOutlined,
+  PrintOutlined,
   SearchOffOutlined,
   WidgetsOutlined,
 } from '@mui/icons-material';
@@ -18,12 +19,14 @@ import { PageHeader } from '@/components/PageHeader';
 import { StatCard, StatCardGrid, StatCardSkeleton } from '@/components/StatCard';
 import { useGeneratePlan } from '@/hooks/plan/useGeneratePlan';
 import { usePlan } from '@/hooks/plan/usePlan';
+import { usePrintPlan } from '@/hooks/plan/usePrintPlan';
 import { CATEGORICAL_PALETTE, contentQuery } from '@/theme';
 import { formatDateTime } from '@/utils/date';
 import { formatCount, formatDimensions, formatMillimeters, formatPercent } from '@/utils/format';
 import { ROUTES, projectPath } from '../../routes';
 import { OutdatedPlanNotice } from './components/OutdatedPlanNotice';
 import { PlanLegend } from './components/PlanLegend';
+import { PlanPrintDocument } from './components/PlanPrintDocument';
 import { SheetDrawing } from './components/SheetDrawing';
 import { ShortfallPanel } from './components/ShortfallPanel';
 import { buildPlanLegend } from './planLegend';
@@ -59,6 +62,7 @@ export function PlanPage() {
     pieces,
     sheets,
   );
+  const { print, isPrinting } = usePrintPlan();
   const [requestedSheet, setRequestedSheet] = useState(0);
 
   const legend = useMemo(
@@ -178,8 +182,30 @@ export function PlanPage() {
         icon={<AutoAwesomeMosaicOutlined />}
         title="Plano de corte"
         subtitle={`${project.name} · ${project.material} · Gerado em ${formatDateTime(plan.generatedAt)}`}
-        actions={backButton}
+        actions={
+          <Stack direction="row" spacing={1}>
+            {backButton}
+            {/* Ação primária desta tela: o plano existe para ir à bancada, e
+                quem corta costuma não ser quem planejou. O rótulo troca
+                enquanto o diálogo do sistema está aberto, que é o único sinal
+                de ação em andamento que o app usa (design system, §5.3). */}
+            <Button
+              variant="contained"
+              startIcon={<PrintOutlined />}
+              onClick={print}
+              disabled={isPrinting}
+            >
+              {isPrinting ? 'Imprimindo...' : 'Imprimir'}
+            </Button>
+          </Stack>
+        }
       />
+
+      {/* O documento de papel, montado ao lado da tela e escondido dela. Ele
+          fica aqui — e não dentro do botão — para que o que sai impresso seja o
+          mesmo por qualquer caminho, e para que a folha carregue exatamente o
+          plano que está à vista. */}
+      <PlanPrintDocument project={project} plan={plan} legend={legend} />
 
       {/* Antes dos indicadores, e não ao lado do desenho: o que ele diz vale
           para o plano inteiro, inclusive para os números logo abaixo — eles são

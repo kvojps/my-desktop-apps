@@ -12,6 +12,7 @@ export const APP_ERROR_CODES = [
   'disk-full',
   'not-found',
   'invalid-input',
+  'print-failed',
   'unknown',
 ] as const;
 
@@ -31,6 +32,8 @@ export const APP_ERROR_DESCRIPTIONS: Record<AppErrorCode, string> = {
     'Não há espaço em disco para gravar no banco de dados. Libere espaço e tente de novo.',
   'not-found': 'O registro não existe mais. Ele pode ter sido excluído em outra tela.',
   'invalid-input': 'Os dados informados não foram aceitos.',
+  'print-failed':
+    'Não foi possível enviar o plano para a impressora. Verifique se há uma impressora instalada e disponível no Windows.',
   unknown: 'Falha ao ler os dados locais.',
 };
 

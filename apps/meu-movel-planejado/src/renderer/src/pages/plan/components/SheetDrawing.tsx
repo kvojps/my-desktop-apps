@@ -1,11 +1,13 @@
 import { Box, useTheme } from '@mui/material';
 import { useId, useMemo } from 'react';
+import { usableArea } from '@shared/plan/usableArea';
 import type { PlanPlacement, PlanSheet } from '@shared/types/plan';
 import { useElementSize } from '@/hooks/useElementSize';
 import { labelOn } from '@/theme';
 import { formatCount, formatDimensions, formatPercent } from '@/utils/format';
-import type { PlanPiece } from '../planLegend';
-import { LABEL_FONT_PX, LABEL_LINE_PX, useTextMeasure } from '../textMeasure';
+import { LABEL_FONT_PX, LABEL_LINE_PX, type PieceLabel } from '../pieceLabels';
+import { type PlanPiece, pieceIdentity } from '../planLegend';
+import { usePieceLabels } from '../usePieceLabels';
 
 /**
  * Uma chapa planejada, desenhada em escala.
@@ -25,17 +27,8 @@ import { LABEL_FONT_PX, LABEL_LINE_PX, useTextMeasure } from '../textMeasure';
  * caber nos dois eixos da caixa e fica centralizado nela.
  */
 
-/** Folga entre o rótulo e a borda da peça, em pixel de tela. */
-const LABEL_PADDING_PX = 4;
-
 /** Lado do ladrilho da hachura da sobra, em pixel de tela. */
 const HATCH_PX = 7;
-
-/** O que uma peça mostra dentro do próprio retângulo, depois de medido o texto. */
-type PieceLabel =
-  | { kind: 'full'; identity: string; measure: string }
-  | { kind: 'number'; identity: string }
-  | { kind: 'none' };
 
 /**
  * O que depende da escala e não deve crescer com a chapa. Viajam juntos porque
@@ -67,7 +60,6 @@ export function SheetDrawing({ sheet, pieces, trimTenthsMm, position }: SheetDra
   const theme = useTheme();
   const hatchId = useId();
   const [boxRef, box] = useElementSize();
-  const measure = useTextMeasure();
 
   // Encolhe até caber nos dois eixos: é a razão pixel/décimo de milímetro com
   // que o desenho é pintado, e ela nunca difere entre os eixos.
@@ -76,45 +68,9 @@ export function SheetDrawing({ sheet, pieces, trimTenthsMm, position }: SheetDra
     return Math.min(box.width / sheet.lengthTenthsMm, box.height / sheet.widthTenthsMm);
   }, [box.height, box.width, sheet.lengthTenthsMm, sheet.widthTenthsMm]);
 
-  /**
-   * O rótulo de cada peça, decidido por **medição**: o texto real, na fonte
-   * real, contra o retângulo real. Quando ele não cabe, o desenho recua para o
-   * número e quem traduz o número é a legenda ao lado.
-   */
-  const labels = useMemo<PieceLabel[]>(() => {
-    if (scale === 0) return sheet.placements.map(() => ({ kind: 'none' }));
-
-    const padding = LABEL_PADDING_PX / scale;
-    const lineHeight = LABEL_LINE_PX / scale;
-    const widthOf = (text: string) => measure.measureTextWidth(text) / scale;
-
-    return sheet.placements.map((placement, index) => {
-      const piece = pieces[index];
-      const identity = piece.label ? `${piece.number}. ${piece.label}` : String(piece.number);
-      // A medida escrita é a da peça **como ela foi desenhada**: numa peça
-      // girada, a medida cadastrada contradiria o retângulo que está à vista, e
-      // quem confere o plano confere contra o desenho.
-      const measureText = formatDimensions(placement.lengthTenthsMm, placement.widthTenthsMm);
-
-      const room = {
-        length: placement.lengthTenthsMm - 2 * padding,
-        width: placement.widthTenthsMm - 2 * padding,
-      };
-
-      if (
-        Math.max(widthOf(identity), widthOf(measureText)) <= room.length &&
-        2 * lineHeight <= room.width
-      ) {
-        return { kind: 'full', identity, measure: measureText };
-      }
-
-      const number = String(piece.number);
-      if (widthOf(number) <= room.length && lineHeight <= room.width) {
-        return { kind: 'number', identity: number };
-      }
-      return { kind: 'none' };
-    });
-  }, [measure, pieces, scale, sheet.placements]);
+  // A mesma regra que decide o rótulo na folha, com a escala da tela: é a
+  // escala que muda o degrau, e não o meio.
+  const labels = usePieceLabels(sheet.placements, pieces, scale);
 
   const metrics: DrawingMetrics = {
     hairline: scale === 0 ? 0 : 1 / scale,
@@ -124,12 +80,8 @@ export function SheetDrawing({ sheet, pieces, trimTenthsMm, position }: SheetDra
 
   // A área útil: a chapa menos o refile dos dois lados. É o denominador do
   // aproveitamento, e por isso é ela — e não a chapa inteira — que recebe a
-  // hachura da sobra.
-  const usable = {
-    origin: trimTenthsMm,
-    length: Math.max(0, sheet.lengthTenthsMm - 2 * trimTenthsMm),
-    width: Math.max(0, sheet.widthTenthsMm - 2 * trimTenthsMm),
-  };
+  // hachura da sobra. A mesma conta serve à folha (`usableArea`).
+  const usable = usableArea(sheet, trimTenthsMm);
 
   return (
     // A caixa é a mesma antes e depois dos dados, e o desenho está sozinho
@@ -192,10 +144,10 @@ export function SheetDrawing({ sheet, pieces, trimTenthsMm, position }: SheetDra
               continua aparecendo é exatamente a sobra — que assim não precisa
               ser calculada como região, só deixada à mostra. */}
           <rect
-            x={usable.origin}
-            y={usable.origin}
-            width={usable.length}
-            height={usable.width}
+            x={usable.originTenthsMm}
+            y={usable.originTenthsMm}
+            width={usable.lengthTenthsMm}
+            height={usable.widthTenthsMm}
             fill={`url(#${hatchId})`}
             stroke={theme.palette.divider}
             strokeWidth={metrics.hairline}
@@ -280,7 +232,7 @@ function PlacedPiece({ placement, piece, label, metrics, separator }: PlacedPiec
           fontSize={fontSize}
           fill={ink}
         >
-          {label.identity}
+          {label.number}
         </text>
       )}
     </g>
@@ -301,5 +253,5 @@ function ariaLabel(sheet: PlanSheet, position: { index: number; total: number })
 /** O par número/rótulo/medida da legenda, para quem aponta o cursor na peça. */
 function describePiece(piece: PlanPiece, placement: PlanPlacement): string {
   const size = formatDimensions(placement.lengthTenthsMm, placement.widthTenthsMm);
-  return piece.label ? `${piece.number}. ${piece.label} — ${size}` : `${piece.number} — ${size}`;
+  return `${pieceIdentity(piece)} — ${size}`;
 }

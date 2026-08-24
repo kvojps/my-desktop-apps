@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { PlanPlacement, PlanSheet } from '@shared/types/plan';
-import { buildPlanLegend } from './planLegend';
+import { buildPlanLegend, pieceIdentity } from './planLegend';
 
 /**
  * A legenda é o que dá **nome e número** ao retângulo desenhado. Ela existe
@@ -175,5 +175,17 @@ describe('buildPlanLegend', () => {
     expect(legend.placementPieces).toEqual([]);
     expect(legend.sheetEntries).toEqual([]);
     expect(legend.dimensionCount).toBe(0);
+  });
+});
+
+describe('pieceIdentity', () => {
+  it('apresenta a peça pelo número seguido do rótulo', () => {
+    expect(pieceIdentity({ number: 3, label: 'Lateral' })).toBe('3. Lateral');
+  });
+
+  it('apresenta pelo número a peça cadastrada sem rótulo', () => {
+    // Inventar "Sem rótulo" acrescentaria uma palavra que não ajuda a achar o
+    // pedaço na bancada — o número, sim, está desenhado nele.
+    expect(pieceIdentity({ number: 3, label: '' })).toBe('3');
   });
 });
