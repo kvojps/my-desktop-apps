@@ -1,7 +1,7 @@
 import type Database from 'better-sqlite3';
 import { safeStorage } from 'electron';
 import type { ThemeMode } from '@shared/types/theme';
-import { AppError } from '../errors/AppError';
+import { AppError } from '../../../utils/errors/AppError';
 
 const GITHUB_TOKEN_KEY = 'githubToken';
 const THEME_MODE_KEY = 'themeMode';

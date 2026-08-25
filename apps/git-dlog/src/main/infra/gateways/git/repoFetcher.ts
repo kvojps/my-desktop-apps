@@ -1,6 +1,6 @@
 import path from 'node:path';
 import type { RepoFetchFailure, RepoFetchProgress } from '@shared/types/repoScan';
-import { mapWithConcurrency } from '../utils/concurrency';
+import { mapWithConcurrency } from '../../../utils/concurrency';
 import { getGitErrorMessage, runGit } from './gitCommand';
 import { hasAnyRemote } from './repoScanner';
 

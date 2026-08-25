@@ -3,10 +3,10 @@ import path from 'node:path';
 import { APP_ERROR_DESCRIPTIONS } from '@shared/errors/appError';
 import type { ThemeMode } from '@shared/types/theme';
 import icon from '../../resources/icon.png?asset';
-import { initDb } from './db/connection';
-import { getThemeMode } from './db/settingsRepository';
-import { classifyError } from './errors/toIpcError';
-import { registerIpcHandlers } from './ipc/registerIpc';
+import { registerIpcHandlers } from './controllers/registerIpc';
+import { initDb } from './infra/database/connection';
+import { getThemeMode } from './infra/database/repositories/settingsRepository';
+import { classifyError } from './utils/errors/toIpcError';
 
 // Fixa a pasta userData (%APPDATA%/<nome>); mudar este nome após a primeira
 // release deixa o banco de dados dos usuários órfão.

@@ -1,5 +1,5 @@
 import type { PullRequest, RepoRemote } from '@shared/types/pullRequest';
-import { AppError } from '../errors/AppError';
+import { AppError } from '../../../utils/errors/AppError';
 import { normalizeReviewDecision, normalizeState, summarizeChecks } from './ghCli';
 
 const PR_LIMIT = 50;

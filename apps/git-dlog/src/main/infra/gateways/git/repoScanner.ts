@@ -11,7 +11,7 @@ import type {
   RepoWorktree,
 } from '@shared/types/repoScan';
 import { isWorktreeDirty } from '@shared/types/repoScan';
-import { mapWithConcurrency } from '../utils/concurrency';
+import { mapWithConcurrency } from '../../../utils/concurrency';
 import { getGitErrorMessage, runGit } from './gitCommand';
 import { readRemotes, readRepoConfig } from './remoteUrl';
 

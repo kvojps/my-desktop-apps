@@ -1,7 +1,7 @@
 import type Database from 'better-sqlite3';
 import { randomUUID } from 'node:crypto';
 import type { ScanPath } from '@shared/types/scanPath';
-import { AppError } from '../errors/AppError';
+import { AppError } from '../../../utils/errors/AppError';
 
 interface ScanPathRow {
   id: string;

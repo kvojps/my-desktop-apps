@@ -4,32 +4,36 @@ import { IPC_CHANNELS } from '@shared/ipc/channels';
 import type { PrIntegrationStatus } from '@shared/types/pullRequest';
 import type { RepoFetchResult } from '@shared/types/repoScan';
 import type { ThemeMode } from '@shared/types/theme';
-import { addScanPath, deleteScanPath, getAllScanPaths } from '../db/scanPathsRepository';
+import {
+  addScanPath,
+  deleteScanPath,
+  getAllScanPaths,
+} from '../infra/database/repositories/scanPathsRepository';
 import {
   deleteGithubToken,
   getGithubToken,
   hasGithubToken,
   saveGithubToken,
   saveThemeMode,
-} from '../db/settingsRepository';
-import { fetchRepos, filterReposWithRemote } from '../git/repoFetcher';
-import { listRepoDirs, scanRepos } from '../git/repoScanner';
-import { verifyGithubToken } from '../pr/githubToken';
+} from '../infra/database/repositories/settingsRepository';
+import { fetchRepos, filterReposWithRemote } from '../infra/gateways/git/repoFetcher';
+import { listRepoDirs, scanRepos } from '../infra/gateways/git/repoScanner';
+import { verifyGithubToken } from '../infra/gateways/pr/githubToken';
 import {
   attachPullRequests,
   fetchPullRequests,
   getIntegrationStatus,
   resetProviderDetection,
   updatePrCache,
-} from '../pr/prService';
-import { externalUrlSchema, githubTokenSchema } from '../schemas/prs.schema';
-import { fetchReposSchema } from '../schemas/repoFetch.schema';
-import { createScanPathSchema } from '../schemas/scanPath.schema';
-import { themeModeSchema } from '../schemas/settings.schema';
+} from '../services/prsService';
 import { parseId } from '../utils/parseId';
 import { parseOrThrow } from '../utils/validate';
-import { registerDialogHandlers } from './dialogHandlers';
 import { handle } from './handle';
+import { externalUrlSchema, githubTokenSchema } from './schemas/prs.schema';
+import { fetchReposSchema } from './schemas/repoFetch.schema';
+import { createScanPathSchema } from './schemas/scanPath.schema';
+import { themeModeSchema } from './schemas/settings.schema';
+import { registerDialogHandlers } from './systemController';
 
 interface RegisterIpcOptions {
   /** Aplica o novo modo à janela (nativeTheme, backgroundColor) além de persistir. */

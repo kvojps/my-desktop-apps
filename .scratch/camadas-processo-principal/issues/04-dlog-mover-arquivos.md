@@ -1,4 +1,4 @@
-Status: aberto
+Status: resolvido
 Blocked by: 01, 03
 
 # git-dlog: mover arquivos para a árvore nova
@@ -31,3 +31,34 @@ nos três alvos do electron-vite.
 comportando exatamente como antes.
 
 ## Comments
+As 10 linhas da tabela foram executadas com `git mv`: 23 arquivos renomeados, marcados
+`R`/`RM` no `git status`, então o histórico sobreviveu. Fora deles só `index.ts` e
+`validate.ts` mudaram, e só em import. O diff de conteúdo inteiro são 32 inserções contra 28
+remoções — as 4 linhas a mais são o prettier quebrando dois imports longos em várias linhas.
+
+Aliases conferidos e deixados como estavam: o `tsconfig.json` do app define só `@shared/*` e
+`@/*`, e os três alvos do electron-vite aliasam só `@shared` e `@`. Nenhum resolve para dentro
+de `src/main`, então a movimentação não pedia mudança de config. O preço é import relativo de
+três níveis (`../../../utils/errors/AppError`) nos repositórios e gateways — resultado
+mecânico correto na ausência de um alias `@main`.
+
+Verificação: `typecheck`, `lint` (0 erros), `test` (179 passando), `build` do app e
+`dev:dlog` subindo — main, preload e renderer sem erro de resolução.
+
+### Divergência encontrada, não resolvida aqui
+
+`infra/database/repositories/settingsRepository.ts` importa `safeStorage` e cifra/decifra o
+token ali dentro, mas o README §2.2 (linhas 119-120) lista `safeStorage` como
+`infra/gateways/`. A tabela deste ticket mandou o arquivo para `repositories/`, então o
+movimento está conforme a spec e em desacordo com a prosa das camadas. Fica registrado para o
+05/07 decidir em vez de assentar calado.
+
+### Notas para tickets seguintes
+
+- `controllers/systemController.ts` ainda exporta `registerDialogHandlers` — renomear feriria
+  "nenhuma assinatura alterada". É do 09.
+- `PR_LIMIT = 50` e `TIMEOUT_MS = 30_000` estão duplicados entre `ghCli.ts`, `glabCli.ts` e
+  `githubToken.ts`. Pré-existente, mas agora os três moram na mesma pasta — candidato ao 10.
+- `CLAUDE.md:37` (`main/db/`) e `docs/adr/0003:49` (`main/git/repoScanner.ts`) citam caminhos
+  que o `git-dlog` não tem mais. Continuam corretos para os outros três apps, ainda não
+  migrados; reescrever quando a migração alcançar cada um.

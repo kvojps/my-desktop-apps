@@ -1,5 +1,5 @@
 import type { ChecksState, PullRequest, PullRequestState } from '@shared/types/pullRequest';
-import { runCommand } from '../utils/exec';
+import { runCommand } from '../system/exec';
 
 const MR_LIMIT = 50;
 const TIMEOUT_MS = 30_000;

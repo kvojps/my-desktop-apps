@@ -6,11 +6,11 @@ import type {
   RepoRemote,
 } from '@shared/types/pullRequest';
 import type { RepoScanResult } from '@shared/types/repoScan';
+import { listPullRequestsWithGh } from '../infra/gateways/pr/ghCli';
+import { listPullRequestsWithToken } from '../infra/gateways/pr/githubToken';
+import { listMergeRequestsWithGlab } from '../infra/gateways/pr/glabCli';
+import { commandExists, getCommandErrorMessage, runCommand } from '../infra/gateways/system/exec';
 import { mapWithConcurrency } from '../utils/concurrency';
-import { commandExists, getCommandErrorMessage, runCommand } from '../utils/exec';
-import { listPullRequestsWithGh } from './ghCli';
-import { listPullRequestsWithToken } from './githubToken';
-import { listMergeRequestsWithGlab } from './glabCli';
 
 const PR_CONCURRENCY = 4;
 

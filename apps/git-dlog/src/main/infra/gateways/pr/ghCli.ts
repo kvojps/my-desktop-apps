@@ -4,7 +4,7 @@ import type {
   PullRequestState,
   ReviewDecision,
 } from '@shared/types/pullRequest';
-import { runCommand } from '../utils/exec';
+import { runCommand } from '../system/exec';
 
 const PR_LIMIT = 50;
 const TIMEOUT_MS = 30_000;
