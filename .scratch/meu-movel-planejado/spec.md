@@ -159,7 +159,7 @@ Distinções que o glossário precisa fixar, porque a linguagem informal as conf
 - **Kerf** é folga entre peças vizinhas **e** entre peça e borda útil. Modelado
   sem caso especial: cada peça ocupa `(comprimento + kerf) × (largura + kerf)`, e
   a área útil da chapa é `(comprimento − 2·refile + kerf) × (largura − 2·refile +
-  kerf)`. Esse deslocamento único produz exatamente um kerf de folga em toda
+kerf)`. Esse deslocamento único produz exatamente um kerf de folga em toda
   fronteira, inclusive contra a borda.
 - Default de kerf: **0,3 mm**. Default de refile: **0**. Ambos são campos do
   projeto.
@@ -196,7 +196,7 @@ Vive num módulo de **nesting dentro de `shared`** — que o repo define como o 
 de tipos e funções puras — e é uma função pura, sem React, sem Electron, sem
 banco.
 
-- **MaxRects** com lista de retângulos livres e encaixe por *best short side fit*,
+- **MaxRects** com lista de retângulos livres e encaixe por _best short side fit_,
   com rotação.
 - **Melhor de N tentativas**: combinações de ordenação das peças (área ↓, maior
   lado ↓, largura ↓, comprimento ↓) por critérios de encaixe. Escolhe por menos
@@ -272,7 +272,7 @@ do código. Este app abre três lacunas, e as três entram no documento como par
 desta feature:
 
 1. **Superfície métrica em escala** — exceção nomeada à regra de que altura de
-   gráfico nunca deriva do conteúdo. A altura de uma chapa desenhada *é* a
+   gráfico nunca deriva do conteúdo. A altura de uma chapa desenhada _é_ a
    proporção da chapa. A regra original segue valendo para gráfico.
 2. **Impressão** — não existe hoje nenhuma norma de impressão nem nenhum código
    de impressão em nenhum app. Entra a regra de uma chapa por página, quebra de
@@ -373,14 +373,14 @@ monorepo inteiro por causa de um app. A prancheta é verificada rodando o app.
 - O nome **Meu Móvel Planejado** foi escolhido pelo usuário, sobre o diretório
   `meu-movel-planejado`. Ele segue a família de Meu Dinheiro e Meu Negócio, onde o
   "Meu" nomeia algo que pertence a quem usa. Fica registrada a ressalva levantada
-  na escolha e assumida conscientemente: *móvel planejado* é termo consagrado da
+  na escolha e assumida conscientemente: _móvel planejado_ é termo consagrado da
   indústria e designa o produto final da marcenaria, então o nome sugere um app de
   **projetar o móvel**, enquanto este planeja o **corte da chapa** — a etapa
   seguinte. Se um dia o produto crescer para o desenho do móvel, o nome já cabe;
   até lá, o README do app precisa ser explícito sobre o que ele faz.
 - A regra de consumir chapas menores primeiro nasceu como recomendação e passou
   sem objeção explícita. É a tradução operacional do desempate "sobra
-  concentrada", e é a única regra do plano que privilegia o serviço *seguinte* em
+  concentrada", e é a única regra do plano que privilegia o serviço _seguinte_ em
   vez do atual.
 
 ## Comments
@@ -397,3 +397,18 @@ exige em "Testing Decisions". O empacotamento roda na área útil **diminuída**
 um kerf. O texto acima fica como está, para preservar o registro; a decisão está
 em `apps/meu-movel-planejado/docs/adr/0001-kerf-como-deslocamento-unico.md`, e o
 verbete "Área útil" do `CONTEXT.md` já foi corrigido.
+
+**2026-08-24 — o critério de escolha entre as tentativas (ticket 11).**
+
+A linha de "Algoritmo" diz que a melhor tentativa é escolhida "por menos chapas
+usadas, desempatando por maior aproveitamento". O código implementado tem **três**
+critérios, e o primeiro não está aqui: `isBetterPlan`
+(`src/shared/nesting/packCuttingPlan.ts`) compara primeiro a **área do déficit** —
+vence quem deixa menos material de fora —, depois o número de chapas, e só então
+o aproveitamento.
+
+A ordem do código é a certa, e é a que o README documenta: um plano que usa uma
+chapa a menos porque desistiu de uma peça não é melhor, é outro serviço. Contar
+chapas primeiro elegeria justamente esse plano, e o déficit maior só apareceria
+depois, na lista de compra. O texto acima fica como está, para preservar o
+registro.
