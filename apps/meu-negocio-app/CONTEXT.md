@@ -1,8 +1,9 @@
 # Meu Negócio
 
 App desktop para gerenciar produtos, pedidos e vendas de um negócio pequeno.
-Este glossário fixa o vocabulário do lado do dinheiro — o que o negócio ainda
-tem para receber, e como a espera é medida num modelo que não tem prazo.
+Este glossário fixa o vocabulário que a venda concluída põe em jogo: o que o
+negócio ainda tem para receber, como a espera é medida num modelo que não tem
+prazo, e o que a conclusão de fato tirou do estoque.
 
 ## Language
 
@@ -38,3 +39,11 @@ Recorte que ignora o filtro de período da tela e olha o histórico inteiro. É 
 recorte das contas a receber, porque um saldo devido não pertence ao mês em que
 a venda aconteceu — ele existe até ser pago.
 _Avoid_: saldo atual, snapshot
+
+**Escrituração de estoque**:
+Registro de quanto saiu de fato do estoque quando o pedido foi concluído, que
+não é a mesma coisa que a quantidade pedida no item. Quando o saldo não cobria
+o pedido, sai menos do que foi pedido — o estoque para em zero em vez de ficar
+negativo —, e é o que saiu que volta se a venda for reaberta, cancelada ou
+excluída. É controle interno: não faz parte do pedido que a tela manipula.
+_Avoid_: quantidade do item, baixa de estoque (é a ação, não o registro)
