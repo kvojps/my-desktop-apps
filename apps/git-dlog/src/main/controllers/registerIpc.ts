@@ -34,6 +34,11 @@ export function registerIpcHandlers(db: Database.Database, options: RegisterIpcO
 
   registerDialogHandlers();
 
+  // Os repositórios já falam entidade (`ScanPathEntity`, `ThemeModeEntity`), e
+  // por ora ela atravessa o IPC sem mapper nos dois sentidos, aqui e no canal
+  // de tema lá embaixo: as formas são idênticas às de `@shared` hoje, e só por
+  // isso typecheca. Quem fecha a segunda travessia (README §2.5) é o ticket 09,
+  // com os controllers.
   handle(IPC_CHANNELS.scanPathsGetAll, () => repos.scanPaths.list());
   handle(IPC_CHANNELS.scanPathsAdd, (_event, data: unknown) =>
     repos.scanPaths.create({ path: parseOrThrow(createScanPathSchema, data) }),

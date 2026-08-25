@@ -1,6 +1,10 @@
 import type Database from 'better-sqlite3';
 import { safeStorage } from 'electron';
-import type { ThemeMode } from '@shared/types/theme';
+import {
+  type EncryptedGithubTokenEntity,
+  type ThemeModeEntity,
+  isThemeModeEntity,
+} from '../../../domain/settings';
 import { AppError } from '../../../utils/errors/AppError';
 
 const GITHUB_TOKEN_KEY = 'githubToken';
@@ -50,12 +54,14 @@ export function makeSettingsRepository(db: Database.Database) {
         );
       }
 
-      const encrypted = safeStorage.encryptString(token).toString('base64');
+      const encrypted: EncryptedGithubTokenEntity = safeStorage
+        .encryptString(token)
+        .toString('base64');
       setSetting(GITHUB_TOKEN_KEY, encrypted);
     },
 
     getGithubToken(): string | null {
-      const stored = getSetting(GITHUB_TOKEN_KEY);
+      const stored: EncryptedGithubTokenEntity | null = getSetting(GITHUB_TOKEN_KEY);
       if (!stored) return null;
 
       if (!safeStorage.isEncryptionAvailable()) return null;
@@ -83,12 +89,12 @@ export function makeSettingsRepository(db: Database.Database) {
      * `nativeTheme.themeSource` sem flash branco (docs/design-system.md §5.1).
      * Texto plano — não é segredo, ao contrário do token do GitHub.
      */
-    getThemeMode(): ThemeMode | null {
+    getThemeMode(): ThemeModeEntity | null {
       const stored = getSetting(THEME_MODE_KEY);
-      return stored === 'light' || stored === 'dark' ? stored : null;
+      return stored !== null && isThemeModeEntity(stored) ? stored : null;
     },
 
-    saveThemeMode(mode: ThemeMode): void {
+    saveThemeMode(mode: ThemeModeEntity): void {
       setSetting(THEME_MODE_KEY, mode);
     },
   };

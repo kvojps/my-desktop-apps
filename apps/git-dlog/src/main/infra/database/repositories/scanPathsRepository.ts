@@ -1,6 +1,6 @@
 import type Database from 'better-sqlite3';
 import { randomUUID } from 'node:crypto';
-import type { ScanPath } from '@shared/types/scanPath';
+import type { ScanPathEntity } from '../../../domain/scanPath';
 import { AppError } from '../../../utils/errors/AppError';
 
 interface ScanPathRow {
@@ -10,7 +10,7 @@ interface ScanPathRow {
   updated_at: string;
 }
 
-function rowToScanPath(row: ScanPathRow): ScanPath {
+function rowToScanPath(row: ScanPathRow): ScanPathEntity {
   return {
     id: row.id,
     path: row.path,
@@ -20,21 +20,21 @@ function rowToScanPath(row: ScanPathRow): ScanPath {
 }
 
 export function makeScanPathsRepository(db: Database.Database) {
-  function findByPath(path: string): ScanPath | null {
+  function findByPath(path: string): ScanPathEntity | null {
     const row = db.prepare('SELECT * FROM scan_paths WHERE path = ?').get(path) as
       ScanPathRow | undefined;
     return row ? rowToScanPath(row) : null;
   }
 
   return {
-    list(): ScanPath[] {
+    list(): ScanPathEntity[] {
       const rows = db
         .prepare('SELECT * FROM scan_paths ORDER BY created_at ASC')
         .all() as ScanPathRow[];
       return rows.map(rowToScanPath);
     },
 
-    findById(id: string): ScanPath | null {
+    findById(id: string): ScanPathEntity | null {
       const row = db.prepare('SELECT * FROM scan_paths WHERE id = ?').get(id) as
         ScanPathRow | undefined;
       return row ? rowToScanPath(row) : null;
@@ -42,7 +42,7 @@ export function makeScanPathsRepository(db: Database.Database) {
 
     findByPath,
 
-    create(data: { path: string }): ScanPath {
+    create(data: { path: string }): ScanPathEntity {
       // O 409 é decisão de service, não de repositório: sai daqui no ticket 08,
       // quando existir `scanPathsService` para consultar `findByPath` e decidir.
       if (findByPath(data.path)) {
@@ -50,7 +50,7 @@ export function makeScanPathsRepository(db: Database.Database) {
       }
 
       const now = new Date().toISOString();
-      const scanPath: ScanPath = {
+      const scanPath: ScanPathEntity = {
         id: randomUUID(),
         path: data.path,
         createdAt: now,
