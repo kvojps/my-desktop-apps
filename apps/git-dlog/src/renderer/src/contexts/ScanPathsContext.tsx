@@ -9,6 +9,7 @@ import {
 } from 'react';
 import type { ScanPath } from '@shared/types/scanPath';
 import { api } from '@/api/client';
+import { useDataChanged } from '@/hooks/useDataChanged';
 import { useSnackbar } from './SnackbarContext';
 
 export interface ScanPathsContextValue {
@@ -48,6 +49,11 @@ export function ScanPathsProvider({ children }: { children: ReactNode }) {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // O main avisa toda vez que algo é gravado; ninguém precisa lembrar de
+  // recarregar depois de escrever. `load` não levanta `isLoading` fora do boot,
+  // então a recarga acontece por baixo da lista já visível.
+  useDataChanged(load);
 
   const retry = useCallback(() => {
     setIsLoading(true);

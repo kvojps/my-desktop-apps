@@ -25,6 +25,14 @@ async function call<T>(fn: () => Promise<T>): Promise<T> {
  * IPC, e o resto do renderer fala com métodos comuns.
  */
 export const api = {
+  /**
+   * Assina o aviso de que o banco mudou. Como o progresso do fetch, é evento e
+   * não requisição, então não passa por `call`; devolve o cancelamento.
+   */
+  onDataChanged(listener: () => void) {
+    return window.api.onDataChanged(listener);
+  },
+
   getScanPaths() {
     return call(() => window.api.scanPaths.getAll());
   },

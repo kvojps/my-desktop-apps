@@ -17,6 +17,13 @@ function readInitialThemeMode(): ThemeMode {
 }
 
 const api: ElectronApi = {
+  onDataChanged: (listener: () => void) => {
+    const handler = () => listener();
+    ipcRenderer.on(IPC_CHANNELS.dataChanged, handler);
+    return () => {
+      ipcRenderer.off(IPC_CHANNELS.dataChanged, handler);
+    };
+  },
   scanPaths: {
     getAll: () => ipcRenderer.invoke(IPC_CHANNELS.scanPathsGetAll),
     add: (path: string) => ipcRenderer.invoke(IPC_CHANNELS.scanPathsAdd, path),

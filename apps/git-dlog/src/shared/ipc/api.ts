@@ -56,6 +56,11 @@ export interface SettingsApi {
 }
 
 export interface ElectronApi {
+  /**
+   * Evento main → renderer: o banco mudou. Sem payload — quem guarda dado
+   * recarrega o que tem. Devolve a função de cancelamento.
+   */
+  onDataChanged: (listener: () => void) => () => void;
   scanPaths: ScanPathsApi;
   repos: ReposApi;
   prs: PrsApi;
