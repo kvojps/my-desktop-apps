@@ -1,10 +1,12 @@
 import type Database from 'better-sqlite3';
-import { BrowserWindow, type IpcMainInvokeEvent, dialog } from 'electron';
+import { type IpcMainInvokeEvent, dialog } from 'electron';
 import fs from 'node:fs/promises';
 import type { ExportResult } from '@shared/ipc/api';
 import { getPlan } from '../db/plansRepository';
 import { getProject } from '../db/projectsRepository';
 import { AppError } from '../errors/AppError';
+import { errorReason } from '../errors/errorReason';
+import { windowFor } from '../ipc/windowFor';
 import { planExportFileName } from './planExportFileName';
 
 /**
@@ -29,14 +31,6 @@ const FILTERS: Record<ExportFormat, { name: string; extensions: string[] }> = {
   png: { name: 'Imagem PNG', extensions: ['png'] },
   pdf: { name: 'Documento PDF', extensions: ['pdf'] },
 };
-
-function windowFor(event: IpcMainInvokeEvent): BrowserWindow {
-  const window = BrowserWindow.fromWebContents(event.sender);
-  if (!window) {
-    throw new Error('No BrowserWindow associated with this IPC event');
-  }
-  return window;
-}
 
 /**
  * Onde salvar, perguntado sobre a janela que pediu — com o nome sugerido lido
@@ -81,8 +75,7 @@ async function writeExported(filePath: string, data: Uint8Array): Promise<Export
   try {
     await fs.writeFile(filePath, data);
   } catch (err) {
-    const reason = err instanceof Error ? err.message : String(err);
-    throw new AppError(500, `Falha ao gravar o arquivo: ${reason}`, 'export-failed');
+    throw new AppError(500, `Falha ao gravar o arquivo: ${errorReason(err)}`, 'export-failed');
   }
 
   return { success: true, filePath };
@@ -125,8 +118,7 @@ export async function exportPlanPdf(
     // Montar o PDF é a etapa **antes** de gravar, e falha nela por razões que
     // não são as da gravação: a janela é que não entregou a folha. Mandar o
     // usuário conferir espaço em disco aqui o faria procurar no lugar errado.
-    const reason = err instanceof Error ? err.message : String(err);
-    throw new AppError(500, `Falha ao gerar o PDF: ${reason}`, 'pdf-failed');
+    throw new AppError(500, `Falha ao gerar o PDF: ${errorReason(err)}`, 'pdf-failed');
   }
 
   return writeExported(filePath, pdf);

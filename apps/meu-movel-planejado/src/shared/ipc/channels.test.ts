@@ -26,6 +26,8 @@ describe('shouldNotifyDataChanged', () => {
       IPC_CHANNELS.sheetsUpdate,
       IPC_CHANNELS.sheetsDelete,
       IPC_CHANNELS.plansSave,
+      // Importar troca o banco inteiro: é a escrita que mais precisa do aviso.
+      IPC_CHANNELS.dataImport,
     ];
     for (const channel of writes) {
       expect(shouldNotifyDataChanged(channel), channel).toBe(true);

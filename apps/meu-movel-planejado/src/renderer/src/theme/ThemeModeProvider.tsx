@@ -1,5 +1,5 @@
 import { CssBaseline, PaletteMode, ThemeProvider } from '@mui/material';
-import { ReactNode, useMemo, useState } from 'react';
+import { ReactNode, useCallback, useMemo, useState } from 'react';
 import { api } from '@/api/client';
 import { getAppTheme } from './index';
 import { ThemeModeContext } from './themeModeContext';
@@ -24,23 +24,36 @@ function getInitialMode(): PaletteMode {
 export function ThemeModeProvider({ children }: { children: ReactNode }) {
   const [mode, setMode] = useState<PaletteMode>(getInitialMode);
 
-  const toggleMode = () => {
-    setMode((prev) => {
-      const next = prev === 'light' ? 'dark' : 'light';
+  // A gravação fica **fora** do atualizador de estado: o React pode chamá-lo
+  // duas vezes, e um efeito colateral lá dentro grava duas vezes com ele.
+  const applyMode = useCallback(
+    (next: PaletteMode) => {
+      if (next === mode) return;
+      setMode(next);
       localStorage.setItem(STORAGE_KEY, next);
       // Sem `showError`: este provider mora fora do `App`, e portanto fora do
       // `SnackbarProvider`. Se a gravação falhar, a sessão mantém o modo novo e
       // o próximo boot volta ao antigo — um banco que não escreve vai aparecer
       // como `ErrorState` no primeiro carregamento de dados, de qualquer forma.
       api.setThemeMode(next).catch((err) => console.error('[theme] falha ao persistir', err));
-      return next;
-    });
-  };
+    },
+    [mode],
+  );
+
+  const toggleMode = useCallback(
+    () => applyMode(mode === 'light' ? 'dark' : 'light'),
+    [applyMode, mode],
+  );
+
+  const value = useMemo(
+    () => ({ mode, toggleMode, setMode: applyMode }),
+    [mode, toggleMode, applyMode],
+  );
 
   const theme = useMemo(() => getAppTheme(mode), [mode]);
 
   return (
-    <ThemeModeContext.Provider value={{ mode, toggleMode }}>
+    <ThemeModeContext.Provider value={value}>
       <ThemeProvider theme={theme}>
         <CssBaseline />
         {children}

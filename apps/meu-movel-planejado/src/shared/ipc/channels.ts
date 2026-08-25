@@ -48,6 +48,15 @@ export const IPC_CHANNELS = {
   plansExportPng: 'plans:exportPng',
   plansExportPdf: 'plans:exportPdf',
 
+  /**
+   * O backup do app inteiro, num arquivo escolhido no diálogo do sistema.
+   * Exportar lê o banco e grava fora dele; importar substitui **todo** o
+   * conteúdo do banco pelo do arquivo.
+   */
+  dataExport: 'data:export',
+  dataImport: 'data:import',
+  /** Versão do app e caminho do banco em disco. */
+  dataAppInfo: 'data:appInfo',
   dataOpenFolder: 'data:openFolder',
 
   themeSet: 'theme:set',
@@ -86,6 +95,23 @@ export const READ_ONLY_CHANNELS: ReadonlySet<IpcChannel> = new Set([
   // o diálogo abre trocaria o documento debaixo da impressão.
   IPC_CHANNELS.plansExportPng,
   IPC_CHANNELS.plansExportPdf,
+  // Exportar o backup é a maior leitura que o app faz — o banco inteiro — e não
+  // grava uma linha: o arquivo sai para fora dele. Importar é o contrário, e por
+  // isso está de fora desta lista: é a única escrita do app que troca tudo de
+  // uma vez, e é o aviso dela que faz toda tela viva largar o dado antigo.
+  //
+  // A importação cancelada também avisa, porque a classificação é por canal e
+  // não por resultado. É exatamente o custo que esta lista assume: uma recarga a
+  // mais, nunca um valor velho. Distinguir o cancelamento aqui exigiria que o
+  // `handle` inspecionasse o valor de retorno de todo handler — trocar uma
+  // consulta desperdiçada em SQLite local por um acoplamento ao formato da
+  // resposta é um mau negócio.
+  IPC_CHANNELS.dataExport,
+  IPC_CHANNELS.dataAppInfo,
+  // Abrir a pasta no explorador não toca o banco. Estava fora desta lista desde
+  // que o canal nasceu, o que fazia clicar em "Abrir pasta de dados" recarregar
+  // a tela inteira por nada — o custo previsto de esquecer de classificar.
+  IPC_CHANNELS.dataOpenFolder,
 ]);
 
 /**

@@ -8,6 +8,8 @@ export const ROUTES = {
    * lista rola (design system, §4).
    */
   PLAN: '/projects/:projectId/plan',
+  /** Backup, onde os dados moram em disco, versão do app e tema. */
+  SETTINGS: '/settings',
 } as const;
 
 /** O caminho concreto da tela de um projeto, para navegar sem montar string. */

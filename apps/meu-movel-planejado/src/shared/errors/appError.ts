@@ -14,6 +14,7 @@ export const APP_ERROR_CODES = [
   'invalid-input',
   'print-failed',
   'export-failed',
+  'import-failed',
   'pdf-failed',
   'unknown',
 ] as const;
@@ -37,7 +38,9 @@ export const APP_ERROR_DESCRIPTIONS: Record<AppErrorCode, string> = {
   'print-failed':
     'Não foi possível enviar o plano para a impressora. Verifique se há uma impressora instalada e disponível no Windows.',
   'export-failed':
-    'Não foi possível salvar o arquivo do plano. Verifique se a pasta escolhida permite gravação e se há espaço em disco.',
+    'Não foi possível salvar o arquivo. Verifique se a pasta escolhida permite gravação e se há espaço em disco.',
+  'import-failed':
+    'Não foi possível ler o arquivo escolhido. Verifique se ele ainda existe e se você tem permissão para abri-lo.',
   'pdf-failed':
     'Não foi possível montar o PDF do plano. Deixe a tela do plano aberta e tente de novo.',
   unknown: 'Falha ao ler os dados locais.',

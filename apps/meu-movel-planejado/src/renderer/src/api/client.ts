@@ -1,4 +1,5 @@
-import type { ExportResult } from '@shared/ipc/api';
+import type { ExportResult, ImportResult } from '@shared/ipc/api';
+import type { AppInfo } from '@shared/types/appInfo';
 import type { Piece, PieceInput } from '@shared/types/piece';
 import type { Plan, PlanInput } from '@shared/types/plan';
 import type { CuttingParamsInput, Project, ProjectInput } from '@shared/types/project';
@@ -122,6 +123,27 @@ export const api = {
   /** Salva o plano como PDF, impresso pelo main a partir desta janela. */
   exportPlanPdf(projectId: string) {
     return call<ExportResult>(() => window.api.plans.exportPdf(projectId));
+  },
+
+  /**
+   * Grava o banco inteiro num arquivo. Como nas exportações do plano, o
+   * cancelamento volta dentro do resultado, e não como erro.
+   */
+  exportData() {
+    return call<ExportResult>(() => window.api.data.exportAll());
+  },
+
+  /**
+   * Restaura um arquivo exportado por cima de tudo que existe. Arquivo ilegível
+   * ou que não é um backup deste app sobe como erro classificado, cada um com a
+   * sua mensagem; só a desistência volta como resultado.
+   */
+  importData() {
+    return call<ImportResult>(() => window.api.data.import());
+  },
+
+  getAppInfo() {
+    return call<AppInfo>(() => window.api.data.appInfo());
   },
 
   openDataFolder() {

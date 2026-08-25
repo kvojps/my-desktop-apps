@@ -602,6 +602,46 @@ contexto de container query da §2.2, e é ele a coluna flex de `minHeight: '100
 de onde a tela que preenche a viewport tira a altura. Página que não pede nada
 continua do tamanho do próprio conteúdo.
 
+### 4.1 Configurações
+
+A tela de Configurações é o terceiro arquétipo, ao lado da tela de lista e da
+tela de leitura, e a anatomia dela é diferente das duas: ela não tem um conteúdo
+principal, tem **assuntos independentes** — backup, aparência, dados da empresa,
+informações do app. Empilhá-los como cards abertos faz a página crescer sem que
+nenhum deles ganhe destaque, e obriga a rolar para descobrir quais existem.
+
+O padrão é **acordeão como estrutura de página**, pela extensão de `MuiAccordion`
+da §6:
+
+- Uma seção por assunto, com `IconTile`, título em `h6` e **uma linha** de
+  `body2` em `text.secondary` no cabeçalho. O cabeçalho é o que se lê com a
+  seção fechada, então é ele que precisa dizer o que tem dentro — nunca só o
+  título.
+- **A altura do cabeçalho é a mesma aberto e fechado** (`minHeight` fixo no
+  `MuiAccordionSummary`, `.Mui-expanded` incluído). Sem isso, abrir uma seção
+  empurra as de baixo duas vezes: uma pelo painel, outra pelo cabeçalho que
+  cresceu.
+- **Uma seção nasce aberta**, e é a que responde por que se veio à tela. As
+  demais chegam fechadas e cabem todas na viewport juntas, que é o que dá à
+  página a função de índice.
+- A cor de identidade do ladrilho é da §1.5: só a seção que é o assunto da tela
+  a recebe; seção que é operação pontual fica neutra.
+- Cada seção **carrega e falha por conta própria** (§5.3). Uma falha atrás de
+  acordeão fechado não é uma falha visível, então a seção que falhou **se abre
+  sozinha** — e fechá-la de novo continua sendo do usuário. O erro ali é
+  `ErrorState` `dense`, porque a extensão da falha é a seção, não a página.
+
+**O alternador de tema aparece duas vezes, e isso é regra, não descuido.** No
+rail ele é o ícone sem rótulo do rodapé, e ali o alvo é trocar depressa de
+qualquer tela. Em Configurações ele é um `ToggleButtonGroup` de duas opções
+nomeadas — "Claro" e "Escuro" —, e ali o alvo é outro: saber **em que modo o app
+está**. Um alternador sozinho não responde isso, porque sem rótulo ele mostra o
+destino e não o estado. Cada opção leva ícone além do rótulo, porque o
+selecionado se distingue por tingimento e cor nunca é o único canal (§1.7).
+
+Caminho de arquivo — banco de dados, pasta de dados — vai em `mono` (§6), com
+`userSelect: 'text'`: ele existe para ser conferido e copiado.
+
 ## 5. Comportamento
 
 As seções acima descrevem a aparência parada. Esta descreve o que o app faz

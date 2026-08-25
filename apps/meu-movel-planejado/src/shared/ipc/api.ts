@@ -1,3 +1,4 @@
+import type { AppInfo } from '@shared/types/appInfo';
 import type { Piece, PieceInput } from '@shared/types/piece';
 import type { Plan, PlanInput } from '@shared/types/plan';
 import type { CuttingParamsInput, Project, ProjectInput } from '@shared/types/project';
@@ -68,7 +69,27 @@ export interface PlansApi {
 export type ExportResult =
   { success: true; filePath: string } | { success: false; error: 'canceled' };
 
+/**
+ * O resultado de uma importação. Só há um desfecho que não é sucesso e também
+ * não é falha — o usuário ter fechado o diálogo. Arquivo ilegível e arquivo que
+ * não é um backup deste app **são** falhas, e sobem como exceção classificada:
+ * cada um tem uma mensagem própria, e a tela as exibe sem ter de escolher qual.
+ */
+export type ImportResult = { success: true } | { success: false; error: 'canceled' };
+
 export interface DataApi {
+  /**
+   * Grava o banco inteiro num arquivo, escolhido no diálogo do sistema. É o
+   * backup: o que resta ao usuário se o computador se perder.
+   */
+  exportAll: () => Promise<ExportResult>;
+  /**
+   * Restaura um arquivo exportado, **substituindo** tudo que existe hoje. A
+   * confirmação é da tela; aqui já é a operação.
+   */
+  import: () => Promise<ImportResult>;
+  /** Versão do app e caminho do banco em disco. */
+  appInfo: () => Promise<AppInfo>;
   /** Abre a pasta de dados do app no explorador de arquivos. */
   openFolder: () => Promise<void>;
 }

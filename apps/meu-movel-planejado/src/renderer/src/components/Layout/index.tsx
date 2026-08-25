@@ -2,6 +2,7 @@ import {
   DarkModeOutlined,
   DashboardCustomizeOutlined,
   LightModeOutlined,
+  SettingsOutlined,
 } from '@mui/icons-material';
 import { Box, ButtonBase, IconButton, Tooltip } from '@mui/material';
 import { ReactNode } from 'react';
@@ -29,6 +30,11 @@ const NAV_ITEMS: NavItem[] = [
     label: 'Projetos',
     path: ROUTES.PROJECTS,
     icon: <DashboardCustomizeOutlined sx={{ fontSize: ICON_SIZE }} />,
+  },
+  {
+    label: 'Configurações',
+    path: ROUTES.SETTINGS,
+    icon: <SettingsOutlined sx={{ fontSize: ICON_SIZE }} />,
   },
 ];
 

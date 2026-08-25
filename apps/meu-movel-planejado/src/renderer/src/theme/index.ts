@@ -91,6 +91,16 @@ const getDesignTokens = (mode: PaletteMode): ThemeOptions => {
 
   const primary = PRIMARY[mode];
 
+  // A superfície do app, escrita uma vez: borda mais uma sombra rasa, nos dois
+  // modos (design system, §2). O app não tem sombra de elevação — profundidade é
+  // feita com borda —, e é por ser uma receita só que card e acordeão não podem
+  // divergir um do outro.
+  const surface = {
+    border: `1px solid ${border}`,
+    boxShadow:
+      mode === 'light' ? '0 1px 2px rgba(16, 24, 40, 0.04)' : '0 1px 2px rgba(0, 0, 0, 0.2)',
+  };
+
   // As superfícies dos dois modos são distantes demais para que uma mesma cor
   // sirva de texto nos dois: no claro é preciso L <= 0.1658, no escuro
   // L >= 0.2277, e as janelas são disjuntas. Daí todo token de texto ter par
@@ -167,14 +177,40 @@ const getDesignTokens = (mode: PaletteMode): ThemeOptions => {
       MuiCard: {
         styleOverrides: {
           root: {
-            border: `1px solid ${border}`,
-            boxShadow:
-              mode === 'light'
-                ? '0 1px 2px rgba(16, 24, 40, 0.04)'
-                : '0 1px 2px rgba(0, 0, 0, 0.2)',
+            ...surface,
           },
         },
       },
+      // O acordeão é a estrutura da tela de Configurações: cada seção diz no
+      // cabeçalho o que tem dentro, e só o que se veio fazer fica aberto. É a
+      // extensão local que o design system prevê para isso (§6), e ela precisa
+      // desfazer dois defaults do MUI — a elevação, que seria a única sombra do
+      // app fora da borda, e a régua fantasma do `:before` entre painéis.
+      MuiAccordion: {
+        defaultProps: { disableGutters: true, elevation: 0 },
+        styleOverrides: {
+          root: {
+            ...surface,
+            '&:before': { display: 'none' },
+          },
+        },
+      },
+      // Altura travada em aberto e fechado: o cabeçalho é o que se lê com a
+      // seção fechada, e ele não pode mudar de tamanho ao abrir.
+      MuiAccordionSummary: {
+        styleOverrides: {
+          root: {
+            minHeight: 72,
+            padding: '0 20px',
+            '&.Mui-expanded': { minHeight: 72 },
+          },
+          content: {
+            margin: '16px 0',
+            '&.Mui-expanded': { margin: '16px 0' },
+          },
+        },
+      },
+      MuiAccordionDetails: { styleOverrides: { root: { padding: '4px 20px 20px' } } },
       MuiButton: { styleOverrides: { root: { borderRadius: CONTROL_RADIUS } } },
       MuiOutlinedInput: { styleOverrides: { root: { borderRadius: CONTROL_RADIUS } } },
       MuiToggleButton: { styleOverrides: { root: { borderRadius: CONTROL_RADIUS } } },

@@ -1,7 +1,10 @@
 import type Database from 'better-sqlite3';
 import { app, shell } from 'electron';
 import { IPC_CHANNELS } from '@shared/ipc/channels';
+import type { AppInfo } from '@shared/types/appInfo';
 import type { ThemeMode } from '@shared/types/theme';
+import { exportBackupFile, importBackupFile } from '../backup/backupFile';
+import { getDbPath } from '../db/connection';
 import { createPiece, deletePiece, listPieces, updatePiece } from '../db/piecesRepository';
 import { getPlan, savePlan } from '../db/plansRepository';
 import {
@@ -96,6 +99,18 @@ export function registerIpcHandlers(db: Database.Database, options: RegisterIpcO
   handle(IPC_CHANNELS.plansExportPdf, (event, projectId: unknown) =>
     exportPlanPdf(event, db, parseId(projectId)),
   );
+
+  handle(IPC_CHANNELS.dataExport, (event) => exportBackupFile(event, db));
+
+  handle(IPC_CHANNELS.dataImport, (event) => importBackupFile(event, db));
+
+  // A versão vem do `app`, e não do `package.json` importado: em produção quem
+  // sabe a versão instalada é o Electron, e ler o manifesto empacotado devolveria
+  // a versão de quem construiu, não a de quem está rodando.
+  handle(IPC_CHANNELS.dataAppInfo, (): AppInfo => ({
+    version: app.getVersion(),
+    dbPath: getDbPath(),
+  }));
 
   handle(IPC_CHANNELS.dataOpenFolder, async () => {
     await shell.openPath(app.getPath('userData'));

@@ -62,6 +62,9 @@ const api: ElectronApi = {
     exportPdf: (projectId: string) => ipcRenderer.invoke(IPC_CHANNELS.plansExportPdf, projectId),
   },
   data: {
+    exportAll: () => ipcRenderer.invoke(IPC_CHANNELS.dataExport),
+    import: () => ipcRenderer.invoke(IPC_CHANNELS.dataImport),
+    appInfo: () => ipcRenderer.invoke(IPC_CHANNELS.dataAppInfo),
     openFolder: () => ipcRenderer.invoke(IPC_CHANNELS.dataOpenFolder),
   },
   theme: {
