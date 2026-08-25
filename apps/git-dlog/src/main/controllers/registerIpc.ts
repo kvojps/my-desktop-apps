@@ -4,18 +4,7 @@ import { IPC_CHANNELS } from '@shared/ipc/channels';
 import type { PrIntegrationStatus } from '@shared/types/pullRequest';
 import type { RepoFetchResult } from '@shared/types/repoScan';
 import type { ThemeMode } from '@shared/types/theme';
-import {
-  addScanPath,
-  deleteScanPath,
-  getAllScanPaths,
-} from '../infra/database/repositories/scanPathsRepository';
-import {
-  deleteGithubToken,
-  getGithubToken,
-  hasGithubToken,
-  saveGithubToken,
-  saveThemeMode,
-} from '../infra/database/repositories/settingsRepository';
+import { makeRepositories } from '../infra/database';
 import { fetchRepos, filterReposWithRemote } from '../infra/gateways/git/repoFetcher';
 import { listRepoDirs, scanRepos } from '../infra/gateways/git/repoScanner';
 import { verifyGithubToken } from '../infra/gateways/pr/githubToken';
@@ -41,16 +30,20 @@ interface RegisterIpcOptions {
 }
 
 export function registerIpcHandlers(db: Database.Database, options: RegisterIpcOptions): void {
+  const repos = makeRepositories(db);
+
   registerDialogHandlers();
 
-  handle(IPC_CHANNELS.scanPathsGetAll, () => getAllScanPaths(db));
+  handle(IPC_CHANNELS.scanPathsGetAll, () => repos.scanPaths.list());
   handle(IPC_CHANNELS.scanPathsAdd, (_event, data: unknown) =>
-    addScanPath(db, { path: parseOrThrow(createScanPathSchema, data) }),
+    repos.scanPaths.create({ path: parseOrThrow(createScanPathSchema, data) }),
   );
-  handle(IPC_CHANNELS.scanPathsDelete, (_event, id: unknown) => deleteScanPath(db, parseId(id)));
+  handle(IPC_CHANNELS.scanPathsDelete, (_event, id: unknown) =>
+    repos.scanPaths.delete(parseId(id)),
+  );
 
   function getBaseDirs(): string[] {
-    return getAllScanPaths(db).map((scanPath) => scanPath.path);
+    return repos.scanPaths.list().map((scanPath) => scanPath.path);
   }
 
   handle(IPC_CHANNELS.reposScan, async () =>
@@ -82,7 +75,7 @@ export function registerIpcHandlers(db: Database.Database, options: RegisterIpcO
     const scanned = await scanRepos(repoDirs);
 
     const { prsByPath, failures: prFailures } = await fetchPullRequests(scanned, {
-      token: getGithubToken(db),
+      token: repos.settings.getGithubToken(),
       onProgress: (done, total, current) => sendProgress({ phase: 'prs', done, total, current }),
     });
     updatePrCache(prsByPath);
@@ -91,7 +84,7 @@ export function registerIpcHandlers(db: Database.Database, options: RegisterIpcO
   });
 
   function integrationStatus(): Promise<PrIntegrationStatus> {
-    return getIntegrationStatus(hasGithubToken(db));
+    return getIntegrationStatus(repos.settings.hasGithubToken());
   }
 
   handle(IPC_CHANNELS.prsGetStatus, () => integrationStatus());
@@ -101,12 +94,12 @@ export function registerIpcHandlers(db: Database.Database, options: RegisterIpcO
     // Valida antes de gravar: salvar um token quebrado só adiaria o erro para
     // o próximo "Buscar do remoto", longe da tela onde ele foi digitado.
     const login = await verifyGithubToken(token);
-    saveGithubToken(db, token);
+    repos.settings.saveGithubToken(token);
     return login;
   });
 
   handle(IPC_CHANNELS.prsDeleteToken, () => {
-    deleteGithubToken(db);
+    repos.settings.deleteGithubToken();
   });
 
   handle(IPC_CHANNELS.prsRedetect, () => {
@@ -124,7 +117,7 @@ export function registerIpcHandlers(db: Database.Database, options: RegisterIpcO
 
   handle(IPC_CHANNELS.settingsSaveThemeMode, (_event, data: unknown) => {
     const mode = parseOrThrow(themeModeSchema, data);
-    saveThemeMode(db, mode);
+    repos.settings.saveThemeMode(mode);
     options.onThemeModeChange(mode);
   });
 }

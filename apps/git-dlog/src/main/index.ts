@@ -5,7 +5,10 @@ import type { ThemeMode } from '@shared/types/theme';
 import icon from '../../resources/icon.png?asset';
 import { registerIpcHandlers } from './controllers/registerIpc';
 import { initDb } from './infra/database/connection';
-import { getThemeMode } from './infra/database/repositories/settingsRepository';
+import {
+  type SettingsRepository,
+  makeSettingsRepository,
+} from './infra/database/repositories/settingsRepository';
 import { classifyError } from './utils/errors/toIpcError';
 
 // Fixa a pasta userData (%APPDATA%/<nome>); mudar este nome após a primeira
@@ -26,8 +29,8 @@ function backgroundColorFor(mode: ThemeMode): string {
  * única vez, nesta resolução inicial — e não persiste isso como se fosse
  * escolha do usuário (docs/design-system.md §5.1).
  */
-function resolveInitialThemeMode(db: Parameters<typeof getThemeMode>[0]): ThemeMode {
-  return getThemeMode(db) ?? (nativeTheme.shouldUseDarkColors ? 'dark' : 'light');
+function resolveInitialThemeMode(settings: SettingsRepository): ThemeMode {
+  return settings.getThemeMode() ?? (nativeTheme.shouldUseDarkColors ? 'dark' : 'light');
 }
 
 function createWindow(mode: ThemeMode) {
@@ -96,7 +99,10 @@ app.whenReady().then(() => {
 
   // Ordem de boot (docs/design-system.md §5.1): ler o banco → aplicar o tema
   // → criar a janela. Nunca depois.
-  let currentThemeMode = resolveInitialThemeMode(db);
+  // O carve-out do bootstrap (ADR-0002) é ler *direto do repositório*, antes de
+  // existir camada para atravessar — e não montar uma segunda unidade de
+  // trabalho só para alcançar um getter.
+  let currentThemeMode = resolveInitialThemeMode(makeSettingsRepository(db));
   nativeTheme.themeSource = currentThemeMode;
 
   registerIpcHandlers(db, {
