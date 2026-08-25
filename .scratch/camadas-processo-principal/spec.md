@@ -75,19 +75,6 @@ ter decidido que atravessa. O caso que já existe está em `meu-negocio-app`
 (`db/ordersRepository.ts:34-44`): `stock_applied` é escrituração interna e fica fora de
 `OrderItem` de propósito, defendido hoje só por um comentário. Com a camada, vira estrutura.
 
-## Fora de escopo
-
-**Testes automatizados não serão escritos nesta leva.** O desenho preserva a costura testável
-(o service recebe `repos`, não `db`), mas nenhum `.test.ts` novo entra. Isso é adiamento
-deliberado, não omissão — o ADR precisa dizê-lo, senão a camada de serviço é lida como
-decoração e a regra volta para o repositório.
-
-Nota de custo: o vitest **já está configurado na raiz** (`vitest.config.ts` inclui
-`apps/*/src/**/*.test.ts`; `npm run test` no `package.json` raiz) e já cobre os quatro apps.
-O `meu-movel-planejado` é o único com testes porque é o único que escreveu arquivos
-`.test.ts`, não porque tenha infraestrutura que os outros não têm. Escrever o primeiro teste
-depois é criar um arquivo, sem instalar nada.
-
 ## Ordem
 
 Documentação primeiro — o padrão foi decidido de antemão, não descoberto pelo piloto.
