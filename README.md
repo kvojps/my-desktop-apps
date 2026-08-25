@@ -11,11 +11,11 @@ os outros. O que não é compartilhado é código: cada app tem o seu próprio
 
 ## 1. Apps
 
-| App                                   | Diretório               | O que faz                                                                                     |
-| ------------------------------------- | ----------------------- | --------------------------------------------------------------------------------------------- |
-| [Meu Dinheiro](apps/meu-dinheiro-app) | `apps/meu-dinheiro-app` | Finanças pessoais por mês: entradas, despesas, contas bancárias, categorias, recibos e backup |
-| [Meu Negócio](apps/meu-negocio-app)   | `apps/meu-negocio-app`  | Gestão de produtos, pedidos e vendas, com estoque e relatórios                                |
-| [Git Dlog](apps/git-dlog)             | `apps/git-dlog`         | Varre pastas locais em busca de repositórios git e acompanha seus PRs via `gh` e `glab`       |
+| App                                             | Diretório                  | O que faz                                                                                          |
+| ----------------------------------------------- | -------------------------- | -------------------------------------------------------------------------------------------------- |
+| [Meu Dinheiro](apps/meu-dinheiro-app)           | `apps/meu-dinheiro-app`    | Finanças pessoais por mês: entradas, despesas, contas bancárias, categorias, recibos e backup      |
+| [Meu Negócio](apps/meu-negocio-app)             | `apps/meu-negocio-app`     | Gestão de produtos, pedidos e vendas, com estoque e relatórios                                     |
+| [Git Dlog](apps/git-dlog)                       | `apps/git-dlog`            | Varre pastas locais em busca de repositórios git e acompanha seus PRs via `gh` e `glab`            |
 | [Meu Móvel Planejado](apps/meu-movel-planejado) | `apps/meu-movel-planejado` | Planeja o corte de chapas: distribui as peças de um serviço pelo estoque e diz o que falta comprar |
 
 ## 2. Decisões de arquitetura
@@ -39,37 +39,117 @@ Cada app tem o seu `shared` — o nome não significa "compartilhado entre apps"
 
 ### 2.2 `src/main` — processo principal
 
-- **`db/`** — SQLite (`better-sqlite3`) em modo WAL com `foreign_keys = ON`.
-  `connection.ts` guarda o `SCHEMA` usado em instalações novas, mais `initDb`,
-  `getDb` e `getDbPath`; `migrations.ts` guarda a lista numerada de migrações,
-  aplicada uma única vez por banco e registrada em `PRAGMA user_version`. Bancos
-  já instalados começam em `user_version = 0`, então **toda migração precisa ser
-  idempotente** e nenhum `id` já publicado pode ser reordenado ou reescrito. Cada
-  domínio tem um repositório (`productsRepository.ts`, `monthsRepository.ts`, …)
-  e é o único lugar que escreve SQL.
-- **`ipc/`** — `registerIpc.ts` registra os handlers e `handle.ts` embrulha o
-  `ipcMain.handle`. Nenhum handler usa `ipcMain.handle` direto, e é essa
-  exclusividade que dá ao `handle` as duas responsabilidades que ele tem: passar
-  qualquer falha por `toIpcError` antes de devolvê-la, garantindo que o renderer
-  nunca receba um erro sem código; e, quando um canal de **escrita** termina bem,
-  disparar `notifyDataChanged()` — o evento que mantém as telas em dia.
-  Escrita é definido por exclusão: `READ_ONLY_CHANNELS`, em
-  `shared/ipc/channels.ts`, enumera os canais que **não alteram dado nenhum**, e
-  todo canal fora dela avisa. Quase todos são leituras, mas nem todos — imprimir
-  não lê nem grava, e mesmo assim não pode avisar: a recarga remontaria o
-  documento no instante em que o diálogo de impressão abre. A lista é dos
-  inofensivos de propósito — esquecer de classificar um canal novo custa uma
-  recarga a mais, nunca um valor velho na tela.
-- **`schemas/`** — schemas zod por domínio. Toda entrada vinda do renderer passa
-  por `parseOrThrow` e todo id por `parseId`, porque o preload é código do próprio
-  app mas o contrato de tipos não sobrevive em runtime.
-- **`errors/`** — `AppError` (erro com mensagem já escrita para o usuário) e
-  `toIpcError`. Erro inesperado continua sendo um `Error` cru e é classificado por
-  `classifyError` numa descrição genérica; a distinção é o que evita vazar detalhe
-  técnico na tela.
-- **`utils/`** e pastas de domínio — `git/` e `pr/` no Git Dlog, `files/` no Meu
-  Dinheiro. Integração com o mundo externo (processos, sistema de arquivos) fica
-  fora dos repositórios.
+Quatro camadas de fluxo — **controller**, **service**, **repositório** e
+**gateway** —, mais `domain/` ao lado delas. A organização é horizontal, por
+camada e não por feature, e o objetivo declarado é legibilidade estrutural: que
+a árvore de pastas conte sozinha como o app funciona. Ver
+[`docs/adr/0002-camadas-do-processo-principal.md`](docs/adr/0002-camadas-do-processo-principal.md).
+
+```
+src/main/
+  index.ts                     bootstrap — fora das camadas
+  domain/                      entidades: repo.ts, pullRequest.ts, settings.ts
+  controllers/
+    registerIpc.ts             compõe as camadas e registra
+    handle.ts  notifyDataChanged.ts
+    reposController.ts  prsController.ts  systemController.ts
+    schemas/                   zod de entrada
+  services/
+    reposService.ts  prsService.ts  settingsService.ts
+  infra/
+    database/
+      connection.ts            SCHEMA, initDb, getDb, getDbPath
+      migrations.ts
+      index.ts                 makeRepositories(db) + transaction()
+      repositories/            reposRepository.ts, settingsRepository.ts, …
+    gateways/
+      git/  pr/  system/
+  utils/
+    errors/                    AppError, toIpcError
+    concurrency.ts  parseId.ts  validate.ts
+```
+
+- **`domain/`** — as entidades: o vocabulário que as camadas trocam entre si.
+  Entidade é anêmica — `type` mais funções puras, sem classe —, tem sufixo
+  `Entity` e nome no singular. `domain/` não fica acima nem abaixo de ninguém:
+  não é camada de fluxo, e por isso é a única pasta que qualquer camada pode
+  importar.
+- **`controllers/`** — a borda do IPC. `registerIpc.ts` compõe as camadas e
+  registra os canais; `handle.ts` embrulha o `ipcMain.handle`. Nenhum handler
+  usa `ipcMain.handle` direto, e é essa exclusividade que dá ao `handle` as duas
+  responsabilidades que ele tem: passar qualquer falha por `toIpcError` antes de
+  devolvê-la, garantindo que o renderer nunca receba um erro sem código; e,
+  quando um canal de **escrita** termina bem, disparar `notifyDataChanged()` — o
+  evento que mantém as telas em dia. Escrita é definido por exclusão:
+  `READ_ONLY_CHANNELS`, em `shared/ipc/channels.ts`, enumera os canais que **não
+  alteram dado nenhum**, e todo canal fora dela avisa. Quase todos são leituras,
+  mas nem todos — imprimir não lê nem grava, e mesmo assim não pode avisar: a
+  recarga remontaria o documento no instante em que o diálogo de impressão abre.
+  A lista é dos inofensivos de propósito — esquecer de classificar um canal novo
+  custa uma recarga a mais, nunca um valor velho na tela.
+
+  O controller também é o lugar da validação e da saída: toda entrada vinda do
+  renderer passa por `parseOrThrow` com os schemas zod de
+  `controllers/schemas/`, e todo id por `parseId` — porque o preload é código do
+  próprio app, mas o contrato de tipos não sobrevive em runtime. O que chega ao
+  service é um `Request` já tipado; a entidade que volta vira `Response` (§2.5).
+  `Request` e `Response` são os tipos de `src/shared` — o contrato de IPC _é_ o
+  contrato do controller.
+
+- **`services/`** — a regra de negócio, e o único lugar dela. O service recebe
+  entrada já validada e confia nela, orquestra repositórios e gateways, e é
+  quem decide que "não encontrado" é um `AppError`. Não conhece Electron, não
+  conhece zod e não importa `better-sqlite3`. Regra de domínio mora aqui mesmo
+  quando é função pura que não toca banco nem disco — o critério é o papel dela,
+  não o que ela usa, e isso revoga um precedente que estava valendo no Meu Móvel
+  Planejado: ver
+  [`docs/adr/0003-logica-de-dominio-no-main.md`](docs/adr/0003-logica-de-dominio-no-main.md).
+- **`infra/database/`** — SQLite (`better-sqlite3`) em modo WAL com
+  `foreign_keys = ON`. `connection.ts` guarda o `SCHEMA` usado em instalações
+  novas, mais `initDb`, `getDb` e `getDbPath`; `migrations.ts` guarda a lista
+  numerada de migrações, aplicada uma única vez por banco e registrada em
+  `PRAGMA user_version`. Bancos já instalados começam em `user_version = 0`,
+  então **toda migração precisa ser idempotente** e nenhum `id` já publicado
+  pode ser reordenado ou reescrito. O `index.ts` da pasta é a unidade de
+  trabalho: `makeRepositories(db)` devolve os repositórios prontos mais um
+  `transaction()`, e é só isso que o service recebe. Cada domínio tem um
+  repositório em `repositories/` (`reposRepository.ts`, `ordersRepository.ts`,
+  …), é o único lugar que escreve SQL, expõe `list` / `findById` / `create` /
+  `update` / `delete`, e **devolve `null` em vez de lançar**.
+- **`infra/gateways/`** — o mundo externo: processos (`git/`, `pr/`), sistema de
+  arquivos, diálogos nativos, impressão, `safeStorage`, moldura da janela. É
+  irmã de `repositories/` e é chamada pelo service pelos mesmos motivos — tudo
+  que sai do processo passa por uma pasta só, e o service continua testável sem
+  nada disso.
+- **`utils/`** — transversal, não é camada: `errors/` com `AppError` (erro com
+  mensagem já escrita para o usuário) e `toIpcError`, mais os helpers de
+  `parseId`, `validate` e concorrência. Erro inesperado continua sendo um
+  `Error` cru e é classificado por `classifyError` numa descrição genérica; a
+  distinção é o que evita vazar detalhe técnico na tela.
+- **`index.ts`** — bootstrap, e o único carve-out: janelas, ciclo de vida do
+  app e a leitura do tema direto do repositório, antes de existir camada para
+  atravessar (§5.1 do design system, e o ADR-0002).
+
+Nenhuma camada é pulável, nem quando o service só repassa uma linha ao
+repositório. As pastas de domínio ad-hoc que o §2.2 sancionava antes — `git/` e
+`pr/` no Git Dlog, `files/` no Meu Dinheiro — e as que nunca chegou a mencionar
+têm destino fixo:
+
+| Pasta antiga        | Onde passa a viver                                                                                         |
+| ------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `db/`               | `infra/database/` e `infra/database/repositories/`                                                         |
+| `ipc/`, `schemas/`  | `controllers/` e `controllers/schemas/`                                                                    |
+| `errors/`           | `utils/errors/`                                                                                            |
+| `git/`, `pr/`       | `infra/gateways/git/` e `infra/gateways/pr/` — o que é orquestração (`prService.ts`) sobe para `services/` |
+| `files/`            | `infra/gateways/`                                                                                          |
+| `theme/`            | `infra/gateways/system/` (moldura nativa e `nativeTheme`) mais `services/settingsService.ts`               |
+| `backup/`           | `services/backupService.ts`; diálogo e disco em `infra/gateways/`                                          |
+| `export/`, `print/` | `services/` mais `infra/gateways/`                                                                         |
+| `constants/`        | `domain/` — `monthLabel` é vocabulário, não configuração                                                   |
+
+A migração é por app, na ordem `git-dlog` → `meu-negocio-app` → os dois
+restantes. Enquanto ela não termina, app que ainda não foi convertido está
+divergindo deste documento, e a divergência é bug do código.
 
 ### 2.3 `src/preload` — a ponte
 
@@ -121,9 +201,22 @@ alteração de UI começa por ele.
 ### 2.5 Nomes na fronteira
 
 O banco é snake_case e para nele. Tudo que atravessa o IPC — tipos em
-`shared/types/`, payloads e schemas zod — é camelCase, e a conversão acontece num
-único lugar: a função `rowToX` do repositório, que também traduz o 0/1 do SQLite
-para booleano. Nenhum objeto que sai de um repositório carrega chave snake_case.
+`shared/types/`, payloads e schemas zod — é camelCase. Entre uma ponta e outra
+há **duas travessias**, cada uma com o seu mapeamento explícito:
+
+- **`row → entity`, no repositório.** A função `rowToX` traduz snake_case para
+  camelCase e o 0/1 do SQLite para booleano. Nenhum objeto que sai de um
+  repositório carrega chave snake_case.
+- **`entity → response`, no controller.** A função `xToResponse` monta o tipo de
+  `shared/types/` que o renderer vai receber. Nenhuma entidade atravessa o IPC
+  inteira só porque já estava pronta.
+
+O segundo mapeamento não existe por legibilidade — mapper trivial não se lê.
+Existe para que nada chegue ao renderer sem alguém ter decidido que chega. O
+caso que motivou a regra é o `stock_applied` do Meu Negócio: é escrituração
+interna, fica fora do `OrderItem` de propósito, e hoje quem defende isso é um
+comentário. Com a segunda travessia, vira estrutura — o campo só sai se alguém
+escrever a linha que o coloca no response.
 
 Uma exceção deliberada: o backup exporta e importa as linhas cruas das tabelas,
 então o arquivo de backup é snake_case — é o que mantém backups antigos

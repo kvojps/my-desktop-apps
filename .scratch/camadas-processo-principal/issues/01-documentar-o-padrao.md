@@ -1,4 +1,4 @@
-Status: aberto
+Status: resolvido
 
 # Documentar o padrão de camadas
 
@@ -60,3 +60,30 @@ de arquitetura; `CONTEXT.md` é glossário de negócio e precisa continuar livre
 implementação. O termo de domínio que saiu desta sessão está no ticket 02.
 
 ## Comments
+
+Feito: `README.md` §2.2 e §2.5 reescritos, `docs/adr/0002-camadas-do-processo-principal.md` e
+`docs/adr/0003-logica-de-dominio-no-main.md` criados. Nenhum `CONTEXT.md` tocado.
+
+Três pontos em que a documentação escrita diverge do enunciado do ticket, todos deliberados:
+
+1. **"Quatro camadas" foi lido como as quatro camadas de fluxo** — controller, service,
+   repositório e gateway —, arranjadas em três pastas de topo (`controllers/`, `services/`,
+   `infra/`). A outra leitura possível seria contar `utils/` como camada, mas `utils/` não
+   participa do fluxo de uma chamada; ficou documentado como transversal.
+2. **`constants/` foi para `domain/`, não para `services/` nem `infra/gateways/`.** O ticket
+   diz que as cinco pastas não documentadas são absorvidas por uma das duas, mas
+   `constants/monthNames.ts` é `MONTH_NAMES` mais `monthLabel`/`formatDueDate`, usados por
+   `monthsRepository.ts` e pelos dois repositórios de default — é vocabulário, e vocabulário
+   é `domain/`. As outras quatro (`theme/`, `backup/`, `export/`, `print/`) caíram onde o
+   ticket previa.
+3. **O caminho do `RepoCard.tsx` no ticket está desatualizado.** É
+   `renderer/src/pages/repos/components/RepoCard.tsx`, não `renderer/src/components/`. O ADR
+   registra o caminho real.
+
+Além disso, o §2.2 ganhou uma frase que o ticket não pedia, dizendo que a migração é por app
+e que app não convertido diverge do documento enquanto a fila não anda — sem ela, o README
+descreve uma árvore que nenhum app tem hoje e o leitor não sabe se está lendo norma ou erro.
+
+`npm run typecheck`, `npm run lint` (2 warnings pré-existentes de `react-hooks/exhaustive-deps`
+no Meu Negócio) e `npm run test` (19 arquivos, 173 testes) passam. O `prettier --write README.md`
+reformatou também a tabela do §1, que já estava fora do padrão antes desta alteração.
