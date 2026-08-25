@@ -11,12 +11,13 @@ import {
   WidgetsOutlined,
 } from '@mui/icons-material';
 import { Button, Card, CardContent, IconButton, Skeleton, Stack, Typography } from '@mui/material';
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { PageHeader } from '@/components/PageHeader';
 import { StatCard, StatCardGrid, StatCardSkeleton } from '@/components/StatCard';
+import { useExportPlan } from '@/hooks/plan/useExportPlan';
 import { useGeneratePlan } from '@/hooks/plan/useGeneratePlan';
 import { usePlan } from '@/hooks/plan/usePlan';
 import { usePrintPlan } from '@/hooks/plan/usePrintPlan';
@@ -24,7 +25,9 @@ import { CATEGORICAL_PALETTE, contentQuery } from '@/theme';
 import { formatDateTime } from '@/utils/date';
 import { formatCount, formatDimensions, formatMillimeters, formatPercent } from '@/utils/format';
 import { ROUTES, projectPath } from '../../routes';
+import { ExportMenu } from './components/ExportMenu';
 import { OutdatedPlanNotice } from './components/OutdatedPlanNotice';
+import { PlanImageDocument } from './components/PlanImageDocument';
 import { PlanLegend } from './components/PlanLegend';
 import { PlanPrintDocument } from './components/PlanPrintDocument';
 import { SheetDrawing } from './components/SheetDrawing';
@@ -63,6 +66,10 @@ export function PlanPage() {
     sheets,
   );
   const { print, isPrinting } = usePrintPlan();
+  // O SVG da imagem exportada mora no documento montado ao lado da tela; o
+  // hook de exportação o alcança por esta referência para serializá-lo.
+  const imageRef = useRef<SVGSVGElement>(null);
+  const { exportPng, exportPdf, exportingFormat } = useExportPlan(projectId, imageRef);
   const [requestedSheet, setRequestedSheet] = useState(0);
 
   const legend = useMemo(
@@ -185,6 +192,14 @@ export function PlanPage() {
         actions={
           <Stack direction="row" spacing={1}>
             {backButton}
+            {/* Levar o plano para fora do app: o PNG vai para o celular do
+                ajudante, o PDF para a pasta do serviço. Fica antes de imprimir
+                porque imprimir é a ação primária desta tela. */}
+            <ExportMenu
+              onExportPng={exportPng}
+              onExportPdf={exportPdf}
+              exportingFormat={exportingFormat}
+            />
             {/* Ação primária desta tela: o plano existe para ir à bancada, e
                 quem corta costuma não ser quem planejou. O rótulo troca
                 enquanto o diálogo do sistema está aberto, que é o único sinal
@@ -206,6 +221,11 @@ export function PlanPage() {
           mesmo por qualquer caminho, e para que a folha carregue exatamente o
           plano que está à vista. */}
       <PlanPrintDocument project={project} plan={plan} legend={legend} />
+
+      {/* A imagem exportada, montada pela mesma razão do documento de papel: o
+          que se exporta é o desenho que está à vista, e não um segundo desenho
+          montado no clique. */}
+      <PlanImageDocument project={project} plan={plan} legend={legend} svgRef={imageRef} />
 
       {/* Antes dos indicadores, e não ao lado do desenho: o que ele diz vale
           para o plano inteiro, inclusive para os números logo abaixo — eles são

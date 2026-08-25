@@ -24,7 +24,9 @@ import { LABEL_FONT_PX } from './pieceLabels';
  * tema —, e teria o efeito calado de a medida continuar certa depois de o tema
  * trocar de fonte, medindo uma fonte que a tela já não usa. O tamanho, sim, é
  * declarado: 12px é escolha deste desenho, não do `body`, e vem de
- * `pieceLabels` — de quem decide o rótulo, e não de quem o mede.
+ * `pieceLabels` — de quem decide o rótulo, e não de quem o mede. Quem
+ * escreve noutro tamanho — a imagem exportada, cujo título tem 40px — diz qual,
+ * pela mesma razão: o tamanho é de quem escreve.
  */
 
 let measureNode: HTMLSpanElement | null = null;
@@ -47,9 +49,10 @@ function getMeasureNode(): HTMLSpanElement {
   return measureNode;
 }
 
-/** Largura do texto em pixel de tela, na fonte e no tamanho do rótulo da peça. */
-export function measureTextWidth(text: string): number {
+/** Largura do texto em pixel de tela, na fonte do app e no tamanho pedido. */
+export function measureTextWidth(text: string, fontSizePx: number = LABEL_FONT_PX): number {
   const node = getMeasureNode();
+  node.style.fontSize = `${fontSizePx}px`;
   node.textContent = text;
   return node.getBoundingClientRect().width;
 }
@@ -74,7 +77,7 @@ function useFontsReady(): boolean {
 export interface TextMeasure {
   /** Qual geração de fonte estas medidas enxergam. */
   fontsReady: boolean;
-  measureTextWidth: (text: string) => number;
+  measureTextWidth: (text: string, fontSizePx?: number) => number;
 }
 
 /**

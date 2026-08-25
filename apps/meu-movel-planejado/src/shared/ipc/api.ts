@@ -45,7 +45,28 @@ export interface PlansApi {
    * `@media print`.
    */
   print: () => Promise<boolean>;
+  /**
+   * Salva o plano como imagem. Os bytes vêm daqui porque quem rasteriza é o
+   * renderer — o desenho é dele —, e quem grava é o main, que é onde mora o
+   * diálogo de salvar e o sistema de arquivos.
+   */
+  exportPng: (projectId: string, bytes: Uint8Array) => Promise<ExportResult>;
+  /**
+   * Salva o plano como PDF, com o mesmo layout da impressão: o main imprime
+   * para arquivo o documento que o renderer já tem montado, em vez de redesenhar
+   * o plano do outro lado.
+   */
+  exportPdf: (projectId: string) => Promise<ExportResult>;
 }
+
+/**
+ * O resultado de uma exportação. Cancelar o diálogo é **resultado**, e não
+ * exceção: quem fechou o diálogo foi o usuário, e obrigar a tela a distinguir
+ * desistência de falha dentro de um `catch` faria toda tela decidir de novo o
+ * que já se sabe aqui.
+ */
+export type ExportResult =
+  { success: true; filePath: string } | { success: false; error: 'canceled' };
 
 export interface DataApi {
   /** Abre a pasta de dados do app no explorador de arquivos. */

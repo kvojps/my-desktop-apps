@@ -38,6 +38,15 @@ export const IPC_CHANNELS = {
    * que não avisam mudança de dados.
    */
   plansPrint: 'plans:print',
+  /**
+   * Salva o plano como arquivo, pelo diálogo do sistema. São dois canais, e não
+   * um com um formato por argumento, porque o que atravessa o IPC é diferente
+   * em cada um: o PNG chega já rasterizado pelo renderer, e o PDF é impresso
+   * pelo main a partir da janela que já está aberta. Só o nome sugerido e a
+   * gravação são comuns aos dois.
+   */
+  plansExportPng: 'plans:exportPng',
+  plansExportPdf: 'plans:exportPdf',
 
   dataOpenFolder: 'data:openFolder',
 
@@ -71,6 +80,12 @@ export const READ_ONLY_CHANNELS: ReadonlySet<IpcChannel> = new Set([
   // recarregaria toda tela viva no instante em que o diálogo de impressão abre,
   // remontando o documento que está sendo impresso.
   IPC_CHANNELS.plansPrint,
+  // Exportar lê o projeto e o plano para nomear o arquivo, e não escreve nada
+  // no banco. Avisar aqui seria pior do que inútil no PDF: o main imprime o
+  // documento que o renderer tem montado, e remontar a tela no instante em que
+  // o diálogo abre trocaria o documento debaixo da impressão.
+  IPC_CHANNELS.plansExportPng,
+  IPC_CHANNELS.plansExportPdf,
 ]);
 
 /**

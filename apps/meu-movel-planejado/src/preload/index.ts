@@ -57,6 +57,9 @@ const api: ElectronApi = {
     save: (projectId: string, data: PlanInput) =>
       ipcRenderer.invoke(IPC_CHANNELS.plansSave, projectId, data),
     print: () => ipcRenderer.invoke(IPC_CHANNELS.plansPrint),
+    exportPng: (projectId: string, bytes: Uint8Array) =>
+      ipcRenderer.invoke(IPC_CHANNELS.plansExportPng, projectId, bytes),
+    exportPdf: (projectId: string) => ipcRenderer.invoke(IPC_CHANNELS.plansExportPdf, projectId),
   },
   data: {
     openFolder: () => ipcRenderer.invoke(IPC_CHANNELS.dataOpenFolder),

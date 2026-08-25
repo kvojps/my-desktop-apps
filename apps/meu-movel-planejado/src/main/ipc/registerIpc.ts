@@ -13,7 +13,9 @@ import {
   updateProject,
 } from '../db/projectsRepository';
 import { createSheet, deleteSheet, listSheets, updateSheet } from '../db/sheetsRepository';
+import { exportPlanPdf, exportPlanPng } from '../export/exportPlanFile';
 import { printDocument } from '../print/printDocument';
+import { pngBytesSchema } from '../schemas/export.schema';
 import { pieceInputSchema } from '../schemas/piece.schema';
 import { planInputSchema } from '../schemas/plan.schema';
 import { cuttingParamsInputSchema, projectInputSchema } from '../schemas/project.schema';
@@ -84,6 +86,16 @@ export function registerIpcHandlers(db: Database.Database, options: RegisterIpcO
   // O documento é o que a janela já tem desenhado, então o handler recebe o
   // `WebContents` de quem pediu e nada mais.
   handle(IPC_CHANNELS.plansPrint, (event) => printDocument(event.sender));
+
+  // O projeto entra por id, e não por nome: o nome sugerido do arquivo é lido
+  // do banco aqui, para que o renderer não escolha como o arquivo se chama.
+  handle(IPC_CHANNELS.plansExportPng, (event, projectId: unknown, bytes: unknown) =>
+    exportPlanPng(event, db, parseId(projectId), parseOrThrow(pngBytesSchema, bytes)),
+  );
+
+  handle(IPC_CHANNELS.plansExportPdf, (event, projectId: unknown) =>
+    exportPlanPdf(event, db, parseId(projectId)),
+  );
 
   handle(IPC_CHANNELS.dataOpenFolder, async () => {
     await shell.openPath(app.getPath('userData'));

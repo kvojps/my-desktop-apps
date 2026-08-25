@@ -170,6 +170,7 @@ export function PlanPrintDocument({ project, plan, legend }: PlanPrintDocumentPr
                     sheet={sheet}
                     pieces={legend.placementPieces[index]}
                     trimTenthsMm={plan.trimTenthsMm}
+                    index={index}
                   />
                 </section>
               ))}

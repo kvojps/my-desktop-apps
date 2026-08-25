@@ -1,3 +1,4 @@
+import type { ExportResult } from '@shared/ipc/api';
 import type { Piece, PieceInput } from '@shared/types/piece';
 import type { Plan, PlanInput } from '@shared/types/plan';
 import type { CuttingParamsInput, Project, ProjectInput } from '@shared/types/project';
@@ -106,6 +107,21 @@ export const api = {
    */
   printPlan() {
     return call<boolean>(() => window.api.plans.print());
+  },
+
+  /**
+   * Salva o plano como imagem, com os bytes que o renderer rasterizou. O
+   * cancelamento volta dentro do resultado, e não como erro: é a mesma
+   * distinção do `printPlan`, escrita como dado porque aqui há também um
+   * caminho de sucesso com o arquivo salvo.
+   */
+  exportPlanPng(projectId: string, bytes: Uint8Array) {
+    return call<ExportResult>(() => window.api.plans.exportPng(projectId, bytes));
+  },
+
+  /** Salva o plano como PDF, impresso pelo main a partir desta janela. */
+  exportPlanPdf(projectId: string) {
+    return call<ExportResult>(() => window.api.plans.exportPdf(projectId));
   },
 
   openDataFolder() {

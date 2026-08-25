@@ -875,6 +875,19 @@ motivou esta seção — a da oficina, do outro lado do app — não tem colorid
   impressora não é conhecida. A medida vai **escrita**, dentro do desenho ou ao lado
   dele.
 
+**O que sai em arquivo segue a folha, e não a tela.** Exportar é a mesma decisão
+tomada de novo: o arquivo sai do app, quem o recebe não tem o app aberto ao lado
+para conferir, e ele pode acabar impresso do outro lado. Valem as regras acima —
+sem tema, cor não é canal, hachura na região que não se executa, proporção
+preservada com a medida escrita. O tema é o caso que decide sozinho: um arquivo
+exportado no modo escuro chegaria como cinza sobre cinza a quem vai cortar.
+
+Imagem não tem página, e é só nisso que ela se afasta do papel: em vez de uma
+unidade por folha, uma coluna que se rola, com a mesma ordem — o que se confere
+antes vem antes, e cada unidade continua se identificando sozinha. O PDF não se
+afasta em nada, porque ele **é** a folha: sai do mesmo layout de impressão, e não
+de um segundo desenho feito para ele.
+
 ### 5.7 Recusa que não cabe num campo
 
 Validação mora no campo: `error` mais `helperText` no `TextField` que o usuário

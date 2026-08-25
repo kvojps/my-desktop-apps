@@ -11,9 +11,9 @@ import { useTextMeasure } from './textMeasure';
  *
  * Junta as três partes que o desenho não deveria ter de juntar sozinho: os
  * textos candidatos, o medidor do DOM e a regra dos três degraus. Existe como
- * hook, e não como código dentro do componente, porque há **dois** desenhos — o
- * da tela e o da folha —, e eles precisam decidir igual. A escala é o que os
- * separa, e é o único parâmetro que cada um traz de si.
+ * hook, e não como código dentro do componente, porque há **três** desenhos — o
+ * da tela, o da folha e o da imagem exportada —, e eles precisam decidir
+ * igual. A escala é o que os separa, e é o único parâmetro que cada um traz de si.
  */
 export function usePieceLabels(
   placements: readonly PlanPlacement[],

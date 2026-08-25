@@ -30,6 +30,16 @@ body {
   background: #fff;
 }
 
+/*
+ * A imagem exportada, montada ao lado da tela como o documento de papel e
+ * escondida dela em qualquer mídia — inclusive no papel, onde ela repetiria o
+ * plano inteiro depois do maço. Ela não é uma vista do app: é o conteúdo do
+ * arquivo, e quem a lê é o `XMLSerializer` na hora de exportar.
+ */
+.plan-image {
+  display: none;
+}
+
 /* A4 deitada, como a chapa. A opção passada ao Electron diz o mesmo, e as duas
    precisam continuar dizendo: uma folha em pé desenharia a chapa com pouco mais
    da metade do tamanho. */
