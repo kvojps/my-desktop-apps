@@ -1,16 +1,25 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import type { RepoRemote } from '@shared/types/pullRequest';
-import type {
-  RepoBranch,
-  RepoCommitGroup,
-  RepoHead,
-  RepoScanResult,
-  RepoSeverity,
-  RepoSync,
-  RepoWorktree,
-} from '@shared/types/repoScan';
+// `isWorktreeDirty` é o único helper que este gateway busca no contrato em vez
+// do domínio, e é exceção nomeada: ele descreve uma working tree em vez de
+// decidir alguma coisa sobre ela, então mora em `shared` e é chamado também
+// pelo renderer. Ver `docs/adr/0003-logica-de-dominio-no-main.md`.
+//
+// O preço da exceção é uma travessia silenciosa: `computeSeverity` entrega um
+// `RepoWorktreeEntity` a um parâmetro `RepoWorktree`, e só typecheca porque as
+// duas formas são idênticas hoje. Se `RepoWorktree` mudar sem a entidade
+// mudar junto, é aqui que ninguém vai ser avisado.
 import { isWorktreeDirty } from '@shared/types/repoScan';
+import type { RepoRemoteEntity } from '../../../domain/pullRequest';
+import type {
+  RepoBranchEntity,
+  RepoCommitGroupEntity,
+  RepoHeadEntity,
+  RepoScanResultEntity,
+  RepoSeverityEntity,
+  RepoSyncEntity,
+  RepoWorktreeEntity,
+} from '../../../domain/repo';
 import { mapWithConcurrency } from '../../../utils/concurrency';
 import { getGitErrorMessage, runGit } from './gitCommand';
 import { readRemotes, readRepoConfig } from './remoteUrl';
@@ -93,8 +102,8 @@ export async function listRepoDirs(baseDirs: string[]): Promise<string[]> {
 interface ParsedStatus {
   branch: string | null;
   detached: boolean;
-  sync: RepoSync;
-  counts: Omit<RepoWorktree, 'stashes'>;
+  sync: RepoSyncEntity;
+  counts: Omit<RepoWorktreeEntity, 'stashes'>;
 }
 
 /**
@@ -156,8 +165,8 @@ function parseTrack(track: string): { ahead: number; behind: number; gone: boole
   };
 }
 
-function parseRefs(output: string): RepoBranch[] {
-  const branches: RepoBranch[] = [];
+function parseRefs(output: string): RepoBranchEntity[] {
+  const branches: RepoBranchEntity[] = [];
 
   for (const line of output.split('\n')) {
     if (!line) continue;
@@ -194,8 +203,8 @@ function parseRefs(output: string): RepoBranch[] {
   return branches;
 }
 
-function groupBranchesByCommit(branches: RepoBranch[]): RepoCommitGroup[] {
-  const groupsByHash = new Map<string, RepoCommitGroup>();
+function groupBranchesByCommit(branches: RepoBranchEntity[]): RepoCommitGroupEntity[] {
+  const groupsByHash = new Map<string, RepoCommitGroupEntity>();
 
   for (const branch of branches) {
     let group = groupsByHash.get(branch.commitHash);
@@ -218,12 +227,12 @@ function groupBranchesByCommit(branches: RepoBranch[]): RepoCommitGroup[] {
 }
 
 function computeSeverity(
-  worktree: RepoWorktree,
-  sync: RepoSync,
+  worktree: RepoWorktreeEntity,
+  sync: RepoSyncEntity,
   unpublishedBranches: string[],
   goneBranches: string[],
-  head: RepoHead | null,
-): RepoSeverity {
+  head: RepoHeadEntity | null,
+): RepoSeverityEntity {
   // Risco = existe trabalho que só está nesta máquina.
   if (isWorktreeDirty(worktree) || worktree.stashes > 0 || unpublishedBranches.length > 0) {
     return 'risk';
@@ -268,7 +277,7 @@ async function readLastFetchedAt(gitDir: string): Promise<string | null> {
 
 interface GitDirInfo {
   lastFetchedAt: string | null;
-  remote: RepoRemote | null;
+  remote: RepoRemoteEntity | null;
   appUrl: string | null;
 }
 
@@ -295,7 +304,7 @@ export async function hasAnyRemote(repoDir: string): Promise<boolean> {
   }
 }
 
-function emptyResult(repoDir: string, error?: string): RepoScanResult {
+function emptyResult(repoDir: string, error?: string): RepoScanResultEntity {
   return {
     path: repoDir,
     name: path.basename(repoDir),
@@ -320,7 +329,7 @@ function emptyResult(repoDir: string, error?: string): RepoScanResult {
  * Lê o estado completo de um repositório com três chamadas ao git, todas em
  * paralelo — antes era uma chamada de `rev-parse` e duas de `log` por branch.
  */
-export async function scanRepo(repoDir: string): Promise<RepoScanResult> {
+export async function scanRepo(repoDir: string): Promise<RepoScanResultEntity> {
   try {
     const [statusOutput, refsOutput, stashOutput, gitDirInfo] = await Promise.all([
       runGit(repoDir, ['status', '--porcelain=v2', '--branch']),
@@ -334,7 +343,7 @@ export async function scanRepo(repoDir: string): Promise<RepoScanResult> {
     const status = parseStatus(statusOutput);
     const branches = parseRefs(refsOutput);
 
-    const worktree: RepoWorktree = {
+    const worktree: RepoWorktreeEntity = {
       ...status.counts,
       stashes: stashOutput ? stashOutput.split('\n').filter(Boolean).length : 0,
     };
@@ -369,7 +378,7 @@ export async function scanRepo(repoDir: string): Promise<RepoScanResult> {
   }
 }
 
-function buildHead(status: ParsedStatus, branches: RepoBranch[]): RepoHead | null {
+function buildHead(status: ParsedStatus, branches: RepoBranchEntity[]): RepoHeadEntity | null {
   if (status.branch) {
     const current = branches.find((branch) => !branch.isRemote && branch.name === status.branch);
     if (current) {
@@ -400,19 +409,19 @@ function buildHead(status: ParsedStatus, branches: RepoBranch[]): RepoHead | nul
   return null;
 }
 
-export async function scanRepos(repoDirs: string[]): Promise<RepoScanResult[]> {
+export async function scanRepos(repoDirs: string[]): Promise<RepoScanResultEntity[]> {
   const results = await mapWithConcurrency(repoDirs, SCAN_CONCURRENCY, scanRepo);
   return sortBySeverity(results);
 }
 
-export async function scanAllRepos(baseDirs: string[]): Promise<RepoScanResult[]> {
+export async function scanAllRepos(baseDirs: string[]): Promise<RepoScanResultEntity[]> {
   return scanRepos(await listRepoDirs(baseDirs));
 }
 
-const SEVERITY_ORDER: Record<RepoSeverity, number> = { risk: 0, attention: 1, clean: 2 };
+const SEVERITY_ORDER: Record<RepoSeverityEntity, number> = { risk: 0, attention: 1, clean: 2 };
 
 /** Mais urgente primeiro; empate resolvido pelo nome para a lista não "dançar". */
-function sortBySeverity(results: RepoScanResult[]): RepoScanResult[] {
+function sortBySeverity(results: RepoScanResultEntity[]): RepoScanResultEntity[] {
   return [...results].sort((a, b) => {
     if (a.error && !b.error) return -1;
     if (!a.error && b.error) return 1;

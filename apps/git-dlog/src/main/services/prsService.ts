@@ -1,11 +1,11 @@
 import type {
-  PrIntegrationStatus,
-  PrProviderKind,
-  PrProviderStatus,
-  PullRequest,
-  RepoRemote,
-} from '@shared/types/pullRequest';
-import type { RepoScanResult } from '@shared/types/repoScan';
+  PrIntegrationStatusEntity,
+  PrProviderKindEntity,
+  PrProviderStatusEntity,
+  PullRequestEntity,
+  RepoRemoteEntity,
+} from '../domain/pullRequest';
+import type { RepoScanResultEntity } from '../domain/repo';
 import { listPullRequestsWithGh } from '../infra/gateways/pr/ghCli';
 import { listPullRequestsWithToken } from '../infra/gateways/pr/githubToken';
 import { listMergeRequestsWithGlab } from '../infra/gateways/pr/glabCli';
@@ -48,10 +48,10 @@ export function resetProviderDetection(): void {
   cachedAvailability = null;
 }
 
-export async function getIntegrationStatus(hasToken: boolean): Promise<PrIntegrationStatus> {
+export async function getIntegrationStatus(hasToken: boolean): Promise<PrIntegrationStatusEntity> {
   const availability = await detectCliAvailability();
 
-  const providers: PrProviderStatus[] = [
+  const providers: PrProviderStatusEntity[] = [
     {
       kind: 'gh-cli',
       available: availability.gh && availability.ghAuthenticated,
@@ -85,7 +85,10 @@ export async function getIntegrationStatus(hasToken: boolean): Promise<PrIntegra
 }
 
 /** Escolhe o provedor conforme o host do remote e o que está disponível. */
-async function pickProvider(remote: RepoRemote, hasToken: boolean): Promise<PrProviderKind> {
+async function pickProvider(
+  remote: RepoRemoteEntity,
+  hasToken: boolean,
+): Promise<PrProviderKindEntity> {
   const availability = await detectCliAvailability();
 
   if (remote.kind === 'github') {
@@ -108,7 +111,7 @@ export interface PrFetchFailure {
 }
 
 export interface PrFetchOutcome {
-  prsByPath: Map<string, PullRequest[]>;
+  prsByPath: Map<string, PullRequestEntity[]>;
   failures: PrFetchFailure[];
 }
 
@@ -122,18 +125,18 @@ export interface FetchPullRequestsOptions {
  * repositório nunca derruba os demais: o erro é coletado e a lista segue.
  */
 export async function fetchPullRequests(
-  repos: RepoScanResult[],
+  repos: RepoScanResultEntity[],
   options: FetchPullRequestsOptions,
 ): Promise<PrFetchOutcome> {
   const hasToken = Boolean(options.token);
   const candidates = repos.filter((repo) => repo.remote && repo.remote.kind !== 'other');
 
-  const prsByPath = new Map<string, PullRequest[]>();
+  const prsByPath = new Map<string, PullRequestEntity[]>();
   const failures: PrFetchFailure[] = [];
   let done = 0;
 
   await mapWithConcurrency(candidates, PR_CONCURRENCY, async (repo) => {
-    const remote = repo.remote as RepoRemote;
+    const remote = repo.remote as RepoRemoteEntity;
 
     try {
       const provider = await pickProvider(remote, hasToken);
@@ -165,9 +168,9 @@ export async function fetchPullRequests(
  * acontece no "Buscar do remoto"; uma releitura local reaproveita o que já foi
  * baixado em vez de esvaziar a tela.
  */
-const prCache = new Map<string, PullRequest[]>();
+const prCache = new Map<string, PullRequestEntity[]>();
 
-export function updatePrCache(prsByPath: Map<string, PullRequest[]>): void {
+export function updatePrCache(prsByPath: Map<string, PullRequestEntity[]>): void {
   for (const [path, prs] of prsByPath) {
     prCache.set(path, prs);
   }
@@ -178,7 +181,7 @@ export function clearPrCache(): void {
 }
 
 /** Anexa os PRs em cache e deriva o que depende do cruzamento com as branches locais. */
-export function attachPullRequests(repos: RepoScanResult[]): RepoScanResult[] {
+export function attachPullRequests(repos: RepoScanResultEntity[]): RepoScanResultEntity[] {
   return repos.map((repo) => {
     const prs = prCache.get(repo.path) ?? [];
     if (prs.length === 0) return { ...repo, prs, mergedBranchesToClean: [] };

@@ -1,5 +1,5 @@
 import path from 'node:path';
-import type { RepoFetchFailure, RepoFetchProgress } from '@shared/types/repoScan';
+import type { RepoFetchFailureEntity, RepoFetchProgressEntity } from '../../../domain/repo';
 import { mapWithConcurrency } from '../../../utils/concurrency';
 import { getGitErrorMessage, runGit } from './gitCommand';
 import { hasAnyRemote } from './repoScanner';
@@ -13,7 +13,7 @@ const FETCH_CONCURRENCY = 4;
 const FETCH_TIMEOUT_MS = 60_000;
 
 export interface FetchReposOptions {
-  onProgress?: (progress: RepoFetchProgress) => void;
+  onProgress?: (progress: RepoFetchProgressEntity) => void;
 }
 
 /**
@@ -26,8 +26,8 @@ export interface FetchReposOptions {
 export async function fetchRepos(
   repoDirs: string[],
   options: FetchReposOptions = {},
-): Promise<RepoFetchFailure[]> {
-  const failures: RepoFetchFailure[] = [];
+): Promise<RepoFetchFailureEntity[]> {
+  const failures: RepoFetchFailureEntity[] = [];
   let done = 0;
 
   await mapWithConcurrency(repoDirs, FETCH_CONCURRENCY, async (repoDir) => {

@@ -1,4 +1,4 @@
-import type { PullRequest, RepoRemote } from '@shared/types/pullRequest';
+import type { PullRequestEntity, RepoRemoteEntity } from '../../../domain/pullRequest';
 import { AppError } from '../../../utils/errors/AppError';
 import { normalizeReviewDecision, normalizeState, summarizeChecks } from './ghCli';
 
@@ -59,10 +59,34 @@ export function getGraphQlEndpoint(host: string): string {
     : `https://${host}/api/graphql`;
 }
 
+/**
+ * O mapper anticorrupção do GraphQL do GitHub. Faz o mesmo movimento do
+ * `ghPrToPullRequest`, sobre a outra forma que o mesmo provedor devolve: aqui o
+ * estado do CI vem enterrado no último commit, e é este mapper que o desenterra
+ * antes que qualquer outra camada veja a árvore da consulta.
+ */
+function graphQlPrToPullRequest(pr: GraphQlPr): PullRequestEntity {
+  const rollup = pr.commits.nodes[0]?.commit.statusCheckRollup;
+
+  return {
+    number: pr.number,
+    title: pr.title,
+    url: pr.url,
+    state: normalizeState(pr.state),
+    isDraft: Boolean(pr.isDraft),
+    headBranch: pr.headRefName,
+    baseBranch: pr.baseRefName,
+    author: pr.author?.login ?? '',
+    reviewDecision: normalizeReviewDecision(pr.reviewDecision),
+    checks: summarizeChecks(rollup ? [{ state: rollup.state }] : null),
+    updatedAt: pr.updatedAt,
+  };
+}
+
 export async function listPullRequestsWithToken(
-  remote: RepoRemote,
+  remote: RepoRemoteEntity,
   token: string,
-): Promise<PullRequest[]> {
+): Promise<PullRequestEntity[]> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
@@ -103,23 +127,7 @@ export async function listPullRequestsWithToken(
 
     const nodes = payload.data?.repository?.pullRequests?.nodes ?? [];
 
-    return nodes.map((pr) => ({
-      number: pr.number,
-      title: pr.title,
-      url: pr.url,
-      state: normalizeState(pr.state),
-      isDraft: Boolean(pr.isDraft),
-      headBranch: pr.headRefName,
-      baseBranch: pr.baseRefName,
-      author: pr.author?.login ?? '',
-      reviewDecision: normalizeReviewDecision(pr.reviewDecision),
-      checks: summarizeChecks(
-        pr.commits.nodes[0]?.commit.statusCheckRollup
-          ? [{ state: pr.commits.nodes[0].commit.statusCheckRollup.state }]
-          : null,
-      ),
-      updatedAt: pr.updatedAt,
-    }));
+    return nodes.map(graphQlPrToPullRequest);
   } finally {
     clearTimeout(timeout);
   }

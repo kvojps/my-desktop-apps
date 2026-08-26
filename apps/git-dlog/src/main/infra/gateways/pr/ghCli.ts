@@ -1,9 +1,9 @@
 import type {
-  ChecksState,
-  PullRequest,
-  PullRequestState,
-  ReviewDecision,
-} from '@shared/types/pullRequest';
+  ChecksStateEntity,
+  PullRequestEntity,
+  PullRequestStateEntity,
+  ReviewDecisionEntity,
+} from '../../../domain/pullRequest';
 import { runCommand } from '../system/exec';
 
 const PR_LIMIT = 50;
@@ -43,14 +43,14 @@ interface GhPullRequest {
   statusCheckRollup: GhCheck[] | null;
 }
 
-export function normalizeState(raw: string): PullRequestState {
+export function normalizeState(raw: string): PullRequestStateEntity {
   const value = raw.toLowerCase();
   if (value === 'merged') return 'merged';
   if (value === 'closed') return 'closed';
   return 'open';
 }
 
-export function normalizeReviewDecision(raw: string | null | undefined): ReviewDecision {
+export function normalizeReviewDecision(raw: string | null | undefined): ReviewDecisionEntity {
   switch ((raw ?? '').toUpperCase()) {
     case 'APPROVED':
       return 'approved';
@@ -75,7 +75,7 @@ const FAILING_CONCLUSIONS = new Set([
  * Consolida a lista de checks num único estado. Falha domina pendente, que
  * domina sucesso — é a ordem em que a informação importa para quem olha.
  */
-export function summarizeChecks(checks: GhCheck[] | null | undefined): ChecksState {
+export function summarizeChecks(checks: GhCheck[] | null | undefined): ChecksStateEntity {
   if (!checks || checks.length === 0) return null;
 
   let pending = false;
@@ -103,7 +103,12 @@ export function summarizeChecks(checks: GhCheck[] | null | undefined): ChecksSta
   return sawSuccess ? 'passing' : null;
 }
 
-function toPullRequest(pr: GhPullRequest): PullRequest {
+/**
+ * O mapper anticorrupção do `gh`: a forma que o GitHub devolve entra aqui e sai
+ * como a forma de casa. É o ponto onde o vocabulário do provedor
+ * (`headRefName`, `statusCheckRollup`) para — nada dele segue para o service.
+ */
+function ghPrToPullRequest(pr: GhPullRequest): PullRequestEntity {
   return {
     number: pr.number,
     title: pr.title,
@@ -119,17 +124,17 @@ function toPullRequest(pr: GhPullRequest): PullRequest {
   };
 }
 
-export function parseGhOutput(stdout: string): PullRequest[] {
+export function parseGhOutput(stdout: string): PullRequestEntity[] {
   if (!stdout) return [];
   const parsed = JSON.parse(stdout) as GhPullRequest[];
-  return Array.isArray(parsed) ? parsed.map(toPullRequest) : [];
+  return Array.isArray(parsed) ? parsed.map(ghPrToPullRequest) : [];
 }
 
 /**
  * Lista PRs de todos os estados: os abertos mostram o que está em revisão, e os
  * mergeados são o que revela branches locais que já podem ser apagadas.
  */
-export async function listPullRequestsWithGh(repoDir: string): Promise<PullRequest[]> {
+export async function listPullRequestsWithGh(repoDir: string): Promise<PullRequestEntity[]> {
   const stdout = await runCommand(
     'gh',
     ['pr', 'list', '--state', 'all', '--limit', String(PR_LIMIT), '--json', JSON_FIELDS],

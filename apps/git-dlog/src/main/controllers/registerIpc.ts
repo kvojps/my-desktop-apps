@@ -34,11 +34,18 @@ export function registerIpcHandlers(db: Database.Database, options: RegisterIpcO
 
   registerDialogHandlers();
 
-  // Os repositórios já falam entidade (`ScanPathEntity`, `ThemeModeEntity`), e
-  // por ora ela atravessa o IPC sem mapper nos dois sentidos, aqui e no canal
-  // de tema lá embaixo: as formas são idênticas às de `@shared` hoje, e só por
-  // isso typecheca. Quem fecha a segunda travessia (README §2.5) é o ticket 09,
-  // com os controllers.
+  // Repositórios e gateways já falam entidade (`ScanPathEntity`,
+  // `ThemeModeEntity`, `RepoScanResultEntity`, `PrIntegrationStatusEntity`), e
+  // por ora ela atravessa o IPC sem mapper nos dois sentidos — nos canais de
+  // `scanPaths` daqui, nos de repos e PRs abaixo e no de tema lá no fim. As
+  // formas são idênticas às de `@shared` hoje, e só por isso typecheca. Quem
+  // fecha a segunda travessia (README §2.5) é o ticket 09, com os controllers.
+  //
+  // Até lá, o que sai daqui continua anotado com o tipo de `@shared`, não com a
+  // entidade: a anotação é a única coisa que ainda confere se o que atravessa o
+  // canal casa com o contrato que o renderer espera, já que o `invoke` do
+  // preload não checa nada em runtime. Trocá-la pela entidade calaria o
+  // compilador justamente onde falta o mapper.
   handle(IPC_CHANNELS.scanPathsGetAll, () => repos.scanPaths.list());
   handle(IPC_CHANNELS.scanPathsAdd, (_event, data: unknown) =>
     repos.scanPaths.create({ path: parseOrThrow(createScanPathSchema, data) }),

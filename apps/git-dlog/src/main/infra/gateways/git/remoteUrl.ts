@@ -1,6 +1,6 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import type { RemoteKind, RepoRemote } from '@shared/types/pullRequest';
+import type { RemoteKindEntity, RepoRemoteEntity } from '../../../domain/pullRequest';
 
 /**
  * Lê o `.git/config` em vez de chamar `git config`/`git remote -v`.
@@ -113,7 +113,7 @@ export function pickPrimaryRemote(
   return first.done ? null : { name: first.value[0], url: first.value[1] };
 }
 
-function classifyHost(host: string): RemoteKind {
+function classifyHost(host: string): RemoteKindEntity {
   const normalized = host.toLowerCase();
   if (normalized === 'github.com' || normalized.endsWith('.github.com')) return 'github';
   if (normalized === 'gitlab.com' || normalized.startsWith('gitlab.')) return 'gitlab';
@@ -144,7 +144,7 @@ function isLocalPath(url: string): boolean {
   );
 }
 
-export function parseRemoteUrl(name: string, url: string): RepoRemote | null {
+export function parseRemoteUrl(name: string, url: string): RepoRemoteEntity | null {
   const trimmed = url.trim().replace(/\/+$/, '');
   if (!trimmed || isLocalPath(trimmed)) return null;
 
@@ -191,7 +191,7 @@ export function parseRemoteUrl(name: string, url: string): RepoRemote | null {
 }
 
 export interface RepoConfig {
-  remote: RepoRemote | null;
+  remote: RepoRemoteEntity | null;
   /** URL do site publicado (`dlog.url`), já validada como http/https. */
   appUrl: string | null;
 }

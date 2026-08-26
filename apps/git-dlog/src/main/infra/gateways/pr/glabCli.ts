@@ -1,4 +1,8 @@
-import type { ChecksState, PullRequest, PullRequestState } from '@shared/types/pullRequest';
+import type {
+  ChecksStateEntity,
+  PullRequestEntity,
+  PullRequestStateEntity,
+} from '../../../domain/pullRequest';
 import { runCommand } from '../system/exec';
 
 const MR_LIMIT = 50;
@@ -20,7 +24,7 @@ interface GlabMergeRequest {
   head_pipeline?: { status?: string } | null;
 }
 
-function normalizeMrState(raw: string | undefined): PullRequestState {
+function normalizeMrState(raw: string | undefined): PullRequestStateEntity {
   switch ((raw ?? '').toLowerCase()) {
     case 'merged':
       return 'merged';
@@ -32,7 +36,7 @@ function normalizeMrState(raw: string | undefined): PullRequestState {
   }
 }
 
-function normalizePipeline(status: string | undefined): ChecksState {
+function normalizePipeline(status: string | undefined): ChecksStateEntity {
   switch ((status ?? '').toLowerCase()) {
     case 'success':
       return 'passing';
@@ -50,32 +54,39 @@ function normalizePipeline(status: string | undefined): ChecksState {
   }
 }
 
-export function parseGlabOutput(stdout: string): PullRequest[] {
+/**
+ * O mapper anticorrupção do `glab`: um merge request do GitLab entra e sai como
+ * pull request de casa. O vocabulário do provedor (`iid`, `source_branch`,
+ * `head_pipeline`) para aqui, junto com o snake_case da API.
+ */
+function glabMrToPullRequest(mr: GlabMergeRequest): PullRequestEntity {
+  return {
+    number: (mr.iid ?? mr.id) as number,
+    title: mr.title ?? '',
+    url: mr.web_url ?? '',
+    state: normalizeMrState(mr.state),
+    isDraft: Boolean(mr.draft ?? mr.work_in_progress),
+    headBranch: mr.source_branch ?? '',
+    baseBranch: mr.target_branch ?? '',
+    author: mr.author?.username ?? '',
+    // A API de listagem do GitLab não devolve o resultado da revisão; sem
+    // uma chamada por MR não dá para saber, e não vale o custo.
+    reviewDecision: null,
+    checks: normalizePipeline(mr.head_pipeline?.status ?? mr.pipeline?.status),
+    updatedAt: mr.updated_at ?? '',
+  };
+}
+
+export function parseGlabOutput(stdout: string): PullRequestEntity[] {
   if (!stdout) return [];
 
   const parsed = JSON.parse(stdout) as GlabMergeRequest[];
   if (!Array.isArray(parsed)) return [];
 
-  return parsed
-    .filter((mr) => mr.iid ?? mr.id)
-    .map((mr) => ({
-      number: (mr.iid ?? mr.id) as number,
-      title: mr.title ?? '',
-      url: mr.web_url ?? '',
-      state: normalizeMrState(mr.state),
-      isDraft: Boolean(mr.draft ?? mr.work_in_progress),
-      headBranch: mr.source_branch ?? '',
-      baseBranch: mr.target_branch ?? '',
-      author: mr.author?.username ?? '',
-      // A API de listagem do GitLab não devolve o resultado da revisão; sem
-      // uma chamada por MR não dá para saber, e não vale o custo.
-      reviewDecision: null,
-      checks: normalizePipeline(mr.head_pipeline?.status ?? mr.pipeline?.status),
-      updatedAt: mr.updated_at ?? '',
-    }));
+  return parsed.filter((mr) => mr.iid ?? mr.id).map(glabMrToPullRequest);
 }
 
-export async function listMergeRequestsWithGlab(repoDir: string): Promise<PullRequest[]> {
+export async function listMergeRequestsWithGlab(repoDir: string): Promise<PullRequestEntity[]> {
   const stdout = await runCommand(
     'glab',
     ['mr', 'list', '--all', '--output', 'json', '--per-page', String(MR_LIMIT)],
