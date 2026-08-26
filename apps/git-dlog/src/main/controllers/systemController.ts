@@ -1,4 +1,3 @@
-import { BrowserWindow, type IpcMainInvokeEvent } from 'electron';
 import { IPC_CHANNELS } from '@shared/ipc/channels';
 import type { SettingsService } from '../services/settingsService';
 import type { SystemService } from '../services/systemService';
@@ -6,14 +5,7 @@ import { parseOrThrow } from '../utils/validate';
 import { handle } from './handle';
 import { themeModeSchema } from './schemas/settings.schema';
 import { externalUrlSchema } from './schemas/system.schema';
-
-function windowFor(event: IpcMainInvokeEvent): BrowserWindow {
-  const window = BrowserWindow.fromWebContents(event.sender);
-  if (!window) {
-    throw new Error('No BrowserWindow associated with this IPC event');
-  }
-  return window;
-}
+import { windowFor } from './windowFor';
 
 /**
  * O que o app pede ao sistema operacional, mais a preferência de tema.

@@ -7,6 +7,7 @@ import { type ThemeModeEntity, resolveThemeMode } from './domain/settings';
 import { initDb } from './infra/database/connection';
 import { makeSettingsRepository } from './infra/database/repositories/settingsRepository';
 import { theme } from './infra/gateways/system/theme';
+import { errorReason } from './utils/errors/errorReason';
 import { classifyError } from './utils/errors/toIpcError';
 
 // Fixa a pasta userData (%APPDATA%/<nome>); mudar este nome após a primeira
@@ -53,7 +54,7 @@ function createWindow(mode: ThemeModeEntity) {
  */
 function reportFatalDbError(err: unknown) {
   const dataDir = app.getPath('userData');
-  const detail = err instanceof Error ? err.message : String(err);
+  const detail = errorReason(err);
   const choice = dialog.showMessageBoxSync({
     type: 'error',
     title: 'Git Dlog',

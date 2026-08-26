@@ -1,5 +1,6 @@
 import { type AppErrorCode, encodeAppError } from '@shared/errors/appError';
 import { AppError } from './AppError';
+import { errorReason } from './errorReason';
 
 /** better-sqlite3 e o Node expõem a causa em `code`: SQLITE_CANTOPEN, EACCES... */
 function systemCode(err: unknown): string {
@@ -9,6 +10,7 @@ function systemCode(err: unknown): string {
 
 export function classifyError(err: unknown): AppErrorCode {
   if (err instanceof AppError) {
+    if (err.code) return err.code;
     if (err.statusCode === 404) return 'not-found';
     return err.statusCode >= 500 ? 'unknown' : 'invalid-input';
   }
@@ -29,6 +31,5 @@ export function classifyError(err: unknown): AppErrorCode {
 
 /** Erro pronto para atravessar o IPC com o código preservado na mensagem. */
 export function toIpcError(err: unknown): Error {
-  const message = err instanceof Error ? err.message : String(err);
-  return new Error(encodeAppError(classifyError(err), message));
+  return new Error(encodeAppError(classifyError(err), errorReason(err)));
 }

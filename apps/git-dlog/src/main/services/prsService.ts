@@ -5,7 +5,11 @@ import type {
   PullRequestEntity,
   RepoRemoteEntity,
 } from '../domain/pullRequest';
-import type { RepoFetchProgressEntity, RepoScanResultEntity } from '../domain/repo';
+import type {
+  RepoFetchFailureEntity,
+  RepoFetchProgressEntity,
+  RepoScanResultEntity,
+} from '../domain/repo';
 import { listPullRequestsWithGh } from '../infra/gateways/pr/ghCli';
 import { listPullRequestsWithToken, verifyGithubToken } from '../infra/gateways/pr/githubToken';
 import { listMergeRequestsWithGlab } from '../infra/gateways/pr/glabCli';
@@ -21,15 +25,15 @@ interface CliAvailability {
   glab: boolean;
 }
 
-export interface PrFetchFailure {
-  path: string;
-  name: string;
-  error: string;
-}
-
 export interface PrFetchOutcome {
   prsByPath: Map<string, PullRequestEntity[]>;
-  failures: PrFetchFailure[];
+  /**
+   * A falha de um repositório na fase `'prs'`, na mesma entidade que a fase
+   * `'git'` usa — o `reposService` devolve as duas listas lado a lado em
+   * `RepoFetchResultEntity`, e é a entidade única que declara que elas têm o
+   * mesmo shape.
+   */
+  failures: RepoFetchFailureEntity[];
 }
 
 export interface FetchPullRequestsOptions {
@@ -180,7 +184,7 @@ export function makePrsService(settings: SettingsService) {
       const candidates = repos.filter((repo) => repo.remote && repo.remote.kind !== 'other');
 
       const prsByPath = new Map<string, PullRequestEntity[]>();
-      const failures: PrFetchFailure[] = [];
+      const failures: RepoFetchFailureEntity[] = [];
       let done = 0;
 
       await mapWithConcurrency(candidates, PR_CONCURRENCY, async (repo) => {
@@ -220,10 +224,6 @@ export function makePrsService(settings: SettingsService) {
       for (const [path, prs] of prsByPath) {
         prCache.set(path, prs);
       }
-    },
-
-    clearPrCache(): void {
-      prCache.clear();
     },
 
     /** Anexa os PRs em cache e deriva o que depende do cruzamento com as branches locais. */

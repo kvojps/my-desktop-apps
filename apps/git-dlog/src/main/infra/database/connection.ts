@@ -3,9 +3,6 @@ import { app } from 'electron';
 import path from 'node:path';
 import { runMigrations } from './migrations';
 
-let db: Database.Database | null = null;
-let dbFilePath = '';
-
 const SCHEMA = `
 CREATE TABLE IF NOT EXISTS scan_paths (
   id TEXT PRIMARY KEY,
@@ -21,21 +18,15 @@ CREATE TABLE IF NOT EXISTS settings (
 );
 `;
 
-export function getDb(): Database.Database {
-  if (!db) {
-    throw new Error('Database has not been initialized yet');
-  }
-  return db;
-}
-
-/** Caminho do banco em disco, exibido na tela de Configurações. */
-export function getDbPath(): string {
-  return dbFilePath;
-}
-
+/**
+ * Abre o banco e devolve a conexão a quem a pediu — o `index.ts`, uma única
+ * vez. Não existe getter de módulo aqui de propósito: a conexão desce por
+ * parâmetro até `makeRepositories(db)`, e um `getDb()` global seria o atalho
+ * que permitiria a qualquer camada alcançar o banco por fora da unidade de
+ * trabalho (ADR-0002).
+ */
 export function initDb(): Database.Database {
-  dbFilePath = path.join(app.getPath('userData'), 'git-dlog.db');
-  db = new Database(dbFilePath);
+  const db = new Database(path.join(app.getPath('userData'), 'git-dlog.db'));
   db.pragma('journal_mode = WAL');
   db.pragma('foreign_keys = ON');
   db.exec(SCHEMA);

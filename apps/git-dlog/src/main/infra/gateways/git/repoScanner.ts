@@ -414,10 +414,6 @@ export async function scanRepos(repoDirs: string[]): Promise<RepoScanResultEntit
   return sortBySeverity(results);
 }
 
-export async function scanAllRepos(baseDirs: string[]): Promise<RepoScanResultEntity[]> {
-  return scanRepos(await listRepoDirs(baseDirs));
-}
-
 const SEVERITY_ORDER: Record<RepoSeverityEntity, number> = { risk: 0, attention: 1, clean: 2 };
 
 /** Mais urgente primeiro; empate resolvido pelo nome para a lista não "dançar". */

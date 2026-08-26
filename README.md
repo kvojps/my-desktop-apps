@@ -51,7 +51,7 @@ src/main/
   domain/                      entidades: scanPath.ts, repo.ts, pullRequest.ts, …
   controllers/
     registerIpc.ts             compõe as camadas e registra
-    handle.ts  notifyDataChanged.ts
+    handle.ts  notifyDataChanged.ts  windowFor.ts
     scanPathsController.ts  reposController.ts  prsController.ts  systemController.ts
     schemas/                   zod de entrada
     responses/                 mappers de saída (`xToResponse`)
@@ -59,14 +59,14 @@ src/main/
     scanPathsService.ts  reposService.ts  prsService.ts  settingsService.ts  systemService.ts
   infra/
     database/
-      connection.ts            SCHEMA, initDb, getDb, getDbPath
+      connection.ts            SCHEMA, initDb
       migrations.ts
       index.ts                 makeRepositories(db) + transaction()
       repositories/            reposRepository.ts, settingsRepository.ts, …
     gateways/
       git/  pr/  system/
   utils/
-    errors/                    AppError, toIpcError
+    errors/                    AppError, toIpcError, errorReason
     concurrency.ts  parseId.ts  validate.ts
 ```
 
@@ -108,12 +108,14 @@ src/main/
   [`docs/adr/0003-logica-de-dominio-no-main.md`](docs/adr/0003-logica-de-dominio-no-main.md).
 - **`infra/database/`** — SQLite (`better-sqlite3`) em modo WAL com
   `foreign_keys = ON`. `connection.ts` guarda o `SCHEMA` usado em instalações
-  novas, mais `initDb`, `getDb` e `getDbPath`; `migrations.ts` guarda a lista
-  numerada de migrações, aplicada uma única vez por banco e registrada em
-  `PRAGMA user_version`. Bancos já instalados começam em `user_version = 0`,
-  então **toda migração precisa ser idempotente** e nenhum `id` já publicado
-  pode ser reordenado ou reescrito. O `index.ts` da pasta é a unidade de
-  trabalho: `makeRepositories(db)` devolve os repositórios prontos mais um
+  novas e o `initDb` que abre a conexão. Não há getter de módulo: a conexão desce
+  por parâmetro do `index.ts` até `makeRepositories(db)`, e um `getDb()` global
+  seria o atalho para alcançar o banco por fora da unidade de trabalho.
+  `migrations.ts` guarda a lista numerada de migrações, aplicada uma única vez
+  por banco e registrada em `PRAGMA user_version`. Bancos já instalados começam
+  em `user_version = 0`, então **toda migração precisa ser idempotente** e nenhum
+  `id` já publicado pode ser reordenado ou reescrito. O `index.ts` da pasta é a
+  unidade de trabalho: `makeRepositories(db)` devolve os repositórios prontos mais um
   `transaction()`, e é só isso que o service recebe. Cada domínio tem um
   repositório em `repositories/` (`reposRepository.ts`, `ordersRepository.ts`,
   …), é o único lugar que escreve SQL, expõe `list` / `findById` / `create` /
@@ -124,10 +126,14 @@ src/main/
   que sai do processo passa por uma pasta só, e o service continua testável sem
   nada disso.
 - **`utils/`** — transversal, não é camada: `errors/` com `AppError` (erro com
-  mensagem já escrita para o usuário) e `toIpcError`, mais os helpers de
-  `parseId`, `validate` e concorrência. Erro inesperado continua sendo um
-  `Error` cru e é classificado por `classifyError` numa descrição genérica; a
-  distinção é o que evita vazar detalhe técnico na tela.
+  mensagem já escrita para o usuário, mais um `code?: AppErrorCode` opcional
+  para quem lança já conhecer a classificação — é o que impede uma recusa que
+  não é de dado nenhum de chegar à tela como "falha ao ler os dados locais") e
+  `toIpcError`, mais o `errorReason` que arranca o texto técnico de um `catch`
+  (que pega qualquer coisa, não só `Error`), mais os helpers de `parseId`,
+  `validate` e concorrência. Erro inesperado continua sendo um `Error` cru e é
+  classificado por `classifyError` numa descrição genérica; a distinção é o que
+  evita vazar detalhe técnico na tela.
 - **`index.ts`** — bootstrap, e o único carve-out: janelas, ciclo de vida do
   app e a leitura do tema direto do repositório, antes de existir camada para
   atravessar (§5.1 do design system, e o ADR-0002).
