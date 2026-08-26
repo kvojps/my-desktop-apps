@@ -1,39 +1,19 @@
-import { BrowserWindow, app, dialog, nativeTheme, shell } from 'electron';
+import { BrowserWindow, app, dialog, shell } from 'electron';
 import path from 'node:path';
 import { APP_ERROR_DESCRIPTIONS } from '@shared/errors/appError';
-import type { ThemeMode } from '@shared/types/theme';
 import icon from '../../resources/icon.png?asset';
 import { registerIpcHandlers } from './controllers/registerIpc';
+import { type ThemeModeEntity, resolveThemeMode } from './domain/settings';
 import { initDb } from './infra/database/connection';
-import {
-  type SettingsRepository,
-  makeSettingsRepository,
-} from './infra/database/repositories/settingsRepository';
+import { makeSettingsRepository } from './infra/database/repositories/settingsRepository';
+import { theme } from './infra/gateways/system/theme';
 import { classifyError } from './utils/errors/toIpcError';
 
 // Fixa a pasta userData (%APPDATA%/<nome>); mudar este nome após a primeira
 // release deixa o banco de dados dos usuários órfão.
 app.setName('git-dlog');
 
-/**
- * `background.default` do tema (docs/design-system.md §1.2/§5.1) — janela
- * nasce branca sem isso, o que aparece como flash ao redimensionar/maximizar
- * em modo escuro, mesmo com `show: false` + `ready-to-show`.
- */
-function backgroundColorFor(mode: ThemeMode): string {
-  return mode === 'dark' ? '#10131C' : '#F4F6FB';
-}
-
-/**
- * Sem preferência salva ainda, lê `nativeTheme.shouldUseDarkColors` uma
- * única vez, nesta resolução inicial — e não persiste isso como se fosse
- * escolha do usuário (docs/design-system.md §5.1).
- */
-function resolveInitialThemeMode(settings: SettingsRepository): ThemeMode {
-  return settings.getThemeMode() ?? (nativeTheme.shouldUseDarkColors ? 'dark' : 'light');
-}
-
-function createWindow(mode: ThemeMode) {
+function createWindow(mode: ThemeModeEntity) {
   const mainWindow = new BrowserWindow({
     width: 1280,
     height: 800,
@@ -41,7 +21,7 @@ function createWindow(mode: ThemeMode) {
     minHeight: 640,
     show: false,
     icon,
-    backgroundColor: backgroundColorFor(mode),
+    backgroundColor: theme.windowBackgroundFor(mode),
     webPreferences: {
       preload: path.join(__dirname, '../preload/index.js'),
       contextIsolation: true,
@@ -102,24 +82,22 @@ app.whenReady().then(() => {
   // O carve-out do bootstrap (ADR-0002) é ler *direto do repositório*, antes de
   // existir camada para atravessar — e não montar uma segunda unidade de
   // trabalho só para alcançar um getter.
-  let currentThemeMode = resolveInitialThemeMode(makeSettingsRepository(db));
-  nativeTheme.themeSource = currentThemeMode;
+  const initialMode = resolveThemeMode(
+    makeSettingsRepository(db).getThemeMode(),
+    theme.systemPrefersDarkColors(),
+  );
+  theme.apply(initialMode);
 
-  registerIpcHandlers(db, {
-    onThemeModeChange: (mode) => {
-      currentThemeMode = mode;
-      nativeTheme.themeSource = mode;
-      for (const win of BrowserWindow.getAllWindows()) {
-        win.setBackgroundColor(backgroundColorFor(mode));
-      }
-    },
-  });
+  registerIpcHandlers(db);
 
-  createWindow(currentThemeMode);
+  createWindow(initialMode);
 
+  // O modo em vigor vem do gateway, e não de uma variável daqui: quem o troca
+  // em runtime é o `settingsService`, por um caminho que não passa mais pelo
+  // bootstrap.
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
-      createWindow(currentThemeMode);
+      createWindow(theme.currentMode());
     }
   });
 });

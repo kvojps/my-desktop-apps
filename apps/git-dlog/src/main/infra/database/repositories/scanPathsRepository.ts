@@ -1,7 +1,6 @@
 import type Database from 'better-sqlite3';
 import { randomUUID } from 'node:crypto';
 import type { ScanPathEntity } from '../../../domain/scanPath';
-import { AppError } from '../../../utils/errors/AppError';
 
 interface ScanPathRow {
   id: string;
@@ -20,12 +19,6 @@ function rowToScanPath(row: ScanPathRow): ScanPathEntity {
 }
 
 export function makeScanPathsRepository(db: Database.Database) {
-  function findByPath(path: string): ScanPathEntity | null {
-    const row = db.prepare('SELECT * FROM scan_paths WHERE path = ?').get(path) as
-      ScanPathRow | undefined;
-    return row ? rowToScanPath(row) : null;
-  }
-
   return {
     list(): ScanPathEntity[] {
       const rows = db
@@ -40,15 +33,14 @@ export function makeScanPathsRepository(db: Database.Database) {
       return row ? rowToScanPath(row) : null;
     },
 
-    findByPath,
+    /** Quem consulta é o `scanPathsService`, para decidir o 409 de duplicata. */
+    findByPath(path: string): ScanPathEntity | null {
+      const row = db.prepare('SELECT * FROM scan_paths WHERE path = ?').get(path) as
+        ScanPathRow | undefined;
+      return row ? rowToScanPath(row) : null;
+    },
 
     create(data: { path: string }): ScanPathEntity {
-      // O 409 é decisão de service, não de repositório: sai daqui no ticket 08,
-      // quando existir `scanPathsService` para consultar `findByPath` e decidir.
-      if (findByPath(data.path)) {
-        throw new AppError(409, `Diretório já cadastrado: ${data.path}`);
-      }
-
       const now = new Date().toISOString();
       const scanPath: ScanPathEntity = {
         id: randomUUID(),

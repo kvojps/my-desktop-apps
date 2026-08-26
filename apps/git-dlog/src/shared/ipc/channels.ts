@@ -46,11 +46,11 @@ export const READ_ONLY_CHANNELS: ReadonlySet<IpcChannel> = new Set([
   IPC_CHANNELS.shellOpenExternal,
   IPC_CHANNELS.dataOpenFolder,
   // Grava a preferência de tema, e ainda assim não avisa. A tela já é repintada
-  // pelo caminho do próprio tema (`onThemeModeChange` no main, o provider no
-  // renderer), então a recarga aqui seria ruído puro: nenhum dado de domínio
-  // muda quando se troca claro por escuro. É a exceção que a regra "escrita é
-  // tudo o que sobra" permite pagar — o custo de errar aqui é uma tela sem
-  // recarregar dado que não mudou.
+  // pelo caminho do próprio tema (o `settingsService` manda o gateway aplicar
+  // no main, o provider no renderer), então a recarga aqui seria ruído puro:
+  // nenhum dado de domínio muda quando se troca claro por escuro. É a exceção
+  // que a regra "escrita é tudo o que sobra" permite pagar — o custo de errar
+  // aqui é uma tela sem recarregar dado que não mudou.
   IPC_CHANNELS.settingsSaveThemeMode,
 ]);
 

@@ -3,18 +3,14 @@ import { app, shell } from 'electron';
 import { IPC_CHANNELS } from '@shared/ipc/channels';
 import type { PrIntegrationStatus } from '@shared/types/pullRequest';
 import type { RepoFetchResult } from '@shared/types/repoScan';
-import type { ThemeMode } from '@shared/types/theme';
 import { makeRepositories } from '../infra/database';
-import { fetchRepos, filterReposWithRemote } from '../infra/gateways/git/repoFetcher';
-import { listRepoDirs, scanRepos } from '../infra/gateways/git/repoScanner';
-import { verifyGithubToken } from '../infra/gateways/pr/githubToken';
-import {
-  attachPullRequests,
-  fetchPullRequests,
-  getIntegrationStatus,
-  resetProviderDetection,
-  updatePrCache,
-} from '../services/prsService';
+import { fileSystem } from '../infra/gateways/system/fileSystem';
+import { safeStorageVault } from '../infra/gateways/system/safeStorage';
+import { theme } from '../infra/gateways/system/theme';
+import { makePrsService } from '../services/prsService';
+import { makeReposService } from '../services/reposService';
+import { makeScanPathsService } from '../services/scanPathsService';
+import { makeSettingsService } from '../services/settingsService';
 import { parseId } from '../utils/parseId';
 import { parseOrThrow } from '../utils/validate';
 import { handle } from './handle';
@@ -24,17 +20,16 @@ import { createScanPathSchema } from './schemas/scanPath.schema';
 import { themeModeSchema } from './schemas/settings.schema';
 import { registerDialogHandlers } from './systemController';
 
-interface RegisterIpcOptions {
-  /** Aplica o novo modo à janela (nativeTheme, backgroundColor) além de persistir. */
-  onThemeModeChange: (mode: ThemeMode) => void;
-}
-
-export function registerIpcHandlers(db: Database.Database, options: RegisterIpcOptions): void {
+export function registerIpcHandlers(db: Database.Database): void {
   const repos = makeRepositories(db);
+  const settingsService = makeSettingsService(repos, safeStorageVault, theme);
+  const scanPathsService = makeScanPathsService(repos, fileSystem);
+  const prsService = makePrsService(settingsService);
+  const reposService = makeReposService(repos, prsService);
 
   registerDialogHandlers();
 
-  // Repositórios e gateways já falam entidade (`ScanPathEntity`,
+  // Repositórios, gateways e services já falam entidade (`ScanPathEntity`,
   // `ThemeModeEntity`, `RepoScanResultEntity`, `PrIntegrationStatusEntity`), e
   // por ora ela atravessa o IPC sem mapper nos dois sentidos — nos canais de
   // `scanPaths` daqui, nos de repos e PRs abaixo e no de tema lá no fim. As
@@ -46,78 +41,45 @@ export function registerIpcHandlers(db: Database.Database, options: RegisterIpcO
   // canal casa com o contrato que o renderer espera, já que o `invoke` do
   // preload não checa nada em runtime. Trocá-la pela entidade calaria o
   // compilador justamente onde falta o mapper.
-  handle(IPC_CHANNELS.scanPathsGetAll, () => repos.scanPaths.list());
+  handle(IPC_CHANNELS.scanPathsGetAll, () => scanPathsService.list());
   handle(IPC_CHANNELS.scanPathsAdd, (_event, data: unknown) =>
-    repos.scanPaths.create({ path: parseOrThrow(createScanPathSchema, data) }),
+    scanPathsService.create(parseOrThrow(createScanPathSchema, data)),
   );
   handle(IPC_CHANNELS.scanPathsDelete, (_event, id: unknown) =>
-    repos.scanPaths.delete(parseId(id)),
+    scanPathsService.delete(parseId(id)),
   );
 
-  function getBaseDirs(): string[] {
-    return repos.scanPaths.list().map((scanPath) => scanPath.path);
-  }
-
-  handle(IPC_CHANNELS.reposScan, async () =>
-    attachPullRequests(await scanRepos(await listRepoDirs(getBaseDirs()))),
-  );
+  handle(IPC_CHANNELS.reposScan, () => reposService.scan());
 
   handle(IPC_CHANNELS.reposFetch, async (event, data: unknown): Promise<RepoFetchResult> => {
     const requestedPaths = parseOrThrow(fetchReposSchema, data);
-    const repoDirs = await listRepoDirs(getBaseDirs());
 
-    // O filtro é a própria validação: só entram caminhos que a varredura
-    // encontrou nos diretórios cadastrados.
-    const target = requestedPaths?.length
-      ? repoDirs.filter((repoDir) => requestedPaths.includes(repoDir))
-      : repoDirs;
-
-    function sendProgress(progress: unknown) {
-      if (!event.sender.isDestroyed()) {
-        event.sender.send(IPC_CHANNELS.reposFetchProgress, progress);
-      }
-    }
-
-    const failures = await fetchRepos(await filterReposWithRemote(target), {
-      onProgress: sendProgress,
+    // O progresso é o único ponto do fluxo que precisa do `event`: o service
+    // avisa que andou, e traduzir isso em mensagem para a janela é daqui.
+    return reposService.fetch(requestedPaths, {
+      onProgress: (progress) => {
+        if (!event.sender.isDestroyed()) {
+          event.sender.send(IPC_CHANNELS.reposFetchProgress, progress);
+        }
+      },
     });
-
-    // A varredura precisa vir antes dos PRs: é ela que descobre o remote de
-    // cada repositório, que é o que diz onde procurar os pull requests.
-    const scanned = await scanRepos(repoDirs);
-
-    const { prsByPath, failures: prFailures } = await fetchPullRequests(scanned, {
-      token: repos.settings.getGithubToken(),
-      onProgress: (done, total, current) => sendProgress({ phase: 'prs', done, total, current }),
-    });
-    updatePrCache(prsByPath);
-
-    return { results: attachPullRequests(scanned), failures, prFailures };
   });
 
-  function integrationStatus(): Promise<PrIntegrationStatus> {
-    return getIntegrationStatus(repos.settings.hasGithubToken());
-  }
+  handle(IPC_CHANNELS.prsGetStatus, (): Promise<PrIntegrationStatus> =>
+    prsService.getIntegrationStatus(),
+  );
 
-  handle(IPC_CHANNELS.prsGetStatus, () => integrationStatus());
-
-  handle(IPC_CHANNELS.prsSaveToken, async (_event, data: unknown) => {
-    const token = parseOrThrow(githubTokenSchema, data);
-    // Valida antes de gravar: salvar um token quebrado só adiaria o erro para
-    // o próximo "Buscar do remoto", longe da tela onde ele foi digitado.
-    const login = await verifyGithubToken(token);
-    repos.settings.saveGithubToken(token);
-    return login;
-  });
+  handle(IPC_CHANNELS.prsSaveToken, (_event, data: unknown) =>
+    prsService.saveGithubToken(parseOrThrow(githubTokenSchema, data)),
+  );
 
   handle(IPC_CHANNELS.prsDeleteToken, () => {
-    repos.settings.deleteGithubToken();
+    prsService.deleteGithubToken();
   });
 
-  handle(IPC_CHANNELS.prsRedetect, () => {
-    resetProviderDetection();
-    return integrationStatus();
-  });
+  handle(IPC_CHANNELS.prsRedetect, (): Promise<PrIntegrationStatus> =>
+    prsService.redetectProviders(),
+  );
 
   handle(IPC_CHANNELS.shellOpenExternal, async (_event, data: unknown) => {
     await shell.openExternal(parseOrThrow(externalUrlSchema, data));
@@ -128,8 +90,6 @@ export function registerIpcHandlers(db: Database.Database, options: RegisterIpcO
   });
 
   handle(IPC_CHANNELS.settingsSaveThemeMode, (_event, data: unknown) => {
-    const mode = parseOrThrow(themeModeSchema, data);
-    repos.settings.saveThemeMode(mode);
-    options.onThemeModeChange(mode);
+    settingsService.saveThemeMode(parseOrThrow(themeModeSchema, data));
   });
 }

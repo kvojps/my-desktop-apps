@@ -1,10 +1,8 @@
-import fs from 'node:fs';
 import { z } from 'zod';
 
-export const createScanPathSchema = z
-  .string()
-  .trim()
-  .min(1, 'Caminho é obrigatório')
-  .refine((value) => fs.existsSync(value) && fs.statSync(value).isDirectory(), {
-    message: 'O caminho informado não existe ou não é um diretório',
-  });
+/**
+ * Só a forma. "Esse diretório existe?" é regra, e é do `scanPathsService`, que
+ * pergunta ao gateway de sistema de arquivos — um schema que chama `node:fs` é
+ * validação de entrada fazendo I/O.
+ */
+export const createScanPathSchema = z.string().trim().min(1, 'Caminho é obrigatório');

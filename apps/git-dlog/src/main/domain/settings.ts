@@ -13,9 +13,9 @@ export type ThemeModeEntity = 'light' | 'dark';
  * digitou e o que é gravado — as duas formas são `string`, e é fácil trocar uma
  * pela outra sem querer.
  *
- * A cifragem ainda mora dentro do repositório. Quando ela sair para
- * `infra/gateways/system/` (ticket 08), este é o tipo que o repositório guarda
- * e devolve, e que o gateway recebe para decifrar.
+ * É esta forma que o repositório guarda e devolve; cifrar e decifrar é do
+ * `safeStorageVault` de `infra/gateways/system/`, e quem costura os dois é o
+ * `settingsService`.
  */
 export type EncryptedGithubTokenEntity = string;
 
@@ -25,4 +25,23 @@ export type EncryptedGithubTokenEntity = string;
  */
 export function isThemeModeEntity(value: string): value is ThemeModeEntity {
   return value === 'light' || value === 'dark';
+}
+
+/**
+ * O modo a usar quando ainda não há escolha gravada: o do sistema operacional.
+ *
+ * Pura de propósito, e aqui e não no service: quem precisa dela é o bootstrap,
+ * que por carve-out (ADR-0002) lê o tema direto do repositório, antes de haver
+ * camada para atravessar. `domain/` é a única pasta que ele alcança sem montar
+ * uma unidade de trabalho inteira para chegar a uma decisão de duas linhas.
+ *
+ * O modo derivado do SO **não** é persistido: gravar uma preferência que o
+ * usuário nunca expressou faria toda mudança de tema do sistema ser ignorada
+ * daí em diante (docs/design-system.md §5.1). A linha nasce no primeiro toggle.
+ */
+export function resolveThemeMode(
+  stored: ThemeModeEntity | null,
+  systemPrefersDark: boolean,
+): ThemeModeEntity {
+  return stored ?? (systemPrefersDark ? 'dark' : 'light');
 }
