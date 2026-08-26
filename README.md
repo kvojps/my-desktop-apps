@@ -48,14 +48,15 @@ a árvore de pastas conte sozinha como o app funciona. Ver
 ```
 src/main/
   index.ts                     bootstrap — fora das camadas
-  domain/                      entidades: repo.ts, pullRequest.ts, settings.ts
+  domain/                      entidades: scanPath.ts, repo.ts, pullRequest.ts, …
   controllers/
     registerIpc.ts             compõe as camadas e registra
     handle.ts  notifyDataChanged.ts
-    reposController.ts  prsController.ts  systemController.ts
+    scanPathsController.ts  reposController.ts  prsController.ts  systemController.ts
     schemas/                   zod de entrada
+    responses/                 mappers de saída (`xToResponse`)
   services/
-    reposService.ts  prsService.ts  settingsService.ts
+    scanPathsService.ts  reposService.ts  prsService.ts  settingsService.ts  systemService.ts
   infra/
     database/
       connection.ts            SCHEMA, initDb, getDb, getDbPath
@@ -75,12 +76,13 @@ src/main/
   não é camada de fluxo, e por isso é a única pasta que qualquer camada pode
   importar.
 - **`controllers/`** — a borda do IPC. `registerIpc.ts` compõe as camadas e
-  registra os canais; `handle.ts` embrulha o `ipcMain.handle`. Nenhum handler
-  usa `ipcMain.handle` direto, e é essa exclusividade que dá ao `handle` as duas
-  responsabilidades que ele tem: passar qualquer falha por `toIpcError` antes de
-  devolvê-la, garantindo que o renderer nunca receba um erro sem código; e,
-  quando um canal de **escrita** termina bem, disparar `notifyDataChanged()` — o
-  evento que mantém as telas em dia. Escrita é definido por exclusão:
+  registra os canais; `handle.ts` embrulha o `ipcMain.handle` e só aceita canal
+  que esteja em `IPC_CHANNELS`. Nenhum handler usa `ipcMain.handle` direto, e é
+  essa exclusividade que dá ao `handle` as duas responsabilidades que ele tem:
+  passar qualquer falha por `toIpcError` antes de devolvê-la, garantindo que o
+  renderer nunca receba um erro sem código; e, quando um canal de **escrita**
+  termina bem, disparar `notifyDataChanged()` — o evento que mantém as telas em
+  dia. Escrita é definido por exclusão:
   `READ_ONLY_CHANNELS`, em `shared/ipc/channels.ts`, enumera os canais que **não
   alteram dado nenhum**, e todo canal fora dela avisa. Quase todos são leituras,
   mas nem todos — imprimir não lê nem grava, e mesmo assim não pode avisar: a
@@ -208,8 +210,12 @@ há **duas travessias**, cada uma com o seu mapeamento explícito:
   camelCase e o 0/1 do SQLite para booleano. Nenhum objeto que sai de um
   repositório carrega chave snake_case.
 - **`entity → response`, no controller.** A função `xToResponse` monta o tipo de
-  `shared/types/` que o renderer vai receber. Nenhuma entidade atravessa o IPC
-  inteira só porque já estava pronta.
+  `shared/types/` que o renderer vai receber, e vive em `controllers/responses/`
+  — irmã de `schemas/`, uma pasta para cada sentido da fronteira. Nenhuma
+  entidade atravessa o IPC inteira só porque já estava pronta. Há um mapper por
+  nó que é **objeto**: união de literais atravessa por atribuição direta, porque
+  aí o `tsc` já quebra sozinho quando uma variante nova aparece de um lado só —
+  com objeto ele não quebra, e o mapper é a única trava.
 
 O segundo mapeamento não existe por legibilidade — mapper trivial não se lê.
 Existe para que nada chegue ao renderer sem alguém ter decidido que chega. O

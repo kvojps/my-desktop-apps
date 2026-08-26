@@ -22,9 +22,15 @@ Tem shape idêntico a `RepoFetchFailure` de `@shared/types/repoScan` (path, name
 `registerIpc.ts` já o devolve como se fosse ele, em `prFailures: RepoFetchFailure[]` — um
 acoplamento estrutural que hoje ninguém declarou. Unificar.
 
+Depois do ticket 09 o acoplamento mudou de lugar sem sumir: quem devolve `prFailures` é o
+`reposController`, por `repoFetchFailureToResponse`, e o mapper faz o caminho parecer
+declarado. O que continua indeclarado é o passo anterior — o `PrFetchFailure` que o
+`prsService` produz entra como `RepoFetchFailureEntity` no `reposService` por identidade
+estrutural. É o `PrFetchFailure` que precisa sumir, não o mapper.
+
 ## `windowFor`
 
-Duplicado literalmente em três apps (`git-dlog/src/main/ipc/dialogHandlers.ts:5`,
+Duplicado literalmente em três apps (`git-dlog/src/main/controllers/systemController.ts:10`,
 `meu-dinheiro-app/src/main/ipc/backupHandlers.ts:11`,
 `meu-negocio-app/src/main/ipc/backupHandlers.ts:10`). Copiar a extração de
 `meu-movel-planejado/src/main/ipc/windowFor.ts` para `controllers/`.
