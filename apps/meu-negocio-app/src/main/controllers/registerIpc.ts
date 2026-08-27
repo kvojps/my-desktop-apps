@@ -3,23 +3,9 @@ import { app } from 'electron';
 import { IPC_CHANNELS } from '@shared/ipc/channels';
 import type { AppInfo } from '@shared/types/appInfo';
 import { getDbPath } from '../infra/database/connection';
-import { setAppSetting } from '../infra/database/repositories/appSettingsRepository';
-import {
-  addOrder,
-  deleteOrder,
-  getAllOrders,
-  setOrderPaymentAmount,
-  setOrderStatus,
-  updateOrder,
-} from '../infra/database/repositories/ordersRepository';
-import {
-  addProduct,
-  deleteProduct,
-  getAllProducts,
-  updateProduct,
-} from '../infra/database/repositories/productsRepository';
-import { getSettings, updateSettings } from '../infra/database/repositories/settingsRepository';
+import { makeRepositories } from '../infra/database';
 import { THEME_MODE_KEY, applyThemeMode, getThemeMode } from '../infra/gateways/system/themeMode';
+import { AppError } from '../utils/errors/AppError';
 import { parseId } from '../utils/parseId';
 import { parseOrThrow } from '../utils/validate';
 import { registerBackupHandlers } from './backupHandlers';
@@ -35,35 +21,56 @@ import { companySettingsSchema } from './schemas/settings.schema';
 import { themeModeSchema } from './schemas/theme.schema';
 
 export function registerIpcHandlers(db: Database.Database): void {
-  registerBackupHandlers(db);
+  const repos = makeRepositories(db);
+  registerBackupHandlers(db, repos);
 
-  handle(IPC_CHANNELS.productsGetAll, () => getAllProducts(db));
+  handle(IPC_CHANNELS.productsGetAll, () => repos.products.list());
   handle(IPC_CHANNELS.productsAdd, (_event, data: unknown) =>
-    addProduct(db, parseOrThrow(createProductSchema, data)),
+    repos.products.create(parseOrThrow(createProductSchema, data)),
   );
-  handle(IPC_CHANNELS.productsUpdate, (_event, id: unknown, data: unknown) =>
-    updateProduct(db, parseId(id), parseOrThrow(updateProductSchema, data)),
-  );
-  handle(IPC_CHANNELS.productsDelete, (_event, id: unknown) => deleteProduct(db, parseId(id)));
+  handle(IPC_CHANNELS.productsUpdate, (_event, id: unknown, data: unknown) => {
+    const productId = parseId(id);
+    const product = repos.products.update(productId, parseOrThrow(updateProductSchema, data));
+    if (!product) throw new AppError(404, `Produto não encontrado: ${productId}`);
+    return product;
+  });
+  handle(IPC_CHANNELS.productsDelete, (_event, id: unknown) => {
+    repos.products.delete(parseId(id));
+  });
 
-  handle(IPC_CHANNELS.ordersGetAll, () => getAllOrders(db));
+  handle(IPC_CHANNELS.ordersGetAll, () => repos.orders.list());
   handle(IPC_CHANNELS.ordersAdd, (_event, data: unknown) =>
-    addOrder(db, parseOrThrow(createOrderSchema, data)),
+    repos.orders.create(parseOrThrow(createOrderSchema, data)),
   );
-  handle(IPC_CHANNELS.ordersUpdate, (_event, id: unknown, data: unknown) =>
-    updateOrder(db, parseId(id), parseOrThrow(updateOrderSchema, data)),
+  handle(IPC_CHANNELS.ordersUpdate, (_event, id: unknown, data: unknown) => {
+    const orderId = parseId(id);
+    const order = repos.orders.update(orderId, parseOrThrow(updateOrderSchema, data));
+    if (!order) throw new AppError(404, `Pedido não encontrado: ${orderId}`);
+    return order;
+  });
+  handle(IPC_CHANNELS.ordersSetStatus, (_event, id: unknown, newStatus: unknown) => {
+    const orderId = parseId(id);
+    const result = repos.orders.setStatus(orderId, parseOrThrow(orderStatusSchema, newStatus));
+    if (!result) throw new AppError(404, `Pedido não encontrado: ${orderId}`);
+    return result;
+  });
+  handle(IPC_CHANNELS.ordersSetPaymentAmount, (_event, id: unknown, amountPaid: unknown) => {
+    const orderId = parseId(id);
+    const order = repos.orders.setPaymentAmount(
+      orderId,
+      parseOrThrow(paymentAmountSchema, amountPaid),
+    );
+    if (!order) throw new AppError(404, `Pedido não encontrado: ${orderId}`);
+    return order;
+  });
+  handle(
+    IPC_CHANNELS.ordersDelete,
+    (_event, id: unknown) => repos.orders.delete(parseId(id)) ?? { updatedProducts: [] },
   );
-  handle(IPC_CHANNELS.ordersSetStatus, (_event, id: unknown, newStatus: unknown) =>
-    setOrderStatus(db, parseId(id), parseOrThrow(orderStatusSchema, newStatus)),
-  );
-  handle(IPC_CHANNELS.ordersSetPaymentAmount, (_event, id: unknown, amountPaid: unknown) =>
-    setOrderPaymentAmount(db, parseId(id), parseOrThrow(paymentAmountSchema, amountPaid)),
-  );
-  handle(IPC_CHANNELS.ordersDelete, (_event, id: unknown) => deleteOrder(db, parseId(id)));
 
-  handle(IPC_CHANNELS.settingsGet, () => getSettings(db));
+  handle(IPC_CHANNELS.settingsGet, () => repos.settings.getSettings());
   handle(IPC_CHANNELS.settingsUpdate, (_event, data: unknown) =>
-    updateSettings(db, parseOrThrow(companySettingsSchema, data)),
+    repos.settings.updateSettings(parseOrThrow(companySettingsSchema, data)),
   );
 
   handle(IPC_CHANNELS.appGetInfo, (): AppInfo => ({
@@ -74,7 +81,7 @@ export function registerIpcHandlers(db: Database.Database): void {
   handle(IPC_CHANNELS.themeGet, () => getThemeMode());
   handle(IPC_CHANNELS.themeSet, (_event, mode: unknown) => {
     const value = parseOrThrow(themeModeSchema, mode);
-    setAppSetting(db, THEME_MODE_KEY, value);
+    repos.appSettings.setAppSetting(THEME_MODE_KEY, value);
     applyThemeMode(value);
     return value;
   });

@@ -1,7 +1,6 @@
 import type Database from 'better-sqlite3';
 import { randomUUID } from 'node:crypto';
 import type { Product } from '@shared/types/product';
-import { AppError } from '../../../utils/errors/AppError';
 
 interface ProductRow {
   id: string;
@@ -33,60 +32,14 @@ function rowToProduct(row: ProductRow): Product {
   };
 }
 
-export function getAllProducts(db: Database.Database): Product[] {
-  const rows = db.prepare('SELECT * FROM products ORDER BY created_at ASC').all() as ProductRow[];
-  return rows.map(rowToProduct);
-}
-
-export function getProductById(db: Database.Database, id: string): Product | undefined {
+/**
+ * Função solta, não verbo da fábrica: `ordersRepository` chama isto direto
+ * (junto de `adjustProductStock`), acoplamento entre repositórios que o
+ * service deveria mediar — fica para quando o service existir (ticket 5).
+ */
+export function getProductById(db: Database.Database, id: string): Product | null {
   const row = db.prepare('SELECT * FROM products WHERE id = ?').get(id) as ProductRow | undefined;
-  return row ? rowToProduct(row) : undefined;
-}
-
-export function addProduct(
-  db: Database.Database,
-  data: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>,
-): Product {
-  const now = new Date().toISOString();
-  const product: Product = {
-    ...data,
-    id: randomUUID(),
-    createdAt: now,
-    updatedAt: now,
-  };
-
-  db.prepare(
-    `INSERT INTO products (id, name, description, category, supplier, cost_price, sale_price, stock, min_stock, created_at, updated_at)
-     VALUES (@id, @name, @description, @category, @supplier, @costPrice, @salePrice, @stock, @minStock, @createdAt, @updatedAt)`,
-  ).run(product);
-
-  return product;
-}
-
-export function updateProduct(db: Database.Database, id: string, data: Partial<Product>): Product {
-  const existing = getProductById(db, id);
-  if (!existing) {
-    throw new AppError(404, `Produto não encontrado: ${id}`);
-  }
-
-  const updated: Product = {
-    ...existing,
-    ...data,
-    id: existing.id,
-    updatedAt: new Date().toISOString(),
-  };
-
-  db.prepare(
-    `UPDATE products SET name = @name, description = @description, category = @category,
-     supplier = @supplier, cost_price = @costPrice, sale_price = @salePrice, stock = @stock,
-     min_stock = @minStock, updated_at = @updatedAt WHERE id = @id`,
-  ).run(updated);
-
-  return updated;
-}
-
-export function deleteProduct(db: Database.Database, id: string): void {
-  db.prepare('DELETE FROM products WHERE id = ?').run(id);
+  return row ? rowToProduct(row) : null;
 }
 
 export interface StockAdjustment {
@@ -100,13 +53,17 @@ export interface StockAdjustment {
   appliedDelta: number;
 }
 
+/**
+ * Mesma nota de `getProductById`: usada só por `ordersRepository`, clamp de
+ * estoque continua aqui por enquanto (migra para o service no ticket 5).
+ */
 export function adjustProductStock(
   db: Database.Database,
   productId: string,
   delta: number,
-): StockAdjustment | undefined {
+): StockAdjustment | null {
   const existing = getProductById(db, productId);
-  if (!existing) return undefined;
+  if (!existing) return null;
 
   const stock = Math.max(0, existing.stock + delta);
   const updated: Product = {
@@ -121,3 +78,65 @@ export function adjustProductStock(
 
   return { product: updated, appliedDelta: stock - existing.stock };
 }
+
+export function makeProductsRepository(db: Database.Database) {
+  return {
+    list(): Product[] {
+      const rows = db
+        .prepare('SELECT * FROM products ORDER BY created_at ASC')
+        .all() as ProductRow[];
+      return rows.map(rowToProduct);
+    },
+
+    findById(id: string): Product | null {
+      return getProductById(db, id);
+    },
+
+    create(data: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>): Product {
+      const now = new Date().toISOString();
+      const product: Product = {
+        ...data,
+        id: randomUUID(),
+        createdAt: now,
+        updatedAt: now,
+      };
+
+      db.prepare(
+        `INSERT INTO products (id, name, description, category, supplier, cost_price, sale_price, stock, min_stock, created_at, updated_at)
+         VALUES (@id, @name, @description, @category, @supplier, @costPrice, @salePrice, @stock, @minStock, @createdAt, @updatedAt)`,
+      ).run(product);
+
+      return product;
+    },
+
+    update(id: string, data: Partial<Product>): Product | null {
+      const existing = getProductById(db, id);
+      if (!existing) return null;
+
+      const updated: Product = {
+        ...existing,
+        ...data,
+        id: existing.id,
+        updatedAt: new Date().toISOString(),
+      };
+
+      db.prepare(
+        `UPDATE products SET name = @name, description = @description, category = @category,
+         supplier = @supplier, cost_price = @costPrice, sale_price = @salePrice, stock = @stock,
+         min_stock = @minStock, updated_at = @updatedAt WHERE id = @id`,
+      ).run(updated);
+
+      return updated;
+    },
+
+    delete(id: string): Product | null {
+      const existing = getProductById(db, id);
+      if (!existing) return null;
+
+      db.prepare('DELETE FROM products WHERE id = ?').run(id);
+      return existing;
+    },
+  };
+}
+
+export type ProductsRepository = ReturnType<typeof makeProductsRepository>;

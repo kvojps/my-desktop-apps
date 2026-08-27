@@ -1,22 +1,25 @@
 import type Database from 'better-sqlite3';
 import type { BackupData } from '@shared/types/backup';
-import { getAllOrders } from './ordersRepository';
-import { getAllProducts } from './productsRepository';
-import { getSettings } from './settingsRepository';
+import type { Repositories } from '../index';
 
 // v2 passou a gravar amount_paid nos pedidos; a v1 omitia o campo.
 export const BACKUP_VERSION = 2;
 
-export function exportData(db: Database.Database): BackupData {
+export function exportData(repos: Repositories): BackupData {
   return {
     version: BACKUP_VERSION,
     exportedAt: new Date().toISOString(),
-    products: getAllProducts(db),
-    orders: getAllOrders(db),
-    settings: getSettings(db),
+    products: repos.products.list(),
+    orders: repos.orders.list(),
+    settings: repos.settings.getSettings(),
   };
 }
 
+/**
+ * Continua sobre `db` cru, não `repos`: é apagar e reescrever quatro tabelas
+ * inteiras numa única transação, não uma sequência de verbos de uma entidade —
+ * não há `create`/`update` de repositório que caiba aqui.
+ */
 export function importData(db: Database.Database, data: BackupData): void {
   const insertProduct = db.prepare(
     `INSERT INTO products (id, name, description, category, supplier, cost_price, sale_price, stock, min_stock, created_at, updated_at)

@@ -1,7 +1,7 @@
 import type Database from 'better-sqlite3';
 import { BrowserWindow, nativeTheme } from 'electron';
 import type { ThemeMode } from '@shared/types/theme';
-import { getAppSetting } from '../../database/repositories/appSettingsRepository';
+import { makeAppSettingsRepository } from '../../database/repositories/appSettingsRepository';
 
 export const THEME_MODE_KEY = 'theme.mode';
 
@@ -31,7 +31,10 @@ let current: ThemeMode | null = null;
  * tema do sistema ser ignorada daí em diante. A linha nasce no primeiro toggle.
  */
 export function resolveThemeMode(db: Database.Database): ThemeMode {
-  const stored = getAppSetting(db, THEME_MODE_KEY);
+  // Lê direto do repositório, não de `makeRepositories(db)`: o carve-out do
+  // ADR-0002 autoriza o bootstrap a alcançar um getter sem montar (e descartar)
+  // uma unidade de trabalho inteira só para isso.
+  const stored = makeAppSettingsRepository(db).getAppSetting(THEME_MODE_KEY);
   current =
     stored === 'light' || stored === 'dark'
       ? stored

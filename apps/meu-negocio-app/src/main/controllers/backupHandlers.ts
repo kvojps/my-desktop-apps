@@ -3,6 +3,7 @@ import { BrowserWindow, type IpcMainInvokeEvent, app, dialog, shell } from 'elec
 import fs from 'node:fs/promises';
 import type { BackupData, ExportResult, ImportResult } from '@shared/ipc/api';
 import { IPC_CHANNELS } from '@shared/ipc/channels';
+import type { Repositories } from '../infra/database';
 import { exportData, importData } from '../infra/database/repositories/backupRepository';
 import { handle } from './handle';
 import { backupSchema } from './schemas/backup.schema';
@@ -15,7 +16,7 @@ function windowFor(event: IpcMainInvokeEvent): BrowserWindow {
   return window;
 }
 
-export function registerBackupHandlers(db: Database.Database): void {
+export function registerBackupHandlers(db: Database.Database, repos: Repositories): void {
   handle(IPC_CHANNELS.dataExport, async (event): Promise<ExportResult> => {
     const defaultPath = `meu-negocio-backup-${new Date().toISOString().slice(0, 10)}.json`;
     const result = await dialog.showSaveDialog(windowFor(event), {
@@ -28,7 +29,7 @@ export function registerBackupHandlers(db: Database.Database): void {
       return { success: false, error: 'canceled' };
     }
 
-    const data = exportData(db);
+    const data = exportData(repos);
     await fs.writeFile(result.filePath, JSON.stringify(data, null, 2), 'utf-8');
     return { success: true, filePath: result.filePath };
   });
