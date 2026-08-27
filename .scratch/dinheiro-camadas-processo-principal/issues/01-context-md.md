@@ -1,4 +1,4 @@
-Status: aberto
+Status: resolvido
 
 # Meu Dinheiro: CONTEXT.md
 
@@ -44,3 +44,12 @@ deve passar sem tocar em nada mais. Conferir contra `CONTEXT-FORMAT.md`: defini�
 ## Comments
 
 Ticket derivado da spec desta pasta (`../spec.md`, decisão 4 e Q11 do plano).
+
+Resolvido: `apps/meu-dinheiro-app/CONTEXT.md` criado com os 12 termos da tabela,
+no formato de `CONTEXT-FORMAT.md` (`# Meu Dinheiro` → descrição → `## Language`
+com `**Termo**:` / definição do que É / `_Avoid_`). `Cascata` fica sem linha
+`_Avoid_` (nada a rejeitar). `CONTEXT-MAP.md` passou a linkar o novo arquivo em
+vez de registrar a ausência. Nenhum vocabulário de arquitetura entrou.
+`npm run typecheck`, `lint` e `test` passam; `prettier --check` limpo no arquivo
+novo (o `npm run format` global mexe em `.scratch` legado não formatado, fora
+do escopo deste ticket).

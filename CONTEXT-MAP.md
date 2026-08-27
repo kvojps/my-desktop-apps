@@ -16,10 +16,9 @@ código, porque é ele que nomeia tabela, tipo e rótulo de tela.
   de chapas: onde cada peça cai, quanto se aproveita e quanto material falta
 - [Meu Negócio](./apps/meu-negocio-app/CONTEXT.md) — produtos, pedidos e vendas;
   o glossário cobre o lado do dinheiro, que é onde a linguagem escorrega
-- Meu Dinheiro (`apps/meu-dinheiro-app`) — finanças pessoais por mês. Ainda sem
-  `CONTEXT.md`: glossário se escreve sob demanda, quando um termo de fato
-  precisa ser resolvido (`docs/agents/domain.md`), então a ausência aqui é o
-  estado normal e não uma pendência.
+- [Meu Dinheiro](./apps/meu-dinheiro-app/CONTEXT.md) — finanças pessoais por
+  mês; o glossário fixa a que mês um fato pertence, o que é padrão e o que é
+  cópia, e a fronteira entre Realizado e Previsto
 
 ## Relações
 
