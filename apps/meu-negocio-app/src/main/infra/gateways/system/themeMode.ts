@@ -1,74 +1,72 @@
-import type Database from 'better-sqlite3';
 import { BrowserWindow, nativeTheme } from 'electron';
-import type { ThemeMode } from '@shared/types/theme';
-import { makeAppSettingsRepository } from '../../database/repositories/appSettingsRepository';
-
-export const THEME_MODE_KEY = 'theme.mode';
+import type { ThemeModeEntity } from '../../../domain/theme';
 
 /** Igual a `background.default` do tema do renderer, por modo. */
-const BACKGROUND: Record<ThemeMode, string> = {
+const BACKGROUND: Record<ThemeModeEntity, string> = {
   light: '#F4F6FB',
   dark: '#10131C',
 };
 
 /**
- * Resolvido uma única vez no boot. Toda leitura posterior passa por aqui, e não
- * por `nativeTheme`, pelo motivo explicado em `resolveThemeMode`.
+ * O que o `settingsService` precisa do tema, e só isso — um duble de teste
+ * para `saveThemeMode`/`getThemeMode` implementa dois métodos, não a
+ * superfície inteira.
  */
-let current: ThemeMode | null = null;
-
-/**
- * O modo a usar nesta sessão: o que está no banco ou, na falta dele, o do
- * sistema operacional.
- *
- * Precisa rodar **antes** do primeiro `applyThemeMode` e uma vez só:
- * `nativeTheme.shouldUseDarkColors` só reflete o SO enquanto `themeSource` for
- * `'system'`. Depois de fixarmos o modo, ele responde o que fixamos — chamar
- * isto de novo devolveria a própria escolha, não a do usuário.
- *
- * Quando não há valor gravado, o modo derivado do SO **não** é persistido:
- * gravar uma preferência que o usuário nunca expressou faria toda mudança de
- * tema do sistema ser ignorada daí em diante. A linha nasce no primeiro toggle.
- */
-export function resolveThemeMode(db: Database.Database): ThemeMode {
-  // Lê direto do repositório, não de `makeRepositories(db)`: o carve-out do
-  // ADR-0002 autoriza o bootstrap a alcançar um getter sem montar (e descartar)
-  // uma unidade de trabalho inteira só para isso.
-  const stored = makeAppSettingsRepository(db).getAppSetting(THEME_MODE_KEY);
-  current =
-    stored === 'light' || stored === 'dark'
-      ? stored
-      : nativeTheme.shouldUseDarkColors
-        ? 'dark'
-        : 'light';
-  return current;
-}
-
-/** O modo desta sessão. Só depois de `resolveThemeMode`. */
-export function getThemeMode(): ThemeMode {
-  if (!current) {
-    throw new Error('resolveThemeMode precisa rodar antes de getThemeMode');
-  }
-  return current;
-}
-
-export function themeBackground(mode: ThemeMode): string {
-  return BACKGROUND[mode];
+export interface ThemeModeGateway {
+  /** Aplica o modo à moldura nativa e às janelas vivas. */
+  apply(mode: ThemeModeEntity): void;
+  /** O modo em vigor nesta sessão, lido da moldura nativa já aplicada. */
+  currentMode(): ThemeModeEntity;
 }
 
 /**
- * Aplica o modo ao que só o processo main controla: a moldura nativa (sem isso
- * a barra de título do Windows fica clara com o app escuro) e o fundo das
- * janelas vivas.
- *
- * O `setBackgroundColor` é o que impede a faixa branca de voltar quando o
- * usuário alterna o tema: `backgroundColor` é fixado na construção da janela e
- * não acompanharia a troca sozinho.
+ * O gateway inteiro. O que sobra além do que o service usa é do bootstrap, que
+ * pinta a janela antes de existir camada para atravessar — não há service que
+ * peça cor de fundo.
  */
-export function applyThemeMode(mode: ThemeMode): void {
-  current = mode;
-  nativeTheme.themeSource = mode;
-  for (const window of BrowserWindow.getAllWindows()) {
-    window.setBackgroundColor(BACKGROUND[mode]);
-  }
+export interface ThemeModeSystemGateway extends ThemeModeGateway {
+  /** A cor de fundo da janela, para quem a constrói. */
+  windowBackgroundFor(mode: ThemeModeEntity): string;
+  systemPrefersDark(): boolean;
 }
+
+export const themeMode: ThemeModeSystemGateway = {
+  /**
+   * Aplica o modo ao que só o processo main controla: a moldura nativa (sem
+   * isso a barra de título do Windows fica clara com o app escuro) e o fundo
+   * das janelas vivas.
+   *
+   * O `setBackgroundColor` é o que impede a faixa branca de voltar quando o
+   * usuário alterna o tema: `backgroundColor` é fixado na construção da janela
+   * e não acompanharia a troca sozinho.
+   */
+  apply(mode: ThemeModeEntity): void {
+    nativeTheme.themeSource = mode;
+    for (const window of BrowserWindow.getAllWindows()) {
+      window.setBackgroundColor(BACKGROUND[mode]);
+    }
+  },
+
+  /**
+   * A fonte é o próprio `nativeTheme`: `apply` o fixa em `light`/`dark` e nunca
+   * o deixa em `'system'`, então ler de volta é ler a última escolha aplicada
+   * — sem uma segunda cópia de estado para dessincronizar. Só responde certo
+   * depois do primeiro `apply` (o do bootstrap).
+   */
+  currentMode(): ThemeModeEntity {
+    return nativeTheme.themeSource === 'dark' ? 'dark' : 'light';
+  },
+
+  windowBackgroundFor(mode: ThemeModeEntity): string {
+    return BACKGROUND[mode];
+  },
+
+  /**
+   * O que o sistema operacional prefere. Só vale enquanto `themeSource` for
+   * `'system'`, ou seja **antes** do primeiro `apply` — por isso o bootstrap
+   * lê uma vez só, na resolução inicial.
+   */
+  systemPrefersDark(): boolean {
+    return nativeTheme.shouldUseDarkColors;
+  },
+};

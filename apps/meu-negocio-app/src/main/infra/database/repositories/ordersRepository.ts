@@ -2,9 +2,6 @@ import type Database from 'better-sqlite3';
 import { randomUUID } from 'node:crypto';
 import type { CreateOrderData, OrderItem, UpdateOrderData } from '@shared/types/order';
 import type { OrderEntity, OrderItemEntity, OrderStatusEntity } from '../../../domain/order';
-import type { ProductEntity } from '../../../domain/product';
-import { AppError } from '../../../utils/errors/AppError';
-import { adjustProductStock, getProductById } from './productsRepository';
 
 interface OrderRow {
   id: string;
@@ -52,15 +49,6 @@ function buildOrder(row: OrderRow, items: OrderItemEntity[]): OrderEntity {
   };
 }
 
-export interface DeleteOrderResult {
-  updatedProducts: ProductEntity[];
-}
-
-export interface SetOrderStatusResult {
-  order: OrderEntity;
-  updatedProducts: ProductEntity[];
-}
-
 export function makeOrdersRepository(db: Database.Database) {
   function getItemsForOrder(orderId: string): OrderItemEntity[] {
     const rows = db
@@ -91,69 +79,6 @@ export function makeOrdersRepository(db: Database.Database) {
         unitCost: item.unitCost,
       });
     }
-  }
-
-  /**
-   * Descreve o que falta em estoque para concluir o pedido. Soma por produto,
-   * porque o mesmo produto pode aparecer em mais de um item.
-   *
-   * Regra de negócio que ainda mora no repositório — migra para o service
-   * junto da composição de `setStatus` no ticket 5.
-   */
-  function findStockShortages(orderId: string): string[] {
-    const requiredByProduct = new Map<string, number>();
-    for (const item of getItemsForOrder(orderId)) {
-      requiredByProduct.set(
-        item.productId,
-        (requiredByProduct.get(item.productId) ?? 0) + item.quantity,
-      );
-    }
-
-    const shortages: string[] = [];
-    for (const [productId, required] of requiredByProduct) {
-      const product = getProductById(db, productId);
-      // Produto removido do catálogo não tem saldo a conferir nem a movimentar.
-      if (!product) continue;
-      if (product.stock < required) {
-        shortages.push(`${product.name} (necessário ${required}, disponível ${product.stock})`);
-      }
-    }
-
-    return shortages;
-  }
-
-  /**
-   * Baixa do estoque a quantidade de cada item e registra quanto saiu de fato —
-   * que é menos que o pedido quando o saldo não cobria.
-   */
-  function deductStockForOrder(orderId: string): ProductEntity[] {
-    const updated: ProductEntity[] = [];
-    const recordApplied = db.prepare('UPDATE order_items SET stock_applied = ? WHERE id = ?');
-
-    for (const item of getItemsForOrder(orderId)) {
-      const adjustment = adjustProductStock(db, item.productId, -item.quantity);
-      if (adjustment) updated.push(adjustment.product);
-      recordApplied.run(-(adjustment?.appliedDelta ?? 0), item.id);
-    }
-
-    return updated;
-  }
-
-  /**
-   * Devolve ao estoque exatamente o que a conclusão tirou. Serve tanto para
-   * reabrir ou cancelar quanto para excluir uma venda.
-   */
-  function restoreStockForOrder(orderId: string): ProductEntity[] {
-    const updated: ProductEntity[] = [];
-    const clearApplied = db.prepare('UPDATE order_items SET stock_applied = 0 WHERE id = ?');
-
-    for (const item of getItemsForOrder(orderId)) {
-      const adjustment = adjustProductStock(db, item.productId, item.stockApplied);
-      if (adjustment) updated.push(adjustment.product);
-      clearApplied.run(item.id);
-    }
-
-    return updated;
   }
 
   return {
@@ -216,19 +141,6 @@ export function makeOrdersRepository(db: Database.Database) {
       const existing = findById(id);
       if (!existing) return null;
 
-      // A edição troca todos os itens do pedido. Numa venda concluída isso apagaria
-      // o registro do que já saiu do estoque, deixando o saldo sem como voltar.
-      // Regra de negócio adiada para o service (ticket 5) — o 409 continua aqui por ora.
-      if (existing.status === 'completed') {
-        throw new AppError(
-          409,
-          'Não é possível editar uma venda concluída. Reabra o pedido na tela de Vendas para poder editá-lo.',
-        );
-      }
-      if (existing.status === 'cancelled') {
-        throw new AppError(409, 'Não é possível editar um pedido cancelado.');
-      }
-
       const updatedAt = new Date().toISOString();
       const createdAt = data.createdAt ?? existing.createdAt;
 
@@ -257,50 +169,23 @@ export function makeOrdersRepository(db: Database.Database) {
       return updated;
     },
 
-    setStatus(id: string, newStatus: OrderStatusEntity): SetOrderStatusResult | null {
+    /**
+     * Só grava a coluna de status. A transição válida, a conferência de
+     * estoque e a baixa/estorno são regra de negócio e rodam no
+     * `ordersService`, dentro de `repos.transaction` (ticket 5).
+     */
+    setStatus(id: string, newStatus: OrderStatusEntity): OrderEntity | null {
       const existing = findById(id);
       if (!existing) return null;
 
-      const updatedProducts: ProductEntity[] = [];
-
-      // Composição de transação + regra de negócio adiada para o service
-      // (ticket 5): o 409 de falta de estoque continua aqui por ora.
-      const statusTransaction = db.transaction(() => {
-        const wasCompleted = existing.status === 'completed';
-        const isNowCompleted = newStatus === 'completed';
-
-        if (wasCompleted !== isNowCompleted) {
-          if (isNowCompleted) {
-            const shortages = findStockShortages(id);
-            if (shortages.length > 0) {
-              throw new AppError(
-                409,
-                `Estoque insuficiente para concluir o pedido: ${shortages.join('; ')}. ` +
-                  'Reponha o estoque ou ajuste as quantidades do pedido.',
-              );
-            }
-          }
-
-          updatedProducts.push(
-            ...(isNowCompleted ? deductStockForOrder(id) : restoreStockForOrder(id)),
-          );
-        }
-
-        const updatedAt = new Date().toISOString();
-        db.prepare('UPDATE orders SET status = @status, updated_at = @updatedAt WHERE id = @id').run({
-          id,
-          status: newStatus,
-          updatedAt,
-        });
+      const updatedAt = new Date().toISOString();
+      db.prepare('UPDATE orders SET status = @status, updated_at = @updatedAt WHERE id = @id').run({
+        id,
+        status: newStatus,
+        updatedAt,
       });
-      statusTransaction();
 
-      const order = findById(id);
-      if (!order) {
-        throw new Error(`Order not found after update: ${id}`);
-      }
-
-      return { order, updatedProducts };
+      return findById(id);
     },
 
     setPaymentAmount(id: string, amountPaid: number): OrderEntity | null {
@@ -312,31 +197,26 @@ export function makeOrdersRepository(db: Database.Database) {
         'UPDATE orders SET amount_paid = @amountPaid, updated_at = @updatedAt WHERE id = @id',
       ).run({ id, amountPaid, updatedAt });
 
-      const order = findById(id);
-      if (!order) {
-        throw new Error(`Order not found after update: ${id}`);
-      }
-
-      return order;
+      return findById(id);
     },
 
-    delete(id: string): DeleteOrderResult | null {
+    /** Quanto deste item já foi baixado do estoque. Escrito pelo `ordersService`. */
+    setItemStockApplied(itemId: string, stockApplied: number): void {
+      db.prepare('UPDATE order_items SET stock_applied = ? WHERE id = ?').run(stockApplied, itemId);
+    },
+
+    /**
+     * Só apaga a venda (os itens caem por `ON DELETE CASCADE`). Devolver o
+     * estoque de uma venda concluída antes de apagar é decisão do
+     * `ordersService`, na mesma transação. Devolve a venda que existia, ou
+     * `null` — sem decidir 404.
+     */
+    delete(id: string): OrderEntity | null {
       const existing = findById(id);
       if (!existing) return null;
 
-      const updatedProducts: ProductEntity[] = [];
-
-      const deleteTransaction = db.transaction(() => {
-        // Excluir uma venda concluída precisa devolver o estoque que ela baixou,
-        // senão as unidades somem do saldo para sempre.
-        if (existing.status === 'completed') {
-          updatedProducts.push(...restoreStockForOrder(id));
-        }
-        db.prepare('DELETE FROM orders WHERE id = ?').run(id);
-      });
-      deleteTransaction();
-
-      return { updatedProducts };
+      db.prepare('DELETE FROM orders WHERE id = ?').run(id);
+      return existing;
     },
   };
 }

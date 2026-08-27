@@ -33,54 +33,12 @@ function rowToProduct(row: ProductRow): ProductEntity {
   };
 }
 
-/**
- * Função solta, não verbo da fábrica: `ordersRepository` chama isto direto
- * (junto de `adjustProductStock`), acoplamento entre repositórios que o
- * service deveria mediar — fica para quando o service existir (ticket 5).
- */
-export function getProductById(db: Database.Database, id: string): ProductEntity | null {
-  const row = db.prepare('SELECT * FROM products WHERE id = ?').get(id) as ProductRow | undefined;
-  return row ? rowToProduct(row) : null;
-}
-
-export interface StockAdjustment {
-  product: ProductEntity;
-  /**
-   * Variação que o estoque de fato sofreu. Difere de `delta` quando a baixa
-   * pedida é maior que o saldo disponível — o estoque para em zero em vez de
-   * ficar negativo, e quem chamou precisa saber disso para conseguir desfazer
-   * a operação depois.
-   */
-  appliedDelta: number;
-}
-
-/**
- * Mesma nota de `getProductById`: usada só por `ordersRepository`, clamp de
- * estoque continua aqui por enquanto (migra para o service no ticket 5).
- */
-export function adjustProductStock(
-  db: Database.Database,
-  productId: string,
-  delta: number,
-): StockAdjustment | null {
-  const existing = getProductById(db, productId);
-  if (!existing) return null;
-
-  const stock = Math.max(0, existing.stock + delta);
-  const updated: ProductEntity = {
-    ...existing,
-    stock,
-    updatedAt: new Date().toISOString(),
-  };
-
-  db.prepare('UPDATE products SET stock = @stock, updated_at = @updatedAt WHERE id = @id').run(
-    updated,
-  );
-
-  return { product: updated, appliedDelta: stock - existing.stock };
-}
-
 export function makeProductsRepository(db: Database.Database) {
+  function findById(id: string): ProductEntity | null {
+    const row = db.prepare('SELECT * FROM products WHERE id = ?').get(id) as ProductRow | undefined;
+    return row ? rowToProduct(row) : null;
+  }
+
   return {
     list(): ProductEntity[] {
       const rows = db
@@ -89,9 +47,7 @@ export function makeProductsRepository(db: Database.Database) {
       return rows.map(rowToProduct);
     },
 
-    findById(id: string): ProductEntity | null {
-      return getProductById(db, id);
-    },
+    findById,
 
     create(data: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>): ProductEntity {
       const now = new Date().toISOString();
@@ -111,7 +67,7 @@ export function makeProductsRepository(db: Database.Database) {
     },
 
     update(id: string, data: Partial<Product>): ProductEntity | null {
-      const existing = getProductById(db, id);
+      const existing = findById(id);
       if (!existing) return null;
 
       const updated: ProductEntity = {
@@ -131,7 +87,7 @@ export function makeProductsRepository(db: Database.Database) {
     },
 
     delete(id: string): ProductEntity | null {
-      const existing = getProductById(db, id);
+      const existing = findById(id);
       if (!existing) return null;
 
       db.prepare('DELETE FROM products WHERE id = ?').run(id);

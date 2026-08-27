@@ -1,5 +1,7 @@
 import type Database from 'better-sqlite3';
+import type { BackupData } from '@shared/types/backup';
 import { makeAppSettingsRepository } from './repositories/appSettingsRepository';
+import { importData } from './repositories/backupRepository';
 import { makeOrdersRepository } from './repositories/ordersRepository';
 import { makeProductsRepository } from './repositories/productsRepository';
 import { makeSettingsRepository } from './repositories/settingsRepository';
@@ -9,12 +11,11 @@ import { makeSettingsRepository } from './repositories/settingsRepository';
  * que o service recebe. É o que permite ao service orquestrar persistência sem
  * nunca importar `better-sqlite3` (README §2.2, ADR-0002).
  *
- * Ao contrário do `git-dlog`, `transaction()` já nasce com uso real na base:
- * os 4 `db.transaction` de `ordersRepository.ts` (`create`, `update`, `delete`,
- * `setStatus`) exercitam o mesmo mecanismo. Só não passam por este campo ainda
- * — a composição de `setStatus` continua autorada dentro do repositório, e só
- * migra para uma closure escrita pelo service, passada a `repos.transaction`,
- * no ticket 5.
+ * `transaction()` ganha seus call sites reais no `ordersService` (ticket 5): a
+ * composição de `setStatus` e de `delete` — checar transição, conferir estoque,
+ * baixar/estornar, gravar — foi escrita lá como closure e passada para cá. Os
+ * `db.transaction` que sobram em `ordersRepository.ts` (`create`, `update`) são
+ * atomicidade de um verbo só, não composição de regra.
  */
 export function makeRepositories(db: Database.Database) {
   return {
@@ -23,6 +24,13 @@ export function makeRepositories(db: Database.Database) {
     settings: makeSettingsRepository(db),
     appSettings: makeAppSettingsRepository(db),
     transaction: <T>(fn: () => T): T => db.transaction(fn)(),
+    /**
+     * Importar backup apaga e reescreve quatro tabelas inteiras numa transação
+     * só — linhas cruas, não uma sequência de verbos de uma entidade. Fica
+     * aqui, atrás da unidade de trabalho, porque precisa do `db` que o
+     * `backupService` não pode tocar.
+     */
+    importBackup: (data: BackupData): void => importData(db, data),
   };
 }
 
