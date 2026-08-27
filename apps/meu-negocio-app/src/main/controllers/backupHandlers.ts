@@ -1,10 +1,12 @@
 import type Database from 'better-sqlite3';
-import { BrowserWindow, type IpcMainInvokeEvent, app, dialog, shell } from 'electron';
-import fs from 'node:fs/promises';
+import { BrowserWindow, type IpcMainInvokeEvent } from 'electron';
 import type { BackupData, ExportResult, ImportResult } from '@shared/ipc/api';
 import { IPC_CHANNELS } from '@shared/ipc/channels';
 import type { Repositories } from '../infra/database';
 import { exportData, importData } from '../infra/database/repositories/backupRepository';
+import { dialogs } from '../infra/gateways/system/dialogs';
+import { fileSystem } from '../infra/gateways/system/fileSystem';
+import { shellGateway } from '../infra/gateways/system/shell';
 import { handle } from './handle';
 import { backupSchema } from './schemas/backup.schema';
 
@@ -19,35 +21,25 @@ function windowFor(event: IpcMainInvokeEvent): BrowserWindow {
 export function registerBackupHandlers(db: Database.Database, repos: Repositories): void {
   handle(IPC_CHANNELS.dataExport, async (event): Promise<ExportResult> => {
     const defaultPath = `meu-negocio-backup-${new Date().toISOString().slice(0, 10)}.json`;
-    const result = await dialog.showSaveDialog(windowFor(event), {
-      title: 'Exportar dados',
-      defaultPath,
-      filters: [{ name: 'JSON', extensions: ['json'] }],
-    });
-
-    if (result.canceled || !result.filePath) {
+    const filePath = await dialogs.showSaveDialog(windowFor(event), defaultPath);
+    if (!filePath) {
       return { success: false, error: 'canceled' };
     }
 
     const data = exportData(repos);
-    await fs.writeFile(result.filePath, JSON.stringify(data, null, 2), 'utf-8');
-    return { success: true, filePath: result.filePath };
+    await fileSystem.writeFile(filePath, JSON.stringify(data, null, 2));
+    return { success: true, filePath };
   });
 
   handle(IPC_CHANNELS.dataImport, async (event): Promise<ImportResult> => {
-    const result = await dialog.showOpenDialog(windowFor(event), {
-      title: 'Importar dados',
-      filters: [{ name: 'JSON', extensions: ['json'] }],
-      properties: ['openFile'],
-    });
-
-    if (result.canceled || result.filePaths.length === 0) {
+    const filePath = await dialogs.showOpenDialog(windowFor(event));
+    if (!filePath) {
       return { success: false, error: 'canceled' };
     }
 
     let raw: string;
     try {
-      raw = await fs.readFile(result.filePaths[0], 'utf-8');
+      raw = await fileSystem.readFile(filePath);
     } catch {
       return { success: false, error: 'read-failed' };
     }
@@ -69,6 +61,6 @@ export function registerBackupHandlers(db: Database.Database, repos: Repositorie
   });
 
   handle(IPC_CHANNELS.dataOpenFolder, async () => {
-    await shell.openPath(app.getPath('userData'));
+    await shellGateway.openDataFolder();
   });
 }

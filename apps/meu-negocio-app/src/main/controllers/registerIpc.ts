@@ -24,6 +24,10 @@ export function registerIpcHandlers(db: Database.Database): void {
   const repos = makeRepositories(db);
   registerBackupHandlers(db, repos);
 
+  // Os handlers de products devolvem ProductEntity direto pelo IPC, sem o
+  // mapper entity → response (controllers/responses/, ticket 6). Hoje
+  // ProductEntity é estruturalmente igual ao Product de shared/types/, então
+  // nada vaza de fato — mas nada garante que sigam iguais (domain/product.ts).
   handle(IPC_CHANNELS.productsGetAll, () => repos.products.list());
   handle(IPC_CHANNELS.productsAdd, (_event, data: unknown) =>
     repos.products.create(parseOrThrow(createProductSchema, data)),
@@ -38,6 +42,11 @@ export function registerIpcHandlers(db: Database.Database): void {
     repos.products.delete(parseId(id));
   });
 
+  // Os handlers de orders devolvem OrderEntity direto pelo IPC — inclui
+  // `items[].stockApplied`, escrituração interna que o README.md §2.5 cita
+  // como o caso que motiva o mapper entity → response. Esse mapper
+  // (controllers/responses/, ticket 6) ainda não existe: até lá, a travessia
+  // é silenciosa — o campo chega ao renderer sem que nada o filtre.
   handle(IPC_CHANNELS.ordersGetAll, () => repos.orders.list());
   handle(IPC_CHANNELS.ordersAdd, (_event, data: unknown) =>
     repos.orders.create(parseOrThrow(createOrderSchema, data)),

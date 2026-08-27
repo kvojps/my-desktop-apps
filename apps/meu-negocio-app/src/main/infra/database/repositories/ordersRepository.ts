@@ -1,20 +1,15 @@
 import type Database from 'better-sqlite3';
 import { randomUUID } from 'node:crypto';
-import type {
-  CreateOrderData,
-  Order,
-  OrderItem,
-  OrderStatus,
-  UpdateOrderData,
-} from '@shared/types/order';
-import type { Product } from '@shared/types/product';
+import type { CreateOrderData, OrderItem, UpdateOrderData } from '@shared/types/order';
+import type { OrderEntity, OrderItemEntity, OrderStatusEntity } from '../../../domain/order';
+import type { ProductEntity } from '../../../domain/product';
 import { AppError } from '../../../utils/errors/AppError';
 import { adjustProductStock, getProductById } from './productsRepository';
 
 interface OrderRow {
   id: string;
   customer_name: string;
-  status: OrderStatus;
+  status: OrderStatusEntity;
   manual_total: number | null;
   amount_paid: number;
   created_at: string;
@@ -29,21 +24,10 @@ interface OrderItemRow {
   quantity: number;
   unit_price: number;
   unit_cost: number;
-}
-
-/**
- * Colunas de controle de estoque do item. Ficam fora de `OrderItem` de
- * propósito: são escrituração interna do processo principal, não fazem parte do
- * pedido que o renderer manipula.
- */
-interface StockLedgerRow {
-  id: string;
-  product_id: string;
-  quantity: number;
   stock_applied: number;
 }
 
-function rowToItem(row: OrderItemRow): OrderItem {
+function rowToItem(row: OrderItemRow): OrderItemEntity {
   return {
     id: row.id,
     productId: row.product_id,
@@ -51,10 +35,11 @@ function rowToItem(row: OrderItemRow): OrderItem {
     quantity: row.quantity,
     unitPrice: row.unit_price,
     unitCost: row.unit_cost,
+    stockApplied: row.stock_applied,
   };
 }
 
-function buildOrder(row: OrderRow, items: OrderItem[]): Order {
+function buildOrder(row: OrderRow, items: OrderItemEntity[]): OrderEntity {
   return {
     id: row.id,
     customerName: row.customer_name,
@@ -68,23 +53,23 @@ function buildOrder(row: OrderRow, items: OrderItem[]): Order {
 }
 
 export interface DeleteOrderResult {
-  updatedProducts: Product[];
+  updatedProducts: ProductEntity[];
 }
 
 export interface SetOrderStatusResult {
-  order: Order;
-  updatedProducts: Product[];
+  order: OrderEntity;
+  updatedProducts: ProductEntity[];
 }
 
 export function makeOrdersRepository(db: Database.Database) {
-  function getItemsForOrder(orderId: string): OrderItem[] {
+  function getItemsForOrder(orderId: string): OrderItemEntity[] {
     const rows = db
       .prepare('SELECT * FROM order_items WHERE order_id = ?')
       .all(orderId) as OrderItemRow[];
     return rows.map(rowToItem);
   }
 
-  function findById(id: string): Order | null {
+  function findById(id: string): OrderEntity | null {
     const row = db.prepare('SELECT * FROM orders WHERE id = ?').get(id) as OrderRow | undefined;
     if (!row) return null;
     return buildOrder(row, getItemsForOrder(id));
@@ -108,12 +93,6 @@ export function makeOrdersRepository(db: Database.Database) {
     }
   }
 
-  function getStockLedger(orderId: string): StockLedgerRow[] {
-    return db
-      .prepare('SELECT id, product_id, quantity, stock_applied FROM order_items WHERE order_id = ?')
-      .all(orderId) as StockLedgerRow[];
-  }
-
   /**
    * Descreve o que falta em estoque para concluir o pedido. Soma por produto,
    * porque o mesmo produto pode aparecer em mais de um item.
@@ -123,10 +102,10 @@ export function makeOrdersRepository(db: Database.Database) {
    */
   function findStockShortages(orderId: string): string[] {
     const requiredByProduct = new Map<string, number>();
-    for (const row of getStockLedger(orderId)) {
+    for (const item of getItemsForOrder(orderId)) {
       requiredByProduct.set(
-        row.product_id,
-        (requiredByProduct.get(row.product_id) ?? 0) + row.quantity,
+        item.productId,
+        (requiredByProduct.get(item.productId) ?? 0) + item.quantity,
       );
     }
 
@@ -147,14 +126,14 @@ export function makeOrdersRepository(db: Database.Database) {
    * Baixa do estoque a quantidade de cada item e registra quanto saiu de fato —
    * que é menos que o pedido quando o saldo não cobria.
    */
-  function deductStockForOrder(orderId: string): Product[] {
-    const updated: Product[] = [];
+  function deductStockForOrder(orderId: string): ProductEntity[] {
+    const updated: ProductEntity[] = [];
     const recordApplied = db.prepare('UPDATE order_items SET stock_applied = ? WHERE id = ?');
 
-    for (const row of getStockLedger(orderId)) {
-      const adjustment = adjustProductStock(db, row.product_id, -row.quantity);
+    for (const item of getItemsForOrder(orderId)) {
+      const adjustment = adjustProductStock(db, item.productId, -item.quantity);
       if (adjustment) updated.push(adjustment.product);
-      recordApplied.run(-(adjustment?.appliedDelta ?? 0), row.id);
+      recordApplied.run(-(adjustment?.appliedDelta ?? 0), item.id);
     }
 
     return updated;
@@ -164,27 +143,27 @@ export function makeOrdersRepository(db: Database.Database) {
    * Devolve ao estoque exatamente o que a conclusão tirou. Serve tanto para
    * reabrir ou cancelar quanto para excluir uma venda.
    */
-  function restoreStockForOrder(orderId: string): Product[] {
-    const updated: Product[] = [];
+  function restoreStockForOrder(orderId: string): ProductEntity[] {
+    const updated: ProductEntity[] = [];
     const clearApplied = db.prepare('UPDATE order_items SET stock_applied = 0 WHERE id = ?');
 
-    for (const row of getStockLedger(orderId)) {
-      const adjustment = adjustProductStock(db, row.product_id, row.stock_applied);
+    for (const item of getItemsForOrder(orderId)) {
+      const adjustment = adjustProductStock(db, item.productId, item.stockApplied);
       if (adjustment) updated.push(adjustment.product);
-      clearApplied.run(row.id);
+      clearApplied.run(item.id);
     }
 
     return updated;
   }
 
   return {
-    list(): Order[] {
+    list(): OrderEntity[] {
       const orderRows = db
         .prepare('SELECT * FROM orders ORDER BY created_at ASC')
         .all() as OrderRow[];
       const itemRows = db.prepare('SELECT * FROM order_items').all() as OrderItemRow[];
 
-      const itemsByOrder = new Map<string, OrderItem[]>();
+      const itemsByOrder = new Map<string, OrderItemEntity[]>();
       for (const row of itemRows) {
         const items = itemsByOrder.get(row.order_id) ?? [];
         items.push(rowToItem(row));
@@ -196,9 +175,9 @@ export function makeOrdersRepository(db: Database.Database) {
 
     findById,
 
-    create(data: CreateOrderData): Order {
+    create(data: CreateOrderData): OrderEntity {
       const now = new Date().toISOString();
-      const order: Order = {
+      const order = {
         ...data,
         id: randomUUID(),
         // Sem data informada, a venda é de agora — o comportamento de sempre.
@@ -223,10 +202,17 @@ export function makeOrdersRepository(db: Database.Database) {
       });
       insertTransaction();
 
-      return order;
+      // Reconsulta em vez de devolver `order`: os itens recém-inseridos ganham
+      // `stockApplied` (default 0 no schema) que `data.items` não carrega.
+      const created = findById(order.id);
+      if (!created) {
+        throw new Error(`Order not found after insert: ${order.id}`);
+      }
+
+      return created;
     },
 
-    update(id: string, data: UpdateOrderData): Order | null {
+    update(id: string, data: UpdateOrderData): OrderEntity | null {
       const existing = findById(id);
       if (!existing) return null;
 
@@ -261,14 +247,21 @@ export function makeOrdersRepository(db: Database.Database) {
       });
       updateTransaction();
 
-      return { ...existing, ...data, createdAt, updatedAt };
+      // Mesmo motivo do `create`: os itens recriados por `insertItems` zeram
+      // `stockApplied`, e só a reconsulta reflete isso na entidade devolvida.
+      const updated = findById(id);
+      if (!updated) {
+        throw new Error(`Order not found after update: ${id}`);
+      }
+
+      return updated;
     },
 
-    setStatus(id: string, newStatus: OrderStatus): SetOrderStatusResult | null {
+    setStatus(id: string, newStatus: OrderStatusEntity): SetOrderStatusResult | null {
       const existing = findById(id);
       if (!existing) return null;
 
-      const updatedProducts: Product[] = [];
+      const updatedProducts: ProductEntity[] = [];
 
       // Composição de transação + regra de negócio adiada para o service
       // (ticket 5): o 409 de falta de estoque continua aqui por ora.
@@ -310,7 +303,7 @@ export function makeOrdersRepository(db: Database.Database) {
       return { order, updatedProducts };
     },
 
-    setPaymentAmount(id: string, amountPaid: number): Order | null {
+    setPaymentAmount(id: string, amountPaid: number): OrderEntity | null {
       const existing = findById(id);
       if (!existing) return null;
 
@@ -331,7 +324,7 @@ export function makeOrdersRepository(db: Database.Database) {
       const existing = findById(id);
       if (!existing) return null;
 
-      const updatedProducts: Product[] = [];
+      const updatedProducts: ProductEntity[] = [];
 
       const deleteTransaction = db.transaction(() => {
         // Excluir uma venda concluída precisa devolver o estoque que ela baixou,

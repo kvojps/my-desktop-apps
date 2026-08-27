@@ -1,6 +1,7 @@
 import type Database from 'better-sqlite3';
 import { randomUUID } from 'node:crypto';
 import type { Product } from '@shared/types/product';
+import type { ProductEntity } from '../../../domain/product';
 
 interface ProductRow {
   id: string;
@@ -16,7 +17,7 @@ interface ProductRow {
   updated_at: string;
 }
 
-function rowToProduct(row: ProductRow): Product {
+function rowToProduct(row: ProductRow): ProductEntity {
   return {
     id: row.id,
     name: row.name,
@@ -37,13 +38,13 @@ function rowToProduct(row: ProductRow): Product {
  * (junto de `adjustProductStock`), acoplamento entre repositórios que o
  * service deveria mediar — fica para quando o service existir (ticket 5).
  */
-export function getProductById(db: Database.Database, id: string): Product | null {
+export function getProductById(db: Database.Database, id: string): ProductEntity | null {
   const row = db.prepare('SELECT * FROM products WHERE id = ?').get(id) as ProductRow | undefined;
   return row ? rowToProduct(row) : null;
 }
 
 export interface StockAdjustment {
-  product: Product;
+  product: ProductEntity;
   /**
    * Variação que o estoque de fato sofreu. Difere de `delta` quando a baixa
    * pedida é maior que o saldo disponível — o estoque para em zero em vez de
@@ -66,7 +67,7 @@ export function adjustProductStock(
   if (!existing) return null;
 
   const stock = Math.max(0, existing.stock + delta);
-  const updated: Product = {
+  const updated: ProductEntity = {
     ...existing,
     stock,
     updatedAt: new Date().toISOString(),
@@ -81,20 +82,20 @@ export function adjustProductStock(
 
 export function makeProductsRepository(db: Database.Database) {
   return {
-    list(): Product[] {
+    list(): ProductEntity[] {
       const rows = db
         .prepare('SELECT * FROM products ORDER BY created_at ASC')
         .all() as ProductRow[];
       return rows.map(rowToProduct);
     },
 
-    findById(id: string): Product | null {
+    findById(id: string): ProductEntity | null {
       return getProductById(db, id);
     },
 
-    create(data: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>): Product {
+    create(data: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>): ProductEntity {
       const now = new Date().toISOString();
-      const product: Product = {
+      const product: ProductEntity = {
         ...data,
         id: randomUUID(),
         createdAt: now,
@@ -109,11 +110,11 @@ export function makeProductsRepository(db: Database.Database) {
       return product;
     },
 
-    update(id: string, data: Partial<Product>): Product | null {
+    update(id: string, data: Partial<Product>): ProductEntity | null {
       const existing = getProductById(db, id);
       if (!existing) return null;
 
-      const updated: Product = {
+      const updated: ProductEntity = {
         ...existing,
         ...data,
         id: existing.id,
@@ -129,7 +130,7 @@ export function makeProductsRepository(db: Database.Database) {
       return updated;
     },
 
-    delete(id: string): Product | null {
+    delete(id: string): ProductEntity | null {
       const existing = getProductById(db, id);
       if (!existing) return null;
 
