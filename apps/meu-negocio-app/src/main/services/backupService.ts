@@ -1,21 +1,20 @@
 import type { ExportResult, ImportResult } from '@shared/ipc/api';
-import type { BackupData } from '@shared/types/backup';
-import { backupSchema } from '../controllers/schemas/backup.schema';
 import type { Repositories } from '../infra/database';
-import { exportData } from '../infra/database/repositories/backupRepository';
+import { exportData, parseBackupData } from '../infra/database/repositories/backupRepository';
 import type { DialogParentWindow, DialogsGateway } from '../infra/gateways/system/dialogs';
 import type { FileSystemGateway } from '../infra/gateways/system/fileSystem';
 import type { ShellGateway } from '../infra/gateways/system/shell';
 
 /**
  * Exportar e importar o banco inteiro em JSON. A orquestração — diálogo nativo,
- * disco, parse, validação e a escolha do formato de erro — morava no handler de
- * IPC; aqui ela é uma camada.
+ * disco, o `JSON.parse` e a escolha do formato de erro que o usuário vê — morava
+ * no handler de IPC; aqui ela é uma camada.
  *
  * Os três gateways chegam por parâmetro pelo motivo de sempre nos de `system/`:
- * falam Electron. `exportData`/`importData` seguem em `infra/database/` — são
- * leitura/escrita de linhas cruas, sem regra de negócio; este service só as
- * costura com o disco e o diálogo.
+ * falam Electron. `exportData`/`parseBackupData`/`importData` seguem em
+ * `infra/database/` — leitura, conferência de forma e escrita de linhas cruas;
+ * este service não conhece zod (README §2.2), só costura essas peças com o disco
+ * e o diálogo e traduz cada falha para o `ImportResult`.
  */
 export function makeBackupService(
   repos: Repositories,
@@ -59,12 +58,12 @@ export function makeBackupService(
         return { success: false, error: 'invalid-json' };
       }
 
-      const validated = backupSchema.safeParse(parsed);
-      if (!validated.success) {
+      const data = parseBackupData(parsed);
+      if (!data) {
         return { success: false, error: 'invalid-format' };
       }
 
-      repos.importBackup(validated.data as BackupData);
+      repos.importBackup(data);
       return { success: true };
     },
 
