@@ -92,8 +92,7 @@ export function makeOrdersService(repos: Repositories) {
     return updated;
   }
 
-  const orderNotFound = (id: string): AppError =>
-    new AppError(404, `Pedido não encontrado: ${id}`);
+  const orderNotFound = (id: string): AppError => new AppError(404, `Pedido não encontrado: ${id}`);
 
   function requireOrder(id: string): OrderEntity {
     const order = repos.orders.findById(id);

@@ -1,17 +1,25 @@
+import type { AppInfo } from '@shared/types/appInfo';
 import type { CompanySettings } from '@shared/types/settings';
 import { THEME_MODE_KEY, type ThemeModeEntity } from '../domain/theme';
 import type { Repositories } from '../infra/database';
+import type { AppInfoGateway } from '../infra/gateways/system/appInfo';
 import type { ThemeModeGateway } from '../infra/gateways/system/themeMode';
 
 /**
- * As preferências do app: os dados da empresa e o modo de tema.
+ * As preferências do app: os dados da empresa, o modo de tema e a informação de
+ * build (`app:getInfo`).
  *
- * O gateway de tema chega por parâmetro, não por import: ele fala Electron
- * (`nativeTheme`, `BrowserWindow`), e o service que o importasse direto o
- * conheceria por transitividade — que é o que a camada existe para impedir
- * (README §2.2). Mesmo motivo dos gateways de `system/` no `git-dlog`.
+ * Os gateways chegam por parâmetro, não por import: `themeMode` fala Electron
+ * (`nativeTheme`, `BrowserWindow`) e `appInfo` fala `app.getVersion()` — o
+ * service que os importasse direto os conheceria por transitividade, que é o que
+ * a camada existe para impedir (README §2.2). Mesmo motivo dos gateways de
+ * `system/` no `git-dlog`.
  */
-export function makeSettingsService(repos: Repositories, themeMode: ThemeModeGateway) {
+export function makeSettingsService(
+  repos: Repositories,
+  themeMode: ThemeModeGateway,
+  appInfo: AppInfoGateway,
+) {
   return {
     getSettings(): CompanySettings {
       return repos.settings.getSettings();
@@ -19,6 +27,11 @@ export function makeSettingsService(repos: Repositories, themeMode: ThemeModeGat
 
     updateSettings(data: CompanySettings): CompanySettings {
       return repos.settings.updateSettings(data);
+    },
+
+    /** Versão e caminho do banco — o que a tela de Configurações exibe. */
+    getAppInfo(): AppInfo {
+      return { version: appInfo.version(), dbPath: appInfo.dbPath() };
     },
 
     /**
