@@ -3,9 +3,9 @@ import { BrowserWindow, type IpcMainInvokeEvent, app, dialog, shell } from 'elec
 import fs from 'node:fs/promises';
 import type { BackupData, ExportResult, ImportResult } from '@shared/ipc/api';
 import { IPC_CHANNELS } from '@shared/ipc/channels';
-import { exportData, importData } from '../db/backupRepository';
-import { backupSchema } from '../schemas/backup.schema';
+import { exportData, importData } from '../infra/database/repositories/backupRepository';
 import { handle } from './handle';
+import { backupSchema } from './schemas/backup.schema';
 
 function windowFor(event: IpcMainInvokeEvent): BrowserWindow {
   const window = BrowserWindow.fromWebContents(event.sender);

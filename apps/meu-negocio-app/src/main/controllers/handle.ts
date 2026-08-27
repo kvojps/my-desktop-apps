@@ -1,6 +1,6 @@
 import { ipcMain } from 'electron';
 import { shouldNotifyDataChanged } from '@shared/ipc/channels';
-import { toIpcError } from '../errors/toIpcError';
+import { toIpcError } from '../utils/errors/toIpcError';
 import { notifyDataChanged } from './notifyDataChanged';
 
 type IpcListener = Parameters<typeof ipcMain.handle>[1];

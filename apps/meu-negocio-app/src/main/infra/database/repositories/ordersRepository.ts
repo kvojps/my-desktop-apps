@@ -8,7 +8,7 @@ import type {
   UpdateOrderData,
 } from '@shared/types/order';
 import type { Product } from '@shared/types/product';
-import { AppError } from '../errors/AppError';
+import { AppError } from '../../../utils/errors/AppError';
 import { adjustProductStock, getProductById } from './productsRepository';
 
 interface OrderRow {

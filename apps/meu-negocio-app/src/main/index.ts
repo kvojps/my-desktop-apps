@@ -3,10 +3,15 @@ import path from 'node:path';
 import { APP_ERROR_DESCRIPTIONS } from '@shared/errors/appError';
 import type { ThemeMode } from '@shared/types/theme';
 import icon from '../../resources/icon.png?asset';
-import { initDb } from './db/connection';
-import { classifyError } from './errors/toIpcError';
-import { registerIpcHandlers } from './ipc/registerIpc';
-import { applyThemeMode, getThemeMode, resolveThemeMode, themeBackground } from './theme/themeMode';
+import { registerIpcHandlers } from './controllers/registerIpc';
+import { initDb } from './infra/database/connection';
+import {
+  applyThemeMode,
+  getThemeMode,
+  resolveThemeMode,
+  themeBackground,
+} from './infra/gateways/system/themeMode';
+import { classifyError } from './utils/errors/toIpcError';
 
 // Fixa a pasta userData existente (%APPDATA%/meu-negocio-app);
 // mudar este nome deixa o banco de dados dos usuários órfão.

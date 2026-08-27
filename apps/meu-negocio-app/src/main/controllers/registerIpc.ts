@@ -2,8 +2,8 @@ import type Database from 'better-sqlite3';
 import { app } from 'electron';
 import { IPC_CHANNELS } from '@shared/ipc/channels';
 import type { AppInfo } from '@shared/types/appInfo';
-import { setAppSetting } from '../db/appSettingsRepository';
-import { getDbPath } from '../db/connection';
+import { getDbPath } from '../infra/database/connection';
+import { setAppSetting } from '../infra/database/repositories/appSettingsRepository';
 import {
   addOrder,
   deleteOrder,
@@ -11,23 +11,28 @@ import {
   setOrderPaymentAmount,
   setOrderStatus,
   updateOrder,
-} from '../db/ordersRepository';
-import { addProduct, deleteProduct, getAllProducts, updateProduct } from '../db/productsRepository';
-import { getSettings, updateSettings } from '../db/settingsRepository';
+} from '../infra/database/repositories/ordersRepository';
+import {
+  addProduct,
+  deleteProduct,
+  getAllProducts,
+  updateProduct,
+} from '../infra/database/repositories/productsRepository';
+import { getSettings, updateSettings } from '../infra/database/repositories/settingsRepository';
+import { THEME_MODE_KEY, applyThemeMode, getThemeMode } from '../infra/gateways/system/themeMode';
+import { parseId } from '../utils/parseId';
+import { parseOrThrow } from '../utils/validate';
+import { registerBackupHandlers } from './backupHandlers';
+import { handle } from './handle';
 import {
   createOrderSchema,
   orderStatusSchema,
   paymentAmountSchema,
   updateOrderSchema,
-} from '../schemas/orders.schema';
-import { createProductSchema, updateProductSchema } from '../schemas/products.schema';
-import { companySettingsSchema } from '../schemas/settings.schema';
-import { themeModeSchema } from '../schemas/theme.schema';
-import { THEME_MODE_KEY, applyThemeMode, getThemeMode } from '../theme/themeMode';
-import { parseId } from '../utils/parseId';
-import { parseOrThrow } from '../utils/validate';
-import { registerBackupHandlers } from './backupHandlers';
-import { handle } from './handle';
+} from './schemas/orders.schema';
+import { createProductSchema, updateProductSchema } from './schemas/products.schema';
+import { companySettingsSchema } from './schemas/settings.schema';
+import { themeModeSchema } from './schemas/theme.schema';
 
 export function registerIpcHandlers(db: Database.Database): void {
   registerBackupHandlers(db);

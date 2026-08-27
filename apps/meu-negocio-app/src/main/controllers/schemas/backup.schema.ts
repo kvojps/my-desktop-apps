@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { BACKUP_VERSION } from '../db/backupRepository';
+import { BACKUP_VERSION } from '../../infra/database/repositories/backupRepository';
 import { orderStatusSchema } from './orders.schema';
 import { companySettingsSchema } from './settings.schema';
 

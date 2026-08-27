@@ -1,5 +1,5 @@
 import { ZodType } from 'zod';
-import { AppError } from '../errors/AppError';
+import { AppError } from './errors/AppError';
 
 export function parseOrThrow<T>(schema: ZodType<T>, data: unknown): T {
   const result = schema.safeParse(data);

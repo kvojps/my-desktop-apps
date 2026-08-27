@@ -1,7 +1,7 @@
 import type Database from 'better-sqlite3';
 import { BrowserWindow, nativeTheme } from 'electron';
 import type { ThemeMode } from '@shared/types/theme';
-import { getAppSetting } from '../db/appSettingsRepository';
+import { getAppSetting } from '../../database/repositories/appSettingsRepository';
 
 export const THEME_MODE_KEY = 'theme.mode';
 
