@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import type { CompanySettings } from '@shared/types/settings';
 import { api } from '@/api/client';
 import { useSnackbar } from '@/contexts/SnackbarContext';
+import { useDataChanged } from '@/hooks/useDataChanged';
 import {
   type SettingsFormValues,
   emptySettingsFormValues,
@@ -24,8 +25,6 @@ export function useSettings() {
   const [error, setError] = useState<unknown>(null);
   const [attempt, setAttempt] = useState(0);
 
-  const retry = useCallback(() => setAttempt((n) => n + 1), []);
-
   const form = useForm<SettingsFormValues>({
     resolver: zodResolver(settingsFormSchema),
     defaultValues: emptySettingsFormValues,
@@ -33,27 +32,30 @@ export function useSettings() {
 
   const { reset } = form;
 
+  const reload = useCallback(async () => {
+    try {
+      const settings = await api.getSettings();
+      reset(settings);
+      setError(null);
+    } catch (err) {
+      setError(err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [reset]);
+
   useEffect(() => {
-    let active = true;
+    reload();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [attempt]);
+
+  useDataChanged(reload);
+
+  const retry = useCallback(() => {
     setIsLoading(true);
     setError(null);
-
-    api
-      .getSettings()
-      .then((settings) => {
-        if (active) reset(settings);
-      })
-      .catch((err) => {
-        if (active) setError(err);
-      })
-      .finally(() => {
-        if (active) setIsLoading(false);
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [reset, attempt]);
+    setAttempt((n) => n + 1);
+  }, []);
 
   const onSubmit = form.handleSubmit(async (values) => {
     setIsSaving(true);

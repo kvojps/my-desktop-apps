@@ -27,6 +27,14 @@ async function call<T>(fn: () => Promise<T>): Promise<T> {
  * IPC, e o resto do renderer fala com métodos comuns.
  */
 export const api = {
+  /**
+   * Assina o aviso de mudança de dados e devolve a função de cancelamento.
+   * Não passa por `call`: não é `invoke` e não produz erro de IPC.
+   */
+  onDataChanged(listener: () => void) {
+    return window.api.onDataChanged(listener);
+  },
+
   getProducts() {
     return call(() => window.api.products.getAll());
   },

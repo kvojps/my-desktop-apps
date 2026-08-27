@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import type { Product } from '@shared/types/product';
 import { api } from '@/api/client';
+import { useDataChanged } from '@/hooks/useDataChanged';
 import { useSnackbar } from './SnackbarContext';
 
 export interface ProductsContextValue {
@@ -29,7 +30,7 @@ export function ProductsProvider({ children }: { children: React.ReactNode }) {
     setError(null);
   }
 
-  function load() {
+  function reload() {
     refreshProducts()
       .catch((err) => {
         setError(err);
@@ -39,14 +40,16 @@ export function ProductsProvider({ children }: { children: React.ReactNode }) {
   }
 
   useEffect(() => {
-    load();
+    reload();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useDataChanged(reload);
 
   const retry = useCallback(() => {
     setIsLoading(true);
     setError(null);
-    load();
+    reload();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

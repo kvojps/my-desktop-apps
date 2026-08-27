@@ -20,6 +20,11 @@ function readInitialThemeMode(): ThemeMode | null {
 }
 
 const api: ElectronApi = {
+  onDataChanged: (listener) => {
+    const handler = () => listener();
+    ipcRenderer.on(IPC_CHANNELS.dataChanged, handler);
+    return () => ipcRenderer.removeListener(IPC_CHANNELS.dataChanged, handler);
+  },
   products: {
     getAll: () => ipcRenderer.invoke(IPC_CHANNELS.productsGetAll),
     add: (data: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>) =>

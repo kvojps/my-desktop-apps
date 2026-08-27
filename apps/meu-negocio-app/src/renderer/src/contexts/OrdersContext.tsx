@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import type { CreateOrderData, Order, OrderStatus, UpdateOrderData } from '@shared/types/order';
 import { api } from '@/api/client';
+import { useDataChanged } from '@/hooks/useDataChanged';
 import { useProductsContext } from './ProductsContext';
 import { useSnackbar } from './SnackbarContext';
 
@@ -34,7 +35,7 @@ export function OrdersProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<unknown>(null);
 
-  function load() {
+  function reload() {
     api
       .getOrders()
       .then((all) => {
@@ -49,14 +50,16 @@ export function OrdersProvider({ children }: { children: React.ReactNode }) {
   }
 
   useEffect(() => {
-    load();
+    reload();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useDataChanged(reload);
 
   const retry = useCallback(() => {
     setIsLoading(true);
     setError(null);
-    load();
+    reload();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
