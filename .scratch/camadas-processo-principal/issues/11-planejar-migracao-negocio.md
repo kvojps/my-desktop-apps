@@ -1,4 +1,4 @@
-Status: aberto
+Status: resolvido
 Blocked by: 09
 
 # Planejar a migração do Meu Negócio
@@ -34,3 +34,23 @@ lugar onde as duas peças mais estruturais do desenho ganham call site de verdad
 O resultado deste ticket é uma spec nova em `.scratch/`, não código.
 
 ## Comments
+
+### 2026-08-27 — planejado
+
+Sessão de grilling (skill `grill-with-docs`) seguida de plan mode. 9 decisões, todas
+confirmadas: spec em diretório-irmão próprio; 6 tickets de execução (persistência e gateway
+colapsados, ao contrário do `git-dlog`); conformidade do `handle` como ticket isolado antes da
+reorganização; ausência unificada incluindo comportamento (`delete` passa a lançar 404, não só
+o retorno vira `null`); clamp de estoque migra para o service; `setOrderStatus` inteiro vira
+closure autorada pelo service dentro de `repos.transaction(fn)`; `stockApplied` fica como campo
+de `OrderItemEntity`, sem entidade `StockLedger` própria; gateways de backup com os mesmos nomes
+do `git-dlog`; teste adiado exceto no ticket de conformidade do `handle`.
+
+Achado corrigido em relação ao item 6 deste ticket: `db/backupRepository.ts` **não** importa
+`fs` — quem mistura diálogo, disco e orquestração é `ipc/backupHandlers.ts`. O destino (README
+§2.2) continua o mesmo, só o arquivo de origem muda.
+
+Spec nova: `.scratch/negocio-camadas-processo-principal/spec.md`, com 7 tickets em
+`.scratch/negocio-camadas-processo-principal/issues/`. Plano completo, se precisar do raciocínio
+por trás de cada decisão:
+`C:\Users\josef\.claude\plans\voc-s-respons-vel-greedy-fern.md`.
