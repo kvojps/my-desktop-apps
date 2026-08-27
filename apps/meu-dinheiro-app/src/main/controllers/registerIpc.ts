@@ -1,33 +1,33 @@
 import type Database from 'better-sqlite3';
 import type { ReceiptPayload } from '@shared/ipc/api';
 import { IPC_CHANNELS } from '@shared/ipc/channels';
-import { setAppSetting } from '../db/appSettingsRepository';
+import { getUploadsDir } from '../infra/database/connection';
+import { setAppSetting } from '../infra/database/repositories/appSettingsRepository';
 import {
   createBankAccount,
   deleteBankAccount,
   listBankAccounts,
   updateBankAccount,
-} from '../db/bankAccountsRepository';
+} from '../infra/database/repositories/bankAccountsRepository';
 import {
   createCategory,
   deleteCategory,
   getCategoryTotalsForYear,
   listCategories,
   updateCategory,
-} from '../db/categoriesRepository';
-import { getUploadsDir } from '../db/connection';
+} from '../infra/database/repositories/categoriesRepository';
 import {
   createDefaultExpense,
   deleteDefaultExpense,
   listDefaultExpenses,
   updateDefaultExpense,
-} from '../db/defaultExpensesRepository';
+} from '../infra/database/repositories/defaultExpensesRepository';
 import {
   createDefaultIncome,
   deleteDefaultIncome,
   listDefaultIncomes,
   updateDefaultIncome,
-} from '../db/defaultIncomesRepository';
+} from '../infra/database/repositories/defaultIncomesRepository';
 import {
   createExpense,
   deleteExpense,
@@ -36,7 +36,7 @@ import {
   payExpense,
   unpayExpense,
   updateExpense,
-} from '../db/expensesRepository';
+} from '../infra/database/repositories/expensesRepository';
 import {
   createIncome,
   deleteIncome,
@@ -44,44 +44,44 @@ import {
   receiveIncome,
   unreceiveIncome,
   updateIncome,
-} from '../db/incomesRepository';
+} from '../infra/database/repositories/incomesRepository';
 import {
   createMonthsBatch,
   createNextMonth,
   deleteMonth,
   getMonthWithExpenses,
   listMonths,
-} from '../db/monthsRepository';
-import { runSetup } from '../db/setupRepository';
-import { openReceiptFile, saveReceiptFile } from '../files/receiptsStorage';
-import { createBankAccountSchema, updateBankAccountSchema } from '../schemas/bankAccounts.schema';
-import { createCategorySchema, updateCategorySchema } from '../schemas/categories.schema';
-import {
-  createDefaultExpenseSchema,
-  updateDefaultExpenseSchema,
-} from '../schemas/defaultExpenses.schema';
-import {
-  createDefaultIncomeSchema,
-  updateDefaultIncomeSchema,
-} from '../schemas/defaultIncomes.schema';
-import {
-  createExpenseSchema,
-  payExpenseSchema,
-  updateExpenseSchema,
-} from '../schemas/expenses.schema';
-import {
-  createIncomeSchema,
-  receiveIncomeSchema,
-  updateIncomeSchema,
-} from '../schemas/incomes.schema';
-import { createMonthSchema, createMonthsBatchSchema } from '../schemas/months.schema';
-import { setupSchema } from '../schemas/setup.schema';
-import { themeModeSchema } from '../schemas/theme.schema';
-import { THEME_MODE_KEY, applyThemeMode, getThemeMode } from '../theme/themeMode';
+} from '../infra/database/repositories/monthsRepository';
+import { runSetup } from '../infra/database/repositories/setupRepository';
+import { openReceiptFile, saveReceiptFile } from '../infra/gateways/receipts';
+import { THEME_MODE_KEY, applyThemeMode, getThemeMode } from '../infra/gateways/system/themeMode';
 import { parseId } from '../utils/parseId';
 import { parseOrThrow } from '../utils/validate';
 import { registerBackupHandlers } from './backupHandlers';
 import { handle } from './handle';
+import { createBankAccountSchema, updateBankAccountSchema } from './schemas/bankAccounts.schema';
+import { createCategorySchema, updateCategorySchema } from './schemas/categories.schema';
+import {
+  createDefaultExpenseSchema,
+  updateDefaultExpenseSchema,
+} from './schemas/defaultExpenses.schema';
+import {
+  createDefaultIncomeSchema,
+  updateDefaultIncomeSchema,
+} from './schemas/defaultIncomes.schema';
+import {
+  createExpenseSchema,
+  payExpenseSchema,
+  updateExpenseSchema,
+} from './schemas/expenses.schema';
+import {
+  createIncomeSchema,
+  receiveIncomeSchema,
+  updateIncomeSchema,
+} from './schemas/incomes.schema';
+import { createMonthSchema, createMonthsBatchSchema } from './schemas/months.schema';
+import { setupSchema } from './schemas/setup.schema';
+import { themeModeSchema } from './schemas/theme.schema';
 
 export function registerIpcHandlers(db: Database.Database): void {
   const uploadsDir = getUploadsDir();

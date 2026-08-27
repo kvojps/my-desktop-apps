@@ -1,7 +1,7 @@
 import { shell } from 'electron';
 import fs from 'fs';
 import path from 'path';
-import { AppError } from '../errors/AppError';
+import { AppError } from '../../utils/errors/AppError';
 
 const ALLOWED = /jpeg|jpg|png|gif|pdf/;
 const MAX_SIZE = 10 * 1024 * 1024;

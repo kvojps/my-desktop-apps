@@ -1,7 +1,7 @@
 import Database from 'better-sqlite3';
 import type { DefaultExpense } from '@shared/types/expense';
-import { formatDueDate } from '../constants/monthNames';
-import { AppError } from '../errors/AppError';
+import { formatDueDate } from '../../../domain/monthNames';
+import { AppError } from '../../../utils/errors/AppError';
 
 /** Colunas cruas da tabela; o banco continua em snake_case. */
 export interface DefaultExpenseRow {

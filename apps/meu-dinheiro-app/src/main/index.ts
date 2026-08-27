@@ -3,12 +3,17 @@ import path from 'node:path';
 import { APP_ERROR_DESCRIPTIONS } from '@shared/errors/appError';
 import type { ThemeMode } from '@shared/types/theme';
 import icon from '../../resources/icon.png?asset';
-import { initDb } from './db/connection';
-import { ensureCurrentMonthExists } from './db/monthsRepository';
-import { classifyError } from './errors/toIpcError';
-import { notifyDataChanged } from './ipc/notifyDataChanged';
-import { registerIpcHandlers } from './ipc/registerIpc';
-import { applyThemeMode, getThemeMode, resolveThemeMode, themeBackground } from './theme/themeMode';
+import { notifyDataChanged } from './controllers/notifyDataChanged';
+import { registerIpcHandlers } from './controllers/registerIpc';
+import { initDb } from './infra/database/connection';
+import { ensureCurrentMonthExists } from './infra/database/repositories/monthsRepository';
+import {
+  applyThemeMode,
+  getThemeMode,
+  resolveThemeMode,
+  themeBackground,
+} from './infra/gateways/system/themeMode';
+import { classifyError } from './utils/errors/toIpcError';
 
 app.setName('meu-dinheiro');
 

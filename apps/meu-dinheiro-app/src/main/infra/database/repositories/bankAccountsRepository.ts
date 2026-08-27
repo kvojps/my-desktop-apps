@@ -1,6 +1,6 @@
 import Database from 'better-sqlite3';
 import type { BankAccount } from '@shared/types/bank-account';
-import { AppError } from '../errors/AppError';
+import { AppError } from '../../../utils/errors/AppError';
 
 /** Colunas cruas da tabela; o banco continua em snake_case. */
 export interface BankAccountRow {

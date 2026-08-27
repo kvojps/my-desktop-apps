@@ -4,7 +4,7 @@ import { app } from 'electron';
 import fs from 'fs';
 import path from 'path';
 import unzipper from 'unzipper';
-import { AppError } from '../errors/AppError';
+import { AppError } from '../../../utils/errors/AppError';
 
 export function getExportData(db: Database.Database) {
   return {

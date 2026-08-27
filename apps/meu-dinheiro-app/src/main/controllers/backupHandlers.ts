@@ -2,10 +2,16 @@ import type Database from 'better-sqlite3';
 import { BrowserWindow, type IpcMainInvokeEvent, app, dialog, shell } from 'electron';
 import type { ExportResult, ImportResult } from '@shared/ipc/api';
 import { IPC_CHANNELS } from '@shared/ipc/channels';
-import { deleteAppSetting } from '../db/appSettingsRepository';
-import { exportToZipFile, importFromZipFile } from '../db/backupRepository';
-import { LAST_CURRENT_MONTH_KEY, ensureCurrentMonthExists } from '../db/monthsRepository';
-import { AppError } from '../errors/AppError';
+import { deleteAppSetting } from '../infra/database/repositories/appSettingsRepository';
+import {
+  exportToZipFile,
+  importFromZipFile,
+} from '../infra/database/repositories/backupRepository';
+import {
+  LAST_CURRENT_MONTH_KEY,
+  ensureCurrentMonthExists,
+} from '../infra/database/repositories/monthsRepository';
+import { AppError } from '../utils/errors/AppError';
 import { handle } from './handle';
 
 function windowFor(event: IpcMainInvokeEvent): BrowserWindow {

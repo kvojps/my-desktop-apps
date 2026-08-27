@@ -1,6 +1,6 @@
 import Database from 'better-sqlite3';
 import type { Month } from '@shared/types/month';
-import { AppError } from '../errors/AppError';
+import { AppError } from '../../../utils/errors/AppError';
 import { createMonthWithDefaults } from './monthsRepository';
 
 export function runSetup(

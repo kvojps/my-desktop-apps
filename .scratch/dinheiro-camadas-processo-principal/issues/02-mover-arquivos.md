@@ -1,4 +1,4 @@
-Status: aberto
+Status: resolvido
 
 # Meu Dinheiro: mover arquivos para a árvore de camadas
 
@@ -47,3 +47,38 @@ exatamente como antes — criar mês, pagar despesa, trocar tema, exportar/impor
 
 Ticket derivado da spec desta pasta (`../spec.md`, decisão 3). Commit único
 (`[refac]: …`) — mecânico, sem retrospectiva a escrever além das divergências, se houver.
+
+### Execução
+
+Feito com `git mv`: 30 arquivos renomeados, todos `R`/`RM` no `git status`, histórico
+preservado (`git show --stat` do commit lista `rename … (94–100%)`). Fora dos moves, só
+`index.ts` e `utils/validate.ts` mudaram, e só em import — nenhuma assinatura, nenhum
+comportamento. `constants/monthNames.ts` → `domain/monthNames.ts` é só troca de pasta.
+
+`files/receiptsStorage.ts` foi para `infra/gateways/receipts.ts` inteiro (renomeado o
+arquivo, como manda a decisão 10 da spec), com o `import { getAppSetting }` que
+`theme/themeMode.ts` puxa de `appSettingsRepository` ainda no lugar — o split
+gateway/service é do ticket 05.
+
+Sem alias `@main`: o `tsconfig.json` só resolve `@shared/*` e `@/*`. Os repositórios que
+desceram dois níveis (`db/` → `infra/database/repositories/`) trocaram `../errors/AppError`
+por `../../../utils/errors/AppError` e `../constants/monthNames` por
+`../../../domain/monthNames` — import relativo de três níveis, resultado mecânico correto,
+mesmo caminho que o `meu-negocio-app` seguiu.
+
+`prettier --write` reordenou/quebrou em múltiplas linhas os imports mais longos de
+`controllers/backupHandlers.ts`, `controllers/registerIpc.ts` e `index.ts`.
+
+Divergências de comportamento: nenhuma.
+
+### Verificação
+
+`npm run typecheck` (4 apps) 0 erros. `npm run lint` 0 erros (2 warnings pré-existentes em
+`OrdersContext.tsx`/`ProductsContext.tsx` do `meu-negocio-app`, não tocados). `npm test` 187
+passando (21 arquivos). `electron-vite build` do `meu-dinheiro-app`: main, preload e renderer
+compilam e o bundle sobe sem erro de resolução.
+
+`/code-review` (Standards + Spec) rodado mesmo não sendo exigido para o 02 — 0 achados nos
+dois eixos.
+
+Commit: `[refac]: move meu-dinheiro main to the layered tree`.

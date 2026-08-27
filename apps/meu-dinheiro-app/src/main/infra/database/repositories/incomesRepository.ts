@@ -1,6 +1,6 @@
 import Database from 'better-sqlite3';
 import type { Income } from '@shared/types/income';
-import { AppError } from '../errors/AppError';
+import { AppError } from '../../../utils/errors/AppError';
 import { creditBankAccount, debitBankAccount } from './bankAccountsRepository';
 
 /** Colunas cruas da tabela; o banco continua em snake_case. */

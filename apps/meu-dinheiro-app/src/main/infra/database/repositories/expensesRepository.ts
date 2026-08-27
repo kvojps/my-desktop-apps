@@ -1,7 +1,7 @@
 import Database from 'better-sqlite3';
 import type { Expense } from '@shared/types/expense';
-import { AppError } from '../errors/AppError';
-import { deleteReceiptFile } from '../files/receiptsStorage';
+import { AppError } from '../../../utils/errors/AppError';
+import { deleteReceiptFile } from '../../gateways/receipts';
 import { creditBankAccount, debitBankAccount } from './bankAccountsRepository';
 
 /** Colunas cruas da tabela; o banco continua em snake_case. */

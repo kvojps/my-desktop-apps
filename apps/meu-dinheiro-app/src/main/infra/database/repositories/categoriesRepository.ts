@@ -1,6 +1,6 @@
 import Database from 'better-sqlite3';
 import type { Category, CategoryTotal } from '@shared/types/category';
-import { AppError } from '../errors/AppError';
+import { AppError } from '../../../utils/errors/AppError';
 
 /** Colunas cruas da tabela; o banco continua em snake_case. */
 export interface CategoryRow {

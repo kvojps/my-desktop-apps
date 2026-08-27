@@ -1,7 +1,7 @@
 import Database from 'better-sqlite3';
 import type { Month, MonthDetail } from '@shared/types/month';
-import { formatDueDate, monthLabel } from '../constants/monthNames';
-import { AppError } from '../errors/AppError';
+import { formatDueDate, monthLabel } from '../../../domain/monthNames';
+import { AppError } from '../../../utils/errors/AppError';
 import { getAppSetting, setAppSetting } from './appSettingsRepository';
 import { rowToExpense } from './expensesRepository';
 import { rowToIncome } from './incomesRepository';
