@@ -1,4 +1,4 @@
-Status: aberto
+Status: resolvido
 
 # Meu Negócio: conformidade do `handle`
 
@@ -49,3 +49,23 @@ Teste novo permitido aqui — é o único ticket desta leva com essa permissão 
 spec), mesmo padrão do `channels.test.ts` do `git-dlog`.
 
 ## Comments
+
+### 2026-08-27 — implementado
+
+Os quatro passos entraram como pedido. `notifyDataChanged.ts` ficou byte-idêntico ao do
+`meu-dinheiro-app`, e `handle.ts` migrou para a versão B.
+
+Classificação de `READ_ONLY_CHANNELS`: `products:getAll`, `orders:getAll`, `settings:get`,
+`app:getInfo`, `data:openFolder` (os cinco candidatos do ticket) mais `theme:get` (leitura
+óbvia) e `theme:set`/`data:export` (avaliados e incluídos, pelo mesmo raciocínio do
+`settingsSaveThemeMode`/`shellOpenExternal` no `git-dlog`). `data:import` ficou de fora,
+como mandado — é a escrita mais pesada do app.
+
+A corrente fechou até o renderer: canal `data:changed`, `onDataChanged` no preload, no
+`ElectronApi` e no `api/client.ts`, `hooks/useDataChanged.ts`, e `useDataChanged(reload)`
+em `ProductsContext`, `OrdersContext` e `useSettings` — os três lugares que guardam dado.
+`useSettings` não é context (é hook usado direto pela tela de configurações), mas guarda
+dado do mesmo jeito, então entrou na mesma regra.
+
+Um `channels.test.ts` novo entrou, no mesmo padrão do `git-dlog`, coberto pela permissão do
+ticket.
