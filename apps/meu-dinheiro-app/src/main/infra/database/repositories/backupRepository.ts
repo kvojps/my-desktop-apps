@@ -1,29 +1,12 @@
-import { ZipArchive } from 'archiver';
-import Database from 'better-sqlite3';
-import { app } from 'electron';
-import fs from 'fs';
-import path from 'path';
-import unzipper from 'unzipper';
-import { AppError } from '../../../utils/errors/AppError';
-
-export function getExportData(db: Database.Database) {
-  return {
-    version: 1,
-    exported_at: new Date().toISOString(),
-    categories: db.prepare('SELECT * FROM categories').all(),
-    default_expenses: db.prepare('SELECT * FROM default_expenses').all(),
-    default_incomes: db.prepare('SELECT * FROM default_incomes').all(),
-    bank_accounts: db.prepare('SELECT * FROM bank_accounts').all(),
-    months: db.prepare('SELECT * FROM months ORDER BY year, month').all(),
-    expenses: db.prepare('SELECT * FROM expenses ORDER BY month_id').all(),
-    incomes: db.prepare('SELECT * FROM incomes ORDER BY month_id').all(),
-  };
-}
+import type Database from 'better-sqlite3';
+import { z } from 'zod';
+import type { Repositories } from '../index';
 
 /**
- * Linhas cruas do backup, já normalizadas (chaves legadas resolvidas). Descritas
- * aqui por enquanto — o `parseBackupData` que as valida e a tolerância completa a
- * formatos antigos são o ticket 05 (`../spec.md`, decisão 12).
+ * Linhas cruas do backup, já normalizadas (chaves legadas resolvidas). É o que
+ * `importData` grava e o que `parseBackupData` devolve — as duas metades do
+ * formato têm de bater, e o `tsc` segura isso porque `parseBackupData` devolve
+ * `BackupData` sem cast.
  */
 export interface BackupData {
   categories: { id: number; name: string; color: string }[];
@@ -67,28 +50,153 @@ export interface BackupData {
   }[];
 }
 
-export async function exportToZipFile(
-  db: Database.Database,
-  uploadsDir: string,
-  filePath: string,
-): Promise<void> {
-  const data = getExportData(db);
+/** O que vai para o `data.json` do `.zip` — `BackupData` mais o cabeçalho. */
+export interface BackupFile extends BackupData {
+  version: number;
+  exported_at: string;
+}
 
-  await new Promise<void>((resolve, reject) => {
-    const output = fs.createWriteStream(filePath);
-    const archive = new ZipArchive({ zlib: { level: 9 } });
+/**
+ * Lê as sete tabelas pela unidade de trabalho e as devolve na forma plana
+ * `snake_case` do arquivo de backup — a mesma que versões anteriores gravavam,
+ * para os `.zip` já exportados continuarem válidos. O `backupService` orquestra
+ * o disco e o diálogo em volta disto (spec desta pasta, decisão 12).
+ */
+export function exportData(repos: Repositories): BackupFile {
+  return {
+    version: 1,
+    exported_at: new Date().toISOString(),
+    categories: repos.categories.list().map((c) => ({ id: c.id, name: c.name, color: c.color })),
+    default_expenses: repos.defaultExpenses.list().map((d) => ({
+      name: d.name,
+      due_day: d.dueDay,
+      amount: d.amount,
+      category_id: d.categoryId ?? null,
+    })),
+    default_incomes: repos.defaultIncomes.list().map((d) => ({
+      name: d.name,
+      expected_day: d.expectedDay,
+      amount: d.amount,
+      bank_account_id: d.bankAccountId ?? null,
+    })),
+    bank_accounts: repos.bankAccounts
+      .list()
+      .map((b) => ({ id: b.id, name: b.name, balance: b.balance })),
+    months: repos.months
+      .listAll()
+      .map((m) => ({ id: m.id, label: m.label, year: m.year, month: m.month })),
+    expenses: repos.expenses.listAll().map((e) => ({
+      id: e.id,
+      month_id: e.monthId,
+      name: e.name,
+      due_date: e.dueDate,
+      amount: e.amount,
+      is_paid: e.isPaid ? 1 : 0,
+      paid_at: e.paidAt,
+      receipt: e.receipt,
+      notes: e.notes,
+      bank_account_id: e.bankAccountId ?? null,
+      category_id: e.categoryId ?? null,
+    })),
+    incomes: repos.incomes.listAll().map((i) => ({
+      id: i.id,
+      month_id: i.monthId,
+      name: i.name,
+      expected_date: i.expectedDate,
+      amount: i.amount,
+      is_received: i.isReceived ? 1 : 0,
+      received_at: i.receivedAt,
+      notes: i.notes,
+      bank_account_id: i.bankAccountId ?? null,
+    })),
+  };
+}
 
-    output.on('close', () => resolve());
-    archive.on('error', (err: Error) => reject(err));
-    archive.pipe(output);
+const rowNumber = z.number();
+const nullableString = z.string().nullish().transform((v) => v ?? null);
+const nullableNumber = z.number().nullish().transform((v) => v ?? null);
 
-    archive.append(JSON.stringify(data, null, 2), { name: 'data.json' });
-    if (fs.existsSync(uploadsDir)) {
-      archive.directory(uploadsDir, 'uploads');
-    }
+const backupSchema = z.object({
+  categories: z.array(z.object({ id: rowNumber, name: z.string(), color: z.string() })),
+  default_expenses: z.array(
+    z.object({
+      name: z.string(),
+      due_day: nullableNumber,
+      amount: z.number(),
+      category_id: z.number().nullish(),
+    }),
+  ),
+  default_incomes: z.array(
+    z.object({
+      name: z.string(),
+      expected_day: nullableNumber,
+      amount: z.number(),
+      bank_account_id: z.number().nullish(),
+    }),
+  ),
+  bank_accounts: z.array(z.object({ id: rowNumber, name: z.string(), balance: z.number() })),
+  months: z.array(
+    z.object({ id: rowNumber, label: z.string(), year: rowNumber, month: rowNumber }),
+  ),
+  expenses: z.array(
+    z.object({
+      id: rowNumber,
+      month_id: rowNumber,
+      name: z.string(),
+      due_date: nullableString,
+      amount: z.number(),
+      is_paid: z.number(),
+      paid_at: nullableString,
+      receipt: nullableString,
+      notes: nullableString,
+      bank_account_id: z.number().nullish(),
+      category_id: z.number().nullish(),
+    }),
+  ),
+  incomes: z.array(
+    z.object({
+      id: rowNumber,
+      month_id: rowNumber,
+      name: z.string(),
+      expected_date: nullableString,
+      amount: z.number(),
+      is_received: z.number(),
+      received_at: nullableString,
+      notes: nullableString,
+      bank_account_id: z.number().nullish(),
+    }),
+  ),
+});
 
-    archive.finalize();
+/**
+ * O portão de entrada da importação, do lado da persistência: dado o `data.json`
+ * já desserializado, ele é uma cópia íntegra das nossas tabelas? Responde só
+ * `BackupData` ou `null` — o texto de erro que o usuário lê é escolha do
+ * `backupService`.
+ *
+ * A tolerância a backups legados mora aqui: `.zip` exportados antes da
+ * renomeação "contas" → "despesas" trazem `accounts`/`default_accounts`, e os
+ * anteriores às Contas bancárias / Categorias / Entradas simplesmente não têm
+ * essas chaves. O `backupService` não conhece zod (README §2.2) e o arquivo é
+ * disco que a própria camada lê, não entrada do renderer.
+ */
+export function parseBackupData(input: unknown): BackupData | null {
+  if (typeof input !== 'object' || input === null) return null;
+  const raw = input as Record<string, unknown>;
+
+  if (!raw.version || !raw.months || !(raw.expenses ?? raw.accounts)) return null;
+
+  const parsed = backupSchema.safeParse({
+    categories: raw.categories ?? [],
+    default_expenses: raw.default_expenses ?? raw.default_accounts ?? [],
+    default_incomes: raw.default_incomes ?? [],
+    bank_accounts: raw.bank_accounts ?? [],
+    months: raw.months,
+    expenses: raw.expenses ?? raw.accounts,
+    incomes: raw.incomes ?? [],
   });
+
+  return parsed.success ? parsed.data : null;
 }
 
 /**
@@ -184,62 +292,5 @@ export function importData(db: Database.Database, data: BackupData): void {
     run();
   } finally {
     db.pragma('foreign_keys = ON');
-  }
-}
-
-export async function importFromZipFile(
-  db: Database.Database,
-  uploadsDir: string,
-  filePath: string,
-): Promise<void> {
-  const tempDir = path.join(app.getPath('temp'), 'meu-dinheiro-import-' + Date.now());
-  fs.mkdirSync(tempDir, { recursive: true });
-
-  try {
-    const directory = await unzipper.Open.file(filePath);
-    await directory.extract({ path: tempDir });
-
-    const dataPath = path.join(tempDir, 'data.json');
-    if (!fs.existsSync(dataPath)) {
-      throw new AppError(400, 'data.json não encontrado no ZIP');
-    }
-
-    const raw = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
-
-    // Backups exportados antes da renomeação "contas" -> "despesas" usam as chaves antigas.
-    const expenses = raw.expenses ?? raw.accounts;
-    const defaultExpenses = raw.default_expenses ?? raw.default_accounts ?? [];
-    // Backups anteriores à criação das contas bancárias não têm essa chave.
-    const bankAccounts = raw.bank_accounts ?? [];
-    // Backups anteriores à criação de entradas não têm essas chaves.
-    const incomes = raw.incomes ?? [];
-    const defaultIncomes = raw.default_incomes ?? [];
-    // Backups anteriores à criação de categorias não têm essa chave.
-    const categories = raw.categories ?? [];
-
-    if (!raw.version || !raw.months || !expenses) {
-      throw new AppError(400, 'Formato de dados inválido');
-    }
-
-    importData(db, {
-      categories,
-      default_expenses: defaultExpenses,
-      default_incomes: defaultIncomes,
-      bank_accounts: bankAccounts,
-      months: raw.months,
-      expenses,
-      incomes,
-    });
-
-    const uploadsSource = path.join(tempDir, 'uploads');
-    if (fs.existsSync(uploadsSource)) {
-      fs.mkdirSync(uploadsDir, { recursive: true });
-      const files = fs.readdirSync(uploadsSource);
-      for (const file of files) {
-        fs.copyFileSync(path.join(uploadsSource, file), path.join(uploadsDir, file));
-      }
-    }
-  } finally {
-    fs.rmSync(tempDir, { recursive: true, force: true });
   }
 }

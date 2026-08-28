@@ -1,6 +1,5 @@
 import Database from 'better-sqlite3';
 import type { DefaultIncomeEntity } from '../../../domain/defaultIncome';
-import { formatDueDate } from '../../../domain/monthNames';
 
 /** Colunas cruas da tabela; o banco continua em snake_case. */
 export interface DefaultIncomeRow {
@@ -59,9 +58,9 @@ export function makeDefaultIncomesRepository(db: Database.Database) {
     findById,
 
     /**
-     * Insere o padrão e a cascata (uma cópia) para dentro de todo mês já
-     * existente, numa transação só. A composição pelo service — mesmo `db.transaction`,
-     * autorado lá — é o ticket 05.
+     * Insere só o padrão. A cascata (uma cópia para dentro de todo Mês já
+     * existente) e a atomicidade são compostas pelo `defaultIncomesService`
+     * dentro de `repos.transaction` (spec desta pasta, decisão 6).
      */
     create(data: {
       name: string;
@@ -69,37 +68,13 @@ export function makeDefaultIncomesRepository(db: Database.Database) {
       amount?: number;
       bankAccountId?: number | null;
     }): DefaultIncomeEntity {
-      const create = db.transaction(() => {
-        const result = db
-          .prepare(
-            'INSERT INTO default_incomes (name, expected_day, amount, bank_account_id) VALUES (?, ?, ?, ?)',
-          )
-          .run(data.name, data.expectedDay || null, data.amount || 0, data.bankAccountId || null);
+      const result = db
+        .prepare(
+          'INSERT INTO default_incomes (name, expected_day, amount, bank_account_id) VALUES (?, ?, ?, ?)',
+        )
+        .run(data.name, data.expectedDay || null, data.amount || 0, data.bankAccountId || null);
 
-        const defaultId = result.lastInsertRowid as number;
-
-        const months = db.prepare('SELECT * FROM months').all() as {
-          id: number;
-          year: number;
-          month: number;
-        }[];
-        const insertIncome = db.prepare(
-          'INSERT INTO incomes (month_id, name, expected_date, amount, bank_account_id) VALUES (?, ?, ?, ?, ?)',
-        );
-        for (const month of months) {
-          insertIncome.run(
-            month.id,
-            data.name,
-            formatDueDate(month.year, month.month, data.expectedDay),
-            data.amount || 0,
-            data.bankAccountId || null,
-          );
-        }
-
-        return defaultId;
-      });
-
-      const created = findById(create());
+      const created = findById(result.lastInsertRowid as number);
       if (!created) throw new Error('Default income not found after insert');
       return created;
     },

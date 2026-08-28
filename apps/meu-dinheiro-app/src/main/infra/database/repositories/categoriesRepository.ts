@@ -77,23 +77,17 @@ export function makeCategoriesRepository(db: Database.Database) {
     },
 
     /**
-     * O NULL das referências (`expenses`/`default_expenses`) ainda roda aqui,
-     * dentro do `db.transaction` do próprio verbo — a composição dessa transação
-     * pelo service, via `repos.expenses.clearCategory` /
-     * `repos.defaultExpenses.clearCategory`, é o ticket 05. Devolve a categoria
-     * que existia, ou `null` — sem decidir 404.
+     * Apaga a Categoria. O NULL das referências em `expenses`/`default_expenses`
+     * e a atomicidade são compostos pelo `categoriesService`
+     * (`repos.expenses.clearCategory` / `repos.defaultExpenses.clearCategory`
+     * dentro de `repos.transaction`; spec desta pasta, decisão 7). Devolve a
+     * Categoria que existia, ou `null` — sem decidir 404.
      */
     delete(id: number): CategoryEntity | null {
       const existing = selectCategoryRow(db, id);
       if (!existing) return null;
 
-      const run = db.transaction(() => {
-        db.prepare('UPDATE expenses SET category_id = NULL WHERE category_id = ?').run(id);
-        db.prepare('UPDATE default_expenses SET category_id = NULL WHERE category_id = ?').run(id);
-        db.prepare('DELETE FROM categories WHERE id = ?').run(id);
-      });
-      run();
-
+      db.prepare('DELETE FROM categories WHERE id = ?').run(id);
       return rowToCategory(existing);
     },
 

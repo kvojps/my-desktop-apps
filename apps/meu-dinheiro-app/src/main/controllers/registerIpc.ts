@@ -1,13 +1,24 @@
 import type Database from 'better-sqlite3';
 import type { ReceiptPayload } from '@shared/ipc/api';
 import { IPC_CHANNELS } from '@shared/ipc/channels';
-import { THEME_MODE_KEY } from '../domain/theme';
 import { makeRepositories } from '../infra/database';
 import { getUploadsDir } from '../infra/database/connection';
-import { runSetup } from '../infra/database/repositories/setupRepository';
-import { openReceiptFile, saveReceiptFile } from '../infra/gateways/receipts';
-import { applyThemeMode, getThemeMode } from '../infra/gateways/system/themeMode';
-import { AppError } from '../utils/errors/AppError';
+import { backupArchive } from '../infra/gateways/backupArchive';
+import { makeReceiptsGateway } from '../infra/gateways/receipts';
+import { dialogs } from '../infra/gateways/system/dialogs';
+import { shellGateway } from '../infra/gateways/system/shell';
+import { themeMode } from '../infra/gateways/system/themeMode';
+import { makeBankAccountsService } from '../services/bankAccountsService';
+import { makeBackupService } from '../services/backupService';
+import { makeCategoriesService } from '../services/categoriesService';
+import { makeDefaultExpensesService } from '../services/defaultExpensesService';
+import { makeDefaultIncomesService } from '../services/defaultIncomesService';
+import { makeExpensesService } from '../services/expensesService';
+import { makeIncomesService } from '../services/incomesService';
+import { makeMonthsService } from '../services/monthsService';
+import { makeReportsService } from '../services/reportsService';
+import { makeSettingsService } from '../services/settingsService';
+import { makeSetupService } from '../services/setupService';
 import { parseId } from '../utils/parseId';
 import { parseOrThrow } from '../utils/validate';
 import { registerBackupHandlers } from './backupHandlers';
@@ -22,151 +33,136 @@ import {
   createDefaultIncomeSchema,
   updateDefaultIncomeSchema,
 } from './schemas/defaultIncomes.schema';
-import {
-  createExpenseSchema,
-  payExpenseSchema,
-  updateExpenseSchema,
-} from './schemas/expenses.schema';
-import {
-  createIncomeSchema,
-  receiveIncomeSchema,
-  updateIncomeSchema,
-} from './schemas/incomes.schema';
+import { createExpenseSchema, payExpenseSchema, updateExpenseSchema } from './schemas/expenses.schema';
+import { createIncomeSchema, receiveIncomeSchema, updateIncomeSchema } from './schemas/incomes.schema';
 import { createMonthSchema, createMonthsBatchSchema } from './schemas/months.schema';
 import { setupSchema } from './schemas/setup.schema';
 import { themeModeSchema } from './schemas/theme.schema';
 
 /**
- * `registerIpc.ts` ainda faz as vezes de controller: validação inline e saída
- * como entidade. Enquanto o service não existe (ticket 05), é aqui que o `null`
- * de "não encontrado" devolvido pelos repositórios volta a virar `AppError(404)`,
- * preservando o comportamento observável de antes da unidade de trabalho.
+ * Monta as camadas e registra os canais. Enquanto o ticket 06 (controllers) não
+ * chega, `registerIpc.ts` ainda faz as vezes de controller: validação inline com
+ * zod e saída como entidade (são iguais em runtime ao tipo de `@shared`). O que
+ * mudou no ticket 05 é que os handlers falam com **services**, não com `repos`, e
+ * o `null` de "não encontrado" vira `AppError(404)` dentro do service — não mais
+ * aqui.
+ *
+ * **Retorna a composição** (`{ months }` no mínimo): carve-out do ADR-0002 (spec
+ * desta pasta, decisão 5). O `index.ts` precisa chamar
+ * `services.months.ensureCurrentMonth()` no boot e no `browser-window-focus`, e
+ * agora isso acontece *depois* de registrar os canais. Ver comentário no `index.ts`.
  */
-export function registerIpcHandlers(db: Database.Database): void {
+export function registerIpcHandlers(db: Database.Database) {
   const uploadsDir = getUploadsDir();
   const repos = makeRepositories(db);
+  const receipts = makeReceiptsGateway(uploadsDir);
 
-  registerBackupHandlers(db, repos, uploadsDir);
+  const bankAccountsService = makeBankAccountsService(repos);
+  const monthsService = makeMonthsService(repos);
+  const expensesService = makeExpensesService(repos, bankAccountsService, receipts);
+  const incomesService = makeIncomesService(repos, bankAccountsService);
+  const defaultExpensesService = makeDefaultExpensesService(repos);
+  const defaultIncomesService = makeDefaultIncomesService(repos);
+  const categoriesService = makeCategoriesService(repos);
+  const reportsService = makeReportsService(repos);
+  const setupService = makeSetupService(repos);
+  const settingsService = makeSettingsService(repos, themeMode);
+  // Ordem topológica: `backupService` recebe o `monthsService` já pronto.
+  const backupService = makeBackupService(
+    repos,
+    monthsService,
+    backupArchive,
+    dialogs,
+    shellGateway,
+    uploadsDir,
+  );
+
+  registerBackupHandlers(backupService);
 
   handle(IPC_CHANNELS.setupRun, (_e, initialMonth: number, initialYear: number) => {
     const body = parseOrThrow(setupSchema, { initialMonth, initialYear });
-    return { months: runSetup(db, body.initialYear, body.initialMonth) };
+    return { months: setupService.run(body.initialYear, body.initialMonth) };
   });
 
-  handle(IPC_CHANNELS.monthsList, () => repos.months.list());
-  handle(IPC_CHANNELS.monthsGet, (_e, id: number) => {
-    const month = repos.months.findById(parseId(id));
-    if (!month) throw new AppError(404, 'Mês não encontrado');
-    return month;
-  });
+  handle(IPC_CHANNELS.monthsList, () => monthsService.list());
+  handle(IPC_CHANNELS.monthsGet, (_e, id: number) => monthsService.getDetail(parseId(id)));
   handle(IPC_CHANNELS.monthsCreate, (_e, year?: number, month?: number) => {
     const body = parseOrThrow(createMonthSchema, { year, month });
-    return repos.months.createNext(body.year, body.month);
+    return body.year && body.month
+      ? monthsService.create(body.year, body.month)
+      : monthsService.createNext();
   });
   handle(
     IPC_CHANNELS.monthsCreateBatch,
     (_e, fromYear: number, fromMonth: number, toYear: number, toMonth: number) => {
-      const body = parseOrThrow(createMonthsBatchSchema, {
-        fromYear,
-        fromMonth,
-        toYear,
-        toMonth,
-      });
-      return repos.months.createBatch(body.fromYear, body.fromMonth, body.toYear, body.toMonth);
+      const body = parseOrThrow(createMonthsBatchSchema, { fromYear, fromMonth, toYear, toMonth });
+      return monthsService.createBatch(body.fromYear, body.fromMonth, body.toYear, body.toMonth);
     },
   );
   handle(IPC_CHANNELS.monthsDelete, (_e, id: number) => {
-    if (!repos.months.delete(parseId(id))) throw new AppError(404, 'Mês não encontrado');
+    monthsService.delete(parseId(id));
     return { message: 'Month deleted' };
   });
 
-  handle(IPC_CHANNELS.defaultExpensesList, () => repos.defaultExpenses.list());
-  handle(IPC_CHANNELS.defaultExpensesCreate, (_e, data: unknown) => {
-    const body = parseOrThrow(createDefaultExpenseSchema, data);
-    return repos.defaultExpenses.create(body);
-  });
-  handle(IPC_CHANNELS.defaultExpensesUpdate, (_e, id: number, data: unknown) => {
-    const body = parseOrThrow(updateDefaultExpenseSchema, data);
-    const updated = repos.defaultExpenses.update(parseId(id), body);
-    if (!updated) throw new AppError(404, 'Despesa padrão não encontrada');
-    return updated;
-  });
+  handle(IPC_CHANNELS.defaultExpensesList, () => defaultExpensesService.list());
+  handle(IPC_CHANNELS.defaultExpensesCreate, (_e, data: unknown) =>
+    defaultExpensesService.create(parseOrThrow(createDefaultExpenseSchema, data)),
+  );
+  handle(IPC_CHANNELS.defaultExpensesUpdate, (_e, id: number, data: unknown) =>
+    defaultExpensesService.update(parseId(id), parseOrThrow(updateDefaultExpenseSchema, data)),
+  );
   handle(IPC_CHANNELS.defaultExpensesDelete, (_e, id: number) => {
-    if (!repos.defaultExpenses.delete(parseId(id))) {
-      throw new AppError(404, 'Despesa padrão não encontrada');
-    }
+    defaultExpensesService.delete(parseId(id));
     return { message: 'Default expense deleted' };
   });
 
-  handle(IPC_CHANNELS.defaultIncomesList, () => repos.defaultIncomes.list());
-  handle(IPC_CHANNELS.defaultIncomesCreate, (_e, data: unknown) => {
-    const body = parseOrThrow(createDefaultIncomeSchema, data);
-    return repos.defaultIncomes.create(body);
-  });
-  handle(IPC_CHANNELS.defaultIncomesUpdate, (_e, id: number, data: unknown) => {
-    const body = parseOrThrow(updateDefaultIncomeSchema, data);
-    const updated = repos.defaultIncomes.update(parseId(id), body);
-    if (!updated) throw new AppError(404, 'Entrada padrão não encontrada');
-    return updated;
-  });
+  handle(IPC_CHANNELS.defaultIncomesList, () => defaultIncomesService.list());
+  handle(IPC_CHANNELS.defaultIncomesCreate, (_e, data: unknown) =>
+    defaultIncomesService.create(parseOrThrow(createDefaultIncomeSchema, data)),
+  );
+  handle(IPC_CHANNELS.defaultIncomesUpdate, (_e, id: number, data: unknown) =>
+    defaultIncomesService.update(parseId(id), parseOrThrow(updateDefaultIncomeSchema, data)),
+  );
   handle(IPC_CHANNELS.defaultIncomesDelete, (_e, id: number) => {
-    if (!repos.defaultIncomes.delete(parseId(id))) {
-      throw new AppError(404, 'Entrada padrão não encontrada');
-    }
+    defaultIncomesService.delete(parseId(id));
     return { message: 'Default income deleted' };
   });
 
-  handle(IPC_CHANNELS.bankAccountsList, () => repos.bankAccounts.list());
-  handle(IPC_CHANNELS.bankAccountsCreate, (_e, data: unknown) => {
-    const body = parseOrThrow(createBankAccountSchema, data);
-    return repos.bankAccounts.create(body);
-  });
-  handle(IPC_CHANNELS.bankAccountsUpdate, (_e, id: number, data: unknown) => {
-    const body = parseOrThrow(updateBankAccountSchema, data);
-    const updated = repos.bankAccounts.update(parseId(id), body);
-    if (!updated) throw new AppError(404, 'Conta bancária não encontrada');
-    return updated;
-  });
+  handle(IPC_CHANNELS.bankAccountsList, () => bankAccountsService.list());
+  handle(IPC_CHANNELS.bankAccountsCreate, (_e, data: unknown) =>
+    bankAccountsService.create(parseOrThrow(createBankAccountSchema, data)),
+  );
+  handle(IPC_CHANNELS.bankAccountsUpdate, (_e, id: number, data: unknown) =>
+    bankAccountsService.update(parseId(id), parseOrThrow(updateBankAccountSchema, data)),
+  );
   handle(IPC_CHANNELS.bankAccountsDelete, (_e, id: number) => {
-    if (!repos.bankAccounts.delete(parseId(id))) {
-      throw new AppError(404, 'Conta bancária não encontrada');
-    }
+    bankAccountsService.delete(parseId(id));
     return { message: 'Bank account deleted' };
   });
 
-  handle(IPC_CHANNELS.categoriesList, () => repos.categories.list());
-  handle(IPC_CHANNELS.categoriesCreate, (_e, data: unknown) => {
-    const body = parseOrThrow(createCategorySchema, data);
-    return repos.categories.create(body);
-  });
-  handle(IPC_CHANNELS.categoriesUpdate, (_e, id: number, data: unknown) => {
-    const body = parseOrThrow(updateCategorySchema, data);
-    const updated = repos.categories.update(parseId(id), body);
-    if (!updated) throw new AppError(404, 'Categoria não encontrada');
-    return updated;
-  });
+  handle(IPC_CHANNELS.categoriesList, () => categoriesService.list());
+  handle(IPC_CHANNELS.categoriesCreate, (_e, data: unknown) =>
+    categoriesService.create(parseOrThrow(createCategorySchema, data)),
+  );
+  handle(IPC_CHANNELS.categoriesUpdate, (_e, id: number, data: unknown) =>
+    categoriesService.update(parseId(id), parseOrThrow(updateCategorySchema, data)),
+  );
   handle(IPC_CHANNELS.categoriesDelete, (_e, id: number) => {
-    if (!repos.categories.delete(parseId(id))) throw new AppError(404, 'Categoria não encontrada');
+    categoriesService.delete(parseId(id));
     return { message: 'Category deleted' };
   });
 
   handle(IPC_CHANNELS.expensesListForMonth, (_e, monthId: number) =>
-    repos.expenses.listForMonth(parseId(monthId)),
+    expensesService.listForMonth(parseId(monthId)),
   );
-  handle(IPC_CHANNELS.expensesCreate, (_e, monthId: number, data: unknown) => {
-    const body = parseOrThrow(createExpenseSchema, data);
-    return repos.expenses.create(parseId(monthId), body);
-  });
-  handle(IPC_CHANNELS.expensesUpdate, (_e, id: number, data: unknown) => {
-    const body = parseOrThrow(updateExpenseSchema, data);
-    const updated = repos.expenses.update(parseId(id), body);
-    if (!updated) throw new AppError(404, 'Despesa não encontrada');
-    return updated;
-  });
+  handle(IPC_CHANNELS.expensesCreate, (_e, monthId: number, data: unknown) =>
+    expensesService.create(parseId(monthId), parseOrThrow(createExpenseSchema, data)),
+  );
+  handle(IPC_CHANNELS.expensesUpdate, (_e, id: number, data: unknown) =>
+    expensesService.update(parseId(id), parseOrThrow(updateExpenseSchema, data)),
+  );
   handle(IPC_CHANNELS.expensesDelete, (_e, id: number) => {
-    if (!repos.expenses.delete(uploadsDir, parseId(id))) {
-      throw new AppError(404, 'Despesa não encontrada');
-    }
+    expensesService.delete(parseId(id));
     return { message: 'Expense deleted' };
   });
   handle(
@@ -174,105 +170,61 @@ export function registerIpcHandlers(db: Database.Database): void {
     (
       _e,
       id: number,
-      payload: {
-        receipt?: ReceiptPayload;
-        notes?: string;
-        paidAt?: string;
-        bankAccountId?: number;
-      },
+      payload: { receipt?: ReceiptPayload; notes?: string; paidAt?: string; bankAccountId?: number },
     ) => {
-      const expenseId = parseId(id);
       const body = parseOrThrow(payExpenseSchema, {
         notes: payload?.notes,
         paidAt: payload?.paidAt,
         bankAccountId: payload?.bankAccountId,
       });
-
-      let receiptFilename: string | undefined;
-      if (payload?.receipt) {
-        const expense = repos.expenses.getForFilename(expenseId);
-        receiptFilename = saveReceiptFile(
-          uploadsDir,
-          expense?.monthLabel ?? 'unknown',
-          expense?.name ?? 'unknown',
-          expenseId,
-          payload.receipt.originalName,
-          payload.receipt.mimeType,
-          Buffer.from(payload.receipt.buffer),
-        );
-      }
-
-      const paid = repos.expenses.pay(
-        expenseId,
-        receiptFilename,
-        body.notes,
-        body.paidAt,
-        body.bankAccountId,
-      );
-      if (!paid) throw new AppError(404, 'Despesa não encontrada');
-      return paid;
+      return expensesService.pay(parseId(id), {
+        paidAt: body.paidAt,
+        bankAccountId: body.bankAccountId,
+        notes: body.notes,
+        receipt: payload?.receipt,
+      });
     },
   );
-  handle(IPC_CHANNELS.expensesUnpay, (_e, id: number) => {
-    const unpaid = repos.expenses.unpay(uploadsDir, parseId(id));
-    if (!unpaid) throw new AppError(404, 'Despesa não encontrada');
-    return unpaid;
-  });
+  handle(IPC_CHANNELS.expensesUnpay, (_e, id: number) => expensesService.unpay(parseId(id)));
 
   handle(IPC_CHANNELS.incomesListForMonth, (_e, monthId: number) =>
-    repos.incomes.listForMonth(parseId(monthId)),
+    incomesService.listForMonth(parseId(monthId)),
   );
-  handle(IPC_CHANNELS.incomesCreate, (_e, monthId: number, data: unknown) => {
-    const body = parseOrThrow(createIncomeSchema, data);
-    return repos.incomes.create(parseId(monthId), body);
-  });
-  handle(IPC_CHANNELS.incomesUpdate, (_e, id: number, data: unknown) => {
-    const body = parseOrThrow(updateIncomeSchema, data);
-    const updated = repos.incomes.update(parseId(id), body);
-    if (!updated) throw new AppError(404, 'Entrada não encontrada');
-    return updated;
-  });
+  handle(IPC_CHANNELS.incomesCreate, (_e, monthId: number, data: unknown) =>
+    incomesService.create(parseId(monthId), parseOrThrow(createIncomeSchema, data)),
+  );
+  handle(IPC_CHANNELS.incomesUpdate, (_e, id: number, data: unknown) =>
+    incomesService.update(parseId(id), parseOrThrow(updateIncomeSchema, data)),
+  );
   handle(IPC_CHANNELS.incomesDelete, (_e, id: number) => {
-    if (!repos.incomes.delete(parseId(id))) throw new AppError(404, 'Entrada não encontrada');
+    incomesService.delete(parseId(id));
     return { message: 'Income deleted' };
   });
   handle(
     IPC_CHANNELS.incomesReceive,
     (_e, id: number, notes?: string, receivedAt?: string, bankAccountId?: number) => {
-      const body = parseOrThrow(receiveIncomeSchema, {
-        notes,
-        receivedAt: receivedAt,
-        bankAccountId: bankAccountId,
+      const body = parseOrThrow(receiveIncomeSchema, { notes, receivedAt, bankAccountId });
+      return incomesService.receive(parseId(id), {
+        notes: body.notes ?? undefined,
+        receivedAt: body.receivedAt,
+        bankAccountId: body.bankAccountId,
       });
-      const received = repos.incomes.receive(
-        parseId(id),
-        body.notes ?? undefined,
-        body.receivedAt,
-        body.bankAccountId,
-      );
-      if (!received) throw new AppError(404, 'Entrada não encontrada');
-      return received;
     },
   );
-  handle(IPC_CHANNELS.incomesUnreceive, (_e, id: number) => {
-    const unreceived = repos.incomes.unreceive(parseId(id));
-    if (!unreceived) throw new AppError(404, 'Entrada não encontrada');
-    return unreceived;
-  });
+  handle(IPC_CHANNELS.incomesUnreceive, (_e, id: number) => incomesService.unreceive(parseId(id)));
 
   handle(IPC_CHANNELS.reportsCategoryTotalsForYear, (_e, year: number) =>
-    repos.categories.totalsForYear(parseId(year)),
+    reportsService.categoryTotalsForYear(parseId(year)),
   );
 
   handle(IPC_CHANNELS.receiptsOpen, (_e, filename: string) =>
-    openReceiptFile(uploadsDir, filename),
+    expensesService.openReceipt(filename),
   );
 
-  handle(IPC_CHANNELS.themeGet, () => getThemeMode());
-  handle(IPC_CHANNELS.themeSet, (_e, mode: unknown) => {
-    const value = parseOrThrow(themeModeSchema, mode);
-    repos.appSettings.setAppSetting(THEME_MODE_KEY, value);
-    applyThemeMode(value);
-    return value;
-  });
+  handle(IPC_CHANNELS.themeGet, () => settingsService.getThemeMode());
+  handle(IPC_CHANNELS.themeSet, (_e, mode: unknown) =>
+    settingsService.setThemeMode(parseOrThrow(themeModeSchema, mode)),
+  );
+
+  return { months: monthsService };
 }

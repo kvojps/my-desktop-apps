@@ -23,10 +23,9 @@ export function deleteAppSetting(db: Database.Database, key: string) {
  * próprios em vez do contrato `list`/`findById`/`create`/`update`/`delete`
  * (precedente registrado no ticket 05 do `git-dlog` e no 03 do `meu-negocio-app`).
  *
- * As três funções livres acima continuam exportadas porque os helpers de módulo
- * do `monthsRepository` (`ensureCurrentMonthExists`, `rememberCurrentCompetency`)
- * e o gateway `system/themeMode.ts` ainda leem por elas — esses call sites só se
- * religam a `repos.appSettings` no ticket 05.
+ * As três funções livres acima continuam exportadas para o carve-out de
+ * bootstrap: o `index.ts` monta `makeAppSettingsRepository(db)` direto para ler
+ * `THEME_MODE_KEY` antes de existir renderer (ADR-0002; spec desta pasta, decisão 5).
  */
 export function makeAppSettingsRepository(db: Database.Database) {
   return {

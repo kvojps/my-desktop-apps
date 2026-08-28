@@ -1,6 +1,5 @@
 import Database from 'better-sqlite3';
 import type { DefaultExpenseEntity } from '../../../domain/defaultExpense';
-import { formatDueDate } from '../../../domain/monthNames';
 
 /** Colunas cruas da tabela; o banco continua em snake_case. */
 export interface DefaultExpenseRow {
@@ -61,9 +60,9 @@ export function makeDefaultExpensesRepository(db: Database.Database) {
     findById,
 
     /**
-     * Insere o padrão e a cascata (uma cópia) para dentro de todo mês já
-     * existente, numa transação só. A composição pelo service — mesmo `db.transaction`,
-     * autorado lá — é o ticket 05.
+     * Insere só o padrão. A cascata (uma cópia para dentro de todo Mês já
+     * existente) e a atomicidade são compostas pelo `defaultExpensesService`
+     * dentro de `repos.transaction` (spec desta pasta, decisão 6).
      */
     create(data: {
       name: string;
@@ -71,37 +70,13 @@ export function makeDefaultExpensesRepository(db: Database.Database) {
       amount?: number;
       categoryId?: number | null;
     }): DefaultExpenseEntity {
-      const create = db.transaction(() => {
-        const result = db
-          .prepare(
-            'INSERT INTO default_expenses (name, due_day, amount, category_id) VALUES (?, ?, ?, ?)',
-          )
-          .run(data.name, data.dueDay || null, data.amount || 0, data.categoryId ?? null);
+      const result = db
+        .prepare(
+          'INSERT INTO default_expenses (name, due_day, amount, category_id) VALUES (?, ?, ?, ?)',
+        )
+        .run(data.name, data.dueDay || null, data.amount || 0, data.categoryId ?? null);
 
-        const defaultId = result.lastInsertRowid as number;
-
-        const months = db.prepare('SELECT * FROM months').all() as {
-          id: number;
-          year: number;
-          month: number;
-        }[];
-        const insertExpense = db.prepare(
-          'INSERT INTO expenses (month_id, name, due_date, amount, category_id) VALUES (?, ?, ?, ?, ?)',
-        );
-        for (const month of months) {
-          insertExpense.run(
-            month.id,
-            data.name,
-            formatDueDate(month.year, month.month, data.dueDay),
-            data.amount || 0,
-            data.categoryId ?? null,
-          );
-        }
-
-        return defaultId;
-      });
-
-      const created = findById(create());
+      const created = findById(result.lastInsertRowid as number);
       if (!created) throw new Error('Default expense not found after insert');
       return created;
     },

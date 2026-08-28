@@ -1,7 +1,5 @@
 import Database from 'better-sqlite3';
 import type { IncomeEntity } from '../../../domain/income';
-import { AppError } from '../../../utils/errors/AppError';
-import { creditBankAccount, debitBankAccount } from './bankAccountsRepository';
 
 /** Colunas cruas da tabela; o banco continua em snake_case. */
 export interface IncomeRow {
@@ -69,11 +67,19 @@ export function makeIncomesRepository(db: Database.Database) {
       return rows.map(rowToIncome);
     },
 
+    /** Todas as entradas, para o backup. Sem JOINs — só as colunas próprias. */
+    listAll(): IncomeEntity[] {
+      const rows = db
+        .prepare('SELECT * FROM incomes ORDER BY month_id')
+        .all() as IncomeRow[];
+      return rows.map(rowToIncome);
+    },
+
     findById,
 
     /**
-     * Confere que o mês existe antes de inserir — guarda de integridade que
-     * ainda lança daqui; a migração para `incomesService.create` é o ticket 05.
+     * Insere a entrada. A conferência de que o Mês existe é do `incomesService`
+     * (`AppError(404)`); aqui a integridade é a FK `month_id`.
      */
     create(
       monthId: number,
@@ -84,11 +90,6 @@ export function makeIncomesRepository(db: Database.Database) {
         bankAccountId?: number | null;
       },
     ): IncomeEntity {
-      const month = db.prepare('SELECT id FROM months WHERE id = ?').get(monthId);
-      if (!month) {
-        throw new AppError(404, 'Mês não encontrado');
-      }
-
       const result = db
         .prepare(
           'INSERT INTO incomes (month_id, name, expected_date, amount, bank_account_id) VALUES (?, ?, ?, ?, ?)',
@@ -141,9 +142,8 @@ export function makeIncomesRepository(db: Database.Database) {
     },
 
     /**
-     * Crédito da conta + marca recebida, numa transação. A composição pelo
-     * service — mesmo `db.transaction`, autorado lá — é o ticket 05. Devolve
-     * `null` se a entrada sumiu.
+     * Marca a entrada como recebida. O crédito da Conta bancária e a atomicidade
+     * são compostos pelo `incomesService`. Devolve `null` se a entrada sumiu.
      */
     receive(
       id: number,
@@ -154,20 +154,14 @@ export function makeIncomesRepository(db: Database.Database) {
       const existing = selectIncomeRow(db, id);
       if (!existing) return null;
 
-      const run = db.transaction(() => {
-        if (bankAccountId) {
-          creditBankAccount(db, bankAccountId, existing.amount);
-        }
-        db.prepare(
-          'UPDATE incomes SET is_received = 1, received_at = ?, notes = ?, bank_account_id = ? WHERE id = ?',
-        ).run(
-          receivedAt || todayLocalDate(),
-          notes !== undefined ? notes : existing.notes,
-          bankAccountId ?? null,
-          id,
-        );
-      });
-      run();
+      db.prepare(
+        'UPDATE incomes SET is_received = 1, received_at = ?, notes = ?, bank_account_id = ? WHERE id = ?',
+      ).run(
+        receivedAt || todayLocalDate(),
+        notes !== undefined ? notes : existing.notes,
+        bankAccountId ?? null,
+        id,
+      );
 
       return findById(id);
     },
@@ -176,23 +170,17 @@ export function makeIncomesRepository(db: Database.Database) {
       const existing = selectIncomeRow(db, id);
       if (!existing) return null;
 
-      const run = db.transaction(() => {
-        if (existing.bank_account_id) {
-          debitBankAccount(db, existing.bank_account_id, existing.amount);
-        }
-        // bank_account_id não é limpo: representa a conta associada à entrada,
-        // não só a conta que recebeu o crédito, e serve de sugestão no próximo recebimento.
-        db.prepare('UPDATE incomes SET is_received = 0, received_at = NULL WHERE id = ?').run(id);
-      });
-      run();
+      // bank_account_id não é limpo: representa a Conta associada à entrada, não
+      // só a que recebeu o crédito, e serve de sugestão no próximo recebimento.
+      db.prepare('UPDATE incomes SET is_received = 0, received_at = NULL WHERE id = ?').run(id);
 
       return findById(id);
     },
 
     /**
-     * NULL da coluna que referencia uma conta removida. Sem transação própria:
-     * o service compõe (`repos.transaction`) junto do `repos.bankAccounts.delete`
-     * no ticket 05 (`../spec.md`, decisão 7).
+     * NULL da coluna que referencia uma Conta removida. Sem transação própria: o
+     * `bankAccountsService` compõe (`repos.transaction`) junto do `delete`
+     * (spec desta pasta, decisão 7).
      */
     clearBankAccount(bankAccountId: number): void {
       db.prepare('UPDATE incomes SET bank_account_id = NULL WHERE bank_account_id = ?').run(

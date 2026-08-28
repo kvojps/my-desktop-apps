@@ -1,8 +1,5 @@
 import Database from 'better-sqlite3';
 import type { ExpenseEntity } from '../../../domain/expense';
-import { AppError } from '../../../utils/errors/AppError';
-import { deleteReceiptFile } from '../../gateways/receipts';
-import { creditBankAccount, debitBankAccount } from './bankAccountsRepository';
 
 /** Colunas cruas da tabela; o banco continua em snake_case. */
 export interface ExpenseRow {
@@ -79,13 +76,20 @@ export function makeExpensesRepository(db: Database.Database) {
       return rows.map(rowToExpense);
     },
 
+    /** Todas as despesas, para o backup. Sem JOINs — só as colunas próprias. */
+    listAll(): ExpenseEntity[] {
+      const rows = db
+        .prepare('SELECT * FROM expenses ORDER BY month_id')
+        .all() as ExpenseRow[];
+      return rows.map(rowToExpense);
+    },
+
     findById,
 
     /**
      * Só o nome da despesa e o rótulo do Mês, para montar o nome do arquivo de
      * comprovante. Não é `rowToExpense` — é um par de strings em camelCase, sem
-     * chave `snake_case` saindo do repositório. O `expensesService.pay()` que
-     * orquestra o gateway de comprovante é o ticket 05 (`../spec.md`, decisão 10).
+     * chave `snake_case` saindo do repositório.
      */
     getForFilename(id: number): { name: string; monthLabel: string } | null {
       const row = db
@@ -97,8 +101,8 @@ export function makeExpensesRepository(db: Database.Database) {
     },
 
     /**
-     * Confere que o mês existe antes de inserir — guarda de integridade que
-     * ainda lança daqui; a migração para `expensesService.create` é o ticket 05.
+     * Insere a despesa. A conferência de que o Mês existe é do `expensesService`
+     * (`AppError(404)`); aqui a integridade é a FK `month_id`.
      */
     create(
       monthId: number,
@@ -109,11 +113,6 @@ export function makeExpensesRepository(db: Database.Database) {
         categoryId?: number | null;
       },
     ): ExpenseEntity {
-      const month = db.prepare('SELECT id FROM months WHERE id = ?').get(monthId);
-      if (!month) {
-        throw new AppError(404, 'Mês não encontrado');
-      }
-
       const result = db
         .prepare(
           'INSERT INTO expenses (month_id, name, due_date, amount, category_id) VALUES (?, ?, ?, ?, ?)',
@@ -152,19 +151,18 @@ export function makeExpensesRepository(db: Database.Database) {
       return findById(id);
     },
 
-    delete(uploadsDir: string, id: number): ExpenseEntity | null {
+    /** Apaga a despesa. O comprovante em disco é apagado pelo `expensesService`. */
+    delete(id: number): ExpenseEntity | null {
       const existing = selectExpenseRow(db, id);
       if (!existing) return null;
-      deleteReceiptFile(uploadsDir, existing.receipt);
       db.prepare('DELETE FROM expenses WHERE id = ?').run(id);
       return rowToExpense(existing);
     },
 
     /**
-     * Débito da conta + marca paga, numa transação. A regra de saldo vive em
-     * `debitBankAccount` (função de módulo do `bankAccountsRepository`); a
-     * composição pelo service, junto da correção do comprovante órfão, é o
-     * ticket 05 (`../spec.md`, decisão 14c). Devolve `null` se a despesa sumiu.
+     * Marca a despesa como paga. O débito da Conta bancária e a atomicidade
+     * (`repos.transaction`) são compostos pelo `expensesService`. Devolve `null`
+     * se a despesa sumiu.
      */
     pay(
       id: number,
@@ -176,48 +174,38 @@ export function makeExpensesRepository(db: Database.Database) {
       const existing = selectExpenseRow(db, id);
       if (!existing) return null;
 
-      const run = db.transaction(() => {
-        if (bankAccountId) {
-          debitBankAccount(db, bankAccountId, existing.amount);
-        }
-        db.prepare(
-          'UPDATE expenses SET is_paid = 1, paid_at = ?, receipt = ?, notes = ?, bank_account_id = ? WHERE id = ?',
-        ).run(
-          paidAt || todayLocalDate(),
-          receipt ?? existing.receipt,
-          notes !== undefined ? notes : existing.notes,
-          bankAccountId ?? null,
-          id,
-        );
-      });
-      run();
+      db.prepare(
+        'UPDATE expenses SET is_paid = 1, paid_at = ?, receipt = ?, notes = ?, bank_account_id = ? WHERE id = ?',
+      ).run(
+        paidAt || todayLocalDate(),
+        receipt ?? existing.receipt,
+        notes !== undefined ? notes : existing.notes,
+        bankAccountId ?? null,
+        id,
+      );
 
       return findById(id);
     },
 
-    unpay(uploadsDir: string, id: number): ExpenseEntity | null {
+    /**
+     * Desmarca o pagamento. O crédito de volta na Conta e a exclusão do
+     * comprovante são do `expensesService`.
+     */
+    unpay(id: number): ExpenseEntity | null {
       const existing = selectExpenseRow(db, id);
       if (!existing) return null;
-      deleteReceiptFile(uploadsDir, existing.receipt);
 
-      const run = db.transaction(() => {
-        if (existing.bank_account_id) {
-          creditBankAccount(db, existing.bank_account_id, existing.amount);
-        }
-        db.prepare(
-          'UPDATE expenses SET is_paid = 0, paid_at = NULL, receipt = NULL, bank_account_id = NULL WHERE id = ?',
-        ).run(id);
-      });
-      run();
+      db.prepare(
+        'UPDATE expenses SET is_paid = 0, paid_at = NULL, receipt = NULL, bank_account_id = NULL WHERE id = ?',
+      ).run(id);
 
       return findById(id);
     },
 
     /**
      * NULL das colunas que referenciam uma linha removida. Sem transação
-     * própria: o service compõe (`repos.transaction`) junto do
-     * `repos.categories.delete` / `repos.bankAccounts.delete` no ticket 05
-     * (`../spec.md`, decisão 7).
+     * própria: o `categoriesService`/`bankAccountsService` compõem
+     * (`repos.transaction`) junto do `delete` da linha (spec desta pasta, decisão 7).
      */
     clearCategory(categoryId: number): void {
       db.prepare('UPDATE expenses SET category_id = NULL WHERE category_id = ?').run(categoryId);

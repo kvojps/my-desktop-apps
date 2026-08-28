@@ -1,23 +1,18 @@
 import { BrowserWindow, app, dialog, shell } from 'electron';
 import path from 'node:path';
 import { APP_ERROR_DESCRIPTIONS } from '@shared/errors/appError';
-import type { ThemeMode } from '@shared/types/theme';
 import icon from '../../resources/icon.png?asset';
 import { notifyDataChanged } from './controllers/notifyDataChanged';
 import { registerIpcHandlers } from './controllers/registerIpc';
+import { THEME_MODE_KEY, type ThemeModeEntity, resolveThemeMode } from './domain/theme';
 import { initDb } from './infra/database/connection';
-import { ensureCurrentMonthExists } from './infra/database/repositories/monthsRepository';
-import {
-  applyThemeMode,
-  getThemeMode,
-  resolveInitialThemeMode,
-  themeBackground,
-} from './infra/gateways/system/themeMode';
+import { makeAppSettingsRepository } from './infra/database/repositories/appSettingsRepository';
+import { themeMode } from './infra/gateways/system/themeMode';
 import { classifyError } from './utils/errors/toIpcError';
 
 app.setName('meu-dinheiro');
 
-function createWindow(mode: ThemeMode) {
+function createWindow(mode: ThemeModeEntity) {
   const mainWindow = new BrowserWindow({
     width: 1280,
     height: 800,
@@ -28,7 +23,7 @@ function createWindow(mode: ThemeMode) {
     // Sem isto a janela nasce branca. Não é o flash de boot (`show: false` +
     // `ready-to-show` já cobre esse): é a faixa branca ao redimensionar e no
     // `maximize()`, com o app em modo escuro.
-    backgroundColor: themeBackground(mode),
+    backgroundColor: themeMode.windowBackgroundFor(mode),
     webPreferences: {
       preload: path.join(__dirname, '../preload/index.js'),
       contextIsolation: true,
@@ -86,26 +81,35 @@ app.whenReady().then(() => {
     return;
   }
 
-  ensureCurrentMonthExists(db);
-  registerIpcHandlers(db);
+  // Carve-out do ADR-0002 (spec de `.scratch/dinheiro-camadas-processo-principal/`,
+  // decisão 5): `registerIpcHandlers` devolve a composição de services porque o
+  // bootstrap precisa invocar uma operação de negócio — garantir o Mês corrente.
+  // A ordem mudou de "ensure → register" para "register → ensure", ainda antes
+  // de `createWindow`.
+  const services = registerIpcHandlers(db);
+  services.months.ensureCurrentMonth();
 
   // O app costuma ficar aberto por dias: cobre a virada de mês sem reiniciar.
-  // O aviso só sai quando o mês foi de fato criado — sem ele, o mês novo só
+  // O aviso só sai quando o Mês foi de fato criado — sem ele, o Mês novo só
   // apareceria na tela no boot seguinte.
   app.on('browser-window-focus', () => {
-    if (ensureCurrentMonthExists(db)) notifyDataChanged();
+    if (services.months.ensureCurrentMonth()) notifyDataChanged();
   });
 
-  // Precisa vir antes da janela: é o modo que decide a cor com que ela nasce e
-  // a da moldura nativa.
-  const mode = resolveInitialThemeMode(db);
-  applyThemeMode(mode);
+  // Precisa vir antes da janela: é o modo que decide a cor com que ela nasce e a
+  // da moldura nativa. Carve-out do ADR-0002: o bootstrap lê o tema direto do
+  // repositório, sem montar uma unidade de trabalho só para um getter.
+  const stored = makeAppSettingsRepository(db).getAppSetting(THEME_MODE_KEY);
+  const mode = resolveThemeMode(stored, themeMode.systemPrefersDark());
+  themeMode.apply(mode);
 
   createWindow(mode);
 
+  // O modo em vigor vem do gateway, não de uma variável daqui: quem o troca em
+  // runtime é o `settingsService`, por um caminho que não passa pelo bootstrap.
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
-      createWindow(getThemeMode());
+      createWindow(themeMode.currentMode());
     }
   });
 });

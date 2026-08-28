@@ -1,33 +1,8 @@
 import Database from 'better-sqlite3';
 import type { MonthDetailEntity, MonthEntity } from '../../../domain/month';
-import { formatDueDate, monthLabel } from '../../../domain/monthNames';
-import { AppError } from '../../../utils/errors/AppError';
-import { getAppSetting, setAppSetting } from './appSettingsRepository';
+import { monthLabel } from '../../../domain/monthNames';
 import { rowToExpense } from './expensesRepository';
 import { rowToIncome } from './incomesRepository';
-
-/**
- * Última competência (AAAA-MM) que o app já tratou como "mês corrente".
- * Enquanto a marca for a competência de hoje, o mês corrente não é recriado -
- * é o que faz uma exclusão intencional ser respeitada.
- */
-export const LAST_CURRENT_MONTH_KEY = 'last_current_month';
-
-function competencyKey(year: number, month: number) {
-  return `${year}-${String(month).padStart(2, '0')}`;
-}
-
-function currentCompetency() {
-  const now = new Date();
-  return { year: now.getFullYear(), month: now.getMonth() + 1 };
-}
-
-function rememberCurrentCompetency(db: Database.Database, year: number, month: number) {
-  const current = currentCompetency();
-  if (year === current.year && month === current.month) {
-    setAppSetting(db, LAST_CURRENT_MONTH_KEY, competencyKey(year, month));
-  }
-}
 
 /** Colunas cruas da tabela; o banco continua em snake_case. */
 export interface MonthRow {
@@ -99,123 +74,14 @@ export function buildMonthDetail(
   };
 }
 
-interface DefaultExpenseRow {
-  id: number;
-  name: string;
-  due_day: number | null;
-  amount: number;
-  category_id: number | null;
-}
-
-interface DefaultIncomeRow {
-  id: number;
-  name: string;
-  expected_day: number | null;
-  amount: number;
-  bank_account_id: number | null;
-}
-
-function insertExpensesFromDefaults(
-  db: Database.Database,
-  monthId: number,
-  year: number,
-  month: number,
-) {
-  const defaults = db.prepare('SELECT * FROM default_expenses').all() as DefaultExpenseRow[];
-  const insertExpense = db.prepare(
-    'INSERT INTO expenses (month_id, name, due_date, amount, category_id) VALUES (?, ?, ?, ?, ?)',
-  );
-  for (const def of defaults) {
-    insertExpense.run(
-      monthId,
-      def.name,
-      formatDueDate(year, month, def.due_day),
-      def.amount,
-      def.category_id,
-    );
-  }
-}
-
-function insertIncomesFromDefaults(
-  db: Database.Database,
-  monthId: number,
-  year: number,
-  month: number,
-) {
-  const defaults = db.prepare('SELECT * FROM default_incomes').all() as DefaultIncomeRow[];
-  const insertIncome = db.prepare(
-    'INSERT INTO incomes (month_id, name, expected_date, amount, bank_account_id) VALUES (?, ?, ?, ?, ?)',
-  );
-  for (const def of defaults) {
-    insertIncome.run(
-      monthId,
-      def.name,
-      formatDueDate(year, month, def.expected_day),
-      def.amount,
-      def.bank_account_id,
-    );
-  }
-}
-
-export function findMonthByYearMonth(db: Database.Database, year: number, month: number) {
-  return db.prepare('SELECT id FROM months WHERE year = ? AND month = ?').get(year, month) as
-    { id: number } | undefined;
-}
-
 /**
- * Insere o mês e a fotografia de cada padrão vigente, numa transação. Continua
- * função de módulo (não verbo do repositório) porque `setupRepository.runSetup`
- * e `ensureCurrentMonthExists` a reusam com `db` cru; a versão que compõe sobre
- * `repos.transaction` — helper privado do `monthsService` — é o ticket 05
- * (`../spec.md`, decisão 8).
+ * Verbos de persistência do Mês. A competência, o rollover Dez→Jan, a cópia dos
+ * padrões e a marcação da Competência corrente/excluída moram no `monthsService`
+ * (spec desta pasta, decisões 5, 6, 8) — aqui ficou só o SQL.
  */
-export function createMonthWithDefaults(
-  db: Database.Database,
-  year: number,
-  month: number,
-): MonthEntity {
-  const label = monthLabel(year, month);
-
-  const create = db.transaction(() => {
-    const result = db
-      .prepare('INSERT INTO months (label, year, month) VALUES (?, ?, ?)')
-      .run(label, year, month);
-    const monthId = result.lastInsertRowid as number;
-    insertExpensesFromDefaults(db, monthId, year, month);
-    insertIncomesFromDefaults(db, monthId, year, month);
-    return monthId;
-  });
-
-  const monthId = create();
-  rememberCurrentCompetency(db, year, month);
-  return rowToMonth(db.prepare('SELECT * FROM months WHERE id = ?').get(monthId) as MonthRow);
-}
-
-/**
- * Cria o mês corrente no máximo uma vez por competência. Roda no boot do app
- * (não a cada listagem), então excluir o mês corrente não o traz de volta.
- * Retorna o mês criado, ou null quando nada foi feito.
- *
- * Continua função de módulo por ser chamada do bootstrap (`index.ts`) e do
- * pós-import de backup; vira `monthsService.ensureCurrentMonth()` no ticket 05
- * (`../spec.md`, decisão 5).
- */
-export function ensureCurrentMonthExists(db: Database.Database): MonthEntity | null {
-  const { year, month } = currentCompetency();
-  const key = competencyKey(year, month);
-
-  if (getAppSetting(db, LAST_CURRENT_MONTH_KEY) === key) return null;
-
-  if (findMonthByYearMonth(db, year, month)) {
-    setAppSetting(db, LAST_CURRENT_MONTH_KEY, key);
-    return null;
-  }
-
-  return createMonthWithDefaults(db, year, month);
-}
-
 export function makeMonthsRepository(db: Database.Database) {
   return {
+    /** O agregado de Realizado/Previsto por Mês, para a tela de Histórico. */
     list(): MonthEntity[] {
       const rows = db
         .prepare(
@@ -240,6 +106,17 @@ export function makeMonthsRepository(db: Database.Database) {
         .all() as (MonthRow & MonthTotalsRow)[];
 
       return rows.map(rowToMonthWithTotals);
+    },
+
+    /**
+     * Todos os Meses, sem os agregados: a cascata de padrões e o backup precisam
+     * só de `id`/`label`/`year`/`month`, não das 12 subconsultas de totais.
+     */
+    listAll(): MonthEntity[] {
+      const rows = db
+        .prepare('SELECT * FROM months ORDER BY year, month')
+        .all() as MonthRow[];
+      return rows.map(rowToMonth);
     },
 
     /** Era `getMonthWithExpenses`; devolve `null` em vez de lançar 404 — o 404 é do service. */
@@ -271,80 +148,48 @@ export function makeMonthsRepository(db: Database.Database) {
       return buildMonthDetail(month, expenseRows, incomeRows);
     },
 
+    /** O Mês de uma dada Competência (ano + mês), ou `null`. */
+    findByCompetency(year: number, month: number): MonthEntity | null {
+      const row = db
+        .prepare('SELECT * FROM months WHERE year = ? AND month = ?')
+        .get(year, month) as MonthRow | undefined;
+      return row ? rowToMonth(row) : null;
+    },
+
+    /** O Mês de Competência mais recente, ou `null` quando não há nenhum. */
+    latest(): MonthEntity | null {
+      const row = db
+        .prepare('SELECT * FROM months ORDER BY year DESC, month DESC LIMIT 1')
+        .get() as MonthRow | undefined;
+      return row ? rowToMonth(row) : null;
+    },
+
+    /** Guarda de integridade barata para `expensesService`/`incomesService`. */
+    exists(id: number): boolean {
+      return !!db.prepare('SELECT 1 FROM months WHERE id = ?').get(id);
+    },
+
     /**
-     * Rollover Dez→Jan e os `AppError(400)` de "sem meses" / "mês já existe"
-     * continuam aqui — regra que só migra para `monthsService` no ticket 05.
+     * Insere só o Mês — sem a cópia dos padrões, que o `monthsService` compõe em
+     * volta dentro de `repos.transaction`.
      */
-    createNext(year?: number, month?: number): MonthEntity {
-      if (!year || !month) {
-        const lastMonth = db
-          .prepare('SELECT * FROM months ORDER BY year DESC, month DESC LIMIT 1')
-          .get() as { year: number; month: number } | undefined;
-
-        if (!lastMonth) {
-          throw new AppError(
-            400,
-            'Nenhum mês existe ainda. Cadastre o primeiro nas Configurações.',
-          );
-        }
-
-        year = lastMonth.year;
-        month = lastMonth.month + 1;
-        if (month > 12) {
-          month = 1;
-          year++;
-        }
-      }
-
-      if (findMonthByYearMonth(db, year, month)) {
-        throw new AppError(400, 'Esse mês já existe');
-      }
-
-      return createMonthWithDefaults(db, year, month);
+    create(year: number, month: number): MonthEntity {
+      const result = db
+        .prepare('INSERT INTO months (label, year, month) VALUES (?, ?, ?)')
+        .run(monthLabel(year, month), year, month);
+      return rowToMonth(
+        db.prepare('SELECT * FROM months WHERE id = ?').get(result.lastInsertRowid) as MonthRow,
+      );
     },
 
-    /** Lote de até 60 (limite garantido pelo schema); mês existente vai para `errors`, não falha o lote. */
-    createBatch(
-      fromYear: number,
-      fromMonth: number,
-      toYear: number,
-      toMonth: number,
-    ): { created: MonthEntity[]; errors: string[] } {
-      const created: MonthEntity[] = [];
-      const errors: string[] = [];
-      let year = fromYear;
-      let month = fromMonth;
-
-      const run = db.transaction(() => {
-        while (year < toYear || (year === toYear && month <= toMonth)) {
-          if (findMonthByYearMonth(db, year, month)) {
-            errors.push(`${monthLabel(year, month)} já existe`);
-          } else {
-            created.push(createMonthWithDefaults(db, year, month));
-          }
-
-          month++;
-          if (month > 12) {
-            month = 1;
-            year++;
-          }
-        }
-      });
-
-      run();
-
-      return { created, errors };
-    },
-
-    /** Devolve o mês removido, ou `null` — sem decidir 404. */
+    /** Apaga o Mês (as despesas e entradas vão por cascata do banco). Devolve `null` — sem decidir 404. */
     delete(id: number): MonthEntity | null {
       const existing = db.prepare('SELECT * FROM months WHERE id = ?').get(id) as
-        MonthRow | undefined;
+        | MonthRow
+        | undefined;
       if (!existing) return null;
 
       db.prepare('DELETE FROM months WHERE id = ?').run(id);
-      // Exclusão do mês corrente é intencional: marca a competência para o boot não recriá-la.
-      rememberCurrentCompetency(db, existing.year, existing.month);
       return rowToMonth(existing);
     },
   };
