@@ -1,4 +1,4 @@
-Status: aberto
+Status: resolvido
 Blocked by: 04
 
 # Meu Dinheiro: camada de serviço
@@ -127,3 +127,104 @@ achados abertos.
 ## Comments
 
 Ticket derivado da spec desta pasta (`../spec.md`, decisões 5, 6, 7, 8, 9, 10, 12, 13, 14).
+
+### 2026-08-27 — implementado
+
+Onze services novos em `services/` — cada um fábrica `makeXService(repos, …gateways)`, sem
+classe. Nenhum importa `better-sqlite3` nem `electron` (grep limpo; imports de gateway são
+todos `import type`). Todo `db.transaction` que morava num repositório virou
+`repos.transaction(fn)` autorado no service; os repositórios terminam com **zero**
+`db.transaction`.
+
+**`monthsService`.** `create` / `createNext` / `createBatch` / `ensureCurrentMonth` /
+`getDetail` / `list` / `delete` conforme o ticket. `LAST_CURRENT_MONTH_KEY`, `currentCompetency`
+e `competencyKey` moram aqui como módulo (o `backupService` importa a chave). Helper
+**exportado** `createMonthWithDefaults(repos, year, month)` — insere o Mês (`repos.months.create`,
+verbo novo, só o `INSERT`), a cópia de cada Despesa/Entrada padrão via `repos.expenses.create`
+/`repos.incomes.create`, e a marca de Competência; **não abre `repos.transaction`**. Quem abre,
+uma vez cada: `create`, `createBatch`, `ensureCurrentMonth`, `setupService.run` — só verbos
+planos lá dentro, sem aninhamento. `export` (não `private`) é a única forma de o `setupService`
+reusar o helper (decisão 8); registrado como desvio consciente.
+
+**Verbos novos de repositório** (extensão do contrato do ticket 03, para o service compor):
+`months.create` / `months.findByCompetency` / `months.latest` / `months.exists` /
+`months.listAll`; `expenses.listAll` / `incomes.listAll` (backup); `bankAccounts.adjustBalance`
+(o `UPDATE` de saldo, sem a regra). `months.exists` é guarda de integridade barata para
+`expenses/incomesService.create` (o 404 de "Mês não encontrado" que morava no repositório).
+
+**`expensesService.pay`** confere o saldo (`bankAccounts.assertCanDebit`) **antes** de gravar o
+comprovante, e só então abre a transação (débito + marca paga). Corrige o comprovante órfão
+(decisão 14c). `unpay` credita de volta e apaga o comprovante após o commit.
+`bankAccountsService.debit`/`credit` substituem `debit/creditBankAccount` — `credit` não confere
+existência (paridade com o comportamento antigo).
+
+**`backupService`** depende do `monthsService` (service→service). `exportData(repos)` +
+`parseBackupData` foram para `infra/database/repositories/backupRepository.ts` (precedente
+`meu-negocio-app`, com zod); o `.zip`/diretório temporário/cópia de `uploads/` foram para
+`infra/gateways/backupArchive.ts` (topo de `gateways/`, como `receipts.ts`); os diálogos para
+`infra/gateways/system/dialogs.ts`. `data:openFolder` foi para `backupService.openDataFolder`
+(precedente `meu-negocio-app`) com um `ShellGateway` novo. Pós-import:
+`deleteAppSetting(LAST_CURRENT_MONTH_KEY)` + `monthsService.ensureCurrentMonth()`.
+
+**Bootstrap.** `registerIpcHandlers(db)` devolve `{ months: monthsService }`; `index.ts` chama
+`services.months.ensureCurrentMonth()` **depois** de registrar (ordem invertida de
+"ensure→register" para "register→ensure") e no `browser-window-focus`. O tema no boot: `index.ts`
+monta `makeAppSettingsRepository(db)` direto, `resolveThemeMode`, `themeMode.apply`. O gateway
+`themeMode.ts` virou objeto (`apply`/`currentMode`/`windowBackgroundFor`/`systemPrefersDark`),
+espelhando `meu-negocio-app`; `resolveInitialThemeMode`/`getThemeMode`/`applyThemeMode`/
+`themeBackground` saíram. Comentário de carve-out do ADR-0002 nos dois arquivos.
+
+`setupRepository.ts` apagado (`runSetup` → `setupService.run`). `registerIpc.ts` segue como
+controller provisório (validação inline com zod, saída como entidade) — só que agora fala com
+services, e o `null`→`AppError(404)` que ele traduzia sumiu (o service decide o 404).
+
+### Ajustes da revisão
+
+- `gateways/backup/archive.ts` → `gateways/backupArchive.ts` (achado Standards: subpasta de um
+  arquivo só; o topo de `gateways/` é o que este app usa, decisão 10).
+- `nextCompetency(year, month)` extraído em `monthsService.ts` — dedup do rollover Dez→Jan que
+  se repetia em `createNext`, `createBatch` e `setupService.run` (achado Standards: Duplicated
+  Code).
+- `incomesService.receive` passou a receber `ReceiveIncomeInput` (objeto), como
+  `expensesService.pay` recebe `PayExpenseInput` (achado Standards: Data Clumps / inconsistência).
+
+### Divergências registradas, não resolvidas aqui
+
+- **`expensesService.update` / `incomesService.update` não conferem o Mês.** O ticket diz
+  "`create`/`update` conferem que o mês existe"; `update` não recebe `monthId` e não move o
+  item entre Meses, então o 404 dele é "item não encontrado" (idêntico ao `registerIpc.ts` de
+  antes). Lido como imprecisão do ticket.
+- **`settingsService.getThemeMode()` lê o gateway, não `repos.appSettings`.** O ticket diz "ler
+  e gravar `THEME_MODE_KEY` via `repos.appSettings`"; só `setThemeMode` grava lá. Ler o banco a
+  cada `theme:get` seria errado — depois do boot o `nativeTheme` é a fonte (o comentário do
+  gateway explica). Mesmo desenho do `settingsService` do `meu-negocio-app` e do carve-out
+  registrado no ticket 04.
+- **`exportData` re-mapeia por entidade e estreita as colunas do `data.json`** (ex.: `categories`
+  só `{id,name,color}`; `default_expenses`/`default_incomes` perdem `id`/`created_at`) — antes
+  era `SELECT *`. A decisão 12 manda `exportData(repos)` e `repos` devolve entidades, então
+  algum re-mapeamento é inevitável; o estreitamento é seguro (o `importData` nunca lia essas
+  colunas, o `parseBackupData` tolera a ausência, o round-trip continua íntegro).
+- **"Competência" ainda é `{ year, month }` solto**, não um `type` de `domain/`. Primitive
+  Obsession / Data Clumps apontado na revisão (Standards); o ticket 04 (entidades) fechou sem
+  criar o tipo e este ticket é "services". Candidato ao ticket 07 (limpezas).
+- **Duplicação da cascata padrão→Mês** (`createMonthWithDefaults` × `defaultExpenses/
+  IncomesService.create`, 4 literais de linha) — apontado como Duplicated Code (judgement). As
+  duas pontas partem de tipos diferentes (`DefaultXEntity` com campos não-opcionais vs. input de
+  `create` com campos opcionais), então extrair normalizaria os dois lados sem encurtar. Deixado.
+- **Tipagem de input inconsistente**: `defaultExpenses/IncomesService` têm `CreateXInput`/
+  `UpdateXInput` nomeados; `expenses`/`incomes`/`categories`/`bankAccounts` inlinam a mesma
+  forma. O ticket 06 (Request/Response) tipa a borda; deixado como está.
+- **`list()` vs `listAll()`** nos repositórios de months/expenses/incomes: o nome não diz
+  "com agregados" vs "linhas planas" (comentário carrega). `list` é o verbo do contrato
+  (README §2.2) e não pode virar `listWithTotals`; `listAll` contrasta com `listForMonth`.
+
+### Verificação
+
+`npm run typecheck` (4 apps) exit 0. `npm run lint` 0 erros (2 warnings pré-existentes de
+`react-hooks/exhaustive-deps` em `OrdersContext.tsx`/`ProductsContext.tsx` do `meu-negocio-app`,
+não tocados). `npm run test` 187 passando (21 arquivos). `npx electron-vite build` do
+`meu-dinheiro-app`: main (51 módulos), preload e renderer compilam e resolvem. Sem teste novo
+(ADR-0002; `channels.test.ts` já existia). Grep confirma: nenhum service importa
+`better-sqlite3`/`electron`. `/code-review` (Standards + Spec, sub-agents paralelos): 0
+violações duras nos dois eixos; achados de julgamento tratados acima (3 aplicados, o resto
+registrado). Smoke de GUI (`npm run dev:dinheiro`) não rodado nesta sessão.
