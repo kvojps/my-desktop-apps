@@ -4,9 +4,6 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { renameLegacyTables, runMigrations } from './migrations';
 
-let db: Database.Database | null = null;
-let dbFilePath = '';
-
 const SCHEMA = `
 CREATE TABLE IF NOT EXISTS months (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -100,24 +97,26 @@ function migrateLegacyDataIfNeeded(dbPath: string, uploadsDir: string) {
   console.log('[migration] Dados legados copiados para', dbPath);
 }
 
+/**
+ * Diretório dos comprovantes. Helper de caminho puro — deriva um path, não abre
+ * conexão nenhuma, então não é "getter de módulo" no sentido que o README §2.2 /
+ * ADR-0002 proíbem: nada aqui alcança o banco por fora da unidade de trabalho.
+ * `registerIpc` passa o resultado, fechado, aos gateways de comprovante e de
+ * backup.
+ */
 export function getUploadsDir(): string {
   return path.join(app.getPath('userData'), 'uploads');
 }
 
-/** Caminho do banco em disco, exibido na tela de Configurações. */
-export function getDbPath(): string {
-  return dbFilePath;
-}
-
 export function initDb(): Database.Database {
-  dbFilePath = path.join(app.getPath('userData'), 'meu-dinheiro.db');
+  const dbFilePath = path.join(app.getPath('userData'), 'meu-dinheiro.db');
   const uploadsDir = getUploadsDir();
 
   migrateLegacyDataIfNeeded(dbFilePath, uploadsDir);
 
   fs.mkdirSync(uploadsDir, { recursive: true });
 
-  db = new Database(dbFilePath);
+  const db = new Database(dbFilePath);
   db.pragma('journal_mode = WAL');
   db.pragma('foreign_keys = ON');
 
@@ -130,12 +129,5 @@ export function initDb(): Database.Database {
   db.exec(SCHEMA);
   runMigrations(db);
 
-  return db;
-}
-
-export function getDb(): Database.Database {
-  if (!db) {
-    throw new Error('Database has not been initialized yet');
-  }
   return db;
 }

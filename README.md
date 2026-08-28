@@ -155,10 +155,10 @@ têm destino fixo:
 | `export/`, `print/` | `services/` mais `infra/gateways/`                                                                         |
 | `constants/`        | `domain/` — `monthLabel` é vocabulário, não configuração                                                   |
 
-A migração é por app: `git-dlog` e `meu-negocio-app` já convertidos,
-`meu-dinheiro-app` e `meu-movel-planejado` na fila, nessa ordem. Enquanto ela não
-termina, app que ainda não foi convertido está divergindo deste documento, e a
-divergência é bug do código.
+A migração é por app: `git-dlog`, `meu-negocio-app` e `meu-dinheiro-app` já
+convertidos, só `meu-movel-planejado` na fila. Enquanto ela não termina, app que
+ainda não foi convertido está divergindo deste documento, e a divergência é bug
+do código.
 
 ### 2.3 `src/preload` — a ponte
 
