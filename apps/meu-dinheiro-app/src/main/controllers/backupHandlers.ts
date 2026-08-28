@@ -2,7 +2,7 @@ import type Database from 'better-sqlite3';
 import { BrowserWindow, type IpcMainInvokeEvent, app, dialog, shell } from 'electron';
 import type { ExportResult, ImportResult } from '@shared/ipc/api';
 import { IPC_CHANNELS } from '@shared/ipc/channels';
-import { deleteAppSetting } from '../infra/database/repositories/appSettingsRepository';
+import type { Repositories } from '../infra/database';
 import {
   exportToZipFile,
   importFromZipFile,
@@ -22,7 +22,11 @@ function windowFor(event: IpcMainInvokeEvent): BrowserWindow {
   return window;
 }
 
-export function registerBackupHandlers(db: Database.Database, uploadsDir: string): void {
+export function registerBackupHandlers(
+  db: Database.Database,
+  repos: Repositories,
+  uploadsDir: string,
+): void {
   handle(IPC_CHANNELS.dataExport, async (event): Promise<ExportResult> => {
     const defaultPath = `export-meu-dinheiro-${new Date().toISOString().slice(0, 10)}.zip`;
     const result = await dialog.showSaveDialog(windowFor(event), {
@@ -58,7 +62,7 @@ export function registerBackupHandlers(db: Database.Database, uploadsDir: string
     }
 
     // Outro conjunto de dados: a marca de competência do anterior não vale mais.
-    deleteAppSetting(db, LAST_CURRENT_MONTH_KEY);
+    repos.appSettings.deleteAppSetting(LAST_CURRENT_MONTH_KEY);
     ensureCurrentMonthExists(db);
 
     return { success: true };

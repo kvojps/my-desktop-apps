@@ -54,84 +54,8 @@ const WITH_JOINS = `SELECT e.*, ba.name as bank_account_name, c.name as category
    LEFT JOIN bank_accounts ba ON ba.id = e.bank_account_id
    LEFT JOIN categories c ON c.id = e.category_id`;
 
-export function listExpensesForMonth(db: Database.Database, monthId: number): Expense[] {
-  const rows = db
-    .prepare(`${WITH_JOINS} WHERE e.month_id = ? ORDER BY e.due_date, e.name`)
-    .all(monthId) as ExpenseJoinRow[];
-  return rows.map(rowToExpense);
-}
-
-function getExpenseRow(db: Database.Database, id: number): ExpenseRow {
-  const expense = db.prepare('SELECT * FROM expenses WHERE id = ?').get(id) as
-    ExpenseRow | undefined;
-  if (!expense) {
-    throw new AppError(404, 'Despesa não encontrada');
-  }
-  return expense;
-}
-
-export function getExpenseById(db: Database.Database, id: number): Expense {
-  return rowToExpense(getExpenseRow(db, id));
-}
-
-export function getExpenseForFilename(db: Database.Database, id: number) {
-  return db
-    .prepare(
-      'SELECT e.*, m.label as month_label FROM expenses e JOIN months m ON e.month_id = m.id WHERE e.id = ?',
-    )
-    .get(id) as (ExpenseRow & { month_label: string }) | undefined;
-}
-
-export function createExpense(
-  db: Database.Database,
-  monthId: number,
-  data: { name: string; dueDate?: string | null; amount?: number; categoryId?: number | null },
-): Expense {
-  const month = db.prepare('SELECT id FROM months WHERE id = ?').get(monthId);
-  if (!month) {
-    throw new AppError(404, 'Mês não encontrado');
-  }
-
-  const result = db
-    .prepare(
-      'INSERT INTO expenses (month_id, name, due_date, amount, category_id) VALUES (?, ?, ?, ?, ?)',
-    )
-    .run(monthId, data.name, data.dueDate || null, data.amount || 0, data.categoryId ?? null);
-
-  return getExpenseById(db, result.lastInsertRowid as number);
-}
-
-export function updateExpense(
-  db: Database.Database,
-  id: number,
-  data: {
-    name?: string;
-    dueDate?: string | null;
-    amount?: number;
-    notes?: string | null;
-    categoryId?: number | null;
-  },
-): Expense {
-  const existing = getExpenseRow(db, id);
-
-  db.prepare(
-    'UPDATE expenses SET name = ?, due_date = ?, amount = ?, notes = ?, category_id = ? WHERE id = ?',
-  ).run(
-    data.name ?? existing.name,
-    data.dueDate !== undefined ? data.dueDate : existing.due_date,
-    data.amount !== undefined ? data.amount : existing.amount,
-    data.notes !== undefined ? data.notes : existing.notes,
-    data.categoryId !== undefined ? data.categoryId : existing.category_id,
-    id,
-  );
-
-  return getExpenseById(db, id);
-}
-
-export function deleteExpense(db: Database.Database, uploadsDir: string, id: number) {
-  const existing = getExpenseRow(db, id);
-  deleteReceiptFile(uploadsDir, existing.receipt);
-  db.prepare('DELETE FROM expenses WHERE id = ?').run(id);
+function selectExpenseRow(db: Database.Database, id: number): ExpenseRow | undefined {
+  return db.prepare('SELECT * FROM expenses WHERE id = ?').get(id) as ExpenseRow | undefined;
 }
 
 function todayLocalDate(): string {
@@ -141,48 +65,168 @@ function todayLocalDate(): string {
   ).padStart(2, '0')}`;
 }
 
-export function payExpense(
-  db: Database.Database,
-  id: number,
-  receipt: string | undefined,
-  notes: string | undefined,
-  paidAt: string | undefined,
-  bankAccountId: number | undefined,
-): Expense {
-  const existing = getExpenseRow(db, id);
+export function makeExpensesRepository(db: Database.Database) {
+  function findById(id: number): Expense | null {
+    const row = selectExpenseRow(db, id);
+    return row ? rowToExpense(row) : null;
+  }
 
-  const run = db.transaction(() => {
-    if (bankAccountId) {
-      debitBankAccount(db, bankAccountId, existing.amount);
-    }
-    db.prepare(
-      'UPDATE expenses SET is_paid = 1, paid_at = ?, receipt = ?, notes = ?, bank_account_id = ? WHERE id = ?',
-    ).run(
-      paidAt || todayLocalDate(),
-      receipt ?? existing.receipt,
-      notes !== undefined ? notes : existing.notes,
-      bankAccountId ?? null,
-      id,
-    );
-  });
-  run();
+  function getById(id: number): Expense {
+    const expense = findById(id);
+    if (!expense) throw new Error(`Expense not found: ${id}`);
+    return expense;
+  }
 
-  return getExpenseById(db, id);
+  return {
+    listForMonth(monthId: number): Expense[] {
+      const rows = db
+        .prepare(`${WITH_JOINS} WHERE e.month_id = ? ORDER BY e.due_date, e.name`)
+        .all(monthId) as ExpenseJoinRow[];
+      return rows.map(rowToExpense);
+    },
+
+    findById,
+
+    /** Linha crua + rótulo do mês, para montar o nome do arquivo de comprovante. */
+    getForFilename(id: number) {
+      return db
+        .prepare(
+          'SELECT e.*, m.label as month_label FROM expenses e JOIN months m ON e.month_id = m.id WHERE e.id = ?',
+        )
+        .get(id) as (ExpenseRow & { month_label: string }) | undefined;
+    },
+
+    /**
+     * Confere que o mês existe antes de inserir — guarda de integridade que
+     * ainda lança daqui; a migração para `expensesService.create` é o ticket 05.
+     */
+    create(
+      monthId: number,
+      data: {
+        name: string;
+        dueDate?: string | null;
+        amount?: number;
+        categoryId?: number | null;
+      },
+    ): Expense {
+      const month = db.prepare('SELECT id FROM months WHERE id = ?').get(monthId);
+      if (!month) {
+        throw new AppError(404, 'Mês não encontrado');
+      }
+
+      const result = db
+        .prepare(
+          'INSERT INTO expenses (month_id, name, due_date, amount, category_id) VALUES (?, ?, ?, ?, ?)',
+        )
+        .run(monthId, data.name, data.dueDate || null, data.amount || 0, data.categoryId ?? null);
+
+      return getById(result.lastInsertRowid as number);
+    },
+
+    update(
+      id: number,
+      data: {
+        name?: string;
+        dueDate?: string | null;
+        amount?: number;
+        notes?: string | null;
+        categoryId?: number | null;
+      },
+    ): Expense | null {
+      const existing = selectExpenseRow(db, id);
+      if (!existing) return null;
+
+      db.prepare(
+        'UPDATE expenses SET name = ?, due_date = ?, amount = ?, notes = ?, category_id = ? WHERE id = ?',
+      ).run(
+        data.name ?? existing.name,
+        data.dueDate !== undefined ? data.dueDate : existing.due_date,
+        data.amount !== undefined ? data.amount : existing.amount,
+        data.notes !== undefined ? data.notes : existing.notes,
+        data.categoryId !== undefined ? data.categoryId : existing.category_id,
+        id,
+      );
+
+      return getById(id);
+    },
+
+    delete(uploadsDir: string, id: number): Expense | null {
+      const existing = selectExpenseRow(db, id);
+      if (!existing) return null;
+      deleteReceiptFile(uploadsDir, existing.receipt);
+      db.prepare('DELETE FROM expenses WHERE id = ?').run(id);
+      return rowToExpense(existing);
+    },
+
+    /**
+     * Débito da conta + marca paga, numa transação. A regra de saldo vive em
+     * `debitBankAccount` (função de módulo do `bankAccountsRepository`); a
+     * composição pelo service, junto da correção do comprovante órfão, é o
+     * ticket 05 (`../spec.md`, decisão 14c). Devolve `null` se a despesa sumiu.
+     */
+    pay(
+      id: number,
+      receipt: string | undefined,
+      notes: string | undefined,
+      paidAt: string | undefined,
+      bankAccountId: number | undefined,
+    ): Expense | null {
+      const existing = selectExpenseRow(db, id);
+      if (!existing) return null;
+
+      const run = db.transaction(() => {
+        if (bankAccountId) {
+          debitBankAccount(db, bankAccountId, existing.amount);
+        }
+        db.prepare(
+          'UPDATE expenses SET is_paid = 1, paid_at = ?, receipt = ?, notes = ?, bank_account_id = ? WHERE id = ?',
+        ).run(
+          paidAt || todayLocalDate(),
+          receipt ?? existing.receipt,
+          notes !== undefined ? notes : existing.notes,
+          bankAccountId ?? null,
+          id,
+        );
+      });
+      run();
+
+      return getById(id);
+    },
+
+    unpay(uploadsDir: string, id: number): Expense | null {
+      const existing = selectExpenseRow(db, id);
+      if (!existing) return null;
+      deleteReceiptFile(uploadsDir, existing.receipt);
+
+      const run = db.transaction(() => {
+        if (existing.bank_account_id) {
+          creditBankAccount(db, existing.bank_account_id, existing.amount);
+        }
+        db.prepare(
+          'UPDATE expenses SET is_paid = 0, paid_at = NULL, receipt = NULL, bank_account_id = NULL WHERE id = ?',
+        ).run(id);
+      });
+      run();
+
+      return getById(id);
+    },
+
+    /**
+     * NULL das colunas que referenciam uma linha removida. Sem transação
+     * própria: o service compõe (`repos.transaction`) junto do
+     * `repos.categories.delete` / `repos.bankAccounts.delete` no ticket 05
+     * (`../spec.md`, decisão 7).
+     */
+    clearCategory(categoryId: number): void {
+      db.prepare('UPDATE expenses SET category_id = NULL WHERE category_id = ?').run(categoryId);
+    },
+
+    clearBankAccount(bankAccountId: number): void {
+      db.prepare('UPDATE expenses SET bank_account_id = NULL WHERE bank_account_id = ?').run(
+        bankAccountId,
+      );
+    },
+  };
 }
 
-export function unpayExpense(db: Database.Database, uploadsDir: string, id: number): Expense {
-  const existing = getExpenseRow(db, id);
-  deleteReceiptFile(uploadsDir, existing.receipt);
-
-  const run = db.transaction(() => {
-    if (existing.bank_account_id) {
-      creditBankAccount(db, existing.bank_account_id, existing.amount);
-    }
-    db.prepare(
-      'UPDATE expenses SET is_paid = 0, paid_at = NULL, receipt = NULL, bank_account_id = NULL WHERE id = ?',
-    ).run(id);
-  });
-  run();
-
-  return getExpenseById(db, id);
-}
+export type ExpensesRepository = ReturnType<typeof makeExpensesRepository>;

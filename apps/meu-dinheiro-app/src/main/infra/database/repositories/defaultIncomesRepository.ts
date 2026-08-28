@@ -1,7 +1,6 @@
 import Database from 'better-sqlite3';
 import type { DefaultIncome } from '@shared/types/income';
 import { formatDueDate } from '../../../domain/monthNames';
-import { AppError } from '../../../utils/errors/AppError';
 
 /** Colunas cruas da tabela; o banco continua em snake_case. */
 export interface DefaultIncomeRow {
@@ -31,99 +30,110 @@ export function rowToDefaultIncome(row: DefaultIncomeRow | DefaultIncomeJoinRow)
   };
 }
 
-export function listDefaultIncomes(db: Database.Database): DefaultIncome[] {
-  const rows = db
-    .prepare(
-      `SELECT di.*, ba.name as bank_account_name
-       FROM default_incomes di
-       LEFT JOIN bank_accounts ba ON ba.id = di.bank_account_id
-       ORDER BY di.name`,
-    )
-    .all() as DefaultIncomeJoinRow[];
-  return rows.map(rowToDefaultIncome);
-}
-
-function getDefaultIncomeRow(db: Database.Database, id: number): DefaultIncomeRow {
-  const existing = db.prepare('SELECT * FROM default_incomes WHERE id = ?').get(id) as
+function selectDefaultIncomeRow(db: Database.Database, id: number): DefaultIncomeRow | undefined {
+  return db.prepare('SELECT * FROM default_incomes WHERE id = ?').get(id) as
     DefaultIncomeRow | undefined;
-  if (!existing) {
-    throw new AppError(404, 'Entrada padrão não encontrada');
+}
+
+export function makeDefaultIncomesRepository(db: Database.Database) {
+  function findById(id: number): DefaultIncome | null {
+    const row = selectDefaultIncomeRow(db, id);
+    return row ? rowToDefaultIncome(row) : null;
   }
-  return existing;
-}
 
-export function getDefaultIncomeById(db: Database.Database, id: number): DefaultIncome {
-  return rowToDefaultIncome(getDefaultIncomeRow(db, id));
-}
+  return {
+    list(): DefaultIncome[] {
+      const rows = db
+        .prepare(
+          `SELECT di.*, ba.name as bank_account_name
+           FROM default_incomes di
+           LEFT JOIN bank_accounts ba ON ba.id = di.bank_account_id
+           ORDER BY di.name`,
+        )
+        .all() as DefaultIncomeJoinRow[];
+      return rows.map(rowToDefaultIncome);
+    },
 
-export function createDefaultIncome(
-  db: Database.Database,
-  data: {
-    name: string;
-    expectedDay?: number | null;
-    amount?: number;
-    bankAccountId?: number | null;
-  },
-): DefaultIncome {
-  const create = db.transaction(() => {
-    const result = db
-      .prepare(
-        'INSERT INTO default_incomes (name, expected_day, amount, bank_account_id) VALUES (?, ?, ?, ?)',
-      )
-      .run(data.name, data.expectedDay || null, data.amount || 0, data.bankAccountId || null);
+    findById,
 
-    const defaultId = result.lastInsertRowid as number;
+    /**
+     * Insere o padrão e a cascata (uma cópia) para dentro de todo mês já
+     * existente, numa transação só. A composição pelo service — mesmo `db.transaction`,
+     * autorado lá — é o ticket 05.
+     */
+    create(data: {
+      name: string;
+      expectedDay?: number | null;
+      amount?: number;
+      bankAccountId?: number | null;
+    }): DefaultIncome {
+      const create = db.transaction(() => {
+        const result = db
+          .prepare(
+            'INSERT INTO default_incomes (name, expected_day, amount, bank_account_id) VALUES (?, ?, ?, ?)',
+          )
+          .run(data.name, data.expectedDay || null, data.amount || 0, data.bankAccountId || null);
 
-    const months = db.prepare('SELECT * FROM months').all() as {
-      id: number;
-      year: number;
-      month: number;
-    }[];
-    const insertIncome = db.prepare(
-      'INSERT INTO incomes (month_id, name, expected_date, amount, bank_account_id) VALUES (?, ?, ?, ?, ?)',
-    );
-    for (const month of months) {
-      insertIncome.run(
-        month.id,
-        data.name,
-        formatDueDate(month.year, month.month, data.expectedDay),
-        data.amount || 0,
-        data.bankAccountId || null,
+        const defaultId = result.lastInsertRowid as number;
+
+        const months = db.prepare('SELECT * FROM months').all() as {
+          id: number;
+          year: number;
+          month: number;
+        }[];
+        const insertIncome = db.prepare(
+          'INSERT INTO incomes (month_id, name, expected_date, amount, bank_account_id) VALUES (?, ?, ?, ?, ?)',
+        );
+        for (const month of months) {
+          insertIncome.run(
+            month.id,
+            data.name,
+            formatDueDate(month.year, month.month, data.expectedDay),
+            data.amount || 0,
+            data.bankAccountId || null,
+          );
+        }
+
+        return defaultId;
+      });
+
+      const created = findById(create());
+      if (!created) throw new Error('Default income not found after insert');
+      return created;
+    },
+
+    update(
+      id: number,
+      data: {
+        name?: string;
+        expectedDay?: number | null;
+        amount?: number;
+        bankAccountId?: number | null;
+      },
+    ): DefaultIncome | null {
+      const existing = selectDefaultIncomeRow(db, id);
+      if (!existing) return null;
+
+      db.prepare(
+        'UPDATE default_incomes SET name = ?, expected_day = ?, amount = ?, bank_account_id = ? WHERE id = ?',
+      ).run(
+        data.name ?? existing.name,
+        data.expectedDay !== undefined ? data.expectedDay : existing.expected_day,
+        data.amount !== undefined ? data.amount : existing.amount,
+        data.bankAccountId !== undefined ? data.bankAccountId : existing.bank_account_id,
+        id,
       );
-    }
 
-    return defaultId;
-  });
+      return findById(id);
+    },
 
-  return getDefaultIncomeById(db, create());
+    delete(id: number): DefaultIncome | null {
+      const existing = selectDefaultIncomeRow(db, id);
+      if (!existing) return null;
+      db.prepare('DELETE FROM default_incomes WHERE id = ?').run(id);
+      return rowToDefaultIncome(existing);
+    },
+  };
 }
 
-export function updateDefaultIncome(
-  db: Database.Database,
-  id: number,
-  data: {
-    name?: string;
-    expectedDay?: number | null;
-    amount?: number;
-    bankAccountId?: number | null;
-  },
-): DefaultIncome {
-  const existing = getDefaultIncomeRow(db, id);
-
-  db.prepare(
-    'UPDATE default_incomes SET name = ?, expected_day = ?, amount = ?, bank_account_id = ? WHERE id = ?',
-  ).run(
-    data.name ?? existing.name,
-    data.expectedDay !== undefined ? data.expectedDay : existing.expected_day,
-    data.amount !== undefined ? data.amount : existing.amount,
-    data.bankAccountId !== undefined ? data.bankAccountId : existing.bank_account_id,
-    id,
-  );
-
-  return getDefaultIncomeById(db, id);
-}
-
-export function deleteDefaultIncome(db: Database.Database, id: number) {
-  getDefaultIncomeRow(db, id);
-  db.prepare('DELETE FROM default_incomes WHERE id = ?').run(id);
-}
+export type DefaultIncomesRepository = ReturnType<typeof makeDefaultIncomesRepository>;

@@ -20,6 +20,53 @@ export function getExportData(db: Database.Database) {
   };
 }
 
+/**
+ * Linhas cruas do backup, já normalizadas (chaves legadas resolvidas). Descritas
+ * aqui por enquanto — o `parseBackupData` que as valida e a tolerância completa a
+ * formatos antigos são o ticket 05 (`../spec.md`, decisão 12).
+ */
+export interface BackupData {
+  categories: { id: number; name: string; color: string }[];
+  default_expenses: {
+    name: string;
+    due_day: number | null;
+    amount: number;
+    category_id?: number | null;
+  }[];
+  default_incomes: {
+    name: string;
+    expected_day: number | null;
+    amount: number;
+    bank_account_id?: number | null;
+  }[];
+  bank_accounts: { id: number; name: string; balance: number }[];
+  months: { id: number; label: string; year: number; month: number }[];
+  expenses: {
+    id: number;
+    month_id: number;
+    name: string;
+    due_date: string | null;
+    amount: number;
+    is_paid: number;
+    paid_at: string | null;
+    receipt: string | null;
+    notes: string | null;
+    bank_account_id?: number | null;
+    category_id?: number | null;
+  }[];
+  incomes: {
+    id: number;
+    month_id: number;
+    name: string;
+    expected_date: string | null;
+    amount: number;
+    is_received: number;
+    received_at: string | null;
+    notes: string | null;
+    bank_account_id?: number | null;
+  }[];
+}
+
 export async function exportToZipFile(
   db: Database.Database,
   uploadsDir: string,
@@ -44,6 +91,102 @@ export async function exportToZipFile(
   });
 }
 
+/**
+ * Continua sobre `db` cru, não sobre `repos`: apagar e reescrever sete tabelas
+ * inteiras numa única transação não é uma sequência de verbos de entidade — não
+ * há `create`/`update` de repositório que caiba aqui. É por isso que
+ * `makeRepositories` a embrulha em `importBackup` em vez de compô-la no service.
+ */
+export function importData(db: Database.Database, data: BackupData): void {
+  db.pragma('foreign_keys = OFF');
+  try {
+    const run = db.transaction(() => {
+      db.exec('DELETE FROM expenses');
+      db.exec('DELETE FROM incomes');
+      db.exec('DELETE FROM default_expenses');
+      db.exec('DELETE FROM default_incomes');
+      db.exec('DELETE FROM bank_accounts');
+      db.exec('DELETE FROM months');
+      db.exec('DELETE FROM categories');
+
+      const insertCategory = db.prepare('INSERT INTO categories (id, name, color) VALUES (?, ?, ?)');
+      for (const cat of data.categories) {
+        insertCategory.run(cat.id, cat.name, cat.color);
+      }
+
+      const insertDefault = db.prepare(
+        'INSERT INTO default_expenses (name, due_day, amount, category_id) VALUES (?, ?, ?, ?)',
+      );
+      for (const exp of data.default_expenses) {
+        insertDefault.run(exp.name, exp.due_day, exp.amount, exp.category_id ?? null);
+      }
+
+      const insertDefaultIncome = db.prepare(
+        'INSERT INTO default_incomes (name, expected_day, amount, bank_account_id) VALUES (?, ?, ?, ?)',
+      );
+      for (const inc of data.default_incomes) {
+        insertDefaultIncome.run(inc.name, inc.expected_day, inc.amount, inc.bank_account_id ?? null);
+      }
+
+      const insertBankAccount = db.prepare(
+        'INSERT INTO bank_accounts (id, name, balance) VALUES (?, ?, ?)',
+      );
+      for (const acc of data.bank_accounts) {
+        insertBankAccount.run(acc.id, acc.name, acc.balance);
+      }
+
+      const insertMonth = db.prepare(
+        'INSERT INTO months (id, label, year, month) VALUES (?, ?, ?, ?)',
+      );
+      for (const m of data.months) {
+        insertMonth.run(m.id, m.label, m.year, m.month);
+      }
+
+      const insertExpense = db.prepare(
+        `INSERT INTO expenses (id, month_id, name, due_date, amount, is_paid, paid_at, receipt, notes, bank_account_id, category_id)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      );
+      for (const e of data.expenses) {
+        insertExpense.run(
+          e.id,
+          e.month_id,
+          e.name,
+          e.due_date,
+          e.amount,
+          e.is_paid,
+          e.paid_at,
+          e.receipt,
+          e.notes,
+          e.bank_account_id ?? null,
+          e.category_id ?? null,
+        );
+      }
+
+      const insertIncome = db.prepare(
+        `INSERT INTO incomes (id, month_id, name, expected_date, amount, is_received, received_at, notes, bank_account_id)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      );
+      for (const i of data.incomes) {
+        insertIncome.run(
+          i.id,
+          i.month_id,
+          i.name,
+          i.expected_date,
+          i.amount,
+          i.is_received,
+          i.received_at,
+          i.notes,
+          i.bank_account_id ?? null,
+        );
+      }
+    });
+
+    run();
+  } finally {
+    db.pragma('foreign_keys = ON');
+  }
+}
+
 export async function importFromZipFile(
   db: Database.Database,
   uploadsDir: string,
@@ -61,117 +204,32 @@ export async function importFromZipFile(
       throw new AppError(400, 'data.json não encontrado no ZIP');
     }
 
-    const data = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
+    const raw = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
 
     // Backups exportados antes da renomeação "contas" -> "despesas" usam as chaves antigas.
-    const expenses = data.expenses ?? data.accounts;
-    const defaultExpenses = data.default_expenses ?? data.default_accounts ?? [];
+    const expenses = raw.expenses ?? raw.accounts;
+    const defaultExpenses = raw.default_expenses ?? raw.default_accounts ?? [];
     // Backups anteriores à criação das contas bancárias não têm essa chave.
-    const bankAccounts = data.bank_accounts ?? [];
+    const bankAccounts = raw.bank_accounts ?? [];
     // Backups anteriores à criação de entradas não têm essas chaves.
-    const incomes = data.incomes ?? [];
-    const defaultIncomes = data.default_incomes ?? [];
+    const incomes = raw.incomes ?? [];
+    const defaultIncomes = raw.default_incomes ?? [];
     // Backups anteriores à criação de categorias não têm essa chave.
-    const categories = data.categories ?? [];
+    const categories = raw.categories ?? [];
 
-    if (!data.version || !data.months || !expenses) {
+    if (!raw.version || !raw.months || !expenses) {
       throw new AppError(400, 'Formato de dados inválido');
     }
 
-    db.pragma('foreign_keys = OFF');
-    try {
-      const run = db.transaction(() => {
-        db.exec('DELETE FROM expenses');
-        db.exec('DELETE FROM incomes');
-        db.exec('DELETE FROM default_expenses');
-        db.exec('DELETE FROM default_incomes');
-        db.exec('DELETE FROM bank_accounts');
-        db.exec('DELETE FROM months');
-        db.exec('DELETE FROM categories');
-
-        const insertCategory = db.prepare(
-          'INSERT INTO categories (id, name, color) VALUES (?, ?, ?)',
-        );
-        for (const cat of categories) {
-          insertCategory.run(cat.id, cat.name, cat.color);
-        }
-
-        const insertDefault = db.prepare(
-          'INSERT INTO default_expenses (name, due_day, amount, category_id) VALUES (?, ?, ?, ?)',
-        );
-        for (const exp of defaultExpenses) {
-          insertDefault.run(exp.name, exp.due_day, exp.amount, exp.category_id ?? null);
-        }
-
-        const insertDefaultIncome = db.prepare(
-          'INSERT INTO default_incomes (name, expected_day, amount, bank_account_id) VALUES (?, ?, ?, ?)',
-        );
-        for (const inc of defaultIncomes) {
-          insertDefaultIncome.run(
-            inc.name,
-            inc.expected_day,
-            inc.amount,
-            inc.bank_account_id ?? null,
-          );
-        }
-
-        const insertBankAccount = db.prepare(
-          'INSERT INTO bank_accounts (id, name, balance) VALUES (?, ?, ?)',
-        );
-        for (const acc of bankAccounts) {
-          insertBankAccount.run(acc.id, acc.name, acc.balance);
-        }
-
-        const insertMonth = db.prepare(
-          'INSERT INTO months (id, label, year, month) VALUES (?, ?, ?, ?)',
-        );
-        for (const m of data.months) {
-          insertMonth.run(m.id, m.label, m.year, m.month);
-        }
-
-        const insertExpense = db.prepare(
-          `INSERT INTO expenses (id, month_id, name, due_date, amount, is_paid, paid_at, receipt, notes, bank_account_id, category_id)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        );
-        for (const e of expenses) {
-          insertExpense.run(
-            e.id,
-            e.month_id,
-            e.name,
-            e.due_date,
-            e.amount,
-            e.is_paid,
-            e.paid_at,
-            e.receipt,
-            e.notes,
-            e.bank_account_id ?? null,
-            e.category_id ?? null,
-          );
-        }
-
-        const insertIncome = db.prepare(
-          `INSERT INTO incomes (id, month_id, name, expected_date, amount, is_received, received_at, notes, bank_account_id)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        );
-        for (const i of incomes) {
-          insertIncome.run(
-            i.id,
-            i.month_id,
-            i.name,
-            i.expected_date,
-            i.amount,
-            i.is_received,
-            i.received_at,
-            i.notes,
-            i.bank_account_id ?? null,
-          );
-        }
-      });
-
-      run();
-    } finally {
-      db.pragma('foreign_keys = ON');
-    }
+    importData(db, {
+      categories,
+      default_expenses: defaultExpenses,
+      default_incomes: defaultIncomes,
+      bank_accounts: bankAccounts,
+      months: raw.months,
+      expenses,
+      incomes,
+    });
 
     const uploadsSource = path.join(tempDir, 'uploads');
     if (fs.existsSync(uploadsSource)) {

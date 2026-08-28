@@ -19,62 +19,23 @@ export function rowToBankAccount(row: BankAccountRow): BankAccount {
   };
 }
 
-export function listBankAccounts(db: Database.Database): BankAccount[] {
-  const rows = db.prepare('SELECT * FROM bank_accounts ORDER BY name').all() as BankAccountRow[];
-  return rows.map(rowToBankAccount);
+function selectBankAccountRow(db: Database.Database, id: number): BankAccountRow | undefined {
+  return db.prepare('SELECT * FROM bank_accounts WHERE id = ?').get(id) as
+    BankAccountRow | undefined;
 }
 
-function getBankAccountRow(db: Database.Database, id: number): BankAccountRow {
-  const existing = db.prepare('SELECT * FROM bank_accounts WHERE id = ?').get(id) as
-    BankAccountRow | undefined;
-  if (!existing) {
+/**
+ * Débito/crédito de conta seguem como funções de módulo com seus próprios
+ * throws de regra (saldo insuficiente, conta ausente no débito): são chamadas
+ * de dentro de `expensesRepository`/`incomesRepository`, e a migração para
+ * `bankAccountsService.debit` — que quebra esse acoplamento entre repositórios —
+ * é o ticket 05. Ver `../spec.md`, problema 3 e decisão 6.
+ */
+export function debitBankAccount(db: Database.Database, id: number, amount: number) {
+  const account = selectBankAccountRow(db, id);
+  if (!account) {
     throw new AppError(404, 'Conta bancária não encontrada');
   }
-  return existing;
-}
-
-export function getBankAccountById(db: Database.Database, id: number): BankAccount {
-  return rowToBankAccount(getBankAccountRow(db, id));
-}
-
-export function createBankAccount(
-  db: Database.Database,
-  data: { name: string; balance?: number },
-): BankAccount {
-  const result = db
-    .prepare('INSERT INTO bank_accounts (name, balance) VALUES (?, ?)')
-    .run(data.name, data.balance || 0);
-  return getBankAccountById(db, result.lastInsertRowid as number);
-}
-
-export function updateBankAccount(
-  db: Database.Database,
-  id: number,
-  data: { name?: string; balance?: number },
-): BankAccount {
-  const existing = getBankAccountRow(db, id);
-
-  db.prepare('UPDATE bank_accounts SET name = ?, balance = ? WHERE id = ?').run(
-    data.name ?? existing.name,
-    data.balance !== undefined ? data.balance : existing.balance,
-    id,
-  );
-
-  return getBankAccountById(db, id);
-}
-
-export function deleteBankAccount(db: Database.Database, id: number) {
-  getBankAccountRow(db, id);
-  const run = db.transaction(() => {
-    db.prepare('UPDATE expenses SET bank_account_id = NULL WHERE bank_account_id = ?').run(id);
-    db.prepare('UPDATE incomes SET bank_account_id = NULL WHERE bank_account_id = ?').run(id);
-    db.prepare('DELETE FROM bank_accounts WHERE id = ?').run(id);
-  });
-  run();
-}
-
-export function debitBankAccount(db: Database.Database, id: number, amount: number) {
-  const account = getBankAccountRow(db, id);
   if (account.balance < amount) {
     throw new AppError(400, 'Saldo insuficiente na conta selecionada');
   }
@@ -84,3 +45,63 @@ export function debitBankAccount(db: Database.Database, id: number, amount: numb
 export function creditBankAccount(db: Database.Database, id: number, amount: number) {
   db.prepare('UPDATE bank_accounts SET balance = balance + ? WHERE id = ?').run(amount, id);
 }
+
+export function makeBankAccountsRepository(db: Database.Database) {
+  function findById(id: number): BankAccount | null {
+    const row = selectBankAccountRow(db, id);
+    return row ? rowToBankAccount(row) : null;
+  }
+
+  return {
+    list(): BankAccount[] {
+      const rows = db.prepare('SELECT * FROM bank_accounts ORDER BY name').all() as BankAccountRow[];
+      return rows.map(rowToBankAccount);
+    },
+
+    findById,
+
+    create(data: { name: string; balance?: number }): BankAccount {
+      const result = db
+        .prepare('INSERT INTO bank_accounts (name, balance) VALUES (?, ?)')
+        .run(data.name, data.balance || 0);
+      const created = findById(result.lastInsertRowid as number);
+      if (!created) throw new Error('Bank account not found after insert');
+      return created;
+    },
+
+    update(id: number, data: { name?: string; balance?: number }): BankAccount | null {
+      const existing = selectBankAccountRow(db, id);
+      if (!existing) return null;
+
+      db.prepare('UPDATE bank_accounts SET name = ?, balance = ? WHERE id = ?').run(
+        data.name ?? existing.name,
+        data.balance !== undefined ? data.balance : existing.balance,
+        id,
+      );
+
+      return findById(id);
+    },
+
+    /**
+     * O NULL das referências (`expenses`/`incomes`) ainda roda aqui, dentro do
+     * `db.transaction` do próprio verbo — a composição dessa transação pelo
+     * service, via `repos.expenses.clearBankAccount` / `repos.incomes.clearBankAccount`,
+     * é o ticket 05. Devolve a conta que existia, ou `null` — sem decidir 404.
+     */
+    delete(id: number): BankAccount | null {
+      const existing = selectBankAccountRow(db, id);
+      if (!existing) return null;
+
+      const run = db.transaction(() => {
+        db.prepare('UPDATE expenses SET bank_account_id = NULL WHERE bank_account_id = ?').run(id);
+        db.prepare('UPDATE incomes SET bank_account_id = NULL WHERE bank_account_id = ?').run(id);
+        db.prepare('DELETE FROM bank_accounts WHERE id = ?').run(id);
+      });
+      run();
+
+      return rowToBankAccount(existing);
+    },
+  };
+}
+
+export type BankAccountsRepository = ReturnType<typeof makeBankAccountsRepository>;
