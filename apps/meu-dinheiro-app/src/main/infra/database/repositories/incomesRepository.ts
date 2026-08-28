@@ -1,5 +1,5 @@
 import Database from 'better-sqlite3';
-import type { Income } from '@shared/types/income';
+import type { IncomeEntity } from '../../../domain/income';
 import { AppError } from '../../../utils/errors/AppError';
 import { creditBankAccount, debitBankAccount } from './bankAccountsRepository';
 
@@ -22,7 +22,7 @@ interface IncomeJoinRow extends IncomeRow {
   bank_account_name: string | null;
 }
 
-export function rowToIncome(row: IncomeRow | IncomeJoinRow): Income {
+export function rowToIncome(row: IncomeRow | IncomeJoinRow): IncomeEntity {
   const joined = row as IncomeJoinRow;
   return {
     id: row.id,
@@ -56,13 +56,13 @@ function todayLocalDate(): string {
 }
 
 export function makeIncomesRepository(db: Database.Database) {
-  function findById(id: number): Income | null {
+  function findById(id: number): IncomeEntity | null {
     const row = selectIncomeRow(db, id);
     return row ? rowToIncome(row) : null;
   }
 
   return {
-    listForMonth(monthId: number): Income[] {
+    listForMonth(monthId: number): IncomeEntity[] {
       const rows = db
         .prepare(`${WITH_JOINS} WHERE i.month_id = ? ORDER BY i.expected_date, i.name`)
         .all(monthId) as IncomeJoinRow[];
@@ -83,7 +83,7 @@ export function makeIncomesRepository(db: Database.Database) {
         amount?: number;
         bankAccountId?: number | null;
       },
-    ): Income {
+    ): IncomeEntity {
       const month = db.prepare('SELECT id FROM months WHERE id = ?').get(monthId);
       if (!month) {
         throw new AppError(404, 'Mês não encontrado');
@@ -115,7 +115,7 @@ export function makeIncomesRepository(db: Database.Database) {
         notes?: string | null;
         bankAccountId?: number | null;
       },
-    ): Income | null {
+    ): IncomeEntity | null {
       const existing = selectIncomeRow(db, id);
       if (!existing) return null;
 
@@ -133,7 +133,7 @@ export function makeIncomesRepository(db: Database.Database) {
       return findById(id);
     },
 
-    delete(id: number): Income | null {
+    delete(id: number): IncomeEntity | null {
       const existing = selectIncomeRow(db, id);
       if (!existing) return null;
       db.prepare('DELETE FROM incomes WHERE id = ?').run(id);
@@ -150,7 +150,7 @@ export function makeIncomesRepository(db: Database.Database) {
       notes: string | undefined,
       receivedAt: string | undefined,
       bankAccountId: number | undefined,
-    ): Income | null {
+    ): IncomeEntity | null {
       const existing = selectIncomeRow(db, id);
       if (!existing) return null;
 
@@ -172,7 +172,7 @@ export function makeIncomesRepository(db: Database.Database) {
       return findById(id);
     },
 
-    unreceive(id: number): Income | null {
+    unreceive(id: number): IncomeEntity | null {
       const existing = selectIncomeRow(db, id);
       if (!existing) return null;
 

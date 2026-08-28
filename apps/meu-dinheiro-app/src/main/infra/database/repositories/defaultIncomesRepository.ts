@@ -1,5 +1,5 @@
 import Database from 'better-sqlite3';
-import type { DefaultIncome } from '@shared/types/income';
+import type { DefaultIncomeEntity } from '../../../domain/defaultIncome';
 import { formatDueDate } from '../../../domain/monthNames';
 
 /** Colunas cruas da tabela; o banco continua em snake_case. */
@@ -17,7 +17,9 @@ interface DefaultIncomeJoinRow extends DefaultIncomeRow {
   bank_account_name: string | null;
 }
 
-export function rowToDefaultIncome(row: DefaultIncomeRow | DefaultIncomeJoinRow): DefaultIncome {
+export function rowToDefaultIncome(
+  row: DefaultIncomeRow | DefaultIncomeJoinRow,
+): DefaultIncomeEntity {
   const joined = row as DefaultIncomeJoinRow;
   return {
     id: row.id,
@@ -36,13 +38,13 @@ function selectDefaultIncomeRow(db: Database.Database, id: number): DefaultIncom
 }
 
 export function makeDefaultIncomesRepository(db: Database.Database) {
-  function findById(id: number): DefaultIncome | null {
+  function findById(id: number): DefaultIncomeEntity | null {
     const row = selectDefaultIncomeRow(db, id);
     return row ? rowToDefaultIncome(row) : null;
   }
 
   return {
-    list(): DefaultIncome[] {
+    list(): DefaultIncomeEntity[] {
       const rows = db
         .prepare(
           `SELECT di.*, ba.name as bank_account_name
@@ -66,7 +68,7 @@ export function makeDefaultIncomesRepository(db: Database.Database) {
       expectedDay?: number | null;
       amount?: number;
       bankAccountId?: number | null;
-    }): DefaultIncome {
+    }): DefaultIncomeEntity {
       const create = db.transaction(() => {
         const result = db
           .prepare(
@@ -110,7 +112,7 @@ export function makeDefaultIncomesRepository(db: Database.Database) {
         amount?: number;
         bankAccountId?: number | null;
       },
-    ): DefaultIncome | null {
+    ): DefaultIncomeEntity | null {
       const existing = selectDefaultIncomeRow(db, id);
       if (!existing) return null;
 
@@ -127,7 +129,7 @@ export function makeDefaultIncomesRepository(db: Database.Database) {
       return findById(id);
     },
 
-    delete(id: number): DefaultIncome | null {
+    delete(id: number): DefaultIncomeEntity | null {
       const existing = selectDefaultIncomeRow(db, id);
       if (!existing) return null;
       db.prepare('DELETE FROM default_incomes WHERE id = ?').run(id);

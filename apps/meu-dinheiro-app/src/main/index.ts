@@ -10,7 +10,7 @@ import { ensureCurrentMonthExists } from './infra/database/repositories/monthsRe
 import {
   applyThemeMode,
   getThemeMode,
-  resolveThemeMode,
+  resolveInitialThemeMode,
   themeBackground,
 } from './infra/gateways/system/themeMode';
 import { classifyError } from './utils/errors/toIpcError';
@@ -98,7 +98,7 @@ app.whenReady().then(() => {
 
   // Precisa vir antes da janela: é o modo que decide a cor com que ela nasce e
   // a da moldura nativa.
-  const mode = resolveThemeMode(db);
+  const mode = resolveInitialThemeMode(db);
   applyThemeMode(mode);
 
   createWindow(mode);

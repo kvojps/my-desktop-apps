@@ -1,5 +1,5 @@
 import Database from 'better-sqlite3';
-import type { Expense } from '@shared/types/expense';
+import type { ExpenseEntity } from '../../../domain/expense';
 import { AppError } from '../../../utils/errors/AppError';
 import { deleteReceiptFile } from '../../gateways/receipts';
 import { creditBankAccount, debitBankAccount } from './bankAccountsRepository';
@@ -27,7 +27,7 @@ interface ExpenseJoinRow extends ExpenseRow {
   category_color: string | null;
 }
 
-export function rowToExpense(row: ExpenseRow | ExpenseJoinRow): Expense {
+export function rowToExpense(row: ExpenseRow | ExpenseJoinRow): ExpenseEntity {
   const joined = row as ExpenseJoinRow;
   return {
     id: row.id,
@@ -66,13 +66,13 @@ function todayLocalDate(): string {
 }
 
 export function makeExpensesRepository(db: Database.Database) {
-  function findById(id: number): Expense | null {
+  function findById(id: number): ExpenseEntity | null {
     const row = selectExpenseRow(db, id);
     return row ? rowToExpense(row) : null;
   }
 
   return {
-    listForMonth(monthId: number): Expense[] {
+    listForMonth(monthId: number): ExpenseEntity[] {
       const rows = db
         .prepare(`${WITH_JOINS} WHERE e.month_id = ? ORDER BY e.due_date, e.name`)
         .all(monthId) as ExpenseJoinRow[];
@@ -81,13 +81,19 @@ export function makeExpensesRepository(db: Database.Database) {
 
     findById,
 
-    /** Linha crua + rótulo do mês, para montar o nome do arquivo de comprovante. */
-    getForFilename(id: number) {
-      return db
+    /**
+     * Só o nome da despesa e o rótulo do Mês, para montar o nome do arquivo de
+     * comprovante. Não é `rowToExpense` — é um par de strings em camelCase, sem
+     * chave `snake_case` saindo do repositório. O `expensesService.pay()` que
+     * orquestra o gateway de comprovante é o ticket 05 (`../spec.md`, decisão 10).
+     */
+    getForFilename(id: number): { name: string; monthLabel: string } | null {
+      const row = db
         .prepare(
-          'SELECT e.*, m.label as month_label FROM expenses e JOIN months m ON e.month_id = m.id WHERE e.id = ?',
+          'SELECT e.name as name, m.label as month_label FROM expenses e JOIN months m ON e.month_id = m.id WHERE e.id = ?',
         )
-        .get(id) as (ExpenseRow & { month_label: string }) | undefined;
+        .get(id) as { name: string; month_label: string } | undefined;
+      return row ? { name: row.name, monthLabel: row.month_label } : null;
     },
 
     /**
@@ -102,7 +108,7 @@ export function makeExpensesRepository(db: Database.Database) {
         amount?: number;
         categoryId?: number | null;
       },
-    ): Expense {
+    ): ExpenseEntity {
       const month = db.prepare('SELECT id FROM months WHERE id = ?').get(monthId);
       if (!month) {
         throw new AppError(404, 'Mês não encontrado');
@@ -128,7 +134,7 @@ export function makeExpensesRepository(db: Database.Database) {
         notes?: string | null;
         categoryId?: number | null;
       },
-    ): Expense | null {
+    ): ExpenseEntity | null {
       const existing = selectExpenseRow(db, id);
       if (!existing) return null;
 
@@ -146,7 +152,7 @@ export function makeExpensesRepository(db: Database.Database) {
       return findById(id);
     },
 
-    delete(uploadsDir: string, id: number): Expense | null {
+    delete(uploadsDir: string, id: number): ExpenseEntity | null {
       const existing = selectExpenseRow(db, id);
       if (!existing) return null;
       deleteReceiptFile(uploadsDir, existing.receipt);
@@ -166,7 +172,7 @@ export function makeExpensesRepository(db: Database.Database) {
       notes: string | undefined,
       paidAt: string | undefined,
       bankAccountId: number | undefined,
-    ): Expense | null {
+    ): ExpenseEntity | null {
       const existing = selectExpenseRow(db, id);
       if (!existing) return null;
 
@@ -189,7 +195,7 @@ export function makeExpensesRepository(db: Database.Database) {
       return findById(id);
     },
 
-    unpay(uploadsDir: string, id: number): Expense | null {
+    unpay(uploadsDir: string, id: number): ExpenseEntity | null {
       const existing = selectExpenseRow(db, id);
       if (!existing) return null;
       deleteReceiptFile(uploadsDir, existing.receipt);

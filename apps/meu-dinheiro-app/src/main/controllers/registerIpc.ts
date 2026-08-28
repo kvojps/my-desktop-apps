@@ -1,11 +1,12 @@
 import type Database from 'better-sqlite3';
 import type { ReceiptPayload } from '@shared/ipc/api';
 import { IPC_CHANNELS } from '@shared/ipc/channels';
-import { getUploadsDir } from '../infra/database/connection';
+import { THEME_MODE_KEY } from '../domain/theme';
 import { makeRepositories } from '../infra/database';
+import { getUploadsDir } from '../infra/database/connection';
 import { runSetup } from '../infra/database/repositories/setupRepository';
 import { openReceiptFile, saveReceiptFile } from '../infra/gateways/receipts';
-import { THEME_MODE_KEY, applyThemeMode, getThemeMode } from '../infra/gateways/system/themeMode';
+import { applyThemeMode, getThemeMode } from '../infra/gateways/system/themeMode';
 import { AppError } from '../utils/errors/AppError';
 import { parseId } from '../utils/parseId';
 import { parseOrThrow } from '../utils/validate';
@@ -192,7 +193,7 @@ export function registerIpcHandlers(db: Database.Database): void {
         const expense = repos.expenses.getForFilename(expenseId);
         receiptFilename = saveReceiptFile(
           uploadsDir,
-          expense?.month_label ?? 'unknown',
+          expense?.monthLabel ?? 'unknown',
           expense?.name ?? 'unknown',
           expenseId,
           payload.receipt.originalName,

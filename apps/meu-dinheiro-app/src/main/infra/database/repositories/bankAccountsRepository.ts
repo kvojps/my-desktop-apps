@@ -1,5 +1,5 @@
 import Database from 'better-sqlite3';
-import type { BankAccount } from '@shared/types/bank-account';
+import type { BankAccountEntity } from '../../../domain/bankAccount';
 import { AppError } from '../../../utils/errors/AppError';
 
 /** Colunas cruas da tabela; o banco continua em snake_case. */
@@ -10,7 +10,7 @@ export interface BankAccountRow {
   created_at: string;
 }
 
-export function rowToBankAccount(row: BankAccountRow): BankAccount {
+export function rowToBankAccount(row: BankAccountRow): BankAccountEntity {
   return {
     id: row.id,
     name: row.name,
@@ -47,20 +47,22 @@ export function creditBankAccount(db: Database.Database, id: number, amount: num
 }
 
 export function makeBankAccountsRepository(db: Database.Database) {
-  function findById(id: number): BankAccount | null {
+  function findById(id: number): BankAccountEntity | null {
     const row = selectBankAccountRow(db, id);
     return row ? rowToBankAccount(row) : null;
   }
 
   return {
-    list(): BankAccount[] {
-      const rows = db.prepare('SELECT * FROM bank_accounts ORDER BY name').all() as BankAccountRow[];
+    list(): BankAccountEntity[] {
+      const rows = db
+        .prepare('SELECT * FROM bank_accounts ORDER BY name')
+        .all() as BankAccountRow[];
       return rows.map(rowToBankAccount);
     },
 
     findById,
 
-    create(data: { name: string; balance?: number }): BankAccount {
+    create(data: { name: string; balance?: number }): BankAccountEntity {
       const result = db
         .prepare('INSERT INTO bank_accounts (name, balance) VALUES (?, ?)')
         .run(data.name, data.balance || 0);
@@ -69,7 +71,7 @@ export function makeBankAccountsRepository(db: Database.Database) {
       return created;
     },
 
-    update(id: number, data: { name?: string; balance?: number }): BankAccount | null {
+    update(id: number, data: { name?: string; balance?: number }): BankAccountEntity | null {
       const existing = selectBankAccountRow(db, id);
       if (!existing) return null;
 
@@ -88,7 +90,7 @@ export function makeBankAccountsRepository(db: Database.Database) {
      * service, via `repos.expenses.clearBankAccount` / `repos.incomes.clearBankAccount`,
      * é o ticket 05. Devolve a conta que existia, ou `null` — sem decidir 404.
      */
-    delete(id: number): BankAccount | null {
+    delete(id: number): BankAccountEntity | null {
       const existing = selectBankAccountRow(db, id);
       if (!existing) return null;
 

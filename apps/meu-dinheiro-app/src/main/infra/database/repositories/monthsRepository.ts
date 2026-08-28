@@ -1,5 +1,5 @@
 import Database from 'better-sqlite3';
-import type { Month, MonthDetail } from '@shared/types/month';
+import type { MonthDetailEntity, MonthEntity } from '../../../domain/month';
 import { formatDueDate, monthLabel } from '../../../domain/monthNames';
 import { AppError } from '../../../utils/errors/AppError';
 import { getAppSetting, setAppSetting } from './appSettingsRepository';
@@ -54,7 +54,7 @@ interface MonthTotalsRow {
   total_income: number;
 }
 
-export function rowToMonth(row: MonthRow): Month {
+export function rowToMonth(row: MonthRow): MonthEntity {
   return {
     id: row.id,
     label: row.label,
@@ -64,7 +64,7 @@ export function rowToMonth(row: MonthRow): Month {
   };
 }
 
-function rowToMonthWithTotals(row: MonthRow & MonthTotalsRow): Month {
+function rowToMonthWithTotals(row: MonthRow & MonthTotalsRow): MonthEntity {
   return {
     ...rowToMonth(row),
     totalExpenses: row.total_expenses,
@@ -79,6 +79,23 @@ function rowToMonthWithTotals(row: MonthRow & MonthTotalsRow): Month {
     receivedIncome: row.received_income,
     pendingIncome: row.pending_income,
     totalIncome: row.total_income,
+  };
+}
+
+/**
+ * Compõe o nó aninhado `MonthDetailEntity` a partir das linhas de cada tabela —
+ * um mapper por nó-objeto (`rowToMonth` / `rowToExpense` / `rowToIncome`), sem
+ * atravessar o objeto inteiro por identidade estrutural (README §2.5).
+ */
+export function buildMonthDetail(
+  monthRow: MonthRow,
+  expenseRows: Parameters<typeof rowToExpense>[0][],
+  incomeRows: Parameters<typeof rowToIncome>[0][],
+): MonthDetailEntity {
+  return {
+    ...rowToMonth(monthRow),
+    expenses: expenseRows.map(rowToExpense),
+    incomes: incomeRows.map(rowToIncome),
   };
 }
 
@@ -152,7 +169,11 @@ export function findMonthByYearMonth(db: Database.Database, year: number, month:
  * `repos.transaction` — helper privado do `monthsService` — é o ticket 05
  * (`../spec.md`, decisão 8).
  */
-export function createMonthWithDefaults(db: Database.Database, year: number, month: number): Month {
+export function createMonthWithDefaults(
+  db: Database.Database,
+  year: number,
+  month: number,
+): MonthEntity {
   const label = monthLabel(year, month);
 
   const create = db.transaction(() => {
@@ -179,7 +200,7 @@ export function createMonthWithDefaults(db: Database.Database, year: number, mon
  * pós-import de backup; vira `monthsService.ensureCurrentMonth()` no ticket 05
  * (`../spec.md`, decisão 5).
  */
-export function ensureCurrentMonthExists(db: Database.Database): Month | null {
+export function ensureCurrentMonthExists(db: Database.Database): MonthEntity | null {
   const { year, month } = currentCompetency();
   const key = competencyKey(year, month);
 
@@ -195,7 +216,7 @@ export function ensureCurrentMonthExists(db: Database.Database): Month | null {
 
 export function makeMonthsRepository(db: Database.Database) {
   return {
-    list(): Month[] {
+    list(): MonthEntity[] {
       const rows = db
         .prepare(
           `
@@ -222,11 +243,11 @@ export function makeMonthsRepository(db: Database.Database) {
     },
 
     /** Era `getMonthWithExpenses`; devolve `null` em vez de lançar 404 — o 404 é do service. */
-    findById(id: number): MonthDetail | null {
+    findById(id: number): MonthDetailEntity | null {
       const month = db.prepare('SELECT * FROM months WHERE id = ?').get(id) as MonthRow | undefined;
       if (!month) return null;
 
-      const expenses = db
+      const expenseRows = db
         .prepare(
           `SELECT e.*, ba.name as bank_account_name, c.name as category_name, c.color as category_color
            FROM expenses e
@@ -237,7 +258,7 @@ export function makeMonthsRepository(db: Database.Database) {
         )
         .all(id) as Parameters<typeof rowToExpense>[0][];
 
-      const incomes = db
+      const incomeRows = db
         .prepare(
           `SELECT i.*, ba.name as bank_account_name
            FROM incomes i
@@ -247,18 +268,14 @@ export function makeMonthsRepository(db: Database.Database) {
         )
         .all(id) as Parameters<typeof rowToIncome>[0][];
 
-      return {
-        ...rowToMonth(month),
-        expenses: expenses.map(rowToExpense),
-        incomes: incomes.map(rowToIncome),
-      };
+      return buildMonthDetail(month, expenseRows, incomeRows);
     },
 
     /**
      * Rollover Dez→Jan e os `AppError(400)` de "sem meses" / "mês já existe"
      * continuam aqui — regra que só migra para `monthsService` no ticket 05.
      */
-    createNext(year?: number, month?: number): Month {
+    createNext(year?: number, month?: number): MonthEntity {
       if (!year || !month) {
         const lastMonth = db
           .prepare('SELECT * FROM months ORDER BY year DESC, month DESC LIMIT 1')
@@ -292,8 +309,8 @@ export function makeMonthsRepository(db: Database.Database) {
       fromMonth: number,
       toYear: number,
       toMonth: number,
-    ): { created: Month[]; errors: string[] } {
-      const created: Month[] = [];
+    ): { created: MonthEntity[]; errors: string[] } {
+      const created: MonthEntity[] = [];
       const errors: string[] = [];
       let year = fromYear;
       let month = fromMonth;
@@ -320,7 +337,7 @@ export function makeMonthsRepository(db: Database.Database) {
     },
 
     /** Devolve o mês removido, ou `null` — sem decidir 404. */
-    delete(id: number): Month | null {
+    delete(id: number): MonthEntity | null {
       const existing = db.prepare('SELECT * FROM months WHERE id = ?').get(id) as
         MonthRow | undefined;
       if (!existing) return null;

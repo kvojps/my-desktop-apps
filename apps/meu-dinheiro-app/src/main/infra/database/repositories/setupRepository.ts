@@ -1,5 +1,5 @@
 import Database from 'better-sqlite3';
-import type { Month } from '@shared/types/month';
+import type { MonthEntity } from '../../../domain/month';
 import { AppError } from '../../../utils/errors/AppError';
 import { createMonthWithDefaults } from './monthsRepository';
 
@@ -7,7 +7,7 @@ export function runSetup(
   db: Database.Database,
   initialYear: number,
   initialMonth: number,
-): Month[] {
+): MonthEntity[] {
   const existing = db.prepare('SELECT COUNT(*) as count FROM months').get() as { count: number };
   if (existing.count > 0) {
     throw new AppError(400, 'A configuração inicial já foi feita: já existem meses cadastrados.');
@@ -17,7 +17,7 @@ export function runSetup(
   const currentMonth = now.getMonth() + 1;
   const currentYear = now.getFullYear();
 
-  const createdMonths: Month[] = [];
+  const createdMonths: MonthEntity[] = [];
   let year = initialYear;
   let month = initialMonth;
 
