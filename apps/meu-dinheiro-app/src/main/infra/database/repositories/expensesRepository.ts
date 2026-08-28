@@ -71,12 +71,6 @@ export function makeExpensesRepository(db: Database.Database) {
     return row ? rowToExpense(row) : null;
   }
 
-  function getById(id: number): Expense {
-    const expense = findById(id);
-    if (!expense) throw new Error(`Expense not found: ${id}`);
-    return expense;
-  }
-
   return {
     listForMonth(monthId: number): Expense[] {
       const rows = db
@@ -120,7 +114,9 @@ export function makeExpensesRepository(db: Database.Database) {
         )
         .run(monthId, data.name, data.dueDate || null, data.amount || 0, data.categoryId ?? null);
 
-      return getById(result.lastInsertRowid as number);
+      const created = findById(result.lastInsertRowid as number);
+      if (!created) throw new Error('Expense not found after insert');
+      return created;
     },
 
     update(
@@ -147,7 +143,7 @@ export function makeExpensesRepository(db: Database.Database) {
         id,
       );
 
-      return getById(id);
+      return findById(id);
     },
 
     delete(uploadsDir: string, id: number): Expense | null {
@@ -190,7 +186,7 @@ export function makeExpensesRepository(db: Database.Database) {
       });
       run();
 
-      return getById(id);
+      return findById(id);
     },
 
     unpay(uploadsDir: string, id: number): Expense | null {
@@ -208,7 +204,7 @@ export function makeExpensesRepository(db: Database.Database) {
       });
       run();
 
-      return getById(id);
+      return findById(id);
     },
 
     /**

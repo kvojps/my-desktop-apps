@@ -61,12 +61,6 @@ export function makeIncomesRepository(db: Database.Database) {
     return row ? rowToIncome(row) : null;
   }
 
-  function getById(id: number): Income {
-    const income = findById(id);
-    if (!income) throw new Error(`Income not found: ${id}`);
-    return income;
-  }
-
   return {
     listForMonth(monthId: number): Income[] {
       const rows = db
@@ -107,7 +101,9 @@ export function makeIncomesRepository(db: Database.Database) {
           data.bankAccountId || null,
         );
 
-      return getById(result.lastInsertRowid as number);
+      const created = findById(result.lastInsertRowid as number);
+      if (!created) throw new Error('Income not found after insert');
+      return created;
     },
 
     update(
@@ -134,7 +130,7 @@ export function makeIncomesRepository(db: Database.Database) {
         id,
       );
 
-      return getById(id);
+      return findById(id);
     },
 
     delete(id: number): Income | null {
@@ -173,7 +169,7 @@ export function makeIncomesRepository(db: Database.Database) {
       });
       run();
 
-      return getById(id);
+      return findById(id);
     },
 
     unreceive(id: number): Income | null {
@@ -190,7 +186,7 @@ export function makeIncomesRepository(db: Database.Database) {
       });
       run();
 
-      return getById(id);
+      return findById(id);
     },
 
     /**
