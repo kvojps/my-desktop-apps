@@ -1,24 +1,19 @@
 import { BrowserWindow, app, dialog, shell } from 'electron';
 import path from 'node:path';
 import { APP_ERROR_DESCRIPTIONS } from '@shared/errors/appError';
-import type { ThemeMode } from '@shared/types/theme';
 import icon from '../../resources/icon.png?asset';
 import { registerIpcHandlers } from './controllers/registerIpc';
+import { THEME_MODE_KEY, type ThemeModeEntity, resolveThemeMode } from './domain/theme';
 import { initDb } from './infra/database/connection';
-import {
-  applyThemeMode,
-  getThemeMode,
-  resolveThemeMode,
-  themeBackground,
-} from './infra/gateways/system/themeMode';
-import { saveThemeMode } from './services/settingsService';
+import { makeSettingsRepository } from './infra/database/repositories/settingsRepository';
+import { themeMode } from './infra/gateways/system/themeMode';
 import { classifyError } from './utils/errors/toIpcError';
 
 // Fixa a pasta userData (%APPDATA%/meu-movel-planejado); mudar este nome após a
 // primeira release deixa o banco de dados dos usuários órfão.
 app.setName('meu-movel-planejado');
 
-function createWindow(mode: ThemeMode) {
+function createWindow(mode: ThemeModeEntity) {
   const mainWindow = new BrowserWindow({
     width: 1280,
     height: 800,
@@ -29,7 +24,7 @@ function createWindow(mode: ThemeMode) {
     // Sem isto a janela nasce branca. Não é o flash de boot (`show: false` +
     // `ready-to-show` já cobre esse): é a faixa branca ao redimensionar e no
     // `maximize()`, com o app em modo escuro.
-    backgroundColor: themeBackground(mode),
+    backgroundColor: themeMode.windowBackgroundFor(mode),
     webPreferences: {
       preload: path.join(__dirname, '../preload/index.js'),
       contextIsolation: true,
@@ -87,23 +82,24 @@ app.whenReady().then(() => {
     return;
   }
 
-  registerIpcHandlers(db, {
-    onThemeModeChange: (mode) => {
-      saveThemeMode(db, mode);
-      applyThemeMode(mode);
-    },
-  });
+  registerIpcHandlers(db);
 
   // Ordem de boot (docs/design-system.md §5.1): ler o banco → aplicar o tema →
-  // criar a janela. Aplicar antes de criar, nunca depois.
-  const mode = resolveThemeMode(db);
-  applyThemeMode(mode);
+  // criar a janela. Aplicar antes de criar, nunca depois. Carve-out do ADR-0002:
+  // o bootstrap monta `makeSettingsRepository(db)` direto e passa a preferência
+  // por `resolveThemeMode` de `domain/theme.ts`, sem montar uma unidade de
+  // trabalho só para um getter (precedente `meu-dinheiro-app`).
+  const stored = makeSettingsRepository(db).get(THEME_MODE_KEY);
+  const mode = resolveThemeMode(stored, themeMode.systemPrefersDark());
+  themeMode.apply(mode);
 
   createWindow(mode);
 
+  // O modo em vigor vem do gateway, não de uma variável daqui: quem o troca em
+  // runtime é o `settingsService`, por um caminho que não passa pelo bootstrap.
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
-      createWindow(getThemeMode());
+      createWindow(themeMode.currentMode());
     }
   });
 });
