@@ -1,4 +1,4 @@
-Status: aberto
+Status: resolvido
 Blocked by: 04
 
 # Meu Móvel Planejado: camada de serviço
@@ -133,3 +133,62 @@ alternar tema — todos iguais, inclusive a barra de título acompanhando o modo
 ## Comments
 
 Ticket derivado da spec desta pasta (`../spec.md`, decisões 4, 15, 16, 17).
+
+### Resolvido
+
+Seis services, todos fábricas `makeXService(repos, …gateways)` — nenhum importa
+`better-sqlite3` nem `electron` (nem como `import type`):
+
+- `projectsService.ts` (novo): `list` / `get` (`null`, não 404) / `create` /
+  `update` / `updateCuttingParams` / `delete`; `null`/`false` do repo → `AppError(404)`.
+- `piecesService.ts` (novo): a régua da rejeição (`assertFits` → `fitsAnySheet`
+  de `@shared/nesting/fit`, `AppError(422, PIECE_DOES_NOT_FIT_MESSAGE)`) saiu do
+  repositório e do `registerIpc.ts`. A régua recebe o projeto **já carregado**;
+  quem o traduz em `AppError(404)` antes da transação é `create` (o `findById`
+  que a régua precisaria é o mesmo — decisão 17). `update` não rejeita projeto
+  ausente: a FK da peça o garante, e opinar sobre a ausência não é o assunto da
+  régua (comportamento do `assertPieceFits` de origem). `create`/`update`/`delete`
+  abrem `repos.transaction(() => { projects.touch(); pieces.…() })`.
+- `sheetsService.ts` (novo): mesma forma, sem a régua; o 404 de projeto sai do
+  `projects.touch` dentro da transação (não há carga de graça como nas peças).
+- `plansService.ts` (fábrica): `get`; `save` **provisório** (`projects.exists` →
+  404, depois `repos.transaction(() => plans.replaceForProject(…))` — o ticket 07
+  troca por `generate`); `print`; `exportPng`/`exportPdf`. `export-failed` fica no
+  service (a gravação), `pdf-failed` no gateway `printing` (o `printToPDF`).
+- `backupService.ts` (fábrica): serve os quatro canais `data:*` — `exportTo` /
+  `importFrom` / `getAppInfo` / `openDataFolder`.
+- `settingsService.ts` (fábrica): `setThemeMode` grava por `repos.settings.set` e
+  aplica pelo gateway. `RegisterIpcOptions.onThemeModeChange` **apagado**.
+
+Seis gateways em `infra/gateways/system/` (decisão 15): `dialogs.ts`,
+`fileSystem.ts` (com `writeBytes` para o PNG/PDF), `shell.ts`, `appInfo.ts`
+(novos); `themeMode.ts` e `printing.ts` redesenhados para a forma de objeto dos
+apps irmãos — o `themeMode` largou o `let current` e relê `nativeTheme` em
+`currentMode()`. A janela nunca chega ao service como `WebContents` cru: o
+controller resolve `windowFor(event)` e passa o handle opaco; só `printing.ts`
+conhece `webContents.print`/`printToPDF`.
+
+`registerIpc.ts` continua como controller provisório (validação inline, saída
+como entidade), agora **compondo e chamando services**. `index.ts` perde o
+callback: monta `makeSettingsRepository(db)` direto, lê `THEME_MODE_KEY`, passa
+por `resolveThemeMode` de `domain/theme.ts` e aplica pelo gateway antes de
+`createWindow`. Ordem de boot inalterada.
+
+Os 8 `repos.transaction` reais agora nos services: peça ×3, chapa ×3, plano ×1,
+backup ×1.
+
+Sem teste novo (decisão 3, ADR-0002). Verificação: `typecheck` (4 apps, 0 erros),
+`lint` (0 erros; 2 warnings pré-existentes em `meu-negocio-app`), `test` (187
+passando), `electron-vite build` do app (main, preload, renderer sem erro).
+`grep` de `better-sqlite3`/`from 'electron'` em `src/main/services` vazio;
+`ipcMain.handle` só em `controllers/handle.ts`; `db.transaction` só na unidade de
+trabalho e em `migrations.ts`.
+
+`/code-review` (Standards + Spec em paralelo): sem violação dura de padrão
+documentado; eixo Spec limpo, todos os itens do checklist passando. Aplicados os
+dois achados de julgamento que valiam: a régua da rejeição deixou de fazer 404 no
+caminho de `update` (a spec restringe o brinde da decisão 17 a `create`), e
+`backupService.getAppInfo()` (era `appInfo()`, que sombreava o gateway `appInfo`
+injetado — o verbo casa com o `meu-negocio-app`). Ordem dos gateways de
+`makeBackupService`/`makePlansService` alinhada com o `meu-negocio-app`, e
+`DialogFileType` reaproveitado em vez de reescrito inline.
