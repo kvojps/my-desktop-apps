@@ -1,6 +1,7 @@
 import type Database from 'better-sqlite3';
 import { randomUUID } from 'node:crypto';
-import type { Sheet, SheetInput } from '@shared/types/sheet';
+import type { SheetInput } from '@shared/types/sheet';
+import type { SheetEntity } from '../../../domain/sheet';
 
 interface SheetRow {
   id: string;
@@ -13,7 +14,7 @@ interface SheetRow {
 }
 
 /** A fronteira snake_case → camelCase. Nenhuma chave do banco sai daqui. */
-function rowToSheet(row: SheetRow): Sheet {
+function rowToSheet(row: SheetRow): SheetEntity {
   return {
     id: row.id,
     projectId: row.project_id,
@@ -26,7 +27,7 @@ function rowToSheet(row: SheetRow): Sheet {
 }
 
 export function makeSheetsRepository(db: Database.Database) {
-  function findById(id: string): Sheet | null {
+  function findById(id: string): SheetEntity | null {
     const row = db.prepare('SELECT * FROM sheets WHERE id = ?').get(id) as SheetRow | undefined;
     return row ? rowToSheet(row) : null;
   }
@@ -41,7 +42,7 @@ export function makeSheetsRepository(db: Database.Database) {
      * Desempate por `rowid` pela mesma razão que em peça: no mesmo milissegundo,
      * o `id` é um uuid sorteado, e o `rowid` é a ordem de inserção.
      */
-    listForProject(projectId: string): Sheet[] {
+    listForProject(projectId: string): SheetEntity[] {
       const rows = db
         .prepare('SELECT * FROM sheets WHERE project_id = ? ORDER BY created_at, rowid')
         .all(projectId) as SheetRow[];
@@ -51,9 +52,15 @@ export function makeSheetsRepository(db: Database.Database) {
     findById,
 
     /** Só a escrita da chapa; o carimbo do projeto é composição de quem chama. */
-    create(projectId: string, data: SheetInput): Sheet {
+    create(projectId: string, data: SheetInput): SheetEntity {
       const now = new Date().toISOString();
-      const sheet: Sheet = { id: randomUUID(), projectId, ...data, createdAt: now, updatedAt: now };
+      const sheet: SheetEntity = {
+        id: randomUUID(),
+        projectId,
+        ...data,
+        createdAt: now,
+        updatedAt: now,
+      };
 
       db.prepare(
         `INSERT INTO sheets (id, project_id, length_tenths_mm, width_tenths_mm, quantity,
@@ -66,7 +73,7 @@ export function makeSheetsRepository(db: Database.Database) {
     },
 
     /** `null` quando a chapa não existe mais; o 404 é de quem chama. */
-    update(id: string, data: SheetInput): Sheet | null {
+    update(id: string, data: SheetInput): SheetEntity | null {
       const current = findById(id);
       if (!current) return null;
 

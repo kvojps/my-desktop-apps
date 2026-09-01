@@ -4,9 +4,9 @@ import {
   type CuttingParamsInput,
   DEFAULT_KERF_TENTHS_MM,
   DEFAULT_TRIM_TENTHS_MM,
-  type Project,
   type ProjectInput,
 } from '@shared/types/project';
+import type { ProjectEntity } from '../../../domain/project';
 
 interface ProjectRow {
   id: string;
@@ -19,7 +19,7 @@ interface ProjectRow {
 }
 
 /** A fronteira snake_case → camelCase. Nenhuma chave do banco sai daqui. */
-function rowToProject(row: ProjectRow): Project {
+function rowToProject(row: ProjectRow): ProjectEntity {
   return {
     id: row.id,
     name: row.name,
@@ -36,7 +36,7 @@ export function makeProjectsRepository(db: Database.Database) {
     return db.prepare('SELECT * FROM projects WHERE id = ?').get(id) as ProjectRow | undefined;
   }
 
-  function findById(id: string): Project | null {
+  function findById(id: string): ProjectEntity | null {
     const row = selectRow(id);
     return row ? rowToProject(row) : null;
   }
@@ -46,7 +46,7 @@ export function makeProjectsRepository(db: Database.Database) {
      * Mais recentemente alterado primeiro: a lista existe para retomar o serviço
      * em que se estava mexendo, e é o carimbo de alteração que responde isso.
      */
-    list(): Project[] {
+    list(): ProjectEntity[] {
       const rows = db
         .prepare('SELECT * FROM projects ORDER BY updated_at DESC')
         .all() as ProjectRow[];
@@ -60,9 +60,9 @@ export function makeProjectsRepository(db: Database.Database) {
      */
     findById,
 
-    create(data: ProjectInput): Project {
+    create(data: ProjectInput): ProjectEntity {
       const now = new Date().toISOString();
-      const project: Project = {
+      const project: ProjectEntity = {
         id: randomUUID(),
         name: data.name,
         material: data.material,
@@ -87,7 +87,7 @@ export function makeProjectsRepository(db: Database.Database) {
      *
      * `null` quando o projeto não existe mais; o 404 é decidido por quem chama.
      */
-    update(id: string, data: ProjectInput): Project | null {
+    update(id: string, data: ProjectInput): ProjectEntity | null {
       if (!selectRow(id)) return null;
 
       const updatedAt = new Date().toISOString();
@@ -105,7 +105,7 @@ export function makeProjectsRepository(db: Database.Database) {
      * outro só teria como não sobrescrevê-los carregando valores que ele não
      * mostra.
      */
-    updateCuttingParams(id: string, data: CuttingParamsInput): Project | null {
+    updateCuttingParams(id: string, data: CuttingParamsInput): ProjectEntity | null {
       if (!selectRow(id)) return null;
 
       db.prepare(

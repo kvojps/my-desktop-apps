@@ -1,13 +1,13 @@
 import type Database from 'better-sqlite3';
 import { randomUUID } from 'node:crypto';
+import type { PlanInput } from '@shared/types/plan';
 import type {
-  Plan,
-  PlanDeficit,
-  PlanInput,
-  PlanPlacement,
-  PlanSheet,
-  PlanShortfall,
-} from '@shared/types/plan';
+  DeficitEntity,
+  PlacementEntity,
+  PlanEntity,
+  PlannedSheetEntity,
+  ShortfallEntity,
+} from '../../../domain/plan';
 
 /**
  * O plano de corte no banco. Um por projeto: `plans.project_id` é único, e
@@ -21,6 +21,11 @@ import type {
  * `replaceForProject` é o `DELETE` + os quatro `INSERT` em cascata como um verbo
  * só — é a escrita de uma árvore, não composição de domínios. A transação que a
  * envolve é de quem chama.
+ *
+ * As folhas da árvore — `PlannedSheetEntity`, `PlacementEntity`, `ShortfallEntity`
+ * e `DeficitEntity` — moram em `domain/plan.ts` junto de `PlanEntity`. O que
+ * `replaceForProject` recebe do renderer é o `PlanInput` de `@shared/types/plan`;
+ * o que os `rowToX` daqui devolvem é a entidade.
  */
 
 interface PlanRow {
@@ -65,7 +70,7 @@ const UNPLACED_TABLE = 'unallocated_pieces';
 const REJECTED_TABLE = 'rejected_pieces';
 
 /** A fronteira snake_case → camelCase. Nenhuma chave do banco sai daqui. */
-function rowToDeficit(row: PlanRow): PlanDeficit {
+function rowToDeficit(row: PlanRow): DeficitEntity {
   return {
     areaTenthsMm2: row.deficit_area_tenths_mm2,
     referenceSheet:
@@ -79,7 +84,7 @@ function rowToDeficit(row: PlanRow): PlanDeficit {
   };
 }
 
-function rowToPlacement(row: PlacementRow): PlanPlacement {
+function rowToPlacement(row: PlacementRow): PlacementEntity {
   return {
     label: row.label,
     lengthTenthsMm: row.length_tenths_mm,
@@ -90,7 +95,7 @@ function rowToPlacement(row: PlacementRow): PlanPlacement {
   };
 }
 
-function rowToShortfall(row: ShortfallRow): PlanShortfall {
+function rowToShortfall(row: ShortfallRow): ShortfallEntity {
   return {
     label: row.label,
     lengthTenthsMm: row.length_tenths_mm,
@@ -105,21 +110,21 @@ function rowToShortfall(row: ShortfallRow): PlanShortfall {
  * sorteado e não ordena nada, e a ordem importa: é dela que sai o número de
  * cada peça na legenda do desenho.
  */
-function listPlacements(db: Database.Database, plannedSheetId: string): PlanPlacement[] {
+function listPlacements(db: Database.Database, plannedSheetId: string): PlacementEntity[] {
   const rows = db
     .prepare('SELECT * FROM placements WHERE planned_sheet_id = ? ORDER BY rowid')
     .all(plannedSheetId) as PlacementRow[];
   return rows.map(rowToPlacement);
 }
 
-function listShortfalls(db: Database.Database, table: string, planId: string): PlanShortfall[] {
+function listShortfalls(db: Database.Database, table: string, planId: string): ShortfallEntity[] {
   const rows = db
     .prepare(`SELECT * FROM ${table} WHERE plan_id = ? ORDER BY rowid`)
     .all(planId) as ShortfallRow[];
   return rows.map(rowToShortfall);
 }
 
-function listPlannedSheets(db: Database.Database, planId: string): PlanSheet[] {
+function listPlannedSheets(db: Database.Database, planId: string): PlannedSheetEntity[] {
   const rows = db
     .prepare('SELECT * FROM planned_sheets WHERE plan_id = ? ORDER BY sheet_index')
     .all(planId) as PlannedSheetRow[];
@@ -135,9 +140,9 @@ function listPlannedSheets(db: Database.Database, planId: string): PlanSheet[] {
 /**
  * A fronteira do plano. Diferente dos outros `rowToX` do app, este precisa do
  * `db`: o plano é uma árvore em quatro tabelas, e as folhas dela são parte do
- * mesmo objeto — não há `Plan` sem as chapas planejadas.
+ * mesmo objeto — não há `PlanEntity` sem as chapas planejadas.
  */
-function rowToPlan(db: Database.Database, row: PlanRow): Plan {
+function rowToPlan(db: Database.Database, row: PlanRow): PlanEntity {
   return {
     id: row.id,
     projectId: row.project_id,
@@ -157,7 +162,7 @@ function insertShortfalls(
   db: Database.Database,
   table: string,
   planId: string,
-  pieces: readonly PlanShortfall[],
+  pieces: readonly ShortfallEntity[],
 ): void {
   const statement = db.prepare(
     `INSERT INTO ${table} (id, plan_id, label, length_tenths_mm, width_tenths_mm, quantity)
@@ -173,7 +178,7 @@ export function makePlansRepository(db: Database.Database) {
      * o estado normal de todo projeto recém-criado: a tela mostra o estado vazio
      * com a saída de voltar e gerar, e não um erro.
      */
-    findByProject(projectId: string): Plan | null {
+    findByProject(projectId: string): PlanEntity | null {
       const row = db.prepare('SELECT * FROM plans WHERE project_id = ?').get(projectId) as
         | PlanRow
         | undefined;
@@ -190,8 +195,8 @@ export function makePlansRepository(db: Database.Database) {
      * plano anterior intacto, melhor o papel de ontem do que nenhum — e decide o
      * 404.
      */
-    replaceForProject(projectId: string, input: PlanInput): Plan {
-      const plan: Plan = {
+    replaceForProject(projectId: string, input: PlanInput): PlanEntity {
+      const plan: PlanEntity = {
         id: randomUUID(),
         projectId,
         generatedAt: new Date().toISOString(),

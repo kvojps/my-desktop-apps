@@ -1,6 +1,7 @@
 import type Database from 'better-sqlite3';
 import { randomUUID } from 'node:crypto';
-import type { Piece, PieceInput } from '@shared/types/piece';
+import type { PieceInput } from '@shared/types/piece';
+import type { PieceEntity } from '../../../domain/piece';
 
 interface PieceRow {
   id: string;
@@ -14,7 +15,7 @@ interface PieceRow {
 }
 
 /** A fronteira snake_case → camelCase. Nenhuma chave do banco sai daqui. */
-function rowToPiece(row: PieceRow): Piece {
+function rowToPiece(row: PieceRow): PieceEntity {
   return {
     id: row.id,
     projectId: row.project_id,
@@ -28,7 +29,7 @@ function rowToPiece(row: PieceRow): Piece {
 }
 
 export function makePiecesRepository(db: Database.Database) {
-  function findById(id: string): Piece | null {
+  function findById(id: string): PieceEntity | null {
     const row = db.prepare('SELECT * FROM pieces WHERE id = ?').get(id) as PieceRow | undefined;
     return row ? rowToPiece(row) : null;
   }
@@ -44,7 +45,7 @@ export function makePiecesRepository(db: Database.Database) {
      * ordenar por ele embaralharia justamente o par que se quer ver junto. O
      * `rowid` é a ordem de inserção.
      */
-    listForProject(projectId: string): Piece[] {
+    listForProject(projectId: string): PieceEntity[] {
       const rows = db
         .prepare('SELECT * FROM pieces WHERE project_id = ? ORDER BY created_at, rowid')
         .all(projectId) as PieceRow[];
@@ -58,9 +59,15 @@ export function makePiecesRepository(db: Database.Database) {
      * que um carimbo antigo com peça nova nunca exista — é composição de quem
      * chama; a régua da rejeição (a peça grande demais) também.
      */
-    create(projectId: string, data: PieceInput): Piece {
+    create(projectId: string, data: PieceInput): PieceEntity {
       const now = new Date().toISOString();
-      const piece: Piece = { id: randomUUID(), projectId, ...data, createdAt: now, updatedAt: now };
+      const piece: PieceEntity = {
+        id: randomUUID(),
+        projectId,
+        ...data,
+        createdAt: now,
+        updatedAt: now,
+      };
 
       db.prepare(
         `INSERT INTO pieces (id, project_id, label, length_tenths_mm, width_tenths_mm, quantity,
@@ -73,7 +80,7 @@ export function makePiecesRepository(db: Database.Database) {
     },
 
     /** `null` quando a peça não existe mais; o 404 é de quem chama. */
-    update(id: string, data: PieceInput): Piece | null {
+    update(id: string, data: PieceInput): PieceEntity | null {
       const current = findById(id);
       if (!current) return null;
 
