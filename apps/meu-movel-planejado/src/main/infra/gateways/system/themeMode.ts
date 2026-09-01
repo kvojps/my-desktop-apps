@@ -2,7 +2,7 @@ import type Database from 'better-sqlite3';
 import { BrowserWindow, nativeTheme } from 'electron';
 import type { ThemeMode } from '@shared/types/theme';
 import { THEME_MODE_KEY } from '../../../services/settingsService';
-import { getSetting } from '../../database/repositories/settingsRepository';
+import { makeSettingsRepository } from '../../database/repositories/settingsRepository';
 
 /** Igual a `background.default` do tema do renderer, por modo. */
 const BACKGROUND: Record<ThemeMode, string> = {
@@ -34,7 +34,7 @@ let current: ThemeMode | null = null;
  * `nativeTheme` que a alimentam.
  */
 export function resolveThemeMode(db: Database.Database): ThemeMode {
-  const stored = getSetting(db, THEME_MODE_KEY);
+  const stored = makeSettingsRepository(db).get(THEME_MODE_KEY);
   current =
     stored === 'light' || stored === 'dark'
       ? stored

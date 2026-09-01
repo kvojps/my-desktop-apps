@@ -8,16 +8,19 @@ import type {
   PlanSheet,
   PlanShortfall,
 } from '@shared/types/plan';
-import { AppError } from '../../../utils/errors/AppError';
 
 /**
  * O plano de corte no banco. Um por projeto: `plans.project_id` é único, e
  * gerar de novo substitui o vigente — o app não guarda histórico de planos.
  *
- * Nenhuma escrita daqui passa por `touchProject`, e é a única exceção do app.
- * Gerar não altera o serviço; mover o carimbo do projeto faria todo plano
+ * Nenhuma escrita daqui passa por `touch` do projeto, e é a única exceção do
+ * app. Gerar não altera o serviço; mover o carimbo do projeto faria todo plano
  * nascer desatualizado em relação a si mesmo, que é justamente o aviso que o
  * carimbo existe para dar.
+ *
+ * `replaceForProject` é o `DELETE` + os quatro `INSERT` em cascata como um verbo
+ * só — é a escrita de uma árvore, não composição de domínios. A transação que a
+ * envolve é de quem chama.
  */
 
 interface PlanRow {
@@ -150,17 +153,6 @@ function rowToPlan(db: Database.Database, row: PlanRow): Plan {
   };
 }
 
-/**
- * O plano vigente do projeto. `null`, e não 404, porque projeto sem plano é o
- * estado normal de todo projeto recém-criado: a tela mostra o estado vazio com
- * a saída de voltar e gerar, e não um erro.
- */
-export function getPlan(db: Database.Database, projectId: string): Plan | null {
-  const row = db.prepare('SELECT * FROM plans WHERE project_id = ?').get(projectId) as
-    PlanRow | undefined;
-  return row ? rowToPlan(db, row) : null;
-}
-
 function insertShortfalls(
   db: Database.Database,
   table: string,
@@ -174,89 +166,105 @@ function insertShortfalls(
   for (const piece of pieces) statement.run({ id: randomUUID(), planId, ...piece });
 }
 
-/**
- * Grava o plano recém-gerado, substituindo o vigente. Tudo numa transação: o
- * `DELETE` leva as chapas planejadas, as colocações e os dois lotes de fora por
- * `ON DELETE CASCADE`, e uma falha no meio devolve o plano anterior intacto —
- * melhor o papel de ontem do que nenhum.
- */
-export function savePlan(db: Database.Database, projectId: string, input: PlanInput): Plan {
-  if (!db.prepare('SELECT 1 FROM projects WHERE id = ?').get(projectId)) {
-    throw new AppError(404, 'Este projeto não existe mais.');
-  }
+export function makePlansRepository(db: Database.Database) {
+  return {
+    /**
+     * O plano vigente do projeto. `null`, e não 404, porque projeto sem plano é
+     * o estado normal de todo projeto recém-criado: a tela mostra o estado vazio
+     * com a saída de voltar e gerar, e não um erro.
+     */
+    findByProject(projectId: string): Plan | null {
+      const row = db.prepare('SELECT * FROM plans WHERE project_id = ?').get(projectId) as
+        | PlanRow
+        | undefined;
+      return row ? rowToPlan(db, row) : null;
+    },
 
-  const plan: Plan = {
-    id: randomUUID(),
-    projectId,
-    generatedAt: new Date().toISOString(),
-    ...input,
-  };
+    /**
+     * Grava o plano recém-gerado, substituindo o vigente. O `DELETE` leva as
+     * chapas planejadas, as colocações e os dois lotes de fora por
+     * `ON DELETE CASCADE`.
+     *
+     * Não abre transação e não confere se o projeto existe: quem chama envolve
+     * tudo numa `repos.transaction` — de modo que uma falha no meio devolva o
+     * plano anterior intacto, melhor o papel de ontem do que nenhum — e decide o
+     * 404.
+     */
+    replaceForProject(projectId: string, input: PlanInput): Plan {
+      const plan: Plan = {
+        id: randomUUID(),
+        projectId,
+        generatedAt: new Date().toISOString(),
+        ...input,
+      };
 
-  db.transaction(() => {
-    db.prepare('DELETE FROM plans WHERE project_id = ?').run(projectId);
+      db.prepare('DELETE FROM plans WHERE project_id = ?').run(projectId);
 
-    db.prepare(
-      `INSERT INTO plans (id, project_id, generated_at, project_updated_at, kerf_tenths_mm,
-                          trim_tenths_mm, utilization, deficit_area_tenths_mm2, equivalent_sheets,
-                          reference_length_tenths_mm, reference_width_tenths_mm)
-       VALUES (@id, @projectId, @generatedAt, @projectUpdatedAt, @kerfTenthsMm, @trimTenthsMm,
-               @utilization, @deficitAreaTenthsMm2, @equivalentSheets, @referenceLength,
-               @referenceWidth)`,
-    ).run({
-      id: plan.id,
-      projectId,
-      generatedAt: plan.generatedAt,
-      projectUpdatedAt: plan.projectUpdatedAt,
-      kerfTenthsMm: plan.kerfTenthsMm,
-      trimTenthsMm: plan.trimTenthsMm,
-      utilization: plan.utilization,
-      deficitAreaTenthsMm2: plan.deficit.areaTenthsMm2,
-      equivalentSheets: plan.deficit.atLeastSheets,
-      referenceLength: plan.deficit.referenceSheet?.lengthTenthsMm ?? null,
-      referenceWidth: plan.deficit.referenceSheet?.widthTenthsMm ?? null,
-    });
-
-    const insertSheet = db.prepare(
-      `INSERT INTO planned_sheets (id, plan_id, sheet_index, length_tenths_mm, width_tenths_mm,
-                                   utilization)
-       VALUES (@id, @planId, @sheetIndex, @lengthTenthsMm, @widthTenthsMm, @utilization)`,
-    );
-    const insertPlacement = db.prepare(
-      `INSERT INTO placements (id, planned_sheet_id, label, length_tenths_mm, width_tenths_mm,
-                               x_tenths_mm, y_tenths_mm, rotated)
-       VALUES (@id, @plannedSheetId, @label, @lengthTenthsMm, @widthTenthsMm, @xTenthsMm,
-               @yTenthsMm, @rotated)`,
-    );
-
-    plan.sheets.forEach((sheet, sheetIndex) => {
-      const plannedSheetId = randomUUID();
-      insertSheet.run({
-        id: plannedSheetId,
-        planId: plan.id,
-        sheetIndex,
-        lengthTenthsMm: sheet.lengthTenthsMm,
-        widthTenthsMm: sheet.widthTenthsMm,
-        utilization: sheet.utilization,
+      db.prepare(
+        `INSERT INTO plans (id, project_id, generated_at, project_updated_at, kerf_tenths_mm,
+                            trim_tenths_mm, utilization, deficit_area_tenths_mm2, equivalent_sheets,
+                            reference_length_tenths_mm, reference_width_tenths_mm)
+         VALUES (@id, @projectId, @generatedAt, @projectUpdatedAt, @kerfTenthsMm, @trimTenthsMm,
+                 @utilization, @deficitAreaTenthsMm2, @equivalentSheets, @referenceLength,
+                 @referenceWidth)`,
+      ).run({
+        id: plan.id,
+        projectId,
+        generatedAt: plan.generatedAt,
+        projectUpdatedAt: plan.projectUpdatedAt,
+        kerfTenthsMm: plan.kerfTenthsMm,
+        trimTenthsMm: plan.trimTenthsMm,
+        utilization: plan.utilization,
+        deficitAreaTenthsMm2: plan.deficit.areaTenthsMm2,
+        equivalentSheets: plan.deficit.atLeastSheets,
+        referenceLength: plan.deficit.referenceSheet?.lengthTenthsMm ?? null,
+        referenceWidth: plan.deficit.referenceSheet?.widthTenthsMm ?? null,
       });
 
-      for (const placement of sheet.placements) {
-        insertPlacement.run({
-          id: randomUUID(),
-          plannedSheetId,
-          label: placement.label,
-          lengthTenthsMm: placement.lengthTenthsMm,
-          widthTenthsMm: placement.widthTenthsMm,
-          xTenthsMm: placement.xTenthsMm,
-          yTenthsMm: placement.yTenthsMm,
-          // O SQLite não tem booleano; a volta acontece no `rowToPlacement`.
-          rotated: placement.rotated ? 1 : 0,
+      const insertSheet = db.prepare(
+        `INSERT INTO planned_sheets (id, plan_id, sheet_index, length_tenths_mm, width_tenths_mm,
+                                     utilization)
+         VALUES (@id, @planId, @sheetIndex, @lengthTenthsMm, @widthTenthsMm, @utilization)`,
+      );
+      const insertPlacement = db.prepare(
+        `INSERT INTO placements (id, planned_sheet_id, label, length_tenths_mm, width_tenths_mm,
+                                 x_tenths_mm, y_tenths_mm, rotated)
+         VALUES (@id, @plannedSheetId, @label, @lengthTenthsMm, @widthTenthsMm, @xTenthsMm,
+                 @yTenthsMm, @rotated)`,
+      );
+
+      plan.sheets.forEach((sheet, sheetIndex) => {
+        const plannedSheetId = randomUUID();
+        insertSheet.run({
+          id: plannedSheetId,
+          planId: plan.id,
+          sheetIndex,
+          lengthTenthsMm: sheet.lengthTenthsMm,
+          widthTenthsMm: sheet.widthTenthsMm,
+          utilization: sheet.utilization,
         });
-      }
-    });
 
-    insertShortfalls(db, UNPLACED_TABLE, plan.id, plan.unplaced);
-    insertShortfalls(db, REJECTED_TABLE, plan.id, plan.rejected);
-  })();
+        for (const placement of sheet.placements) {
+          insertPlacement.run({
+            id: randomUUID(),
+            plannedSheetId,
+            label: placement.label,
+            lengthTenthsMm: placement.lengthTenthsMm,
+            widthTenthsMm: placement.widthTenthsMm,
+            xTenthsMm: placement.xTenthsMm,
+            yTenthsMm: placement.yTenthsMm,
+            // O SQLite não tem booleano; a volta acontece no `rowToPlacement`.
+            rotated: placement.rotated ? 1 : 0,
+          });
+        }
+      });
 
-  return plan;
+      insertShortfalls(db, UNPLACED_TABLE, plan.id, plan.unplaced);
+      insertShortfalls(db, REJECTED_TABLE, plan.id, plan.rejected);
+
+      return plan;
+    },
+  };
 }
+
+export type PlansRepository = ReturnType<typeof makePlansRepository>;

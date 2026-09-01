@@ -53,35 +53,6 @@ function tableColumns(db: Database.Database, table: BackupTable): string[] {
   return rows.map((row) => row.name);
 }
 
-/**
- * Toda linha de toda tabela, na ordem de inserção (`rowid`).
- *
- * A ordem importa no plano: é dela que sai o número de cada peça na legenda do
- * desenho, e um backup que a embaralhasse devolveria um plano com a legenda
- * trocada em relação ao papel que já foi para a bancada.
- */
-export function exportBackup(db: Database.Database): BackupFile {
-  const read = (table: BackupTable) =>
-    db.prepare(`SELECT * FROM ${table} ORDER BY rowid`).all() as BackupRow[];
-
-  // As tabelas são escritas uma a uma, e não varridas a partir de `BACKUP_TABLES`,
-  // porque é o `tsc` que precisa cobrar a lista: o tipo vem do schema, então uma
-  // tabela declarada lá e esquecida aqui não compila.
-  return {
-    app: BACKUP_APP,
-    version: BACKUP_VERSION,
-    exported_at: new Date().toISOString(),
-    projects: read('projects'),
-    pieces: read('pieces'),
-    sheets: read('sheets'),
-    plans: read('plans'),
-    planned_sheets: read('planned_sheets'),
-    placements: read('placements'),
-    unallocated_pieces: read('unallocated_pieces'),
-    rejected_pieces: read('rejected_pieces'),
-  };
-}
-
 function insertRows(db: Database.Database, table: BackupTable, rows: readonly BackupRow[]): void {
   if (rows.length === 0) return;
 
@@ -98,26 +69,61 @@ function insertRows(db: Database.Database, table: BackupTable, rows: readonly Ba
   for (const row of rows) statement.run(rowValues(columns, row));
 }
 
-/**
- * Substitui **todo** o conteúdo do banco pelo do arquivo.
- *
- * Tudo numa transação só: uma falha no meio — chave estrangeira órfã, coluna
- * `NOT NULL` ausente, disco cheio — devolve o banco intacto. É o que permite à
- * tela prometer que nada foi alterado quando a importação é recusada, e é a
- * única razão pela qual uma ação irreversível pode ser oferecida com segurança.
- *
- * O apagamento é explícito, tabela por tabela na ordem inversa, e não delegado
- * ao `ON DELETE CASCADE` de `projects`: o efeito fica escrito onde ele acontece,
- * em vez de depender de o schema continuar cascateando amanhã.
- */
-export function importBackup(db: Database.Database, file: BackupFile): void {
-  db.transaction(() => {
-    for (const table of [...BACKUP_TABLES].reverse()) {
-      db.prepare(`DELETE FROM ${table}`).run();
-    }
+export function makeBackupRepository(db: Database.Database) {
+  return {
+    /**
+     * Toda linha de toda tabela, na ordem de inserção (`rowid`).
+     *
+     * A ordem importa no plano: é dela que sai o número de cada peça na legenda
+     * do desenho, e um backup que a embaralhasse devolveria um plano com a
+     * legenda trocada em relação ao papel que já foi para a bancada.
+     */
+    exportRows(): BackupFile {
+      const read = (table: BackupTable) =>
+        db.prepare(`SELECT * FROM ${table} ORDER BY rowid`).all() as BackupRow[];
 
-    for (const table of BACKUP_TABLES) {
-      insertRows(db, table, file[table]);
-    }
-  })();
+      // As tabelas são escritas uma a uma, e não varridas a partir de
+      // `BACKUP_TABLES`, porque é o `tsc` que precisa cobrar a lista: o tipo vem
+      // do schema, então uma tabela declarada lá e esquecida aqui não compila.
+      return {
+        app: BACKUP_APP,
+        version: BACKUP_VERSION,
+        exported_at: new Date().toISOString(),
+        projects: read('projects'),
+        pieces: read('pieces'),
+        sheets: read('sheets'),
+        plans: read('plans'),
+        planned_sheets: read('planned_sheets'),
+        placements: read('placements'),
+        unallocated_pieces: read('unallocated_pieces'),
+        rejected_pieces: read('rejected_pieces'),
+      };
+    },
+
+    /**
+     * Substitui **todo** o conteúdo do banco pelo do arquivo.
+     *
+     * Não abre transação: quem chama envolve a chamada numa `repos.transaction`,
+     * e é isso que garante que uma falha no meio — chave estrangeira órfã, coluna
+     * `NOT NULL` ausente, disco cheio — devolva o banco intacto. É o que permite
+     * à tela prometer que nada foi alterado quando a importação é recusada, e a
+     * única razão pela qual uma ação irreversível pode ser oferecida com
+     * segurança.
+     *
+     * O apagamento é explícito, tabela por tabela na ordem inversa, e não
+     * delegado ao `ON DELETE CASCADE` de `projects`: o efeito fica escrito onde
+     * ele acontece, em vez de depender de o schema continuar cascateando amanhã.
+     */
+    importRows(file: BackupFile): void {
+      for (const table of [...BACKUP_TABLES].reverse()) {
+        db.prepare(`DELETE FROM ${table}`).run();
+      }
+
+      for (const table of BACKUP_TABLES) {
+        insertRows(db, table, file[table]);
+      }
+    },
+  };
 }
+
+export type BackupRepository = ReturnType<typeof makeBackupRepository>;

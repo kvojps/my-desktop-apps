@@ -1,11 +1,9 @@
-import type Database from 'better-sqlite3';
 import { type IpcMainInvokeEvent, dialog } from 'electron';
 import fs from 'node:fs/promises';
 import type { ExportResult } from '@shared/ipc/api';
 import { windowFor } from '../controllers/windowFor';
 import { planExportFileName } from '../domain/planExportFileName';
-import { getPlan } from '../infra/database/repositories/plansRepository';
-import { getProject } from '../infra/database/repositories/projectsRepository';
+import type { Repositories } from '../infra/database';
 import { AppError } from '../utils/errors/AppError';
 import { errorReason } from '../utils/errors/errorReason';
 
@@ -43,14 +41,14 @@ const FILTERS: Record<ExportFormat, { name: string; extensions: string[] }> = {
  */
 async function askWhereToSave(
   event: IpcMainInvokeEvent,
-  db: Database.Database,
+  repos: Repositories,
   projectId: string,
   format: ExportFormat,
 ): Promise<string | null> {
-  const project = getProject(db, projectId);
+  const project = repos.projects.findById(projectId);
   if (!project) throw new AppError(404, 'Este projeto não existe mais.');
 
-  const plan = getPlan(db, projectId);
+  const plan = repos.plans.findByProject(projectId);
   // Exportar sem plano não acontece pela tela — o botão vive na prancheta —,
   // e por IPC seria um arquivo do nada.
   if (!plan) throw new AppError(404, 'Este projeto ainda não tem um plano gerado.');
@@ -83,11 +81,11 @@ async function writeExported(filePath: string, data: Uint8Array): Promise<Export
 
 export async function exportPlanPng(
   event: IpcMainInvokeEvent,
-  db: Database.Database,
+  repos: Repositories,
   projectId: string,
   bytes: Uint8Array,
 ): Promise<ExportResult> {
-  const filePath = await askWhereToSave(event, db, projectId, 'png');
+  const filePath = await askWhereToSave(event, repos, projectId, 'png');
   if (!filePath) return { success: false, error: 'canceled' };
 
   return writeExported(filePath, bytes);
@@ -95,10 +93,10 @@ export async function exportPlanPng(
 
 export async function exportPlanPdf(
   event: IpcMainInvokeEvent,
-  db: Database.Database,
+  repos: Repositories,
   projectId: string,
 ): Promise<ExportResult> {
-  const filePath = await askWhereToSave(event, db, projectId, 'pdf');
+  const filePath = await askWhereToSave(event, repos, projectId, 'pdf');
   if (!filePath) return { success: false, error: 'canceled' };
 
   let pdf: Buffer;

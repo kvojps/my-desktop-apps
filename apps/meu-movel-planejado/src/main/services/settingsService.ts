@@ -1,6 +1,6 @@
 import type Database from 'better-sqlite3';
 import type { ThemeMode } from '@shared/types/theme';
-import { setSetting } from '../infra/database/repositories/settingsRepository';
+import { makeSettingsRepository } from '../infra/database/repositories/settingsRepository';
 
 /**
  * A preferência de tema no banco. Hoje é só o par chave + escrita que saiu de
@@ -13,5 +13,5 @@ import { setSetting } from '../infra/database/repositories/settingsRepository';
 export const THEME_MODE_KEY = 'theme.mode';
 
 export function saveThemeMode(db: Database.Database, mode: ThemeMode): void {
-  setSetting(db, THEME_MODE_KEY, mode);
+  makeSettingsRepository(db).set(THEME_MODE_KEY, mode);
 }

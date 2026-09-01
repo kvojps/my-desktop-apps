@@ -1,11 +1,10 @@
-import type Database from 'better-sqlite3';
 import { type IpcMainInvokeEvent, dialog } from 'electron';
 import fs from 'node:fs/promises';
 import type { ExportResult, ImportResult } from '@shared/ipc/api';
 import { windowFor } from '../controllers/windowFor';
 import { backupFileName } from '../domain/backupFileName';
+import type { Repositories } from '../infra/database';
 import { BACKUP_REFUSAL_MESSAGES, readBackupFile } from '../infra/database/readBackupFile';
-import { exportBackup, importBackup } from '../infra/database/repositories/backupRepository';
 import { AppError } from '../utils/errors/AppError';
 import { errorReason } from '../utils/errors/errorReason';
 
@@ -27,7 +26,7 @@ const FILTER = { name: 'Backup do Meu Móvel Planejado', extensions: ['json'] };
 
 export async function exportBackupFile(
   event: IpcMainInvokeEvent,
-  db: Database.Database,
+  repos: Repositories,
 ): Promise<ExportResult> {
   const result = await dialog.showSaveDialog(windowFor(event), {
     title: 'Exportar dados',
@@ -39,7 +38,7 @@ export async function exportBackupFile(
   // respondeu, e o app não tem o que lhe informar de volta.
   if (result.canceled || !result.filePath) return { success: false, error: 'canceled' };
 
-  const data = exportBackup(db);
+  const data = repos.backup.exportRows();
 
   try {
     // Indentado: o arquivo é do usuário, fica no pen drive dele e é a última
@@ -58,7 +57,7 @@ export async function exportBackupFile(
 
 export async function importBackupFile(
   event: IpcMainInvokeEvent,
-  db: Database.Database,
+  repos: Repositories,
 ): Promise<ImportResult> {
   const result = await dialog.showOpenDialog(windowFor(event), {
     title: 'Importar dados',
@@ -83,7 +82,7 @@ export async function importBackupFile(
   if (!conferred.ok) throw new AppError(400, BACKUP_REFUSAL_MESSAGES[conferred.refusal]);
 
   try {
-    importBackup(db, conferred.file);
+    repos.transaction(() => repos.backup.importRows(conferred.file));
   } catch (err) {
     // O que o banco recusa aqui é o arquivo, não o app: chave estrangeira órfã,
     // coluna obrigatória vazia. A gravação é uma transação só, então a recusa

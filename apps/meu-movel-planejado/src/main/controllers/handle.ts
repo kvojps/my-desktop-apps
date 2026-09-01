@@ -13,7 +13,7 @@ type IpcListener = Parameters<typeof ipcMain.handle>[1];
  * O aviso mora aqui porque este é o único caminho de entrada do IPC: nenhum
  * handler usa `ipcMain.handle` direto. É o que torna impossível esquecer de
  * invalidar um domínio depois de gravá-lo. Falha não avisa — as escritas
- * compostas rodam em `db.transaction`, então erro é rollback.
+ * compostas rodam em `repos.transaction`, então erro é rollback.
  */
 export function handle(channel: string, listener: IpcListener): void {
   ipcMain.handle(channel, async (event, ...args) => {
