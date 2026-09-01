@@ -1,4 +1,4 @@
-Status: aberto
+Status: resolvido
 Blocked by: 02
 
 # Meu Móvel Planejado: unit of work
@@ -81,3 +81,44 @@ importar backup troca tudo de uma vez ou não troca nada.
 ## Comments
 
 Ticket derivado da spec desta pasta (`../spec.md`, frentes 2 e 3).
+
+Resolvido. `infra/database/index.ts` novo: `makeRepositories(db)` compõe os seis
+(`projects`, `pieces`, `sheets`, `plans`, `settings`, `backup`) mais
+`transaction(fn)`, e exporta `type Repositories`. Cada repositório virou fábrica
+`makeXRepository(db)` de closures sobre `db` — sem classes, `better-sqlite3` só
+como `import type`.
+
+Verbos como a spec pediu. Os `getXOrThrow` sumiram: leituras devolvem `null`,
+`touch`/`delete` devolvem `boolean`, `replaceForProject` e `importRows` são verbos
+planos sem transação. `projects` ganhou `exists` (o guard de `plansSave`, antes um
+`SELECT 1` inline em `savePlan`).
+
+As 8 transações saíram dos repositórios (`grep 'db.transaction'
+src/main/infra/database/repositories` vazio; sobra a de `migrations.ts` e a
+`repos.transaction` da própria unidade de trabalho). Quem compõe agora:
+
+- peça/chapa create/update/delete → `registerIpc.ts` abre `repos.transaction`
+  com `repos.projects.touch` + a escrita. `create` confere `touch` → 404 (era o
+  papel do `touchProject` antigo); update/delete não, porque a FK já garante o
+  projeto (igual ao original).
+- `plansSave` → `repos.projects.exists` (404) antes de
+  `repos.transaction(() => repos.plans.replaceForProject(...))`.
+- importar backup → `backupService.importBackupFile` (que já era o dono final,
+  ticket 05) envolve `repos.transaction(() => repos.backup.importRows(file))`.
+
+`assertFitsSomeSheet` (422) saiu de `piecesRepository` — que não importa mais
+`touchProject` nem `listSheets` — e virou `assertPieceFits(repos, …)` em
+`registerIpc.ts`, chamado antes da transação como antes. `sheetsRepository`
+também deixou de importar `touchProject`. Os três imports repo→repo sumiram.
+
+`backupService` e `plansService` passaram a receber `Repositories` no lugar de
+`db` (consequência natural; a limpeza plena dos services é o ticket 05).
+`settingsService.saveThemeMode` e `themeMode.resolveThemeMode` passaram a montar
+`makeSettingsRepository(db)` — o `onThemeModeChange` continua de pé (some no 05).
+`repos.settings` ainda não tem chamador em `registerIpc` (o `themeSet` é ligado
+no 05), como a `transaction()` do `meu-negocio-app` nasceu sem chamador.
+
+Sem teste novo (spec, decisão 3). Verificação: `typecheck` (4 apps, 0 erros),
+`lint` (0 erros; 2 warnings pré-existentes em `meu-negocio-app`), `test` (187
+passando), `electron-vite build` do `meu-movel-planejado` (main, preload e
+renderer sem erro). `/code-review` fica para os tickets 05/06/07 (decisão 5).
