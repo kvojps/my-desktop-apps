@@ -1,5 +1,5 @@
 import type { WebContents } from 'electron';
-import { AppError } from '../errors/AppError';
+import { AppError } from '../../../utils/errors/AppError';
 
 /**
  * Manda para a impressora o que a janela já tem renderizado.

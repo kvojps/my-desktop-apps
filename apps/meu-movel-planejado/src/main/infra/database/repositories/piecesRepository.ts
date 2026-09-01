@@ -2,7 +2,7 @@ import type Database from 'better-sqlite3';
 import { randomUUID } from 'node:crypto';
 import { PIECE_DOES_NOT_FIT_MESSAGE, fitsAnySheet } from '@shared/nesting/fit';
 import type { Piece, PieceInput } from '@shared/types/piece';
-import { AppError } from '../errors/AppError';
+import { AppError } from '../../../utils/errors/AppError';
 import { getProject, touchProject } from './projectsRepository';
 import { listSheets } from './sheetsRepository';
 

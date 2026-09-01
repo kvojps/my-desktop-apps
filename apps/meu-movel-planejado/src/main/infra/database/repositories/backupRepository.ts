@@ -1,7 +1,11 @@
 import type Database from 'better-sqlite3';
-import { type BackupRow, importColumns, rowValues } from '../backup/backupRows';
-import { AppError } from '../errors/AppError';
-import { BACKUP_APP, BACKUP_VERSION, type BackupFile } from '../schemas/backup.schema';
+import {
+  BACKUP_APP,
+  BACKUP_VERSION,
+  type BackupFile,
+} from '../../../controllers/schemas/backup.schema';
+import { AppError } from '../../../utils/errors/AppError';
+import { type BackupRow, importColumns, rowValues } from '../backupRows';
 
 /**
  * O backup do app inteiro: as **linhas cruas** de todas as tabelas de dados,

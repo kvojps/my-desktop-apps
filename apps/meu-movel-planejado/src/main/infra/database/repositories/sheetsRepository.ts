@@ -1,7 +1,7 @@
 import type Database from 'better-sqlite3';
 import { randomUUID } from 'node:crypto';
 import type { Sheet, SheetInput } from '@shared/types/sheet';
-import { AppError } from '../errors/AppError';
+import { AppError } from '../../../utils/errors/AppError';
 import { touchProject } from './projectsRepository';
 
 interface SheetRow {

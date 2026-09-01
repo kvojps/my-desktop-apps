@@ -1,9 +1,8 @@
 import type Database from 'better-sqlite3';
 import { BrowserWindow, nativeTheme } from 'electron';
 import type { ThemeMode } from '@shared/types/theme';
-import { getSetting, setSetting } from '../db/settingsRepository';
-
-export const THEME_MODE_KEY = 'theme.mode';
+import { THEME_MODE_KEY } from '../../../services/settingsService';
+import { getSetting } from '../../database/repositories/settingsRepository';
 
 /** Igual a `background.default` do tema do renderer, por modo. */
 const BACKGROUND: Record<ThemeMode, string> = {
@@ -29,6 +28,10 @@ let current: ThemeMode | null = null;
  * Quando não há valor gravado, o modo derivado do SO **não** é persistido:
  * gravar uma preferência que o usuário nunca expressou faria toda mudança de
  * tema do sistema ser ignorada daí em diante. A linha nasce no primeiro toggle.
+ *
+ * TODO(ticket 04): a regra "o que está no banco, ou o do sistema" sai daqui
+ * para `domain/theme.ts`; este gateway fica só com a leitura do banco e do
+ * `nativeTheme` que a alimentam.
  */
 export function resolveThemeMode(db: Database.Database): ThemeMode {
   const stored = getSetting(db, THEME_MODE_KEY);
@@ -51,10 +54,6 @@ export function getThemeMode(): ThemeMode {
 
 export function themeBackground(mode: ThemeMode): string {
   return BACKGROUND[mode];
-}
-
-export function saveThemeMode(db: Database.Database, mode: ThemeMode): void {
-  setSetting(db, THEME_MODE_KEY, mode);
 }
 
 /**

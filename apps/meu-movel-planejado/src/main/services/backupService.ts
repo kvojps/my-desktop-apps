@@ -2,12 +2,12 @@ import type Database from 'better-sqlite3';
 import { type IpcMainInvokeEvent, dialog } from 'electron';
 import fs from 'node:fs/promises';
 import type { ExportResult, ImportResult } from '@shared/ipc/api';
-import { exportBackup, importBackup } from '../db/backupRepository';
-import { AppError } from '../errors/AppError';
-import { errorReason } from '../errors/errorReason';
-import { windowFor } from '../ipc/windowFor';
-import { backupFileName } from './backupFileName';
-import { BACKUP_REFUSAL_MESSAGES, readBackupFile } from './readBackupFile';
+import { windowFor } from '../controllers/windowFor';
+import { backupFileName } from '../domain/backupFileName';
+import { BACKUP_REFUSAL_MESSAGES, readBackupFile } from '../infra/database/readBackupFile';
+import { exportBackup, importBackup } from '../infra/database/repositories/backupRepository';
+import { AppError } from '../utils/errors/AppError';
+import { errorReason } from '../utils/errors/errorReason';
 
 /**
  * O backup como arquivo: escolher onde salvar, gravar, escolher o que abrir,

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { BACKUP_TABLES } from '../db/backupRepository';
+import { BACKUP_TABLES } from '../../infra/database/repositories/backupRepository';
 import { BACKUP_APP, BACKUP_VERSION, backupSchema } from './backup.schema';
 
 /**

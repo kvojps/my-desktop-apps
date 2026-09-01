@@ -3,16 +3,16 @@ import path from 'node:path';
 import { APP_ERROR_DESCRIPTIONS } from '@shared/errors/appError';
 import type { ThemeMode } from '@shared/types/theme';
 import icon from '../../resources/icon.png?asset';
-import { initDb } from './db/connection';
-import { classifyError } from './errors/toIpcError';
-import { registerIpcHandlers } from './ipc/registerIpc';
+import { registerIpcHandlers } from './controllers/registerIpc';
+import { initDb } from './infra/database/connection';
 import {
   applyThemeMode,
   getThemeMode,
   resolveThemeMode,
-  saveThemeMode,
   themeBackground,
-} from './theme/themeMode';
+} from './infra/gateways/system/themeMode';
+import { saveThemeMode } from './services/settingsService';
+import { classifyError } from './utils/errors/toIpcError';
 
 // Fixa a pasta userData (%APPDATA%/meu-movel-planejado); mudar este nome após a
 // primeira release deixa o banco de dados dos usuários órfão.

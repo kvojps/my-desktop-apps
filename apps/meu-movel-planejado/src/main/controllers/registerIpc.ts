@@ -3,10 +3,14 @@ import { app, shell } from 'electron';
 import { IPC_CHANNELS } from '@shared/ipc/channels';
 import type { AppInfo } from '@shared/types/appInfo';
 import type { ThemeMode } from '@shared/types/theme';
-import { exportBackupFile, importBackupFile } from '../backup/backupFile';
-import { getDbPath } from '../db/connection';
-import { createPiece, deletePiece, listPieces, updatePiece } from '../db/piecesRepository';
-import { getPlan, savePlan } from '../db/plansRepository';
+import { getDbPath } from '../infra/database/connection';
+import {
+  createPiece,
+  deletePiece,
+  listPieces,
+  updatePiece,
+} from '../infra/database/repositories/piecesRepository';
+import { getPlan, savePlan } from '../infra/database/repositories/plansRepository';
 import {
   createProject,
   deleteProject,
@@ -14,19 +18,25 @@ import {
   listProjects,
   updateCuttingParams,
   updateProject,
-} from '../db/projectsRepository';
-import { createSheet, deleteSheet, listSheets, updateSheet } from '../db/sheetsRepository';
-import { exportPlanPdf, exportPlanPng } from '../export/exportPlanFile';
-import { printDocument } from '../print/printDocument';
-import { pngBytesSchema } from '../schemas/export.schema';
-import { pieceInputSchema } from '../schemas/piece.schema';
-import { planInputSchema } from '../schemas/plan.schema';
-import { cuttingParamsInputSchema, projectInputSchema } from '../schemas/project.schema';
-import { sheetInputSchema } from '../schemas/sheet.schema';
-import { themeModeSchema } from '../schemas/theme.schema';
+} from '../infra/database/repositories/projectsRepository';
+import {
+  createSheet,
+  deleteSheet,
+  listSheets,
+  updateSheet,
+} from '../infra/database/repositories/sheetsRepository';
+import { printDocument } from '../infra/gateways/system/printing';
+import { exportBackupFile, importBackupFile } from '../services/backupService';
+import { exportPlanPdf, exportPlanPng } from '../services/plansService';
 import { parseId } from '../utils/parseId';
 import { parseOrThrow } from '../utils/validate';
 import { handle } from './handle';
+import { pngBytesSchema } from './schemas/export.schema';
+import { pieceInputSchema } from './schemas/piece.schema';
+import { planInputSchema } from './schemas/plan.schema';
+import { cuttingParamsInputSchema, projectInputSchema } from './schemas/project.schema';
+import { sheetInputSchema } from './schemas/sheet.schema';
+import { themeModeSchema } from './schemas/theme.schema';
 
 interface RegisterIpcOptions {
   /** Aplica o novo modo ao que só o main controla, além de persistir. */

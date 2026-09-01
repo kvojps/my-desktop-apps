@@ -7,7 +7,7 @@ import {
   type Project,
   type ProjectInput,
 } from '@shared/types/project';
-import { AppError } from '../errors/AppError';
+import { AppError } from '../../../utils/errors/AppError';
 
 interface ProjectRow {
   id: string;

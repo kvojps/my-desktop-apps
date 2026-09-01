@@ -8,7 +8,7 @@ import type {
   PlanSheet,
   PlanShortfall,
 } from '@shared/types/plan';
-import { AppError } from '../errors/AppError';
+import { AppError } from '../../../utils/errors/AppError';
 
 /**
  * O plano de corte no banco. Um por projeto: `plans.project_id` é único, e

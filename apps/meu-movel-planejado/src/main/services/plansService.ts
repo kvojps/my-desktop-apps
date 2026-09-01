@@ -2,12 +2,12 @@ import type Database from 'better-sqlite3';
 import { type IpcMainInvokeEvent, dialog } from 'electron';
 import fs from 'node:fs/promises';
 import type { ExportResult } from '@shared/ipc/api';
-import { getPlan } from '../db/plansRepository';
-import { getProject } from '../db/projectsRepository';
-import { AppError } from '../errors/AppError';
-import { errorReason } from '../errors/errorReason';
-import { windowFor } from '../ipc/windowFor';
-import { planExportFileName } from './planExportFileName';
+import { windowFor } from '../controllers/windowFor';
+import { planExportFileName } from '../domain/planExportFileName';
+import { getPlan } from '../infra/database/repositories/plansRepository';
+import { getProject } from '../infra/database/repositories/projectsRepository';
+import { AppError } from '../utils/errors/AppError';
+import { errorReason } from '../utils/errors/errorReason';
 
 /**
  * O plano como arquivo: PNG para o celular do ajudante, PDF para arquivar junto

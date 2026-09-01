@@ -1,4 +1,4 @@
-Status: aberto
+Status: resolvido
 
 # Meu Móvel Planejado: mover arquivos
 
@@ -84,3 +84,26 @@ Mecânico: **commit único** (spec, decisão 5).
 ## Comments
 
 Ticket derivado da spec desta pasta (`../spec.md`, decisões 3, 14, 15).
+
+Resolvido em commit único (decisão 5). 37 renomeações via `git mv`; fora delas só `index.ts` e
+`utils/validate.ts` mudaram, e só em import. `theme/themeMode.ts` foi partido conforme a seção
+"Divisão": o gateway (`infra/gateways/system/themeMode.ts`) ficou com `BACKGROUND`,
+`themeBackground`, `applyThemeMode`, `getThemeMode`, o `let current` e — provisoriamente, com
+`TODO(ticket 04)` — `resolveThemeMode`; `THEME_MODE_KEY` e `saveThemeMode` (o chamador de
+`setSetting`) nasceram em `services/settingsService.ts` (arquivo novo, 17 linhas). O
+`onThemeModeChange` continua de pé.
+
+Duas arestas que sobem de camada e que o ticket já prevê como provisórias:
+`infra/gateways/system/themeMode.ts` importa `THEME_MODE_KEY` de `services/settingsService.ts`
+(some no ticket 04, quando `resolveThemeMode` vai para `domain/theme.ts`); e
+`backup.schema.ts`, roteado para `controllers/schemas/` pelo "O mapa", fica acima dos seus
+consumidores em `infra/database/` (`readBackupFile.ts`, `backupRepository.ts`) — o ticket 06 é
+que consolida o zod dentro de `infra/database/`, como no `meu-dinheiro-app`. A frase "Mesma
+forma do ticket 04 do git-dlog e do 02 do meu-negocio-app e do meu-dinheiro-app" é imprecisa
+neste ponto: aqueles moveram `theme/themeMode.ts` inteiro no ticket 02 e só criaram
+`settingsService.ts` no ticket seguinte; aqui o split foi antecipado porque a seção "Divisão" o
+manda explicitamente.
+
+Verificação: `typecheck` (4 apps, 0 erros), `lint` (0 erros; 2 warnings pré-existentes em
+`meu-negocio-app`, não tocados), `test` (187 passando; os 5 testes movidos entre eles),
+`electron-vite build` do `meu-movel-planejado` (main, preload e renderer sem erro de resolução).

@@ -3,7 +3,7 @@ import {
   BACKUP_VERSION,
   type BackupFile,
   backupSchema,
-} from '../schemas/backup.schema';
+} from '../../controllers/schemas/backup.schema';
 
 /**
  * A conferência do arquivo escolhido para importar: o texto do disco entra, e

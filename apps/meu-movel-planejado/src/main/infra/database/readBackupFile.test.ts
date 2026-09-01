@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { BACKUP_TABLES } from '../db/backupRepository';
-import { BACKUP_APP, BACKUP_VERSION } from '../schemas/backup.schema';
+import { BACKUP_APP, BACKUP_VERSION } from '../../controllers/schemas/backup.schema';
 import { BACKUP_REFUSAL_MESSAGES, readBackupFile } from './readBackupFile';
+import { BACKUP_TABLES } from './repositories/backupRepository';
 
 /**
  * A conferência do arquivo escolhido para importar.
