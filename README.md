@@ -101,10 +101,12 @@ src/main/
 - **`services/`** — a regra de negócio, e o único lugar dela. O service recebe
   entrada já validada e confia nela, orquestra repositórios e gateways, e é
   quem decide que "não encontrado" é um `AppError`. Não conhece Electron, não
-  conhece zod e não importa `better-sqlite3`. Regra de domínio mora aqui mesmo
-  quando é função pura que não toca banco nem disco — o critério é o papel dela,
-  não o que ela usa, e isso revoga um precedente que estava valendo no Meu Móvel
-  Planejado: ver
+  conhece zod e não importa `better-sqlite3`. Regra de domínio mora no **main**,
+  não no renderer, mesmo quando é função pura que não toca banco nem disco — o
+  critério é o papel dela, não o que ela usa. Dentro do main isso se reparte:
+  `services/` é a orquestração de repositório e gateway; vocabulário e cálculo do
+  domínio ficam em `domain/`, ainda que função pura. O ADR-0003 fixa essa
+  fronteira e revoga um precedente que estava valendo no Meu Móvel Planejado: ver
   [`docs/adr/0003-logica-de-dominio-no-main.md`](docs/adr/0003-logica-de-dominio-no-main.md).
 - **`infra/database/`** — SQLite (`better-sqlite3`) em modo WAL com
   `foreign_keys = ON`. `connection.ts` guarda o `SCHEMA` usado em instalações
@@ -155,10 +157,8 @@ têm destino fixo:
 | `export/`, `print/` | `services/` mais `infra/gateways/`                                                                         |
 | `constants/`        | `domain/` — `monthLabel` é vocabulário, não configuração                                                   |
 
-A migração é por app: `git-dlog`, `meu-negocio-app` e `meu-dinheiro-app` já
-convertidos, só `meu-movel-planejado` na fila. Enquanto ela não termina, app que
-ainda não foi convertido está divergindo deste documento, e a divergência é bug
-do código.
+Os quatro apps estão convertidos. App que divergir deste documento está com um
+bug no código: a divergência é do código, nunca do documento.
 
 ### 2.3 `src/preload` — a ponte
 

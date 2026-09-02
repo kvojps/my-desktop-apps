@@ -1,4 +1,4 @@
-Status: aberto
+Status: resolvido
 Blocked by: 07
 
 # Meu Móvel Planejado: limpezas
@@ -86,3 +86,54 @@ Limpeza: **commit único** (spec, decisão 5).
 Ticket derivado da spec desta pasta (`../spec.md`, decisão 18).
 
 Fecha a migração do `docs/adr/0002-camadas-do-processo-principal.md` nos quatro apps.
+
+### Resolvido
+
+Quase tudo já tinha saído nos tickets 06 e 07 — este ticket confirmou e fechou o
+resíduo.
+
+- **Comentários do precedente revogado**: já apagados no ticket 07.
+  `useGeneratePlan.ts:9-22` e `shared/ipc/api.ts` descrevem o mundo novo (o
+  empacotamento roda no main, ADR-0003). A varredura
+  `grep -rn 'main não empacota\|precedente' apps/meu-movel-planejado/src` não
+  acha nenhuma ocorrência que ainda afirme o revogado — `index.ts:91` cita o
+  precedente **válido** do `meu-dinheiro-app` (boot monta `makeSettingsRepository`
+  direto), não o do ADR-0003.
+- **README §2.2, frase de regra pura**: reescrita. Antes dizia "regra de domínio
+  mora [em `services/`] mesmo quando é função pura", o que contradizia
+  `meu-dinheiro-app/domain/monthNames.ts`, `domain/theme.ts` e
+  `meu-movel-planejado/domain/nesting.ts`. Agora o critério é explícito: regra
+  pura é do **main**, não do renderer; dentro do main, orquestração é `services/`
+  e vocabulário/cálculo do domínio é `domain/`.
+- **README §2.2, parágrafo de status**: os quatro apps passam a constar como
+  convertidos; a lista de pendentes some. A frase sobre divergência ser bug do
+  código ficou — ela vale para sempre.
+- **`handle` estreitado**: já feito no ticket 06 —
+  `handle(channel: IpcChannel, …)`, canal fora de `IPC_CHANNELS` não compila.
+- **Resíduo extra**: `infra/database/index.ts` ainda trazia um comentário do
+  estado provisório do ticket 03 ("quem compõe ainda é o `registerIpc.ts`
+  provisório; o ticket 05 move a composição para os services"). Reescrito para o
+  estado final, no molde do `meu-dinheiro-app`.
+
+Varreduras finais, todas limpas: `db.transaction` em `src/main` só em
+`migrations.ts` e na própria costura da unidade de trabalho (`index.ts`, idêntico
+ao `meu-dinheiro-app`); `ipcMain.handle` só em `controllers/handle.ts`; nenhum
+import de valor de `better-sqlite3`/`electron` em `services/` ou `domain/`;
+nenhuma das pastas antigas (`db/`, `ipc/`, `schemas/`, `errors/`, `backup/`,
+`export/`, `print/`, `theme/`) existe; `shared/nesting/` só com `fit.ts` e o teste
+dele.
+
+Verificação: `npm run typecheck` (4 apps), `npm run lint` (0 erros, 2 warnings
+pré-existentes no `meu-negocio-app`), `npm run test` (187 testes, 21 arquivos),
+`npx electron-vite build` no app (main, preload, renderer) — todos verdes. A
+passada manual de `dev:movel` pelas cinco telas não foi refeita: esta leva não
+mudou nenhum código de runtime (só comentários e o README), e o ticket 07 já a
+tinha feito.
+
+Leitura final do README §2.2 contra a árvore de `apps/meu-movel-planejado/src/main`:
+cada pasta que o documento nomeia (`domain/`, `controllers/` com `schemas/` e
+`responses/`, `services/`, `infra/database/` com `repositories/`,
+`infra/gateways/`, `utils/`) existe, e nenhuma que ele não nomeia existe.
+
+Commit único (spec, decisão 5). Com este ticket a migração do ADR-0002 fecha nos
+quatro apps e o README §2.2 deixa de descrever um estado futuro.

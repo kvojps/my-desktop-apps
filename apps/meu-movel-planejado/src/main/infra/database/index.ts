@@ -15,10 +15,10 @@ import { makeSheetsRepository } from './repositories/sheetsRepository';
  * dentro de um repositório — as três escritas de peça, as três de chapa (a
  * escrita mais o `projects.touch`, para que um carimbo antigo com peça nova
  * nunca exista), `replaceForProject` (o `DELETE` + os quatro `INSERT` em
- * cascata) e `importRows` (apaga e reescreve tudo) — passa a ser composto por
- * quem chama sobre `repos.transaction(fn)`. Neste ticket quem compõe ainda é o
- * `registerIpc.ts` provisório; o ticket 05 move a composição para os services.
- * Os repositórios terminam com zero `db.transaction`.
+ * cascata) e `importRows` (apaga e reescreve tudo) — virou `repos.transaction(fn)`
+ * autorado no service correspondente (ticket 05 de
+ * `.scratch/movel-camadas-processo-principal/`). Os repositórios terminam com
+ * zero `db.transaction`.
  */
 export function makeRepositories(db: Database.Database) {
   return {
