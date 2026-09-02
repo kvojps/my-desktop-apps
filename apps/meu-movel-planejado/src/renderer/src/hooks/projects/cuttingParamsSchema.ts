@@ -3,7 +3,7 @@ import { MAX_KERF_TENTHS_MM, MAX_TRIM_TENTHS_MM } from '@shared/types/project';
 import { measureFieldSchema } from '@/utils/measureFields';
 
 /**
- * Mesmas regras do schema do main (`schemas/project.schema.ts`). Os dois campos
+ * Mesmas regras do schema do main (`schemas/projects.schema.ts`). Os dois campos
  * aceitam zero: kerf zero é o corte ideal com que se confere a conta, e refile
  * zero é o default — nem toda oficina refila.
  */

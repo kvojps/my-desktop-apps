@@ -4,7 +4,7 @@ import { MAX_MEASURE_TENTHS_MM } from '@shared/types/rectangle';
 import { measureFieldSchema, quantityFieldSchema } from '@/utils/measureFields';
 
 /**
- * Mesmas regras do schema do main (`schemas/piece.schema.ts`), aqui para que o
+ * Mesmas regras do schema do main (`schemas/pieces.schema.ts`), aqui para que o
  * erro apareça no campo em vez de voltar do IPC como snackbar. A validação do
  * main continua sendo a que vale.
  */

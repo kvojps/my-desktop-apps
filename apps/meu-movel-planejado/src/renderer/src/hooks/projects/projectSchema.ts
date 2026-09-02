@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 /**
- * Mesmas regras do schema do main (`schemas/project.schema.ts`), aqui para que
+ * Mesmas regras do schema do main (`schemas/projects.schema.ts`), aqui para que
  * o erro apareça no campo em vez de voltar do IPC como snackbar. A validação do
  * main continua sendo a que vale: o preload é código do próprio app, mas o
  * contrato de tipos não sobrevive em runtime.
