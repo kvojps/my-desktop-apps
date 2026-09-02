@@ -66,11 +66,7 @@ export function ProjectPage() {
   const pieceForm = usePieceForm(createPiece, updatePiece, project, sheets);
   const sheetForm = useSheetForm(createSheet, updateSheet);
   const cuttingParamsForm = useCuttingParamsForm(updateCuttingParams);
-  const { generate, isGenerating, canGenerate, blockedReason } = useGeneratePlan(
-    project,
-    pieces,
-    sheets,
-  );
+  const { generate, isGenerating, canGenerate, blockedReason } = useGeneratePlan(project, pieces);
 
   function goToProjects() {
     navigate(ROUTES.PROJECTS);

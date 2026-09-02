@@ -2,7 +2,6 @@ import { contextBridge, ipcRenderer } from 'electron';
 import type { ElectronApi } from '@shared/ipc/api';
 import { IPC_CHANNELS } from '@shared/ipc/channels';
 import type { PieceInput } from '@shared/types/piece';
-import type { PlanInput } from '@shared/types/plan';
 import type { CuttingParamsInput, ProjectInput } from '@shared/types/project';
 import type { SheetInput } from '@shared/types/sheet';
 import type { ThemeMode } from '@shared/types/theme';
@@ -54,8 +53,7 @@ const api: ElectronApi = {
   },
   plans: {
     get: (projectId: string) => ipcRenderer.invoke(IPC_CHANNELS.plansGet, projectId),
-    save: (projectId: string, data: PlanInput) =>
-      ipcRenderer.invoke(IPC_CHANNELS.plansSave, projectId, data),
+    generate: (projectId: string) => ipcRenderer.invoke(IPC_CHANNELS.plansGenerate, projectId),
     print: () => ipcRenderer.invoke(IPC_CHANNELS.plansPrint),
     exportPng: (projectId: string, bytes: Uint8Array) =>
       ipcRenderer.invoke(IPC_CHANNELS.plansExportPng, projectId, bytes),

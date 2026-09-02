@@ -144,11 +144,6 @@ export function makeProjectsRepository(db: Database.Database) {
       const result = db.prepare('DELETE FROM projects WHERE id = ?').run(id);
       return result.changes > 0;
     },
-
-    /** Só a existência, para o guard de quem grava um plano do projeto. */
-    exists(id: string): boolean {
-      return db.prepare('SELECT 1 FROM projects WHERE id = ?').get(id) !== undefined;
-    },
   };
 }
 

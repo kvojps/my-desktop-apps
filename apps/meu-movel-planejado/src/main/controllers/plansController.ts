@@ -7,22 +7,21 @@ import { parseOrThrow } from '../utils/validate';
 import { handle } from './handle';
 import { planToResponse } from './responses/plan.response';
 import { pngBytesSchema } from './schemas/export.schema';
-import { planInputSchema } from './schemas/plans.schema';
 import { windowFor } from './windowFor';
 
 /**
- * O plano de corte: o vigente do projeto, gravar o recém-gerado, imprimir e
- * exportar como PNG ou PDF. A orquestração — diálogo, disco, impressão, a
+ * O plano de corte: o vigente do projeto, gerar um novo, imprimir e exportar
+ * como PNG ou PDF. A orquestração — empacotamento, diálogo, disco, impressão, a
  * transação do `replaceForProject` — é toda do `plansService`; aqui ficam a
  * validação da entrada, `windowFor(event)` (o único ponto que toca o `event`) e
  * `planToResponse` na saída.
  *
  * `plans:print` e as duas exportações devolvem `boolean` / `ExportResult` —
  * `ExportResult` é união de literais de `shared/ipc/`, atravessa por atribuição —,
- * então só `plans:get` e `plans:save` passam pelo mapper.
+ * então só `plans:get` e `plans:generate` passam pelo mapper.
  *
- * **`plans:save` é provisório**: o ticket 07 o troca por `plans:generate`, quando
- * o empacotador entra no main.
+ * `plans:generate` recebe só um id: o que o renderer mandava empacotado agora o
+ * main monta, e `parseId` dá conta da fronteira de confiança (ticket 07).
  */
 export function registerPlansController(plans: PlansService): void {
   handle(IPC_CHANNELS.plansGet, (_event, projectId: unknown): Plan | null => {
@@ -30,8 +29,8 @@ export function registerPlansController(plans: PlansService): void {
     return plan === null ? null : planToResponse(plan);
   });
 
-  handle(IPC_CHANNELS.plansSave, (_event, projectId: unknown, data: unknown): Plan =>
-    planToResponse(plans.save(parseId(projectId), parseOrThrow(planInputSchema, data))),
+  handle(IPC_CHANNELS.plansGenerate, (_event, projectId: unknown): Plan =>
+    planToResponse(plans.generate(parseId(projectId))),
   );
 
   handle(IPC_CHANNELS.plansPrint, (event): Promise<boolean> => plans.print(windowFor(event)));
@@ -42,9 +41,7 @@ export function registerPlansController(plans: PlansService): void {
       plans.exportPng(windowFor(event), parseId(projectId), parseOrThrow(pngBytesSchema, bytes)),
   );
 
-  handle(
-    IPC_CHANNELS.plansExportPdf,
-    (event, projectId: unknown): Promise<ExportResult> =>
-      plans.exportPdf(windowFor(event), parseId(projectId)),
+  handle(IPC_CHANNELS.plansExportPdf, (event, projectId: unknown): Promise<ExportResult> =>
+    plans.exportPdf(windowFor(event), parseId(projectId)),
   );
 }

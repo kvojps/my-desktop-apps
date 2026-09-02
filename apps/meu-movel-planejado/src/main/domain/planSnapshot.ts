@@ -6,11 +6,12 @@
  * tradução em código de "plano é snapshot, não derivação" — uma peça excluída
  * amanhã não pode apagar a folha que já foi impressa e levada à bancada.
  *
- * Pura, e no `shared` pelo mesmo motivo do empacotador: ela é a fronteira do
- * contrato que atravessa o IPC, e não tem React nem Electron dentro.
+ * Pura, e em `domain/` pelo mesmo motivo do empacotador: é regra do domínio, e
+ * é ela que decide o que o plano deixa de saber. Não tem React nem Electron
+ * dentro.
  */
-import type { CuttingPlan, CuttingPlanInput, PieceShortfall } from '../nesting/types';
-import type { PlanInput, PlanPlacement, PlanShortfall } from '../types/plan';
+import type { CuttingPlanEntity, CuttingPlanInputEntity, NestingShortfallEntity } from './nesting';
+import type { PlacementEntity, PlanInput, ShortfallEntity } from './plan';
 
 /**
  * O plano pronto para gravar. Recebe também a entrada do empacotamento porque
@@ -18,8 +19,8 @@ import type { PlanInput, PlanPlacement, PlanShortfall } from '../types/plan';
  * do projeto **de que este plano saiu** — não o de agora.
  */
 export function toPlanInput(
-  input: CuttingPlanInput,
-  plan: CuttingPlan,
+  input: CuttingPlanInputEntity,
+  plan: CuttingPlanEntity,
   projectUpdatedAt: string,
 ): PlanInput {
   const labels = new Map(input.pieces.map((piece) => [piece.id, piece.label]));
@@ -33,7 +34,7 @@ export function toPlanInput(
       lengthTenthsMm: sheet.lengthTenthsMm,
       widthTenthsMm: sheet.widthTenthsMm,
       utilization: sheet.utilization,
-      placements: sheet.placements.map((placement): PlanPlacement => ({
+      placements: sheet.placements.map((placement): PlacementEntity => ({
         // Peça que já não existe no projeto continua sem rótulo, e não com um
         // texto de erro: o desenho mostra a medida quando o rótulo é vazio.
         label: labels.get(placement.pieceId) ?? '',
@@ -58,7 +59,7 @@ export function toPlanInput(
 }
 
 /** O lote de fora sem o `pieceId`, que é a identidade que o snapshot descarta. */
-function toShortfall(piece: PieceShortfall): PlanShortfall {
+function toShortfall(piece: NestingShortfallEntity): ShortfallEntity {
   return {
     label: piece.label,
     lengthTenthsMm: piece.lengthTenthsMm,

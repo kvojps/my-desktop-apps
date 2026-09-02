@@ -26,12 +26,13 @@ export const IPC_CHANNELS = {
    */
   plansGet: 'plans:get',
   /**
-   * Grava o plano que o renderer acabou de empacotar, substituindo o vigente.
-   * Escrita, mas a única que **não** move o carimbo de alteração do projeto:
-   * gerar não altera o serviço, e mexer no carimbo faria todo plano nascer
-   * desatualizado em relação a si mesmo.
+   * Empacota as peças do projeto nas chapas e grava o plano, substituindo o
+   * vigente. O renderer manda só o id — o empacotamento roda no main (ticket
+   * 07). Escrita, mas a única que **não** move o carimbo de alteração do
+   * projeto: gerar não altera o serviço, e mexer no carimbo faria todo plano
+   * nascer desatualizado em relação a si mesmo.
    */
-  plansSave: 'plans:save',
+  plansGenerate: 'plans:generate',
   /**
    * Manda a janela para a impressora. Não lê nem grava nada — o documento é o
    * que o renderer já tem desenhado —, e por isso ele está na lista de canais

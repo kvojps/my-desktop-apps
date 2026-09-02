@@ -55,16 +55,12 @@ const REFERENCE_SHEET_ASPECT = '2750 / 1850';
 export function PlanPage() {
   const { projectId = '' } = useParams();
   const navigate = useNavigate();
-  const { project, plan, pieces, sheets, isOutdated, notFound, isLoading, error, retry } =
+  const { project, plan, pieces, isOutdated, notFound, isLoading, error, retry } =
     usePlan(projectId);
   // Gerar mora nas duas telas, com o mesmo hook: aqui ele serve só ao aviso de
   // plano desatualizado, que é onde a saída precisa estar à mão de quem já está
   // com o desenho aberto.
-  const { generate, isGenerating, canGenerate, blockedReason } = useGeneratePlan(
-    project,
-    pieces,
-    sheets,
-  );
+  const { generate, isGenerating, canGenerate, blockedReason } = useGeneratePlan(project, pieces);
   const { print, isPrinting } = usePrintPlan();
   // O SVG da imagem exportada mora no documento montado ao lado da tela; o
   // hook de exportação o alcança por esta referência para serializá-lo.

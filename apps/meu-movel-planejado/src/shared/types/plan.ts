@@ -63,12 +63,23 @@ export interface PlanDeficit {
 }
 
 /**
- * O plano que o renderer manda gravar. `generatedAt` não está aqui porque o
- * relógio é do main, como em toda escrita do app; `projectUpdatedAt`, sim,
- * porque é o carimbo do projeto **de que este plano saiu** — lê-lo de novo no
- * main marcaria como atual um plano gerado sobre uma versão anterior.
+ * O plano de corte como o main o devolve — o retrato guardado de uma geração,
+ * um por projeto.
+ *
+ * Os dois carimbos: `generatedAt` é o relógio do main na hora de gravar;
+ * `projectUpdatedAt` é o do projeto **de que este plano saiu**, e é a comparação
+ * dele com o carimbo atual do projeto que diz se o papel na bancada ficou para
+ * trás (`planOutdated`).
+ *
+ * O que o renderer manda para **gerar** é só o id do projeto: o empacotamento e
+ * a montagem do plano são do main (ticket 07). Não há mais um `PlanInput` de
+ * contrato — o tipo do plano pronto para gravar vive em `main/domain/plan.ts`.
  */
-export interface PlanInput {
+export interface Plan {
+  id: string;
+  projectId: string;
+  /** Quando este plano foi gerado — a data que a tela mostra e que o papel carrega. */
+  generatedAt: string;
   projectUpdatedAt: string;
   kerfTenthsMm: number;
   trimTenthsMm: number;
@@ -80,11 +91,4 @@ export interface PlanInput {
   /** Não cabe em chapa nenhuma do projeto. Comprar chapa não resolve. */
   rejected: PlanShortfall[];
   deficit: PlanDeficit;
-}
-
-export interface Plan extends PlanInput {
-  id: string;
-  projectId: string;
-  /** Quando este plano foi gerado — a data que a tela mostra e que o papel carrega. */
-  generatedAt: string;
 }

@@ -1,10 +1,10 @@
 import type Database from 'better-sqlite3';
 import { randomUUID } from 'node:crypto';
-import type { PlanInput } from '@shared/types/plan';
 import type {
   DeficitEntity,
   PlacementEntity,
   PlanEntity,
+  PlanInput,
   PlannedSheetEntity,
   ShortfallEntity,
 } from '../../../domain/plan';
@@ -24,8 +24,9 @@ import type {
  *
  * As folhas da árvore — `PlannedSheetEntity`, `PlacementEntity`, `ShortfallEntity`
  * e `DeficitEntity` — moram em `domain/plan.ts` junto de `PlanEntity`. O que
- * `replaceForProject` recebe do renderer é o `PlanInput` de `@shared/types/plan`;
- * o que os `rowToX` daqui devolvem é a entidade.
+ * `replaceForProject` recebe é o `PlanInput` de `domain/plan.ts` (a entidade sem
+ * os campos que o banco atribui), montado pelo `plansService.generate` a partir
+ * do empacotador; o que os `rowToX` daqui devolvem é a entidade completa.
  */
 
 interface PlanRow {
@@ -180,8 +181,7 @@ export function makePlansRepository(db: Database.Database) {
      */
     findByProject(projectId: string): PlanEntity | null {
       const row = db.prepare('SELECT * FROM plans WHERE project_id = ?').get(projectId) as
-        | PlanRow
-        | undefined;
+        PlanRow | undefined;
       return row ? rowToPlan(db, row) : null;
     },
 

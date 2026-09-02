@@ -25,7 +25,7 @@ describe('shouldNotifyDataChanged', () => {
       IPC_CHANNELS.sheetsCreate,
       IPC_CHANNELS.sheetsUpdate,
       IPC_CHANNELS.sheetsDelete,
-      IPC_CHANNELS.plansSave,
+      IPC_CHANNELS.plansGenerate,
       // Importar troca o banco inteiro: é a escrita que mais precisa do aviso.
       IPC_CHANNELS.dataImport,
     ];

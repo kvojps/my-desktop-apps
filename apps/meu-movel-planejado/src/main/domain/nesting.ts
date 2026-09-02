@@ -21,23 +21,141 @@
  * deixa menos material de fora; empatadas nisso, a que usa menos chapas;
  * empatadas nisso, a de maior aproveitamento.
  */
-// Caminho relativo, e não `@shared/`: o alias é do `tsconfig` de cada app, e a
-// suíte da raiz não o resolve — quatro apps declaram o mesmo `@shared` para
-// pastas diferentes. Import de tipo sobrevive porque o transform o apaga; o de
-// valor quebraria em runtime.
-import type { Rectangle } from '../types/rectangle';
-import { tenthsMm2ToSquareMeters } from '../units/area';
-import { fitsPackable, packableSize, usableSize } from './fit';
+// Caminho relativo para `../../shared`, e não o alias de pasta compartilhada de
+// cada app: esse alias é do `tsconfig` de cada app, e a suíte da raiz
+// (`vitest.config.ts`) não o resolve — os quatro apps o declaram para pastas
+// diferentes, e não há alias de raiz possível. Import de tipo sobrevive em
+// qualquer caminho porque o transform o apaga; o de valor — `fitsPackable`,
+// `packableSize`, `usableSize`, `tenthsMm2ToSquareMeters` — quebraria em
+// `npm run test`, e só nele (passa no `typecheck` e no build).
+import { fitsPackable, packableSize, usableSize } from '../../shared/nesting/fit';
+import type { Rectangle, RectangleBatch } from '../../shared/types/rectangle';
+import { tenthsMm2ToSquareMeters } from '../../shared/units/area';
 import { type FitHeuristic, type Rect, createFreeList, findFit, occupy } from './maxRects';
-import type {
-  CuttingPlan,
-  CuttingPlanInput,
-  Deficit,
-  PackablePiece,
-  PieceShortfall,
-  Placement,
-  PlannedSheet,
-} from './types';
+
+/**
+ * O contrato do empacotador: o que ele recebe do projeto e o **plano de corte
+ * inteiro** que ele devolve — colocações por chapa, aproveitamento, o que ficou
+ * de fora e quanto material falta comprar.
+ *
+ * Vivia em `shared/nesting/types.ts`; dissolveu-se nas entidades de `domain/`
+ * quando o empacotador passou ao main (ticket 07) — sem arquivo à parte, porque
+ * `domain/` é plana e estes são o vocabulário do empacotador. Levam o sufixo
+ * `Entity` como todo tipo de `domain/` (README §2.2). O prefixo `Nesting`
+ * distingue o resultado cru do empacotador — que carrega `pieceId`/`sheetId` —
+ * do que se **guarda**, as entidades de `domain/plan.ts` sem identidade de
+ * estoque; `Packable`, o que ele **lê** do estoque.
+ *
+ * O déficit sai de dentro dele de propósito. Calculá-lo depois criaria um
+ * segundo seam justamente sobre a conta que originou o pedido do usuário.
+ *
+ * Toda medida aqui é décimo de milímetro inteiro, como em todo o domínio.
+ */
+
+/**
+ * A peça como o empacotador a lê: o retângulo, a quantidade e a identidade que
+ * volta em cada colocação. Não é `PieceEntity` porque função pura não tem o que
+ * fazer com `projectId` nem com carimbo de tempo — mas `PieceEntity` a
+ * satisfaz, e o service passa o que já tem em mãos.
+ */
+export interface PackablePieceEntity extends RectangleBatch {
+  id: string;
+  label: string;
+}
+
+/** A chapa como o empacotador a lê: o retângulo disponível e quantas há dele. */
+export interface PackableSheetEntity extends RectangleBatch {
+  id: string;
+}
+
+/**
+ * Kerf e refile entram como número, e não como `ProjectEntity`: são a geometria
+ * do corte, e é só dela que o empacotamento depende.
+ */
+export interface CuttingPlanInputEntity {
+  pieces: readonly PackablePieceEntity[];
+  sheets: readonly PackableSheetEntity[];
+  kerfTenthsMm: number;
+  trimTenthsMm: number;
+}
+
+/**
+ * Onde uma peça caiu dentro de uma chapa planejada. A origem é medida do canto
+ * da **chapa**, não da área útil: é assim que o desenho a usa sem somar nada, e
+ * o refile já está embutido nela.
+ */
+export interface NestingPlacementEntity extends Rectangle {
+  pieceId: string;
+  xTenthsMm: number;
+  yTenthsMm: number;
+  /** As medidas são as da peça, ou trocadas entre si quando ela foi girada. */
+  rotated: boolean;
+}
+
+/**
+ * Uma chapa do estoque já desenhada no plano. Uma chapa de quantidade três
+ * produz até três chapas planejadas, todas com o mesmo `sheetId` — é a posição
+ * na lista que as distingue.
+ *
+ * Chapa em que nada coube não vira chapa planejada: ela continua inteira na
+ * parede.
+ */
+export interface NestingSheetEntity extends Rectangle {
+  sheetId: string;
+  placements: NestingPlacementEntity[];
+  /**
+   * Fração de 0 a 1 da área útil ocupada pelas peças em si, sem o kerf que cada
+   * uma consome ao redor. A sobra é o que falta para 1.
+   */
+  utilization: number;
+}
+
+/**
+ * Um lote de peças que ficou fora do plano: quantas instâncias ficaram, e de
+ * qual peça. Serve às duas listas do glossário — não alocada e rejeitada —,
+ * porque o que difere entre elas é a causa, não a forma.
+ */
+export interface NestingShortfallEntity extends RectangleBatch {
+  pieceId: string;
+  label: string;
+}
+
+/**
+ * Quanto material falta comprar. Conta só peça **não alocada**: peça rejeitada
+ * não cabe em chapa nenhuma do projeto, e somá-la aqui faria o app recomendar
+ * uma compra que não resolveria nada.
+ */
+export interface NestingDeficitEntity {
+  /** Área que falta, cada peça já acrescida do kerf que ela consome ao redor. */
+  areaTenthsMm2: number;
+  /** A mesma área em m², que é a unidade em que o marceneiro pensa a compra. */
+  squareMeters: number;
+  /** O maior formato do projeto, base da tradução. `null` quando não há chapa. */
+  referenceSheet: Rectangle | null;
+  /**
+   * "Pelo menos N chapas". É **limite inferior**, e não a conta: dividir área
+   * por área ignora encaixe, e o encaixe só pode piorar o número. Zero quando
+   * não há déficit ou quando não há formato de chapa para comparar.
+   */
+  atLeastSheets: number;
+}
+
+/**
+ * O plano de corte inteiro, como o empacotador o devolve. Difere de `PlanEntity`
+ * de `domain/plan.ts`: as colocações e chapas daqui carregam `pieceId`/`sheetId`,
+ * e é `planSnapshot` quem os descarta — "plano é snapshot, não derivação"
+ * (README §2.5).
+ */
+export interface CuttingPlanEntity {
+  sheets: NestingSheetEntity[];
+  /** Aproveitamento do plano: as peças colocadas sobre a área útil das chapas usadas. */
+  utilization: number;
+  /** Caberia, mas o estoque acabou. Resolve-se comprando chapa. */
+  unplaced: NestingShortfallEntity[];
+  /** Não cabe em chapa nenhuma do projeto. Comprar chapa não resolve. */
+  rejected: NestingShortfallEntity[];
+  deficit: NestingDeficitEntity;
+}
 
 /** Cada peça de um lote, individualmente, porque é uma a uma que elas caem. */
 interface PieceInstance {
@@ -73,22 +191,14 @@ const HEURISTICS: readonly FitHeuristic[] = ['shortSide', 'longSide', 'area'];
 /**
  * O plano de corte do projeto. É o seam da feature: tudo o que a tela mostra e
  * o banco guarda sai daqui de uma vez, o déficit inclusive.
- */
-export function packCuttingPlan(input: CuttingPlanInput): CuttingPlan {
-  let best = emptyPlan();
-  for (const candidate of packCuttingPlanAttempts(input)) best = candidate;
-  return best;
-}
-
-/**
- * A melhor tentativa até cada ponto do caminho, uma por vez. Existe para que
- * quem roda o empacotamento possa ceder o controle entre as tentativas e deixar
- * a tela repintar — o app não tem indicador circular de progresso, e o rótulo
- * do botão é o único sinal de que há trabalho acontecendo.
  *
- * O último valor é o plano: é ele que `packCuttingPlan` devolve.
+ * O laço das doze tentativas (quatro ordenações × três heurísticas) roda inteiro
+ * aqui dentro. No renderer ele era um gerador que cedia o controle entre uma
+ * tentativa e outra para o rótulo do botão repintar; no main não há tela a quem
+ * ceder, e a medição do ticket 01 (`< 500 ms` no pior caso realista) diz que não
+ * precisa — o que atravessa o IPC é um plano só (ADR-0003).
  */
-export function* packCuttingPlanAttempts(input: CuttingPlanInput): Generator<CuttingPlan> {
+export function packCuttingPlan(input: CuttingPlanInputEntity): CuttingPlanEntity {
   const sheets = expandSheets(input);
   const { placeable, rejected } = classifyPieces(input, sheets);
 
@@ -103,12 +213,12 @@ export function* packCuttingPlanAttempts(input: CuttingPlanInput): Generator<Cut
       const candidate = buildPlan(input, sheets, ordered, rejected, heuristic);
       if (first || isBetterPlan(candidate, best)) best = candidate;
       first = false;
-      yield best;
     }
   }
+  return best;
 }
 
-function emptyPlan(): CuttingPlan {
+function emptyPlan(): CuttingPlanEntity {
   return {
     sheets: [],
     utilization: 0,
@@ -124,7 +234,7 @@ function emptyPlan(): CuttingPlan {
  * desempate é o lado mais longo e, depois dele, a ordem de cadastro — sem isso,
  * dois formatos de mesma área trocariam de lugar entre execuções.
  */
-function expandSheets(input: CuttingPlanInput): SheetInstance[] {
+function expandSheets(input: CuttingPlanInputEntity): SheetInstance[] {
   const formats = input.sheets.map((sheet) => {
     const usable = usableSize(sheet, input.trimTenthsMm);
     return {
@@ -166,12 +276,12 @@ function expandSheets(input: CuttingPlanInput): SheetInstance[] {
  * e comprar chapa resolve — que é a definição de peça não alocada.
  */
 function classifyPieces(
-  input: CuttingPlanInput,
+  input: CuttingPlanInputEntity,
   sheets: readonly SheetInstance[],
-): { placeable: PieceInstance[]; rejected: PieceShortfall[] } {
+): { placeable: PieceInstance[]; rejected: NestingShortfallEntity[] } {
   const { kerfTenthsMm } = input;
   const placeable: PieceInstance[] = [];
-  const rejected: PieceShortfall[] = [];
+  const rejected: NestingShortfallEntity[] = [];
 
   input.pieces.forEach((piece, batchIndex) => {
     if (sheets.length > 0 && !fitsSomeInstance(piece, sheets, kerfTenthsMm)) {
@@ -200,7 +310,7 @@ function classifyPieces(
  * retângulo de empacotamento já foi calculado uma vez para todas as peças.
  */
 function fitsSomeInstance(
-  piece: PackablePiece,
+  piece: PackablePieceEntity,
   sheets: readonly SheetInstance[],
   kerfTenthsMm: number,
 ): boolean {
@@ -225,13 +335,13 @@ function comparePieces(ordering: PieceOrdering): (a: PieceInstance, b: PieceInst
 
 /** Uma tentativa inteira: as chapas na ordem de consumo, até acabarem as peças. */
 function buildPlan(
-  input: CuttingPlanInput,
+  input: CuttingPlanInputEntity,
   sheets: readonly SheetInstance[],
   ordered: readonly PieceInstance[],
-  rejected: readonly PieceShortfall[],
+  rejected: readonly NestingShortfallEntity[],
   heuristic: FitHeuristic,
-): CuttingPlan {
-  const planned: PlannedSheet[] = [];
+): CuttingPlanEntity {
+  const planned: NestingSheetEntity[] = [];
   let remaining: readonly PieceInstance[] = ordered;
   let placedArea = 0;
   let usableArea = 0;
@@ -271,12 +381,16 @@ function buildPlan(
 function fillSheet(
   sheet: SheetInstance,
   pieces: readonly PieceInstance[],
-  input: CuttingPlanInput,
+  input: CuttingPlanInputEntity,
   heuristic: FitHeuristic,
-): { placements: Placement[]; leftovers: PieceInstance[]; placedAreaTenthsMm2: number } {
+): {
+  placements: NestingPlacementEntity[];
+  leftovers: PieceInstance[];
+  placedAreaTenthsMm2: number;
+} {
   const { kerfTenthsMm, trimTenthsMm } = input;
   let free: Rect[] = createFreeList(sheet.packable.lengthTenthsMm, sheet.packable.widthTenthsMm);
-  const placements: Placement[] = [];
+  const placements: NestingPlacementEntity[] = [];
   const leftovers: PieceInstance[] = [];
   let placedAreaTenthsMm2 = 0;
 
@@ -321,7 +435,7 @@ function fillSheet(
 function computeDeficit(
   unplaced: readonly PieceInstance[],
   sheets: readonly SheetInstance[],
-): Deficit {
+): NestingDeficitEntity {
   const areaTenthsMm2 = unplaced.reduce((total, piece) => total + piece.costAreaTenthsMm2, 0);
   const reference = largestFormat(sheets);
   const referenceArea = reference === null ? 0 : packableArea(reference);
@@ -356,8 +470,8 @@ function packableArea(sheet: SheetInstance): number {
 /** As instâncias que sobraram, de volta a lotes, na ordem de cadastro. */
 function groupShortfall(
   instances: readonly PieceInstance[],
-  pieces: readonly PackablePiece[],
-): PieceShortfall[] {
+  pieces: readonly PackablePieceEntity[],
+): NestingShortfallEntity[] {
   const counts = new Map<number, number>();
   for (const instance of instances) {
     counts.set(instance.batchIndex, (counts.get(instance.batchIndex) ?? 0) + 1);
@@ -367,7 +481,7 @@ function groupShortfall(
     .map((batchIndex) => toShortfall(pieces[batchIndex], counts.get(batchIndex) ?? 0));
 }
 
-function toShortfall(piece: PackablePiece, quantity: number): PieceShortfall {
+function toShortfall(piece: PackablePieceEntity, quantity: number): NestingShortfallEntity {
   return {
     pieceId: piece.id,
     label: piece.label,
@@ -382,7 +496,7 @@ function toShortfall(piece: PackablePiece, quantity: number): PieceShortfall {
  * usuário. Empatadas nisso, menos chapas usadas; empatadas nisso, maior
  * aproveitamento.
  */
-function isBetterPlan(candidate: CuttingPlan, best: CuttingPlan): boolean {
+function isBetterPlan(candidate: CuttingPlanEntity, best: CuttingPlanEntity): boolean {
   if (candidate.deficit.areaTenthsMm2 !== best.deficit.areaTenthsMm2) {
     return candidate.deficit.areaTenthsMm2 < best.deficit.areaTenthsMm2;
   }

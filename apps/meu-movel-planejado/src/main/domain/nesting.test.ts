@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { packCuttingPlan } from './packCuttingPlan';
-import type { CuttingPlan, PackablePiece, PackableSheet, Placement, PlannedSheet } from './types';
+import { fitsAnySheet } from '../../shared/nesting/fit';
+import {
+  type CuttingPlanEntity,
+  type NestingPlacementEntity,
+  type NestingSheetEntity,
+  type PackablePieceEntity,
+  type PackableSheetEntity,
+  packCuttingPlan,
+} from './nesting';
 
 /**
  * O único seam de teste da feature. O que se verifica aqui é o que o usuário vê
@@ -12,21 +19,21 @@ import type { CuttingPlan, PackablePiece, PackableSheet, Placement, PlannedSheet
  * um metro por um metro.
  */
 
-function piece(id: string, length: number, width: number, quantity = 1): PackablePiece {
+function piece(id: string, length: number, width: number, quantity = 1): PackablePieceEntity {
   return { id, label: id, lengthTenthsMm: length, widthTenthsMm: width, quantity };
 }
 
-function sheet(id: string, length: number, width: number, quantity = 1): PackableSheet {
+function sheet(id: string, length: number, width: number, quantity = 1): PackableSheetEntity {
   return { id, lengthTenthsMm: length, widthTenthsMm: width, quantity };
 }
 
 /** Kerf e refile partem de zero, para que cada teste declare só o que exercita. */
 function plan(input: {
-  pieces?: PackablePiece[];
-  sheets?: PackableSheet[];
+  pieces?: PackablePieceEntity[];
+  sheets?: PackableSheetEntity[];
   kerfTenthsMm?: number;
   trimTenthsMm?: number;
-}): CuttingPlan {
+}): CuttingPlanEntity {
   return packCuttingPlan({
     pieces: input.pieces ?? [],
     sheets: input.sheets ?? [],
@@ -35,13 +42,13 @@ function plan(input: {
   });
 }
 
-function placementCount(result: CuttingPlan): number {
+function placementCount(result: CuttingPlanEntity): number {
   return result.sheets.reduce((total, planned) => total + planned.placements.length, 0);
 }
 
 /** Todo par de colocações de uma chapa planejada, cada par uma vez. */
-function pairs(planned: PlannedSheet): [Placement, Placement][] {
-  const result: [Placement, Placement][] = [];
+function pairs(planned: NestingSheetEntity): [NestingPlacementEntity, NestingPlacementEntity][] {
+  const result: [NestingPlacementEntity, NestingPlacementEntity][] = [];
   for (let i = 0; i < planned.placements.length; i += 1) {
     for (let j = i + 1; j < planned.placements.length; j += 1) {
       result.push([planned.placements[i], planned.placements[j]]);
@@ -54,7 +61,7 @@ function pairs(planned: PlannedSheet): [Placement, Placement][] {
  * A distância entre duas colocações no eixo em que elas mais se afastam.
  * Negativa quando elas se sobrepõem — o que nenhum plano pode produzir.
  */
-function gap(a: Placement, b: Placement): number {
+function gap(a: NestingPlacementEntity, b: NestingPlacementEntity): number {
   const horizontal = Math.max(
     a.xTenthsMm - (b.xTenthsMm + b.lengthTenthsMm),
     b.xTenthsMm - (a.xTenthsMm + a.lengthTenthsMm),
@@ -457,5 +464,37 @@ describe('packCuttingPlan', () => {
       expect(result.deficit.referenceSheet).toBeNull();
       expect(result.deficit.atLeastSheets).toBe(0);
     });
+  });
+});
+
+/**
+ * A régua da rejeição isolada — `fitsAnySheet`, que fica em `shared/nesting/fit`
+ * porque o cadastro de peça a consulta sem gerar plano — confrontada com a lista
+ * de rejeitadas do próprio empacotador. Veio de `fit.test.ts` no ticket 07: é do
+ * lado do empacotador que as duas leituras se encontram, e o empacotador mudou
+ * de lado.
+ */
+describe('a régua da rejeição concorda com o empacotador', () => {
+  it('responde o mesmo que a lista de rejeitadas do empacotador', () => {
+    const geometry = { kerfTenthsMm: 3, trimTenthsMm: 100 };
+    const sheets = [
+      { lengthTenthsMm: 4000, widthTenthsMm: 3000 },
+      { lengthTenthsMm: 27500, widthTenthsMm: 18500 },
+    ];
+    const pieces = [
+      { id: 'cabe', label: 'lateral', lengthTenthsMm: 20000, widthTenthsMm: 6000, quantity: 1 },
+      { id: 'gigante', label: 'tampo', lengthTenthsMm: 30000, widthTenthsMm: 6000, quantity: 1 },
+    ];
+
+    const result = packCuttingPlan({
+      pieces,
+      sheets: sheets.map((sheet, index) => ({ id: String(index), ...sheet, quantity: 1 })),
+      ...geometry,
+    });
+
+    for (const piece of pieces) {
+      const rejeitada = result.rejected.some((shortfall) => shortfall.pieceId === piece.id);
+      expect(fitsAnySheet(piece, sheets, geometry), piece.id).toBe(!rejeitada);
+    }
   });
 });

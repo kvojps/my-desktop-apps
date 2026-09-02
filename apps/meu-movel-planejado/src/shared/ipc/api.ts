@@ -1,6 +1,6 @@
 import type { AppInfo } from '@shared/types/appInfo';
 import type { Piece, PieceInput } from '@shared/types/piece';
-import type { Plan, PlanInput } from '@shared/types/plan';
+import type { Plan } from '@shared/types/plan';
 import type { CuttingParamsInput, Project, ProjectInput } from '@shared/types/project';
 import type { Sheet, SheetInput } from '@shared/types/sheet';
 import type { ThemeMode } from '@shared/types/theme';
@@ -33,10 +33,10 @@ export interface PlansApi {
   /** O plano vigente do projeto. `null` enquanto ninguém mandou gerar. */
   get: (projectId: string) => Promise<Plan | null>;
   /**
-   * Grava o plano que o renderer acabou de empacotar, substituindo o vigente.
-   * O empacotamento roda lá: é função pura, e o main não empacota.
+   * Gera o plano do projeto: o main empacota as peças nas chapas, grava o
+   * resultado substituindo o vigente e o devolve. O renderer manda só o id.
    */
-  save: (projectId: string, data: PlanInput) => Promise<Plan>;
+  generate: (projectId: string) => Promise<Plan>;
   /**
    * Manda o plano à impressora, pelo diálogo do sistema. Resolve com `false`
    * quando o usuário cancela: cancelar é resposta, não falha.

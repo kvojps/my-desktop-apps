@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { packCuttingPlan } from '../nesting/packCuttingPlan';
-import type { CuttingPlanInput } from '../nesting/types';
+import { type CuttingPlanInputEntity, packCuttingPlan } from './nesting';
 import { toPlanInput } from './planSnapshot';
 
 /**
@@ -16,7 +15,7 @@ import { toPlanInput } from './planSnapshot';
 const PROJECT_UPDATED_AT = '2026-08-22T14:32:00.000Z';
 
 /** Um armário pequeno: duas laterais, uma prateleira sem rótulo, uma chapa. */
-function input(): CuttingPlanInput {
+function input(): CuttingPlanInputEntity {
   return {
     pieces: [
       { id: 'p1', label: 'Lateral', lengthTenthsMm: 8000, widthTenthsMm: 4000, quantity: 2 },
@@ -73,7 +72,7 @@ describe('toPlanInput', () => {
   });
 
   it('leva as duas listas de fora e o déficit sem misturá-las', () => {
-    const scarce: CuttingPlanInput = {
+    const scarce: CuttingPlanInputEntity = {
       pieces: [
         { id: 'p1', label: 'Porta', lengthTenthsMm: 9000, widthTenthsMm: 5000, quantity: 4 },
         {
@@ -114,7 +113,12 @@ describe('toPlanInput', () => {
   });
 
   it('sobrevive a um projeto sem peça nenhuma', () => {
-    const empty: CuttingPlanInput = { pieces: [], sheets: [], kerfTenthsMm: 3, trimTenthsMm: 0 };
+    const empty: CuttingPlanInputEntity = {
+      pieces: [],
+      sheets: [],
+      kerfTenthsMm: 3,
+      trimTenthsMm: 0,
+    };
     const plan = toPlanInput(empty, packCuttingPlan(empty), PROJECT_UPDATED_AT);
 
     expect(plan.sheets).toEqual([]);

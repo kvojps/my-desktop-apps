@@ -77,3 +77,13 @@ export type PlanEntity = {
   rejected: ShortfallEntity[];
   deficit: DeficitEntity;
 };
+
+/**
+ * O plano pronto para gravar: a entidade sem os três campos que o banco
+ * atribui. `planSnapshot.toPlanInput` o monta a partir do `CuttingPlanEntity`, e
+ * `plansRepository.replaceForProject` o consome.
+ *
+ * Foi tipo de contrato (`@shared/types/plan`) até o ticket 07; agora é interno
+ * do main — o que o renderer manda para gerar é um id, e o plano nasce aqui.
+ */
+export type PlanInput = Omit<PlanEntity, 'id' | 'projectId' | 'generatedAt'>;

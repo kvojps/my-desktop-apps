@@ -93,3 +93,79 @@ migração daquele app tem de apagá-lo junto com o resto.
 Quando a migração acontecer, `packCuttingPlanAttempts` deixa de fazer sentido
 como API pública: a cessão de controle entre tentativas existia para a tela
 repintar, e do lado do main não há tela. O que atravessa o IPC é um plano só.
+
+## Emenda: a migração aconteceu (setembro de 2026)
+
+O Meu Móvel Planejado migrou
+(`.scratch/movel-camadas-processo-principal/`, ticket 07). O empacotador
+(`packCuttingPlan`, `maxRects`) e o `planSnapshot` moram agora em
+`apps/meu-movel-planejado/src/main/domain/`; `plans:save` deu lugar a
+`plans:generate(projectId)`, e os dois comentários que descreviam o precedente
+revogado saíram do código. Três coisas que este ADR deixou em aberto ou errou, e
+que a migração fecha.
+
+### A medição que faltava
+
+O ticket 01 cronometrou `packCuttingPlan` inteira — as doze tentativas —, mediana
+de cinco execuções após uma descartada, em AMD Ryzen 5 5625U / Windows 11 / Node
+v24.15.0 via `npx tsx`, sem Electron (a função não toca banco, disco, relógio nem
+aleatoriedade, então o número transfere para o V8 do main):
+
+| projeto                     | instâncias | chapas | mediana     |
+| --------------------------- | ---------- | ------ | ----------- |
+| pequeno                     | 15         | 2      | **0,6 ms**  |
+| típico de cozinha           | 200        | 8      | **3,5 ms**  |
+| pesado (uma cozinha e meia) | 500        | 20     | **10,6 ms** |
+
+**Faixa: `< 500 ms` — segue como está.** O caso pesado é quase cinquenta vezes
+abaixo do limiar. O custo cresce perto do quadrático: o limiar de 500 ms fica em
+torno de 5000 instâncias em 200 chapas, um projeto dez vezes maior que o caso
+pesado. `MAX_QUANTITY` é 999 por lote, então a entrada é alcançável no papel; na
+prática não é um serviço de marcenaria. **Nenhum worker thread** — a saída que a
+seção "Alternativas consideradas" nomeia só entra se a medição vier e doer, e ela
+não doeu.
+
+### A lista de custos, corrigida para este app
+
+Confrontados com o código, dois dos três custos acima estão errados para o Meu
+Móvel Planejado:
+
+- **O custo 1 (ida e volta de IPC) permanece**, e é o mais barato dos três: um
+  pedido a mais por regeneração de plano.
+- **O custo 2 ("trava todas as janelas") é vazio aqui.** `index.ts` cria uma
+  janela no boot e, no `activate`, só quando não há nenhuma. Nunca existe uma
+  segunda janela para congelar.
+- **O custo 3 ("a cessão de controle entre tentativas morre") está invertido.**
+  O `yieldToInterface` existia porque o empacotamento travava o event loop do
+  **renderer** — é por isso que o rótulo "Gerando…", o único sinal de progresso
+  do app, não repintava sozinho. No main o event loop do renderer fica livre
+  durante toda a operação: o rótulo pinta e continua pintando, sem ninguém ceder
+  nada. `packCuttingPlanAttempts`, `runAttempts` e `yieldToInterface` foram
+  **apagados**, não lamentados — o sinal de progresso melhorou.
+
+O que de fato degrada, e este ADR não nomeia, é a **moldura nativa** (arrastar,
+redimensionar, minimizar) e qualquer **IPC concorrente** — essas o main é que
+serve. Com 10,6 ms no pior caso realista, o bloqueio é indistinguível de um
+clique normal.
+
+### `fitsAnySheet` fica em `shared`, como exceção nomeada
+
+`fitsAnySheet` (com `fitsPackable`, `packableSize`, `usableSize` e a mensagem
+`PIECE_DOES_NOT_FIT_MESSAGE`), em
+`apps/meu-movel-planejado/src/shared/nesting/fit.ts`, responde "esta peça cabe em
+alguma chapa do projeto?". É a régua da **rejeição** — o 422 que separa "a peça
+não serve" de "faltou chapa". Ela é chamada dos dois lados: `piecesService`
+(`main`) a aplica na fronteira de confiança, e o cadastro de peça no renderer a
+consulta para barrar a peça grande demais **ao vivo**, com `describeFitRule` e os
+números do projeto, antes da ida e volta do IPC.
+
+**Recomendação: fica onde está**, pelo mesmo critério que manteve `isWorktreeDirty`
+em `shared`: o main continua sendo quem **decide** — o 422 na fronteira é a
+decisão de registro —, e o renderer só **antecipa** a resposta para explicá-la.
+Levá-la ao main trocaria um `Alert` explicativo por um submit falhado, numa tela
+cuja razão de existir é separar rejeição de falta de estoque. Se um dia
+`fitsAnySheet` passar a decidir alguma coisa que o main não reavalie, vira
+entidade em `main/domain/` e o renderer recebe a resposta pronta.
+
+Exceção escrita é exceção que alguém pode contestar; exceção implícita é
+precedente silencioso.

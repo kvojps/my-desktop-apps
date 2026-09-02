@@ -1,7 +1,8 @@
 import type { ExportResult } from '@shared/ipc/api';
-import type { PlanInput } from '@shared/types/plan';
+import { type CuttingPlanInputEntity, packCuttingPlan } from '../domain/nesting';
 import type { PlanEntity } from '../domain/plan';
 import { planExportFileName } from '../domain/planExportFileName';
+import { toPlanInput } from '../domain/planSnapshot';
 import type { Repositories } from '../infra/database';
 import type {
   DialogFileType,
@@ -14,9 +15,13 @@ import { AppError } from '../utils/errors/AppError';
 import { errorReason } from '../utils/errors/errorReason';
 
 /**
- * O plano de corte: o vigente do projeto, gravar o recém-gerado, imprimir e
- * exportar como PNG (para o celular do ajudante) ou PDF (para arquivar junto do
+ * O plano de corte: o vigente do projeto, gerar um novo, imprimir e exportar
+ * como PNG (para o celular do ajudante) ou PDF (para arquivar junto do
  * orçamento).
+ *
+ * Gerar empacota as peças nas chapas com `packCuttingPlan` de `domain/nesting` e
+ * tira o snapshot com `domain/planSnapshot` antes de gravar — a regra pura mora
+ * no main como qualquer outra (ADR-0003).
  *
  * Os gateways chegam por parâmetro pelo motivo de sempre nos de `system/`: falam
  * Electron. O `printing` sabe `webContents.print` e `printToPDF`; o service só
@@ -99,17 +104,35 @@ export function makePlansService(
     },
 
     /**
-     * Grava o plano recém-gerado, substituindo o vigente numa transação só: o
-     * `DELETE` leva as chapas planejadas, as colocações e os dois lotes de fora
-     * por cascata, e uma falha no meio devolve o plano anterior intacto.
+     * Gera o plano do projeto: carrega peças e chapas, empacota, tira o snapshot
+     * e grava, substituindo o vigente numa transação só — o `DELETE` leva as
+     * chapas planejadas, as colocações e os dois lotes de fora por cascata, e
+     * uma falha no meio devolve o plano anterior intacto (melhor o papel de
+     * ontem do que nenhum).
      *
-     * **Verbo provisório**: o ticket 07 o substitui por `generate(projectId)`,
-     * quando o empacotador entra no main. Escrever `save` agora e trocá-lo
-     * depois é o preço de manter cada ticket com a árvore verde (spec, decisão 9).
+     * O empacotamento roda aqui, no event loop do main: mediu abaixo de 500 ms
+     * até um projeto dez vezes maior que uma cozinha inteira (ticket 01),
+     * rápido o bastante para não pedir worker thread.
+     *
+     * `project.updatedAt` é lido **antes** de empacotar — é comparando com ele
+     * que a tela sabe que um plano ficou para trás, e relê-lo depois marcaria
+     * como atual um plano gerado sobre uma versão anterior do projeto.
      */
-    save(projectId: string, input: PlanInput): PlanEntity {
-      if (!repos.projects.exists(projectId)) throw new AppError(404, PROJECT_GONE);
-      return repos.transaction(() => repos.plans.replaceForProject(projectId, input));
+    generate(projectId: string): PlanEntity {
+      const project = repos.projects.findById(projectId);
+      if (!project) throw new AppError(404, PROJECT_GONE);
+
+      // Só a geometria do corte entra: o empacotamento não depende do resto do
+      // projeto, e `PieceEntity`/`SheetEntity` já satisfazem o que ele lê.
+      const input: CuttingPlanInputEntity = {
+        pieces: repos.pieces.listForProject(projectId),
+        sheets: repos.sheets.listForProject(projectId),
+        kerfTenthsMm: project.kerfTenthsMm,
+        trimTenthsMm: project.trimTenthsMm,
+      };
+
+      const snapshot = toPlanInput(input, packCuttingPlan(input), project.updatedAt);
+      return repos.transaction(() => repos.plans.replaceForProject(projectId, snapshot));
     },
 
     /** `false` quando o usuário cancela o diálogo do sistema: cancelar é resposta, não falha. */
