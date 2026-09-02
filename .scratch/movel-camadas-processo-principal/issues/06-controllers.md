@@ -1,4 +1,4 @@
-Status: aberto
+Status: resolvido
 Blocked by: 05
 
 # Meu Móvel Planejado: controllers
@@ -91,3 +91,44 @@ recarrega nada; imprimir e exportar não remontam o documento no instante em que
 
 Ticket derivado da spec desta pasta (`../spec.md`, decisões 15 e 16, e o risco dos cinco
 mappers).
+
+### Resolvido
+
+`registerIpc.ts` deixou de ser o handler de tudo: compõe os seis services
+(`makeXService(repos, …gateways)`, composição rasa) e chama um `registerXController`
+por domínio. Continua `: void` — este app não faz o carve-out de retorno do
+`meu-dinheiro-app`.
+
+- **Controllers** (`projectsController`, `piecesController`, `sheetsController`,
+  `plansController`, `backupController`, `settingsController`): cada um com
+  `parseOrThrow`/`parseId` na entrada e o mapper de `responses/` na saída. Nenhum
+  toca `event` além de `windowFor(event)` (plans, backup). `backupController`
+  serve os quatro canais `data:*` — `AppInfo` atravessa cru (backup não ganha
+  entidade, decisão 14). `settingsController` tem só `theme:set`: o modo inicial
+  entra por argumento de linha de comando, não por canal.
+- **`responses/`**: `project.response.ts`, `piece.response.ts` e `sheet.response.ts`
+  são um mapper cada. `plan.response.ts` são os cinco previstos — `planToResponse`,
+  `plannedSheetToResponse`, `placementToResponse`, `shortfallToResponse`,
+  `deficitToResponse` —; `shortfallToResponse` serve `unplaced` e `rejected`, e
+  `referenceSheet` (par de medidas anônimo) atravessa inline no déficit.
+  `ExportResult`/`ImportResult` são uniões de literais e atravessam por atribuição.
+- **`handle` estreitado**: `handle(channel: IpcChannel, …)`, byte-a-byte como o
+  `meu-dinheiro-app`/`git-dlog` (comentário incluído). `toIpcError` e o
+  `notifyDataChanged` por exclusão de `READ_ONLY_CHANNELS` intactos;
+  `shouldNotifyDataChanged` segue aceitando `string`.
+- **Schemas**: `piece`/`sheet`/`project`/`plan.schema.ts` → `<plural>.schema.ts`.
+  `rectangle`, `export` e `backup` (schemas de apoio, não de entidade) ficam no
+  singular, como `repoFetch.schema.ts` no `git-dlog`. `plans.schema.ts` e
+  `plans:save` continuam vivos — o ticket 07 os apaga (a referência a
+  `plan.schema.ts` na decisão 7 da spec passa a apontar para `plans.schema.ts`).
+- **Renderer**: só os quatro comentários de `hooks/**` que citavam o caminho do
+  schema renomeado — mudança de comentário, forçada pelo rename; o
+  `useGeneratePlan.ts` e o empacotador seguem para o ticket 07.
+
+Verificação: `npm run typecheck` (4 apps), `npm run lint` (0 erros), `npm run test`
+(187 testes), `npx electron-vite build` no app — todos verdes. `grep -rn
+'ipcMain.handle' src/main` só em `controllers/handle.ts` (fora as duas menções no
+comentário e no `Parameters<typeof ipcMain.handle>`). Nenhum controller de domínio
+importa `better-sqlite3`; `registerIpc.ts` mantém o `import type Database`, como
+nos três apps irmãos. `/code-review` (Standards + Spec): sem achados abertos —
+Standards sem violação dura, Spec fiel e completo.
