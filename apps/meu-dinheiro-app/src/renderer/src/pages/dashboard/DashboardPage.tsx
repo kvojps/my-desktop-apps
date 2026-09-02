@@ -27,10 +27,10 @@ import {
 import { useMonths } from '@/hooks/months/useMonths';
 import { ROUTES, monthDetailPath } from '@/routes';
 import { formatCurrency } from '@/utils/format';
+import { useYearForecast } from './hooks/useYearForecast';
 import { FirstRunGuide } from './components/FirstRunGuide';
 import { PaidProgress, paidFractionWidth } from './components/PaidProgress';
 import { PeriodRangeControl, resolvePresets } from './components/PeriodRangeControl';
-import { useYearForecast } from './hooks/useYearForecast';
 
 const PAGE_SIZE = 12;
 

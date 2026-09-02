@@ -1,15 +1,15 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { ROUTES } from './routes';
+import { BankAccountsProvider } from './contexts/BankAccountsContext';
+import { CategoriesProvider } from './contexts/CategoriesContext';
+import { MonthsProvider } from './contexts/MonthsContext';
+import { SnackbarProvider } from './contexts/SnackbarContext';
+import { Layout } from './components/Layout';
 import { DashboardPage } from './pages/dashboard/DashboardPage';
 import { HistoryPage } from './pages/history/HistoryPage';
 import { MonthDetailPage } from './pages/month-detail/MonthDetailPage';
 import { NotFoundPage } from './pages/not-found/NotFoundPage';
 import { SettingsPage } from './pages/settings/SettingsPage';
-import { Layout } from './components/Layout';
-import { BankAccountsProvider } from './contexts/BankAccountsContext';
-import { CategoriesProvider } from './contexts/CategoriesContext';
-import { MonthsProvider } from './contexts/MonthsContext';
-import { SnackbarProvider } from './contexts/SnackbarContext';
 
 export function App() {
   return (

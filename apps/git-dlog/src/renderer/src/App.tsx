@@ -1,13 +1,13 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { ROUTES } from './routes';
+import { ReposProvider } from './contexts/ReposContext';
+import { ScanPathsProvider } from './contexts/ScanPathsContext';
+import { SnackbarProvider } from './contexts/SnackbarContext';
+import { Layout } from './components/Layout';
 import { DirectoriesPage } from './pages/directories/DirectoriesPage';
 import { NotFoundPage } from './pages/not-found/NotFoundPage';
 import { ReposPage } from './pages/repos/ReposPage';
 import { SettingsPage } from './pages/settings/SettingsPage';
-import { Layout } from './components/Layout';
-import { ReposProvider } from './contexts/ReposContext';
-import { ScanPathsProvider } from './contexts/ScanPathsContext';
-import { SnackbarProvider } from './contexts/SnackbarContext';
 
 export function App() {
   return (

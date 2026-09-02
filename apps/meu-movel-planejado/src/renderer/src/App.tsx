@@ -1,12 +1,12 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { ROUTES } from './routes';
+import { SnackbarProvider } from './contexts/SnackbarContext';
+import { Layout } from './components/Layout';
 import { NotFoundPage } from './pages/not-found/NotFoundPage';
 import { PlanPage } from './pages/plan/PlanPage';
 import { ProjectPage } from './pages/project/ProjectPage';
 import { ProjectsPage } from './pages/projects/ProjectsPage';
 import { SettingsPage } from './pages/settings/SettingsPage';
-import { Layout } from './components/Layout';
-import { SnackbarProvider } from './contexts/SnackbarContext';
 
 export function App() {
   return (

@@ -1,8 +1,8 @@
 import { CssBaseline, PaletteMode, ThemeProvider } from '@mui/material';
 import { ReactNode, useMemo, useState } from 'react';
 import { api } from '@/api/client';
-import { getAppTheme } from './index';
 import { ThemeModeContext } from './themeModeContext';
+import { getAppTheme } from './index';
 
 // Cache do renderer, não fonte da verdade — essa é o banco, lido pelo main
 // antes de criar a janela (docs/design-system.md §5.1). `getInitialThemeMode`

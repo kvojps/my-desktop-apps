@@ -1,4 +1,4 @@
-Status: aberto
+Status: resolvido
 Blocked by: 01
 
 # Mecanismo: fronteira de IPC no lint e `importOrder` completo
@@ -31,8 +31,8 @@ client). É catraca, não limpeza — nenhum app precisa mudar para ela passar.
 
 Avaliar no mesmo ticket, e decidir com registro: um `no-restricted-imports` barrando o
 renderer de importar de `src/main`. Hoje ninguém faz, e a fronteira é a mesma ideia. Se ficar
-de fora, escrever por quê — ADR-0003 já fixou o critério (*"descrever o que já atravessou o
-IPC é do renderer; decidir o que atravessa é do main"*), e uma catraca a menos é uma decisão,
+de fora, escrever por quê — ADR-0003 já fixou o critério (_"descrever o que já atravessou o
+IPC é do renderer; decidir o que atravessa é do main"_), e uma catraca a menos é uma decisão,
 não um esquecimento.
 
 Não adicionar plugin. `no-restricted-properties` e `no-restricted-imports` são regras core;
@@ -64,3 +64,37 @@ resultante é a esperada e não some com nada.
 Nenhuma alteração em código de app. Nenhuma regra que exija instalar plugin novo de eslint.
 Não mexer nos dois `eslint-disable react-hooks/exhaustive-deps` do Meu Negócio — são do
 ticket 04.
+
+## Comments
+
+Duas decisões que o ticket deixou em aberto, registradas aqui e no código:
+
+- **A catraca de `no-restricted-imports` entrou.** O argumento que decidiu: módulo do
+  `main` que não depende de `electron` — `main/domain/*` é todo assim — importa no
+  renderer sem erro de build e duplica o domínio em silêncio, que é exatamente o que o
+  ADR-0003 separa. É a única metade da fronteira que nada hoje pega. O grupo tem os dois
+  caminhos que alcançam `src/main` de dentro do renderer — `../**/main/**` e
+  `@/**/main/**`, porque `@/` é `renderer/src` e `@/../../main` resolve igual —, ancorados
+  em `..` e em `@/` para não alcançar nome de pacote em `node_modules`. Registrado no
+  `README.md` §2.4, no bullet do `api/client.ts`.
+- **O `importOrder` dos nomes de pasta ficou num `overrides` do `.prettierrc.json`,
+  escopado em `apps/*/src/renderer/**`.** Descoberto ao verificar: array único não dá,
+  porque o padrão `theme` casa também com `main/domain/theme`,
+  `main/controllers/schemas/theme.schema` e `main/infra/gateways/system/theme` — nome de
+  pasta do renderer aplicado a caminho do `main`. Escopar resolve a colisão sem mexer na
+  técnica do array original.
+
+Ressalva sobre a técnica, que o escopo não conserta: o padrão é substring (`.*theme`), não
+segmento de path, então casa com nome de **arquivo** também. Dentro do renderer isso
+acontece uma vez — `./themeModeContext`, importado pelo `ThemeModeProvider` vizinho, cai no
+bucket `theme` por casar no nome do arquivo, e não por estar em `theme/`. O resultado é o
+certo pelo motivo errado, e um futuro `./themeParkUtils.ts` casaria igual. Fica como está
+porque é a técnica que os quatro padrões originais já usavam; trocá-la por segmento de path
+quebraria `routes`, que é arquivo e não pasta.
+
+Achado fora de escopo, deixado como está: 15 arquivos já estavam fora do `prettier` em
+`HEAD` (11 no `main` do Dinheiro e do Móvel, 4 markdown de `.scratch/`), sem relação com
+esta mudança. Este ticket era um deles e ficou formatado por ter sido editado aqui; os
+outros 14 ficaram como estavam. Formatá-los seria alteração de código de app, que este
+ticket proíbe. O `prettier --write` foi rodado escopado ao renderer; os 10 arquivos que
+mudaram são só reordenação de import, sem nenhum import a menos.

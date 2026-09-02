@@ -218,7 +218,10 @@ src/renderer/src/
   arquivo que conhece `window.api` e o formato do erro que atravessa o IPC; o
   resto do renderer chama métodos comuns. Não é convenção a lembrar: o
   `eslint.config.mjs` da raiz barra `window.api` em qualquer outro arquivo do
-  renderer.
+  renderer, e barra também import de `src/main` a partir do renderer — módulo do
+  `main` que não depende de `electron` entra no bundle sem erro e duplica o
+  domínio em silêncio, e decidir o que atravessa o IPC é do `main`
+  ([ADR-0003](docs/adr/0003-logica-de-dominio-no-main.md)).
 - **`assets/`** — o logo do app, e só. Ícone é `@mui/icons-material`; imagem que
   a tela gera não mora aqui.
 - **`theme/`** — o tema MUI e o provider do modo claro/escuro. Cor que se calcula

@@ -49,6 +49,7 @@ import { ROUTES, monthDetailPath } from '@/routes';
 import { contentQuery } from '@/theme';
 import { todayDateString } from '@/utils/date';
 import { formatCurrency } from '@/utils/format';
+import { useItemActions } from './hooks/useItemActions';
 import { AddExpenseDialog } from './components/AddExpenseDialog';
 import { AddIncomeDialog } from './components/AddIncomeDialog';
 import { EditExpenseDialog } from './components/EditExpenseDialog';
@@ -65,7 +66,6 @@ import {
   renderExpenseActions,
 } from './components/expenseColumns';
 import { incomeColumns, renderIncomeActions } from './components/incomeColumns';
-import { useItemActions } from './hooks/useItemActions';
 
 type ExpenseStatus = 'all' | 'pending' | 'paid' | 'overdue';
 type IncomeStatus = 'all' | 'pending' | 'received';

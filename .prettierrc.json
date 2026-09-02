@@ -3,17 +3,30 @@
   "singleQuote": true,
   "printWidth": 100,
   "plugins": ["@trivago/prettier-plugin-sort-imports"],
-  "importOrder": [
-    "<THIRD_PARTY_MODULES>",
-    "^@shared/(.*)$",
-    "^@/(.*)$",
-    "^\\.\\.?/.*routes",
-    "^\\.\\.?/.*pages",
-    "^\\.\\.?/.*components",
-    "^\\.\\.?/.*assets",
-    "\\.css$",
-    "^[.]"
-  ],
+  "importOrder": ["<THIRD_PARTY_MODULES>", "^@shared/(.*)$", "^@/(.*)$", "\\.css$", "^[.]"],
   "importOrderSeparation": false,
-  "importOrderSortSpecifiers": true
+  "importOrderSortSpecifiers": true,
+  "overrides": [
+    {
+      "files": "apps/*/src/renderer/**/*.{ts,tsx}",
+      "options": {
+        "importOrder": [
+          "<THIRD_PARTY_MODULES>",
+          "^@shared/(.*)$",
+          "^@/(.*)$",
+          "^\\.\\.?/.*routes",
+          "^\\.\\.?/.*api",
+          "^\\.\\.?/.*assets",
+          "^\\.\\.?/.*theme",
+          "^\\.\\.?/.*contexts",
+          "^\\.\\.?/.*hooks",
+          "^\\.\\.?/.*components",
+          "^\\.\\.?/.*utils",
+          "^\\.\\.?/.*pages",
+          "\\.css$",
+          "^[.]"
+        ]
+      }
+    }
+  ]
 }
