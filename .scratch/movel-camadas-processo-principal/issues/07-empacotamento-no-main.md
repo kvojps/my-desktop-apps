@@ -1,4 +1,4 @@
-Status: aberto
+Status: resolvido
 Blocked by: 01, 06
 
 # Meu Móvel Planejado: o empacotamento vai para o main
@@ -13,12 +13,12 @@ entre tickets (spec, decisão 9).
 
 ## O move
 
-| De | Para |
-|---|---|
-| `shared/nesting/packCuttingPlan.ts` (+ teste) | `main/domain/nesting.ts` (+ teste) |
-| `shared/nesting/maxRects.ts` | `main/domain/maxRects.ts` |
-| `shared/nesting/types.ts` | dissolve-se nas entidades de `domain/` |
-| `shared/plan/planSnapshot.ts` (+ teste) | `main/domain/planSnapshot.ts` (+ teste) |
+| De                                            | Para                                    |
+| --------------------------------------------- | --------------------------------------- |
+| `shared/nesting/packCuttingPlan.ts` (+ teste) | `main/domain/nesting.ts` (+ teste)      |
+| `shared/nesting/maxRects.ts`                  | `main/domain/maxRects.ts`               |
+| `shared/nesting/types.ts`                     | dissolve-se nas entidades de `domain/`  |
+| `shared/plan/planSnapshot.ts` (+ teste)       | `main/domain/planSnapshot.ts` (+ teste) |
 
 **Ficam em `shared/`**, e é deliberado: `nesting/fit.ts`, `plan/planOutdated.ts`,
 `plan/usableArea.ts` e `units/`.
@@ -106,7 +106,7 @@ documento deixaria a lista de custos errada de pé no primeiro). Três coisas:
 
 1. **A medição do ticket 01**, com os três números e a faixa em que caiu.
 2. **A lista de custos corrigida.** O custo 3 ("a cessão de controle morre") está **invertido**:
-   o `yieldToInterface` existia porque o empacotamento travava o event loop do *renderer*; no
+   o `yieldToInterface` existia porque o empacotamento travava o event loop do _renderer_; no
    main o renderer fica livre e o rótulo repinta sozinho. O custo 2 ("trava todas as janelas") é
    **vazio** neste app: `index.ts:102-108` cria uma janela e, no `activate`, só quando não há
    nenhuma. O que de fato paga é a **moldura nativa** e o IPC concorrente, que o ADR não nomeia.
@@ -152,3 +152,57 @@ src/renderer src/shared` vazio. `grep -rn 'plans:save\|savePlan' src` vazio.
 
 Ticket derivado da spec desta pasta (`../spec.md`, decisões 1, 6, 7, 8, 9, 10, 11, 12) e do
 `docs/adr/0003-logica-de-dominio-no-main.md`, que o encomendou nominalmente.
+
+### Resolvido
+
+O empacotador roda no main. Move, canal e renderer no commit `[refac]` só; a emenda ao
+ADR-0003 junto (é artefato da mudança, não da conclusão do ticket).
+
+- **Move**, com histórico: `shared/nesting/packCuttingPlan.ts` → `main/domain/nesting.ts`
+  (+ teste `nesting.test.ts`), `maxRects.ts` → `main/domain/` **verbatim**,
+  `shared/plan/planSnapshot.ts` → `main/domain/` (+ teste). `shared/nesting/types.ts`
+  dissolveu-se em `nesting.ts`. Ficaram em `shared/`: `nesting/fit.ts` (+ teste),
+  `plan/planOutdated.ts`, `plan/usableArea.ts`, `units/`.
+- **Nomes de entidade** (README §2.2): os tipos dissolvidos ganharam o sufixo `Entity`
+  como todo tipo de `domain/`. `Nesting*` (`NestingPlacementEntity`, `NestingSheetEntity`,
+  `NestingShortfallEntity`, `NestingDeficitEntity`) marca o resultado cru do empacotador —
+  o que carrega `pieceId`/`sheetId` —, distinto das entidades de snapshot de
+  `domain/plan.ts`; `Packable*` (`PackablePieceEntity`, `PackableSheetEntity`) o que ele
+  lê; `CuttingPlanInputEntity` a entrada. `CuttingPlanEntity` manteve o nome que a spec
+  lhe deu — a entidade que difere do response (README §2.5).
+- **Import relativo** (`../../shared/…`) para os quatro valores que `nesting.ts` precisa;
+  `grep -rn '@shared' src/main/domain/nesting.ts` vazio. O comentário da restrição foi
+  adaptado ao novo caminho, sem citar o alias literalmente.
+- **Canal**: `plans:save` apagado, `plans:generate(projectId) → Plan` nascido.
+  `plansService.generate` carrega projeto (404), peças e chapas, monta o
+  `CuttingPlanInputEntity`, chama `packCuttingPlan`, passa por `planSnapshot` com o
+  `project.updatedAt` lido antes de empacotar, e grava em `repos.transaction`. Fora de
+  `READ_ONLY_CHANNELS`. `controllers/schemas/plans.schema.ts` (75 linhas de zod) apagado;
+  `PlanInput` virou tipo interno do main (`Omit<PlanEntity, 'id' | 'projectId' |
+'generatedAt'>` em `domain/plan.ts`) e `Plan` de `@shared/types/plan` deixou de
+  estendê-lo. `projectsRepository.exists` foi junto — o único caller era `save`.
+- **O laço das doze tentativas** roda inline em `packCuttingPlan`;
+  `packCuttingPlanAttempts` morreu como API pública (ADR-0003), e o comentário do
+  precedente revogado que ele carregava saiu com ele.
+- **Renderer**, um arquivo de lógica: `useGeneratePlan.ts` — `runAttempts`,
+  `yieldToInterface`, os imports de `packCuttingPlanAttempts`/`toPlanInput` e o comentário
+  de `:13-17` apagados; `generate` = `await api.generatePlan(project.id)`. O parâmetro
+  `sheets`, agora morto, saiu da assinatura do hook, o que forçou remover um argumento nos
+  dois call sites (`PlanPage.tsx`, `ProjectPage.tsx`) — `no-unused-vars` acusa o parâmetro
+  final não usado, e `npm run lint` está na verificação; manter parâmetro morto seria pior.
+  `api/client.ts` `savePlan`→`generatePlan`; `shared/ipc/api.ts` `save`→`generate` e a
+  frase "o main não empacota" removida; preload atualizado. O cross-check de `fit.test.ts`
+  contra o empacotador passou para `nesting.test.ts` (o empacotador está no main agora);
+  `channels.test.ts` seguiu o rename do canal.
+- **Emenda ao ADR-0003** (seção nova, não ADR novo): a medição do ticket 01 (medianas 0,6
+  / 3,5 / 10,6 ms, faixa `< 500 ms`, sem worker thread, com hardware e versão do Node), a
+  lista de custos corrigida (custo 2 vazio — uma janela só; custo 3 invertido — o event
+  loop do renderer fica livre; o que paga é a moldura nativa e o IPC concorrente), e
+  `fitsAnySheet` nomeada como exceção que fica em `shared`, como `isWorktreeDirty`.
+
+Verificação: `npm run typecheck` (4 apps), `npm run test` (187), `npm run lint` (0 erros),
+`npx electron-vite build` — verdes. Os três greps (`@shared` em `nesting.ts`;
+`packCuttingPlan`/`planSnapshot` em `src/renderer src/shared`; `plans:save`/`savePlan` em
+`src`) vazios. `/code-review` (Standards + Spec): sem achados abertos — a mudança dos dois
+call sites do renderer e o rename para `*Entity` ficaram registrados como consequência
+forçada (lint) e alinhamento de convenção (README §2.2), não como defeito.
