@@ -128,9 +128,10 @@ Enquanto a fila não anda, app não convertido está divergindo do `README.md`
 §2.2, que é normativo — e divergência entre documento e código é bug do código.
 
 O maior item isolado do trabalho é o mapper de `RepoScanResult`:
-`shared/types/repoScan.ts` são 122 linhas de árvore aninhada (`RepoBranch`,
-`RepoHead`, `RepoSync`, `RepoCommitGroup`, `RepoWorktree`, `RepoCommit`), e com
-mapeamento sempre explícito cada nó ganha entidade e mapper.
+`apps/git-dlog/src/shared/types/repoScan.ts` são 122 linhas de árvore aninhada
+(`RepoBranch`, `RepoHead`, `RepoSync`, `RepoCommitGroup`, `RepoWorktree`,
+`RepoCommit`), e com mapeamento sempre explícito cada nó ganha entidade e
+mapper.
 
 A decisão de trazer **toda** a lógica de domínio para o main é peça separada:
 ver [`0003-logica-de-dominio-no-main.md`](0003-logica-de-dominio-no-main.md).

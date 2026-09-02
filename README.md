@@ -177,35 +177,118 @@ foco da janela é o exemplo. Ver
 `HashRouter` (necessário no `file://` do build), MUI com tema em `theme/`, imports
 por alias (`@/` e `@shared/`) sempre que saírem da própria pasta.
 
+A organização é **horizontal no topo e vertical dentro de `pages/<tela>/`**: as
+pastas do topo são as camadas do renderer, e dentro da tela valem as mesmas —
+`components/`, `hooks/`, `utils/` —, criadas só quando precisam. O objetivo é o
+mesmo do §2.2, com a unidade de mudança do renderer, que é a **tela** e não a
+camada. Ver
+[`docs/adr/0004-estrutura-do-renderer.md`](docs/adr/0004-estrutura-do-renderer.md).
+
 O padrão visual — paleta, raios, tipografia, vocabulário de componentes e a
 anatomia de uma tela — é comum a todos e está em
 [`docs/design-system.md`](docs/design-system.md). Como código não é compartilhado
 entre os apps, é aquele documento que faz o papel do pacote `ui` que não existe:
 alteração de UI começa por ele.
 
+```
+src/renderer/src/
+  main.tsx  App.tsx  routes.ts  styles.css  vite-env.d.ts
+  api/
+    client.ts                    fachada tipada — o único que conhece window.api
+  assets/                        logo do app
+  theme/
+    index.ts  ThemeModeProvider.tsx  themeModeContext.ts
+  contexts/                      domínio de 2+ telas, mais o SnackbarContext
+  hooks/
+    useDataChanged.ts  useThemeMode.ts        transversais
+    <dominio-em-kebab>/
+      use<Dominio>.ts  <dominio>Schema.ts
+  components/
+    <PascalCase>.tsx                          um arquivo enquanto for um arquivo
+    <PascalCase>/                             vira pasta quando ganha vizinho
+      index.tsx  <vizinho>.tsx
+  utils/                         módulo puro usado por 2+ telas
+  pages/
+    <tela-em-kebab>/
+      <PascalCase>Page.tsx
+      components/  hooks/  utils/             nascem aqui, sobem na segunda tela
+```
+
 - **`api/client.ts`** — fachada tipada com um método por operação. É o único
   arquivo que conhece `window.api` e o formato do erro que atravessa o IPC; o
-  resto do renderer chama métodos comuns.
-- **`contexts/`** — domínio consumido por mais de uma tela vira context, com um
-  hook fino em `hooks/<domínio>/` que só o repassa. Estado que interessa a uma
-  tela só continua no hook da própria tela. **A invalidação é automática**:
-  quem guarda dado assina `useDataChanged(reload)` e o main avisa a cada
-  gravação, de modo que nenhuma mutação precisa lembrar de recarregar nada.
-  O context expõe `reload` para esse aviso e `retry` para o `ErrorState` (a
-  distinção entre os dois está no design system, §5.3).
+  resto do renderer chama métodos comuns. Não é convenção a lembrar: o
+  `eslint.config.mjs` da raiz barra `window.api` em qualquer outro arquivo do
+  renderer.
+- **`assets/`** — o logo do app, e só. Ícone é `@mui/icons-material`; imagem que
+  a tela gera não mora aqui.
+- **`theme/`** — o tema MUI e o provider do modo claro/escuro. Cor que se calcula
+  em vez de se escolher mora aqui também, e não na tela que precisou dela
+  primeiro — é o caso da paleta categórica de gráfico (design system, §1.7).
+- **`contexts/`** — domínio consumido por **duas ou mais telas** vira context
+  montado acima do router, com um hook fino em `hooks/<domínio>/` que só o
+  repassa. Domínio de uma tela só continua no hook da própria tela, e um app pode
+  não ter context de domínio nenhum. **A invalidação é automática dos dois
+  lados**: quem guarda dado — context ou hook de tela — assina
+  `useDataChanged(reload)` e o main avisa a cada gravação, de modo que nenhuma
+  mutação precisa lembrar de recarregar nada. Quem guarda expõe `reload` para
+  esse aviso e `retry` para o `ErrorState` (a distinção entre os dois está no
+  design system, §5.3). Ver
+  [`docs/adr/0001-invalidacao-por-broadcast.md`](docs/adr/0001-invalidacao-por-broadcast.md)
+  e a emenda no fim dele. O `SnackbarContext` é a exceção que não é domínio:
+  é transversal, existe nos quatro apps e não assina invalidação nenhuma.
+- **`hooks/`** — na raiz, só o que é transversal (`useDataChanged`,
+  `useThemeMode`, paginação, filtro). O resto vive em `hooks/<domínio>/`, e é lá
+  que fica o **schema zod**, sempre como `<domínio>Schema.ts` ao lado do hook.
+  Formulário é `react-hook-form` com zod, e o lugar do schema não depende de a
+  lógica do formulário estar no hook ou nos componentes — é sempre o mesmo.
 - **`components/`** vs **`pages/<tela>/components/`** — o componente nasce na
-  pasta da tela e só sobe para `components/` quando uma segunda tela precisa dele.
+  pasta da tela e só sobe para `components/` quando uma segunda tela precisa
+  dele. É uma regra de promoção só, e ela vale igual para **hook** e para
+  **módulo puro**: `pages/<tela>/hooks/` e `pages/<tela>/utils/` são o lugar
+  natural de quem serve uma tela; `hooks/` e `utils/` do topo, o de quem serve
+  duas. `contexts/`, `api/` e `theme/` nunca aparecem dentro de uma tela.
+- **`utils/`** — módulo puro, sem JSX, usado por 2+ telas. `date.ts` para datas e
+  `format.ts` para moeda, números e texto estão em todos os apps, e a mesma função
+  tem o mesmo nome em todos (`formatCurrency`, `formatDate`, `formatDateTime`).
+- **`pages/`** — uma pasta por tela, com o `<Pascal>Page.tsx` na raiz dela e as
+  suas próprias `components/`, `hooks/` e `utils/` quando precisar. É a única
+  parte vertical do renderer, e é onde a maior parte do código de uma
+  funcionalidade nasce: o topo é o destino de quem foi promovido, não o ponto de
+  partida.
 - **Avisos e erros** — `useSnackbar` com `showSnackbar` para mensagem própria e
   `showError` para erro vindo do IPC, numa fila de uma mensagem por vez. Falha ao
   carregar uma tela usa `components/ErrorState`, que oferece tentar de novo e
   abrir a pasta de dados. O texto exibido sai sempre de `describeAppError`.
-- **`utils/`** — `date.ts` para datas, `format.ts` para moeda, números e texto. A
-  mesma função tem o mesmo nome em todos os apps (`formatCurrency`, `formatDate`,
-  `formatDateTime`).
-- **Formulários** — `react-hook-form` com zod; o schema fica ao lado da lógica do
-  formulário: junto do hook, quando a lógica está num hook; junto dos componentes,
-  quando está neles.
 - **Ícones** — sempre `@mui/icons-material`. Não há conjunto de SVG próprio.
+
+Quatro regras valem em qualquer uma dessas pastas:
+
+- **Casing** — `pages/<kebab>/<Pascal>Page.tsx`, `hooks/<kebab>/use<X>.ts`,
+  `components/<Pascal>.tsx`. Pasta de tela e pasta de domínio em kebab-case;
+  arquivo de componente e de tela em PascalCase.
+- **Teste colocado** — `.test.ts` ao lado do sujeito. Só `.test.ts`: o
+  `vitest.config.ts` da raiz inclui `apps/*/src/**/*.test.ts` e não pega `.tsx`,
+  então o que se testa aqui é módulo puro, nunca componente.
+- **Nenhum barrel** — `index.tsx` é o componente, nunca reexportação.
+- **Export nomeado** — nenhum `export default` no renderer.
+
+**Tela** é o termo canônico; "página" é sinônimo a evitar, e a pasta continua
+`pages/`. "Feature" não é vocabulário deste repo, no renderer como no `main`.
+
+Onde os apps ainda divergem, o destino é fixo:
+
+| Onde está hoje                                           | Onde passa a viver                                                              |
+| -------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| `components/<Nome>/index.tsx` sem vizinho                | `components/<Nome>.tsx` — com `moduleResolution: "Bundler"`, nenhum import muda |
+| Módulo puro solto na raiz da tela                        | `pages/<tela>/utils/`                                                           |
+| Módulo puro dentro de `pages/<tela>/components/`         | `pages/<tela>/utils/` — ou `theme/`, quando decide cor (design system, §1.7)    |
+| Schema zod em `pages/<tela>/components/formSchemas.ts`   | `hooks/<domínio>/<domínio>Schema.ts`                                            |
+| Pasta de domínio em camelCase (`hooks/scanPaths/`)       | kebab-case (`hooks/scan-paths/`)                                                |
+| Import relativo que sai da própria pasta (`from '../…'`) | alias `@/` ou `@shared/`                                                        |
+
+A migração é por app, nesta ordem: `git-dlog`, `meu-negocio-app`, e os dois
+restantes depois. Enquanto a fila não anda, app não convertido está divergindo
+deste documento — e a divergência é do código, nunca do documento.
 
 ### 2.5 Nomes na fronteira
 

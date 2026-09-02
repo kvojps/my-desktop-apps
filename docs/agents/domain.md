@@ -51,6 +51,22 @@ Se o conceito de que você precisa ainda não está no glossário, isso é um si
 ou você está inventando linguagem que o projeto não usa (reconsidere), ou há uma
 lacuna real (anote para `/domain-modeling`).
 
+## Cite caminho de arquivo numa profundidade só
+
+Nos documentos normativos da raiz (`README.md`, `docs/design-system.md`,
+`docs/adr/`) o caminho tem duas formas, e a escolha entre elas é o que ele está
+apontando:
+
+- **Arquivo real de um app** — completo a partir de `apps/`:
+  `apps/git-dlog/src/renderer/src/pages/repos/components/RepoCard.tsx`. É o que
+  torna a citação verificável com um `cat`, e o que evita a ambiguidade de
+  `pages/settings/` num repo em que quatro apps têm uma tela de configurações.
+- **Posição na árvore**, quando a regra vale em qualquer app — relativa à
+  camada: `controllers/schemas/`, `hooks/<domínio>/`, `main/domain/`.
+
+Meio caminho (`renderer/src/theme/categorical.ts`) não é nenhum dos dois: não
+abre e não generaliza.
+
 ## Sinalize conflitos com ADRs
 
 Se sua saída contradiz um ADR existente, exponha isso explicitamente em vez de

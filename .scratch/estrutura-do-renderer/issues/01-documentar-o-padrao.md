@@ -1,4 +1,4 @@
-Status: aberto
+Status: resolvido
 
 # Documentar o padrão do renderer
 

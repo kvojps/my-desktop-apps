@@ -40,3 +40,38 @@ corrente no foco) não teria como chegar à tela.
 A recarga acontece por baixo do conteúdo já visível porque `reload` nunca levanta
 `loading` (`docs/design-system.md`, §5.3). Um context que use `retry` no lugar de
 `reload` faria a tela piscar a cada gravação.
+
+## Emenda: nem todo dado mora num context (setembro de 2026)
+
+A primeira frase deste ADR — "os dados do renderer vivem em Contexts montados
+acima do router" — descreve os apps que existiam quando ele foi escrito, não a
+regra do repo. O `meu-movel-planejado` tem **zero contexts de domínio**, e defende
+a escolha em comentário, em
+`apps/meu-movel-planejado/src/renderer/src/hooks/projects/useProjects.ts`:
+
+> Ainda é hook de tela e não context: projeto é consumido por uma tela só, e a
+> regra do repo é que o context nasce quando a segunda precisa (README, §2.4).
+
+O código segue o §2.4 e contradiz este ADR. **O código está certo; o ADR está
+estreito** — daí a emenda em vez da reescrita, e daí ela estar escrita: exceção
+escrita é exceção que alguém pode contestar; exceção implícita é precedente
+silencioso ([`0003-logica-de-dominio-no-main.md`](0003-logica-de-dominio-no-main.md)).
+
+Onde o dado mora segue a regra de promoção do
+[`0004-estrutura-do-renderer.md`](0004-estrutura-do-renderer.md):
+
+- **Domínio consumido por uma tela** vive no hook da própria tela, que assina
+  `useDataChanged(reload)` direto.
+- **Domínio consumido por duas ou mais** vira context montado acima do router,
+  com hook fino em `hooks/<domínio>/` que só o repassa.
+
+**O mecanismo não muda.** Quem guarda dado assina o aviso; o que muda é só _quem_
+guarda. Um hook de tela que assina `useDataChanged` está tão coberto quanto um
+context — a garantia deste ADR é que nenhuma gravação precisa lembrar de
+recarregar nada, e ela não depende de onde o estado está montado. A distinção
+`reload` / `retry` (`docs/design-system.md`, §5.3) vale igual dos dois lados: o
+aviso do main chama `reload`, e só o `ErrorState` chama `retry`.
+
+O contrário — declarar o Meu Móvel Planejado em erro e criar `ProjectsContext` e
+`PlanContext` — cria provider para domínio de uma tela só e seria a única exceção
+à regra de promoção no repo, sem motivo medido.

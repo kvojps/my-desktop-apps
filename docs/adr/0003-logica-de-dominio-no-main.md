@@ -46,11 +46,12 @@ feita.
 
 `isWorktreeDirty`, em `apps/git-dlog/src/shared/types/repoScan.ts`, é o único
 helper de runtime daquele arquivo e é chamado dos dois lados:
-`main/git/repoScanner.ts` o usa para decidir a severidade de um repositório, e
-`renderer/src/pages/repos/components/RepoCard.tsx` para decidir se mostra a
-linha de trabalho pendente. É o precedente revogado acima, só que pequeno o
-bastante para passar despercebido — e por isso precisa ser nomeado aqui em vez
-de ficar como exceção implícita.
+`apps/git-dlog/src/main/infra/gateways/git/repoScanner.ts` o usa para decidir a
+severidade de um repositório, e
+`apps/git-dlog/src/renderer/src/pages/repos/components/RepoCard.tsx` para
+decidir se mostra a linha de trabalho pendente. É o precedente revogado acima,
+só que pequeno o bastante para passar despercebido — e por isso precisa ser
+nomeado aqui em vez de ficar como exceção implícita.
 
 **Recomendação: fica onde está.** `isWorktreeDirty` responde "há o que mostrar
 sobre esta working tree?", que é predicado de apresentação sobre um tipo do

@@ -319,11 +319,13 @@ onde uma auditoria a encontre. Dentro do componente que precisou dela primeiro, 
 é invisível para o próximo.
 
 O `meu-movel-planejado` é a primeira implementação da regra, em
-`renderer/src/theme/categorical.ts`, ao lado da paleta que ela mede.
+`apps/meu-movel-planejado/src/renderer/src/theme/categorical.ts`, ao lado da
+paleta que ela mede.
 
 **Pendência (2026-08-22):** o `meu-dinheiro-app` faz exatamente essa escolha em
-`pages/settings/components/CategoryForm.tsx`, para o check sobre a amostra de cor da
-categoria, com um limiar fixo de `0.4` sobre a luminância. Duas divergências, nesta
+`apps/meu-dinheiro-app/src/renderer/src/pages/settings/components/CategoryForm.tsx`,
+para o check sobre a amostra de cor da categoria, com um limiar fixo de `0.4`
+sobre a luminância. Duas divergências, nesta
 ordem de gravidade: o limiar de 0.4 devolve **branco para os dez swatches**,
 inclusive `#FB8C00` (2.37:1) e `#00ACC1` (2.74:1), que não passam nem no 3:1 de
 objeto gráfico exigido do check; e a conta mora numa tela, fora do módulo de tema.
@@ -441,10 +443,11 @@ constante — `paidFractionWidth`, no `meu-dinheiro-app`, é o exemplo.
 
 **Pendência (2026-08-20):** o `git-dlog` cumpre a regra no resultado, mas não no
 mecanismo. O `DataTableColumn<T>` dele ainda declara `align`, e a coluna de ações
-é uma coluna comum, declarada pela página (`pages/directories/DirectoriesPage.tsx`)
-em vez de ser do componente. O único `align: 'right'` dele é justamente essa
-coluna, então a tela está certa hoje — o que falta é a regra parar de depender
-disso. O `meu-dinheiro-app` e o `meu-negocio-app` estão conformes.
+é uma coluna comum, declarada pela tela
+(`apps/git-dlog/src/renderer/src/pages/directories/DirectoriesPage.tsx`) em vez
+de ser do componente. O único `align: 'right'` dele é justamente essa coluna,
+então a tela está certa hoje — o que falta é a regra parar de depender disso. O
+`meu-dinheiro-app` e o `meu-negocio-app` estão conformes.
 
 ### 2.2 Densidade e largura de conteúdo
 
