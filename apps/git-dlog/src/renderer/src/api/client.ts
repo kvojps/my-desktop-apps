@@ -83,7 +83,12 @@ export const api = {
     return call(() => window.api.dialog.selectDirectory());
   },
 
-  openExternal(url: string) {
+  /**
+   * Url vazia não abre navegador nenhum. A guarda é aqui para nenhum call site
+   * precisar repeti-la: quem tem o link não sabe se ele existe.
+   */
+  async openExternal(url: string) {
+    if (!url) return;
     return call(() => window.api.shell.openExternal(url));
   },
 

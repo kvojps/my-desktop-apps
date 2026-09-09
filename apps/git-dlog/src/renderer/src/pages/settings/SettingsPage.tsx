@@ -22,7 +22,6 @@ import { api } from '@/api/client';
 import { Modal } from '@/components/Modal';
 import { PageHeader } from '@/components/PageHeader';
 import { useSnackbar } from '@/contexts/SnackbarContext';
-import { openExternal } from '@/utils/pullRequest';
 
 const APP_VERSION = '2.0.0';
 
@@ -238,7 +237,11 @@ export function SettingsPage() {
           />
           <Typography variant="caption" color="text.secondary">
             O token é validado antes de ser salvo e nunca volta para a interface.{' '}
-            <Link component="button" variant="caption" onClick={() => openExternal(TOKEN_DOCS_URL)}>
+            <Link
+              component="button"
+              variant="caption"
+              onClick={() => void api.openExternal(TOKEN_DOCS_URL)}
+            >
               Gerar um token no GitHub
             </Link>
           </Typography>

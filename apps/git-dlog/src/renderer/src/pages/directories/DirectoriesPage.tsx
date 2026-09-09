@@ -9,7 +9,7 @@ import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { PageHeader } from '@/components/PageHeader';
 import { useSnackbar } from '@/contexts/SnackbarContext';
-import { useScanPaths } from '@/hooks/scanPaths/useScanPaths';
+import { useScanPaths } from '@/hooks/scan-paths/useScanPaths';
 
 export function DirectoriesPage() {
   const { scanPaths, isLoading, error, retry, addScanPath, deleteScanPath } = useScanPaths();

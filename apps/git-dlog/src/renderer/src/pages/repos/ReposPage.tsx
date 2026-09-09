@@ -24,12 +24,12 @@ import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { PageHeader } from '@/components/PageHeader';
 import { useRepos } from '@/hooks/repos/useRepos';
-import { useScanPaths } from '@/hooks/scanPaths/useScanPaths';
+import { useScanPaths } from '@/hooks/scan-paths/useScanPaths';
+import { ROUTES } from '@/routes';
 import { formatDateTime } from '@/utils/date';
-import { getOpenPrs, needsAction } from '@/utils/pullRequest';
-import { ROUTES } from '../../routes';
 import { RepoCard } from './components/RepoCard';
 import { RepoCardSkeletonList } from './components/RepoCardSkeleton';
+import { getOpenPrs, needsAction } from './utils/pullRequest';
 
 type Filter = 'all' | RepoSeverity | 'error' | 'prAction' | 'prOpen';
 

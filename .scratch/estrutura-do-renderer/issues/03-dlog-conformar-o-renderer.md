@@ -1,4 +1,4 @@
-Status: aberto
+Status: resolvido
 Blocked by: 02
 
 # Git Dlog: conformar o renderer
@@ -73,3 +73,33 @@ tocar na pendência do design system §2.1 (`DataTableColumn<T>` ainda declara `
 coluna de ações é declarada por `DirectoriesPage.tsx` em vez de pertencer ao componente): é
 bug de componente, tem dono próprio, e misturar com movimentação de arquivo tira a
 propriedade que torna este ticket verificável.
+
+## Comments
+
+Quatro pontos do enunciado que a execução corrigiu ou precisou decidir:
+
+- **`App.tsx` não era "o único arquivo do Dlog fora da regra".** Eram quatro:
+  `components/Layout/index.tsx`, `pages/not-found/NotFoundPage.tsx` e
+  `pages/repos/ReposPage.tsx` também importavam `'../../routes'`. O do `Layout` **não era
+  opcional** — ao virar `components/Layout.tsx` o arquivo sobe um nível e `../../routes`
+  passaria a resolver para fora de `src/`. Os outros dois entraram junto porque a linha do
+  §2.4 é a mesma (`from '../…'` → alias) e o custo é uma linha por arquivo. Os três viraram
+  `@/routes`.
+- **Dentro de `pages/repos/` o import do módulo movido tem duas formas, de propósito.**
+  `ReposPage.tsx` usa `'./utils/pullRequest'`, no mesmo formato do `'./components/RepoCard'`
+  que já estava lá; `RepoCard.tsx` e `PullRequestRow.tsx` moram em `components/` e usam
+  `'@/pages/repos/utils/pullRequest'`, porque para eles o relativo seria `'../utils/…'`, que é
+  exatamente o que o §2.4 proíbe. É a regra do alias aplicada, não inconsistência.
+- **A guarda na fachada ficou `async` e é o único método de `client.ts` com essa forma.**
+  `if (!url) return;` antes do `call(…)` exige a assinatura assíncrona. É o preço de a guarda
+  morar onde o ticket mandou; a alternativa (devolver `Promise.resolve()`) esconderia a mesma
+  assimetria atrás de mais ruído.
+- **O `void` dos call sites foi preservado.** `onClick={() => void api.openExternal(…)}` larga
+  a rejeição do IPC exatamente como o helper apagado já largava (`if (url) void api.openExternal(url)`).
+  Trocar isso por `showError` é mudança de comportamento, que este ticket proíbe — mas é uma
+  ponta solta real: falha de `shell:openExternal` é silenciosa nos quatro call sites.
+
+Verificação: `typecheck`, `lint`, `vitest` (187 testes) e `build -w git-dlog` limpos — o build
+prova a resolução de `@/components/<Nome>` pelo Vite, não só pelo `tsc`. `prettier` reordenou
+só imports, em quatro arquivos. **O passo manual do `npm run dev:dlog` não foi executado**;
+o caminho que mais pede olho é o `openExternal`, que mudou de casa.

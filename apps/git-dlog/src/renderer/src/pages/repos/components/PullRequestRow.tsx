@@ -8,9 +8,10 @@ import {
 } from '@mui/icons-material';
 import { Box, Chip, Link, Stack, Tooltip, Typography } from '@mui/material';
 import type { ChecksState, PullRequest, ReviewDecision } from '@shared/types/pullRequest';
+import { api } from '@/api/client';
 import { StatusChip, StatusChipTone } from '@/components/StatusChip';
+import { needsAction } from '@/pages/repos/utils/pullRequest';
 import { formatRelativeDate } from '@/utils/date';
-import { needsAction, openExternal } from '@/utils/pullRequest';
 
 function ChecksChip({ checks }: { checks: ChecksState }) {
   if (!checks) return null;
@@ -70,7 +71,7 @@ export function PullRequestRow({
         component="button"
         variant="body2"
         underline="hover"
-        onClick={() => openExternal(pr.url)}
+        onClick={() => void api.openExternal(pr.url)}
         sx={{ fontWeight: needsAction(pr) ? 700 : 500, textAlign: 'left' }}
       >
         #{pr.number} {pr.title}

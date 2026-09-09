@@ -33,10 +33,11 @@ import {
 import { ReactNode, useState } from 'react';
 import type { RepoScanResult, RepoSeverity } from '@shared/types/repoScan';
 import { isWorktreeDirty } from '@shared/types/repoScan';
+import { api } from '@/api/client';
 import { StatusChip } from '@/components/StatusChip';
+import { getCurrentBranchPr, getOpenPrs } from '@/pages/repos/utils/pullRequest';
 import { formatDateTime, formatRelativeDate, formatRelativeSeconds } from '@/utils/date';
-import { getCurrentBranchPr, getOpenPrs, openExternal } from '@/utils/pullRequest';
-import { PullRequestRow } from './PullRequestList';
+import { PullRequestRow } from './PullRequestRow';
 
 /**
  * Faixa lateral que dá a severidade do repositório num relance, sem precisar
@@ -269,7 +270,7 @@ export function RepoCard({ repo }: { repo: RepoScanResult }) {
                   variant="subtitle1"
                   underline="hover"
                   color="inherit"
-                  onClick={() => openExternal(repo.remote!.webUrl)}
+                  onClick={() => void api.openExternal(repo.remote!.webUrl)}
                   sx={{ fontWeight: 700 }}
                 >
                   {repo.name}
@@ -291,7 +292,7 @@ export function RepoCard({ repo }: { repo: RepoScanResult }) {
                 <IconButton
                   size="small"
                   aria-label={`Abrir o site publicado de ${repo.name}`}
-                  onClick={() => openExternal(repo.appUrl!)}
+                  onClick={() => void api.openExternal(repo.appUrl!)}
                 >
                   <LanguageOutlined fontSize="small" />
                 </IconButton>
