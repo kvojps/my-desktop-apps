@@ -6,18 +6,18 @@
   "author": "kvojps <josebazjunior09@gmail.com>",
   "homepage": "https://github.com/kvojps/my-desktop-apps",
   "main": "./out/main/index.js",
+  "license": "MIT",
   "scripts": {
     "dev": "electron-vite dev",
-    "dev:renderer": "electron-vite dev --rendererOnly",
-    "build": "electron-vite build",
     "preview": "electron-vite preview",
+    "build": "electron-vite build",
     "typecheck": "tsc --noEmit",
     "dist:win": "npm run notices && electron-vite build && electron-builder --win",
     "dist:linux": "npm run notices && electron-vite build && electron-builder --linux deb",
     "notices": "node ../../scripts/generate-third-party-notices.mjs git-dlog"
   },
   "build": {
-    "appId": "com.gitdlog.desktop",
+    "appId": "com.gitdlog.app",
     "productName": "Git Dlog",
     "directories": {
       "output": "dist",
@@ -44,12 +44,12 @@
       }
     ],
     "win": {
-      "target": "nsis",
-      "icon": "build/icon.ico"
+      "icon": "build/icon.ico",
+      "target": "nsis"
     },
     "linux": {
-      "target": "deb",
       "icon": "build/icon.png",
+      "target": "deb",
       "category": "Development",
       "maintainer": "kvojps <josebazjunior09@gmail.com>"
     },
@@ -85,6 +85,5 @@
     "electron-builder": "^26.15.3",
     "electron-vite": "^5.0.0",
     "tailwindcss": "^4.3.3"
-  },
-  "license": "MIT"
+  }
 }
