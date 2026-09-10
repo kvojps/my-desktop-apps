@@ -1,5 +1,19 @@
 # Design system
 
+## Transição em curso: piloto Git Dlog
+
+O `apps/git-dlog` foi escolhido como piloto de uma direção visual inspirada no
+Orca, conforme o [plano aprovado por decisões](../apps/git-dlog/docs/orca-design-plan.md).
+Durante a migração incremental, ele pode substituir paleta, fontes, raios,
+superfícies, controles e navegação pelas convenções registradas no plano e no tema
+do piloto. Essa exceção inclui a coexistência temporária das duas bases visuais.
+As exigências de acessibilidade, contraste e clareza dos estados continuam válidas.
+
+Os demais apps seguem a norma abaixo. Após a validação do piloto, as convenções
+aprovadas serão incorporadas a este documento e a migração dos demais será
+planejada. O piloto não se torna referência implícita: os valores devem ser
+documentados. A independência de código entre apps permanece vigente.
+
 Este documento descreve o padrão visual comum aos apps do monorepo. Ele existe porque os
 apps deliberadamente **não compartilham código** (ver README, §2): sem um pacote
 `ui` para carregar a norma, é o texto que precisa carregá-la.
