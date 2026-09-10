@@ -113,8 +113,14 @@ export function exportData(repos: Repositories): BackupFile {
 }
 
 const rowNumber = z.number();
-const nullableString = z.string().nullish().transform((v) => v ?? null);
-const nullableNumber = z.number().nullish().transform((v) => v ?? null);
+const nullableString = z
+  .string()
+  .nullish()
+  .transform((v) => v ?? null);
+const nullableNumber = z
+  .number()
+  .nullish()
+  .transform((v) => v ?? null);
 
 const backupSchema = z.object({
   categories: z.array(z.object({ id: rowNumber, name: z.string(), color: z.string() })),
@@ -217,7 +223,9 @@ export function importData(db: Database.Database, data: BackupData): void {
       db.exec('DELETE FROM months');
       db.exec('DELETE FROM categories');
 
-      const insertCategory = db.prepare('INSERT INTO categories (id, name, color) VALUES (?, ?, ?)');
+      const insertCategory = db.prepare(
+        'INSERT INTO categories (id, name, color) VALUES (?, ?, ?)',
+      );
       for (const cat of data.categories) {
         insertCategory.run(cat.id, cat.name, cat.color);
       }
@@ -233,7 +241,12 @@ export function importData(db: Database.Database, data: BackupData): void {
         'INSERT INTO default_incomes (name, expected_day, amount, bank_account_id) VALUES (?, ?, ?, ?)',
       );
       for (const inc of data.default_incomes) {
-        insertDefaultIncome.run(inc.name, inc.expected_day, inc.amount, inc.bank_account_id ?? null);
+        insertDefaultIncome.run(
+          inc.name,
+          inc.expected_day,
+          inc.amount,
+          inc.bank_account_id ?? null,
+        );
       }
 
       const insertBankAccount = db.prepare(

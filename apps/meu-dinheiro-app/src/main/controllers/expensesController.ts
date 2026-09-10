@@ -6,7 +6,11 @@ import { parseId } from '../utils/parseId';
 import { parseOrThrow } from '../utils/validate';
 import { handle } from './handle';
 import { expenseToResponse } from './responses/expense.response';
-import { createExpenseSchema, payExpenseSchema, updateExpenseSchema } from './schemas/expenses.schema';
+import {
+  createExpenseSchema,
+  payExpenseSchema,
+  updateExpenseSchema,
+} from './schemas/expenses.schema';
 import { receiptFilenameSchema } from './schemas/receipts.schema';
 
 /**
@@ -41,7 +45,12 @@ export function registerExpensesController(expenses: ExpensesService): void {
     (
       _event,
       id: unknown,
-      payload: { receipt?: ReceiptPayload; notes?: string; paidAt?: string; bankAccountId?: number },
+      payload: {
+        receipt?: ReceiptPayload;
+        notes?: string;
+        paidAt?: string;
+        bankAccountId?: number;
+      },
     ): Expense => {
       const body = parseOrThrow(payExpenseSchema, {
         notes: payload?.notes,

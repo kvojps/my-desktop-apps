@@ -5,7 +5,11 @@ import { parseId } from '../utils/parseId';
 import { parseOrThrow } from '../utils/validate';
 import { handle } from './handle';
 import { incomeToResponse } from './responses/income.response';
-import { createIncomeSchema, receiveIncomeSchema, updateIncomeSchema } from './schemas/incomes.schema';
+import {
+  createIncomeSchema,
+  receiveIncomeSchema,
+  updateIncomeSchema,
+} from './schemas/incomes.schema';
 
 /**
  * As Entradas de um Mês e o crédito/estorno da Conta ao marcá-las recebidas. O

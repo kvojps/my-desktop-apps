@@ -17,15 +17,15 @@ theme/ utils/`, mesmos aliases, `main.tsx` idêntico, zero `export default`, `ap
 como fachada única de IPC. O que diverge é detalhe, e cada divergência cai exatamente onde a
 regra não foi escrita:
 
-| Eixo | Como diverge hoje |
-|---|---|
+| Eixo                               | Como diverge hoje                                                                                                                                                                           |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Arquivo não-componente de uma tela | solto na raiz da tela (`pages/dashboard/receivables.ts` no Negócio; 12 arquivos em `pages/plan/` no Móvel) · dentro de `components/` (`pages/history/components/chartTheme.ts` no Dinheiro) |
-| `pages/<tela>/hooks/` | existe só no Meu Dinheiro |
-| Schema zod | `hooks/<domínio>/<x>Schema.ts` (Negócio, Móvel) · `pages/*/components/formSchemas.ts` (Dinheiro) |
-| Casing de pasta de domínio | `bank-accounts/` (Dinheiro) · `orders/` (Negócio) · `scanPaths/` (Git Dlog) |
-| Estado de domínio | 3 contexts finos (Dinheiro) · 2 contexts gordos (Negócio) · zero contexts de domínio (Móvel) |
-| Charter do `utils/` | §2.4 define `date.ts` + `format.ts`; na prática acumulou domínio (`pullRequest.ts`, `cuttingGeometry.ts`) e infra (`svgToPng.ts`) |
-| Import por alias | `from '../'`: 1 (Dinheiro) · 3 (Git Dlog) · 10 (Negócio) · 24 (Móvel), contra a regra do §2.4 |
+| `pages/<tela>/hooks/`              | existe só no Meu Dinheiro                                                                                                                                                                   |
+| Schema zod                         | `hooks/<domínio>/<x>Schema.ts` (Negócio, Móvel) · `pages/*/components/formSchemas.ts` (Dinheiro)                                                                                            |
+| Casing de pasta de domínio         | `bank-accounts/` (Dinheiro) · `orders/` (Negócio) · `scanPaths/` (Git Dlog)                                                                                                                 |
+| Estado de domínio                  | 3 contexts finos (Dinheiro) · 2 contexts gordos (Negócio) · zero contexts de domínio (Móvel)                                                                                                |
+| Charter do `utils/`                | §2.4 define `date.ts` + `format.ts`; na prática acumulou domínio (`pullRequest.ts`, `cuttingGeometry.ts`) e infra (`svgToPng.ts`)                                                           |
+| Import por alias                   | `from '../'`: 1 (Dinheiro) · 3 (Git Dlog) · 10 (Negócio) · 24 (Móvel), contra a regra do §2.4                                                                                               |
 
 O `docs/design-system.md` já prevê a causa, no preâmbulo:
 
@@ -71,26 +71,26 @@ src/renderer/src/
 
 ## Regras
 
-| Regra | Decisão |
-|---|---|
-| Organização | Horizontal no topo, vertical dentro da tela. Responde ao ADR-0002 em vez de contradizê-lo |
-| Regra de promoção | Uma só, para componente, hook e módulo puro: nasce na pasta da tela, sobe quando a segunda tela precisa |
-| Charter do `utils/` | Módulo puro (sem JSX) usado por 2+ telas. É a regra de promoção, não uma regra nova |
-| Componente | `components/<Nome>.tsx` enquanto for um arquivo; vira pasta com `index.tsx` quando ganha vizinho |
-| Casing | `pages/<kebab>/<Pascal>Page.tsx` · `hooks/<kebab>/use<X>.ts` · `components/<Pascal>.tsx` |
-| Schema zod | Sempre `<domínio>Schema.ts` junto do hook. Revoga a regra condicional do §2.4 |
-| Estado de domínio | Hook da tela enquanto for uma tela; context na segunda. Emenda o ADR-0001 |
-| IPC | Só `api/client.ts` conhece `window.api`. Passa a ser imposto por lint, não por prosa |
-| Alias | `@/` sempre que o import sai da própria pasta — inclusive em `App.tsx` |
-| Barrel | Nenhum. `index.tsx` é o componente, nunca reexportação |
-| Export | Nomeado. Zero `export default` |
-| Vocabulário | **tela** é o termo canônico; "página" é sinônimo a evitar. **"feature" fica proibida**, como no ADR-0002. A pasta continua `pages/` |
-| Teste colocado | `.test.ts` ao lado do sujeito, dentro de `utils/`. Só `.test.ts` — o `vitest.config.ts` da raiz não inclui `.tsx` |
+| Regra               | Decisão                                                                                                                             |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Organização         | Horizontal no topo, vertical dentro da tela. Responde ao ADR-0002 em vez de contradizê-lo                                           |
+| Regra de promoção   | Uma só, para componente, hook e módulo puro: nasce na pasta da tela, sobe quando a segunda tela precisa                             |
+| Charter do `utils/` | Módulo puro (sem JSX) usado por 2+ telas. É a regra de promoção, não uma regra nova                                                 |
+| Componente          | `components/<Nome>.tsx` enquanto for um arquivo; vira pasta com `index.tsx` quando ganha vizinho                                    |
+| Casing              | `pages/<kebab>/<Pascal>Page.tsx` · `hooks/<kebab>/use<X>.ts` · `components/<Pascal>.tsx`                                            |
+| Schema zod          | Sempre `<domínio>Schema.ts` junto do hook. Revoga a regra condicional do §2.4                                                       |
+| Estado de domínio   | Hook da tela enquanto for uma tela; context na segunda. Emenda o ADR-0001                                                           |
+| IPC                 | Só `api/client.ts` conhece `window.api`. Passa a ser imposto por lint, não por prosa                                                |
+| Alias               | `@/` sempre que o import sai da própria pasta — inclusive em `App.tsx`                                                              |
+| Barrel              | Nenhum. `index.tsx` é o componente, nunca reexportação                                                                              |
+| Export              | Nomeado. Zero `export default`                                                                                                      |
+| Vocabulário         | **tela** é o termo canônico; "página" é sinônimo a evitar. **"feature" fica proibida**, como no ADR-0002. A pasta continua `pages/` |
+| Teste colocado      | `.test.ts` ao lado do sujeito, dentro de `utils/`. Só `.test.ts` — o `vitest.config.ts` da raiz não inclui `.tsx`                   |
 
 ### Por que o renderer não copia o ADR-0002
 
-O ADR-0002 rejeitou organização vertical no `main` porque *"com quatro apps que precisam se
-parecer, a repetição da camada é o que faz mexer em um ensinar os outros"*. O argumento vale
+O ADR-0002 rejeitou organização vertical no `main` porque _"com quatro apps que precisam se
+parecer, a repetição da camada é o que faz mexer em um ensinar os outros"_. O argumento vale
 para o main porque lá **a unidade de mudança é a camada**: mexer em validação é mexer em
 `controllers/`, em todos os apps.
 
@@ -132,14 +132,14 @@ A costura preferida é a que já existe, e ela é a mais alta possível: os scri
 Nenhum ticket deste effort muda comportamento, então o portão é o compilador, não um teste
 novo.
 
-| Costura | Existe? | O que prova |
-|---|---|---|
-| `npm run typecheck` | sim | Toda referência que a movimentação quebrou |
-| `npm run lint` | sim | Regras de hook; e, depois do ticket 02, a fronteira de IPC |
-| `npm run format` | sim | Que o `importOrder` do `.prettierrc.json` conhece as pastas que existem |
-| `npx vitest run` | sim | Que os `.test.ts` colocados continuam sendo encontrados depois de mudarem de pasta |
-| `npm run dev:<app>` | sim | Que as telas abrem — nenhuma mudança de comportamento é esperada |
-| `git diff --stat` | — | Que o escopo não vazou: só renomeação e import. Hunk de lógica é sinal de erro |
+| Costura             | Existe? | O que prova                                                                        |
+| ------------------- | ------- | ---------------------------------------------------------------------------------- |
+| `npm run typecheck` | sim     | Toda referência que a movimentação quebrou                                         |
+| `npm run lint`      | sim     | Regras de hook; e, depois do ticket 02, a fronteira de IPC                         |
+| `npm run format`    | sim     | Que o `importOrder` do `.prettierrc.json` conhece as pastas que existem            |
+| `npx vitest run`    | sim     | Que os `.test.ts` colocados continuam sendo encontrados depois de mudarem de pasta |
+| `npm run dev:<app>` | sim     | Que as telas abrem — nenhuma mudança de comportamento é esperada                   |
+| `git diff --stat`   | —       | Que o escopo não vazou: só renomeação e import. Hunk de lógica é sinal de erro     |
 
 **Uma costura nova, e só uma**: a regra de lint que barra `window.api` fora de
 `api/client.ts`. Ela entra no bloco `apps/*/src/renderer/**` do `eslint.config.mjs` da raiz —
@@ -196,7 +196,7 @@ a sessão e vale registrar por quê:
 
 1. **"Os apps estão organizados de jeitos diferentes"** — não estão. A forma é a mesma nos
    quatro; o que diverge são ~8 detalhes. O trabalho é fechar detalhe, não redesenhar.
-2. **"Começar o piloto pelo `git-dlog`"** — mantido, mas ele é o app *mais* alinhado, não o
+2. **"Começar o piloto pelo `git-dlog`"** — mantido, mas ele é o app _mais_ alinhado, não o
    menos. Piloto único ali confirmaria em vez de validar; daí o par 05/06.
 
 Uma divergência de formato, deliberada: a skill `/to-spec` pede `## User Stories`,

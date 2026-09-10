@@ -20,8 +20,7 @@ export function rowToBankAccount(row: BankAccountRow): BankAccountEntity {
 
 function selectBankAccountRow(db: Database.Database, id: number): BankAccountRow | undefined {
   return db.prepare('SELECT * FROM bank_accounts WHERE id = ?').get(id) as
-    | BankAccountRow
-    | undefined;
+    BankAccountRow | undefined;
 }
 
 export function makeBankAccountsRepository(db: Database.Database) {
@@ -32,7 +31,9 @@ export function makeBankAccountsRepository(db: Database.Database) {
 
   return {
     list(): BankAccountEntity[] {
-      const rows = db.prepare('SELECT * FROM bank_accounts ORDER BY name').all() as BankAccountRow[];
+      const rows = db
+        .prepare('SELECT * FROM bank_accounts ORDER BY name')
+        .all() as BankAccountRow[];
       return rows.map(rowToBankAccount);
     },
 

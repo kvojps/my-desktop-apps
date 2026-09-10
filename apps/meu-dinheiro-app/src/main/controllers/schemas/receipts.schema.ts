@@ -11,7 +11,6 @@ export const receiptFilenameSchema = z
   .string()
   .min(1, 'Comprovante inválido')
   .refine(
-    (name) =>
-      !name.includes('/') && !name.includes('\\') && !name.includes('..') && name !== '.',
+    (name) => !name.includes('/') && !name.includes('\\') && !name.includes('..') && name !== '.',
     'Comprovante inválido',
   );

@@ -60,8 +60,8 @@ Pontos a medir ao planejar:
   e deve passar pelo `CONTEXT.md` do app antes de virar pasta.
 - `utils/` carrega `cuttingGeometry.ts`, `measureFields.ts` e `svgToPng.ts`. Sob o charter
   novo, cada um sobe ou desce conforme o número de telas que o usa — medir antes de mover. E
-  checar `cuttingGeometry.ts` contra o ADR-0003 (*"descrever o que já atravessou o IPC é do
-  renderer; decidir o que atravessa é do main"*): desenho é do renderer, decisão de corte não
+  checar `cuttingGeometry.ts` contra o ADR-0003 (_"descrever o que já atravessou o IPC é do
+  renderer; decidir o que atravessa é do main"_): desenho é do renderer, decisão de corte não
   é, e o ADR-0003 já revogou uma vez o precedente deste app.
 - É o app com zero contexts de domínio, ou seja, **o caso que a emenda ao ADR-0001 legalizou**.
   Confirmar que o texto da emenda descreve o que está aqui, não o contrário.

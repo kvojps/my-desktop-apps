@@ -69,9 +69,7 @@ export function makeIncomesRepository(db: Database.Database) {
 
     /** Todas as entradas, para o backup. Sem JOINs — só as colunas próprias. */
     listAll(): IncomeEntity[] {
-      const rows = db
-        .prepare('SELECT * FROM incomes ORDER BY month_id')
-        .all() as IncomeRow[];
+      const rows = db.prepare('SELECT * FROM incomes ORDER BY month_id').all() as IncomeRow[];
       return rows.map(rowToIncome);
     },
 

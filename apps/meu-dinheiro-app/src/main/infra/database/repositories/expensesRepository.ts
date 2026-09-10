@@ -78,9 +78,7 @@ export function makeExpensesRepository(db: Database.Database) {
 
     /** Todas as despesas, para o backup. Sem JOINs — só as colunas próprias. */
     listAll(): ExpenseEntity[] {
-      const rows = db
-        .prepare('SELECT * FROM expenses ORDER BY month_id')
-        .all() as ExpenseRow[];
+      const rows = db.prepare('SELECT * FROM expenses ORDER BY month_id').all() as ExpenseRow[];
       return rows.map(rowToExpense);
     },
 

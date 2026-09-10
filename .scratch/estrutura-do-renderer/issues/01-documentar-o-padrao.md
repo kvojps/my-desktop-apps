@@ -61,13 +61,13 @@ O ADR-0001 diz "os dados do renderer vivem em Contexts montados acima do router"
 
 O código segue o §2.4 e contradiz o ADR. **O código está certo; o ADR está estreito.** Emendar,
 não reescrever — mesma forma da emenda que o ADR-0003 já tem. Precedente para não deixar
-implícito, do próprio ADR-0003: *"Exceção escrita é exceção que alguém pode contestar; exceção
-implícita é precedente silencioso."*
+implícito, do próprio ADR-0003: _"Exceção escrita é exceção que alguém pode contestar; exceção
+implícita é precedente silencioso."_
 
 A emenda diz: domínio consumido por **uma** tela vive no hook da própria tela, que assina
 `useDataChanged(reload)` direto; domínio de **duas ou mais** vira context acima do router, com
 hook fino em `hooks/<domínio>/`. Deixar explícito que **o mecanismo não muda** — quem guarda
-dado assina o aviso; o que muda é só *quem* guarda. Sem essa frase a emenda é lida como
+dado assina o aviso; o que muda é só _quem_ guarda. Sem essa frase a emenda é lida como
 afrouxamento da invalidação. A distinção `reload` / `retry` (design system §5.3) segue valendo
 dos dois lados.
 

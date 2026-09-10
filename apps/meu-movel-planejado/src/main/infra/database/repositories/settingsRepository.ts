@@ -13,8 +13,7 @@ export function makeSettingsRepository(db: Database.Database) {
   return {
     get(key: string): string | null {
       const row = db.prepare('SELECT value FROM settings WHERE key = ?').get(key) as
-        | SettingRow
-        | undefined;
+        SettingRow | undefined;
       return row?.value ?? null;
     },
 

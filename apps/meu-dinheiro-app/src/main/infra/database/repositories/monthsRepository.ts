@@ -113,9 +113,7 @@ export function makeMonthsRepository(db: Database.Database) {
      * só de `id`/`label`/`year`/`month`, não das 12 subconsultas de totais.
      */
     listAll(): MonthEntity[] {
-      const rows = db
-        .prepare('SELECT * FROM months ORDER BY year, month')
-        .all() as MonthRow[];
+      const rows = db.prepare('SELECT * FROM months ORDER BY year, month').all() as MonthRow[];
       return rows.map(rowToMonth);
     },
 
@@ -185,8 +183,7 @@ export function makeMonthsRepository(db: Database.Database) {
     /** Apaga o Mês (as despesas e entradas vão por cascata do banco). Devolve `null` — sem decidir 404. */
     delete(id: number): MonthEntity | null {
       const existing = db.prepare('SELECT * FROM months WHERE id = ?').get(id) as
-        | MonthRow
-        | undefined;
+        MonthRow | undefined;
       if (!existing) return null;
 
       db.prepare('DELETE FROM months WHERE id = ?').run(id);

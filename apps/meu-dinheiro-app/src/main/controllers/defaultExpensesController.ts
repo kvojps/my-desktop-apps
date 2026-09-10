@@ -22,7 +22,9 @@ export function registerDefaultExpensesController(defaultExpenses: DefaultExpens
   );
 
   handle(IPC_CHANNELS.defaultExpensesCreate, (_event, data: unknown): DefaultExpense =>
-    defaultExpenseToResponse(defaultExpenses.create(parseOrThrow(createDefaultExpenseSchema, data))),
+    defaultExpenseToResponse(
+      defaultExpenses.create(parseOrThrow(createDefaultExpenseSchema, data)),
+    ),
   );
 
   handle(IPC_CHANNELS.defaultExpensesUpdate, (_event, id: unknown, data: unknown): DefaultExpense =>

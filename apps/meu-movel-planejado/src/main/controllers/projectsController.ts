@@ -31,12 +31,10 @@ export function registerProjectsController(projects: ProjectsService): void {
     projectToResponse(projects.update(parseId(id), parseOrThrow(projectInputSchema, data))),
   );
 
-  handle(
-    IPC_CHANNELS.projectsUpdateCuttingParams,
-    (_event, id: unknown, data: unknown): Project =>
-      projectToResponse(
-        projects.updateCuttingParams(parseId(id), parseOrThrow(cuttingParamsInputSchema, data)),
-      ),
+  handle(IPC_CHANNELS.projectsUpdateCuttingParams, (_event, id: unknown, data: unknown): Project =>
+    projectToResponse(
+      projects.updateCuttingParams(parseId(id), parseOrThrow(cuttingParamsInputSchema, data)),
+    ),
   );
 
   handle(IPC_CHANNELS.projectsDelete, (_event, id: unknown): void => {
