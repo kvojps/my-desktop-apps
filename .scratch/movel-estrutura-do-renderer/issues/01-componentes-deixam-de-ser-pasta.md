@@ -1,4 +1,4 @@
-Status: aberto
+Status: resolvido
 
 # Meu Móvel Planejado: componentes deixam de ser pasta
 
@@ -38,3 +38,21 @@ mesmo ticket.
 - Não promover nem demover nada.
 - Não varrer os outros imports relativos aqui (o Móvel parte de 24; a varredura é do
   ticket 02, depois que a reorganização do `plan/` curar a maioria).
+
+## Comments
+
+Implementado (commit 190aedb).
+
+- As 12 pastas viraram `components/<Nome>.tsx` via `git mv`; `git` registra 11 como
+  rename 100% e `Layout` como 99%. Nenhuma pasta sobrou em `components/`, nenhuma
+  tinha vizinho.
+- Nenhum import de `@/components/<Nome>` mudou — `moduleResolution: "Bundler"`
+  resolve os dois formatos, como o ticket previa.
+- `Layout` era o único dos 12 com import relativo saindo da pasta: `'../../routes'`
+  passaria a resolver para `src/renderer/routes` (fora de `src/`) ao subir de nível,
+  então virou `@/routes`. Exatamente o caso que os tickets 03 e 04 acharam no Dlog
+  e no Negócio. Nenhum outro relativo nos 12 arquivos.
+- `git diff --stat`: 12 renames + `1 insertion(+), 1 deletion(-)` no `Layout`.
+- Verificado: `npm run typecheck`, `npm run lint`, `npm test` (190 passam),
+  `npm run build -w meu-movel-planejado`, `npm run format`. Code review (Standards
+  + Spec) sem achados.
