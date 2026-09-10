@@ -1,9 +1,25 @@
+# Dependências
 node_modules/
+
+# Saída de build
 dist/
 out/
+*.tsbuildinfo
+
+# Bancos locais
 *.db
 *.db-shm
 *.db-wal
-*.tsbuildinfo
+
+# Uploads em runtime
 uploads/
+
+# Cobertura de teste
+coverage/
+
+# Editor e SO
+.vscode/
+.idea/
 .DS_Store
+Thumbs.db
+*.log
