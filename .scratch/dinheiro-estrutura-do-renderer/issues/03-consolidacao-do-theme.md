@@ -1,4 +1,4 @@
-Status: aberto
+Status: resolvido
 Blocked by: 02
 
 # Meu Dinheiro: consolidação do `theme/`
@@ -67,3 +67,34 @@ app que pinta sozinho. `CategoryForm.tsx` passa a importar `labelOn` de `@/theme
 - Não medir de novo, em runtime, cor de estado do tema: ela tem par por modo e
   `contrastText` declarado (§1.3).
 - Não tocar em `pages/settings/` além do import de `labelOn`.
+
+## Comments
+
+Implementado.
+
+- `pages/history/components/chartTheme.ts` → `theme/chartTheme.ts`; import interno
+  de `CONTROL_RADIUS` passou a `./index`; `HistoryPage`, `MonthComparisonChart` e
+  `CategoryBreakdownChart` importam de `@/theme/chartTheme`. `git` registra a
+  movimentação como rename (97%).
+- `checkColorOn` saiu de `CategoryForm.tsx` como `theme/labelOn.ts`, reexportado
+  de `theme/index.ts` (mesmo arranjo do `categorical.ts` do Móvel — arquivo sem
+  MUI para a suíte de testes). `CategoryForm.tsx` importa `labelOn` de `@/theme`;
+  nenhuma outra mudança em `pages/settings/`.
+- Algoritmo portado do Móvel: `whiteLabelContrast(fill) >= blackLabelContrast(fill)`,
+  com o preto de 87% composto sobre o preenchimento. Não é limiar de luminância.
+  Sobre os dez `CATEGORY_COLORS`, cinco viram preto (`#FB8C00`, `#1E88E5`,
+  `#E53935`, `#43A047`, `#00ACC1`) e cinco seguem brancos — bate a coluna
+  "Escolhido" da tabela da §1.8.
+- `theme/labelOn.test.ts` colocado, espelhando `theme/categorical.test.ts` do
+  Móvel: bate o rótulo da tabela da §1.8 para os onze swatches, os pares de
+  virada da varredura do cubo sRGB (`#787882`→branco, `#F00019`→preto) e o hex de
+  três dígitos. Só `labelOn` é exportado, então não há bloco de §1.7 a espelhar —
+  o app não pinta swatch sozinho.
+- `docs/design-system.md` §1.8: a "Pendência (2026-08-22)" deixou de descrever
+  `CategoryForm.tsx` como bug aberto e passou a registrar o `meu-dinheiro-app`
+  como a segunda implementação da regra.
+- `npm run typecheck`, `npm run lint`, `npm test` (191 testes, com o `labelOn`
+  verde), `npm run build -w meu-dinheiro-app` e `npm run format` limpos.
+- `npm run dev:dinheiro` — passo interativo de conferência visual (formulário de
+  categoria em `settings`, temas claro e escuro) fica com o dono da effort;
+  `labelOn` não depende do modo, então o check é o mesmo nos dois temas.
