@@ -9,8 +9,8 @@ import { ReactNode } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import logo from '@/assets/logo-128x128.png';
 import { useThemeMode } from '@/hooks/useThemeMode';
+import { ROUTES } from '@/routes';
 import { CONTROL_RADIUS, tint } from '@/theme';
-import { ROUTES } from '../../routes';
 
 interface LayoutProps {
   children: ReactNode;
