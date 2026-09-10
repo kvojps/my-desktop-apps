@@ -358,6 +358,11 @@ npm run dist:negocio
 npm run dist:dlog
 npm run dist:movel
 
+npm run dist:linux:dinheiro   # gera o pacote .deb (Linux)
+npm run dist:linux:negocio
+npm run dist:linux:dlog
+npm run dist:linux:movel
+
 npm run build            # build de todos os apps
 npm run typecheck        # tsc --noEmit em todos os apps
 npm run lint             # eslint em todo o monorepo
@@ -377,8 +382,8 @@ Ficam na raiz e valem para todos os apps:
 
 - `.prettierrc.json` / `.prettierignore`
 - `eslint.config.mjs`
-- `tsconfig.base.json` — cada app tem um `tsconfig.json` que faz `extends` dele e
-  declara apenas os seus `paths` (`@shared/*`, `@/*`)
+- `tsconfig.base.json` — cada `apps/*/tsconfig.json` só faz `extends` dele;
+  `paths` (`@shared/*`, `@/*`) e `include` moram na base
 - `.gitignore`
 - devDependencies do toolchain (eslint, prettier, typescript)
 
@@ -399,20 +404,21 @@ que eles empacotam: a MIT exige que o aviso de copyright acompanhe a cópia, e a
 SIL OFL 1.1 das fontes (Geist, Inter, JetBrains Mono) exige o mesmo dos arquivos
 da fonte. O `electron-builder` não faz isso sozinho.
 
-O `git-dlog` gera esse aviso a partir da árvore de dependências de produção
-resolvida pelo npm:
+Todos os apps geram esse aviso a partir da árvore de dependências de produção
+resolvida pelo npm. Cada um tem o seu script `notices`, e a raiz agrega os quatro:
 
 ```bash
-npm run notices -w git-dlog
+npm run notices -w git-dlog   # regenera o de um app (troque o workspace)
+npm run notices               # da raiz: regenera o dos quatro
 ```
 
-O resultado é o `THIRD-PARTY-NOTICES.md` do app, versionado e instalado junto do
-executável. Os scripts `dist:*` regeneram antes de empacotar, então o arquivo não
-sai de sincronia com o `package-lock.json` — mas ele é gerado, não editado à mão.
-Os avisos de Chromium e Node.js vêm do próprio Electron, no
+O resultado é o `THIRD-PARTY-NOTICES.md` de cada app, versionado e instalado junto
+do executável. Os scripts `dist:*` regeneram antes de empacotar, então o arquivo
+não sai de sincronia com o `package-lock.json` — mas ele é gerado, não editado à
+mão. Os avisos de Chromium e Node.js vêm do próprio Electron, no
 `LICENSES.chromium.html` que o `electron-builder` instala ao lado do binário.
 
-Para cobrir outro app, o gerador recebe o nome do workspace:
+Por baixo, cada script `notices` chama o gerador da raiz com o nome do workspace:
 `node scripts/generate-third-party-notices.mjs <app>`.
 
 ### 4.2 Orca

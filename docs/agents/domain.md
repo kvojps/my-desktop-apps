@@ -9,7 +9,8 @@ ao explorar o código.
   contexto. Leia cada um relevante ao tópico.
 - **`apps/<app>/CONTEXT.md`**: o glossário do app em que você vai mexer. Cada
   app é um contexto próprio — eles não compartilham vocabulário de propósito.
-  Hoje existem em `git-dlog`, `meu-negocio-app` e `meu-movel-planejado`.
+  Hoje existem nos quatro apps: `git-dlog`, `meu-negocio-app`,
+  `meu-movel-planejado` e `meu-dinheiro-app`.
 - **`docs/adr/`** na raiz: decisões que valem para o monorepo inteiro.
 - **`apps/<app>/docs/adr/`**: decisões daquele app.
 
@@ -36,6 +37,7 @@ Repo multi-context — cada app em `apps/` é um contexto:
     ├── meu-negocio-app/
     │   └── CONTEXT.md
     └── meu-dinheiro-app/
+        └── CONTEXT.md
 ```
 
 Uma decisão de UI que valha para todos os apps é ADR de raiz e provavelmente
