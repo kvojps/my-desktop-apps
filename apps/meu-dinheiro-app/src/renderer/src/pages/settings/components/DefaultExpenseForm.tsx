@@ -5,7 +5,10 @@ import { DefaultExpense } from '@shared/types/expense';
 import { CategoryTag } from '@/components/CategoryTag';
 import { Modal } from '@/components/Modal';
 import { useCategories } from '@/hooks/categories/useCategories';
-import { DefaultExpenseFormValues, defaultExpenseFormSchema } from './formSchemas';
+import {
+  DefaultExpenseFormValues,
+  defaultExpenseFormSchema,
+} from '@/hooks/default-expenses/defaultExpenseSchema';
 
 interface DefaultExpenseFormProps {
   open: boolean;

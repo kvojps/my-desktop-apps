@@ -5,9 +5,9 @@ import { Controller, useForm } from 'react-hook-form';
 import { BankAccount } from '@shared/types/bank-account';
 import { Income } from '@shared/types/income';
 import { Modal } from '@/components/Modal';
+import { ReceiveFormValues, receiveFormSchema } from '@/pages/month-detail/hooks/incomeSchema';
 import { formatDateOnly, todayDateString } from '@/utils/date';
 import { formatCurrency } from '@/utils/format';
-import { ReceiveFormValues, receiveFormSchema } from './formSchemas';
 
 interface ReceiveDialogProps {
   open: boolean;

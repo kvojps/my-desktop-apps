@@ -4,8 +4,8 @@ import { Controller, useForm } from 'react-hook-form';
 import { BankAccount } from '@shared/types/bank-account';
 import { Income } from '@shared/types/income';
 import { Modal } from '@/components/Modal';
+import { IncomeFormValues, incomeFormSchema } from '@/pages/month-detail/hooks/incomeSchema';
 import { formatCurrency } from '@/utils/format';
-import { IncomeFormValues, incomeFormSchema } from './formSchemas';
 
 interface EditIncomeDialogProps {
   open: boolean;

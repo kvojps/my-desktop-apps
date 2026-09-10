@@ -6,9 +6,9 @@ import { BankAccount } from '@shared/types/bank-account';
 import { Expense } from '@shared/types/expense';
 import { FileUploadButton } from '@/components/FileUploadButton';
 import { Modal } from '@/components/Modal';
+import { PayFormValues, payFormSchema } from '@/pages/month-detail/hooks/expenseSchema';
 import { formatDateOnly, todayDateString } from '@/utils/date';
 import { formatCurrency } from '@/utils/format';
-import { PayFormValues, payFormSchema } from './formSchemas';
 
 interface PayDialogProps {
   open: boolean;

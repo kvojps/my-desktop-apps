@@ -5,7 +5,7 @@ import { useId } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { Category } from '@shared/types/category';
 import { Modal } from '@/components/Modal';
-import { CategoryFormValues, categoryFormSchema } from './formSchemas';
+import { CategoryFormValues, categoryFormSchema } from '@/hooks/categories/categorySchema';
 
 export const CATEGORY_COLORS = [
   '#5C6BC0',

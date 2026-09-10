@@ -4,7 +4,7 @@ import { Controller, useForm } from 'react-hook-form';
 import { Expense } from '@shared/types/expense';
 import { Modal } from '@/components/Modal';
 import { useCategories } from '@/hooks/categories/useCategories';
-import { ExpenseFormValues, expenseFormSchema } from './formSchemas';
+import { ExpenseFormValues, expenseFormSchema } from '@/pages/month-detail/hooks/expenseSchema';
 
 interface EditExpenseDialogProps {
   open: boolean;

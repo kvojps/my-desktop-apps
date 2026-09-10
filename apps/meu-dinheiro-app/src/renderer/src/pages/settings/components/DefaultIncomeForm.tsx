@@ -4,8 +4,11 @@ import { Controller, useForm } from 'react-hook-form';
 import { BankAccount } from '@shared/types/bank-account';
 import { DefaultIncome } from '@shared/types/income';
 import { Modal } from '@/components/Modal';
+import {
+  DefaultIncomeFormValues,
+  defaultIncomeFormSchema,
+} from '@/hooks/default-incomes/defaultIncomeSchema';
 import { formatCurrency } from '@/utils/format';
-import { DefaultIncomeFormValues, defaultIncomeFormSchema } from './formSchemas';
 
 interface DefaultIncomeFormProps {
   open: boolean;

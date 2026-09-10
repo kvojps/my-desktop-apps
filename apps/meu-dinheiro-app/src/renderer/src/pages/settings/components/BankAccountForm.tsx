@@ -3,7 +3,10 @@ import { Button, TextField } from '@mui/material';
 import { useForm } from 'react-hook-form';
 import { BankAccount } from '@shared/types/bank-account';
 import { Modal } from '@/components/Modal';
-import { BankAccountFormValues, bankAccountFormSchema } from './formSchemas';
+import {
+  BankAccountFormValues,
+  bankAccountFormSchema,
+} from '@/hooks/bank-accounts/bankAccountSchema';
 
 interface BankAccountFormProps {
   open: boolean;
