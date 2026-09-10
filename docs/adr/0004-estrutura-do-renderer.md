@@ -149,7 +149,7 @@ Enquanto a fila não anda, app não convertido está divergindo do `README.md` �
 que é normativo — e divergência entre documento e código é bug do código.
 
 O caso que este padrão ainda não enfrentou é
-`apps/meu-movel-planejado/src/renderer/src/pages/plan/`: doze arquivos soltos na
+`apps/meu-movel-planejado/src/renderer/src/pages/plan/`: treze arquivos soltos na
 raiz da tela e nove componentes, o único lugar onde "espelhar o topo" mexe em
 muita coisa de uma vez. Está fora da primeira leva de propósito, e é o caso que o
 padrão precisa aguentar — se ele não couber, é o padrão que está errado.
