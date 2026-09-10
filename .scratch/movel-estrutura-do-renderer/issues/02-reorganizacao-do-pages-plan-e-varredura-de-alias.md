@@ -1,4 +1,4 @@
-Status: aberto
+Status: resolvido
 Blocked by: 01
 
 # Meu Móvel Planejado: reorganização do `pages/plan/` e varredura de alias
@@ -68,3 +68,38 @@ vira `@/` ou `@shared/` no mesmo ticket. Alvo: zero `from '../…'` no renderer 
 - Não renomear `pages/project/` / `pages/projects/` — é issue própria, dono Kvojps.
 - Não tocar em `theme/` (é a referência dos outros apps), nem em `src/main`, nem em
   `src/shared`.
+
+## Comments
+
+Implementado (commit 7e22a8d).
+
+- `pages/plan/hooks/` recebeu `usePieceLabels.ts` e `textMeasure.ts` **inteiro**
+  (`useTextMeasure` + `measureTextWidth` + `TextMeasure`, sem split). `pages/plan/utils/`
+  recebeu os 6 módulos puros + os 4 `.test.ts` colocados. `PlanPage.tsx` ficou na raiz
+  e importa `./utils/planLegend`. Tudo via `git mv` — `git` registra 10 renames 100% e
+  dois a 91–98% (só a linha de import mudou).
+- Os 9 componentes ficaram em `pages/plan/components/`; sete tiveram import reescrito
+  para `@/pages/plan/{hooks,utils}/<x>`, `ExportMenu` e `OutdatedPlanNotice` não
+  importam módulo movido. `usePieceLabels.ts` guarda `./textMeasure` relativo (mesmo
+  diretório).
+- Varredura de alias: os 24 de partida eram 23 depois do ticket 01 (`Layout` já curado
+  lá). Sobravam quatro `../../routes` fora do `plan/` — `useGeneratePlan.ts`,
+  `NotFoundPage.tsx`, `ProjectPage.tsx`, `ProjectsPage.tsx` — todos → `@/routes`.
+  `grep -rn "from '\.\./" src/renderer` agora não devolve nada.
+- `utils/` do topo intacto: `cuttingGeometry.ts`, `svgToPng.ts`, `measureFields.ts`
+  não se moveram. `theme/`, `src/main`, `src/shared` e os nomes `pages/project` /
+  `pages/projects` não foram tocados.
+- `git diff -M`: 10 renames puros + reescrita de import em 12 `.ts`/`.tsx`
+  (33 inserções / 33 deleções, todas linha de import). Nenhum hunk de lógica.
+- Verificado: `npm run typecheck` (0), `npm run lint` (0 erros; 2 warnings
+  pré-existentes no Negócio), `npm test` (190 passam, 22 arquivos), `npm run build -w
+  meu-movel-planejado` (build prova a resolução de alias pelo Vite), `npm run format`.
+  `npx vitest run --reporter=verbose pages/plan` confirma **na saída** que os 4 testes
+  movidos são coletados em `.../pages/plan/utils/*.test.ts` e passam.
+- `npm run dev:movel`: sobe — main, preload e o dev server do renderer compilam com os
+  caminhos novos sem erro de resolução (`Local: http://localhost:5173/`, `starting
+  electron app`). A conferência visual dos quatro caminhos (gerar plano, legenda,
+  exportar PNG, imprimir) fica para o Kvojps rodar na máquina — não dá para dirigir a
+  janela do Electron daqui.
+- Code review (Standards + Spec) sem achados acionáveis. O `pages/plan/` coube no
+  padrão do ticket 01 sem emenda.
