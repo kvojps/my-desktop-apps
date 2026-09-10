@@ -32,9 +32,12 @@ function createWindow(mode: ThemeModeEntity) {
     },
   });
 
+  // `show()` antes de `maximize()`: no Wayland, maximizar uma janela ainda
+  // oculta faz o compositor nunca mapeá-la - o app sobe, pinta e responde, mas
+  // não aparece na tela. No X11 as duas ordens funcionam.
   mainWindow.once('ready-to-show', () => {
-    mainWindow.maximize();
     mainWindow.show();
+    mainWindow.maximize();
   });
 
   // Definida pelo electron-vite ao subir o dev server do renderer.
