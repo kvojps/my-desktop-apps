@@ -141,24 +141,8 @@ src/main/
   atravessar (§5.1 do design system, e o ADR-0002).
 
 Nenhuma camada é pulável, nem quando o service só repassa uma linha ao
-repositório. As pastas de domínio ad-hoc que o §2.2 sancionava antes — `git/` e
-`pr/` no Git Dlog, `files/` no Meu Dinheiro — e as que nunca chegou a mencionar
-têm destino fixo:
-
-| Pasta antiga        | Onde passa a viver                                                                                         |
-| ------------------- | ---------------------------------------------------------------------------------------------------------- |
-| `db/`               | `infra/database/` e `infra/database/repositories/`                                                         |
-| `ipc/`, `schemas/`  | `controllers/` e `controllers/schemas/`                                                                    |
-| `errors/`           | `utils/errors/`                                                                                            |
-| `git/`, `pr/`       | `infra/gateways/git/` e `infra/gateways/pr/` — o que é orquestração (`prService.ts`) sobe para `services/` |
-| `files/`            | `infra/gateways/`                                                                                          |
-| `theme/`            | `infra/gateways/system/` (moldura nativa e `nativeTheme`) mais `services/settingsService.ts`               |
-| `backup/`           | `services/backupService.ts`; diálogo e disco em `infra/gateways/`                                          |
-| `export/`, `print/` | `services/` mais `infra/gateways/`                                                                         |
-| `constants/`        | `domain/` — `monthLabel` é vocabulário, não configuração                                                   |
-
-Os quatro apps estão convertidos. App que divergir deste documento está com um
-bug no código: a divergência é do código, nunca do documento.
+repositório. App que divergir deste documento está com um bug no código: a
+divergência é do código, nunca do documento.
 
 ### 2.3 `src/preload` — a ponte
 
@@ -283,20 +267,8 @@ Quatro regras valem em qualquer uma dessas pastas:
 **Tela** é o termo canônico; "página" é sinônimo a evitar, e a pasta continua
 `pages/`. "Feature" não é vocabulário deste repo, no renderer como no `main`.
 
-Onde os apps ainda divergem, o destino é fixo:
-
-| Onde está hoje                                           | Onde passa a viver                                                              |
-| -------------------------------------------------------- | ------------------------------------------------------------------------------- |
-| `components/<Nome>/index.tsx` sem vizinho                | `components/<Nome>.tsx` — com `moduleResolution: "Bundler"`, nenhum import muda |
-| Módulo puro solto na raiz da tela                        | `pages/<tela>/utils/`                                                           |
-| Módulo puro dentro de `pages/<tela>/components/`         | `pages/<tela>/utils/` — ou `theme/`, quando decide cor (design system, §1.7)    |
-| Schema zod em `pages/<tela>/components/formSchemas.ts`   | `hooks/<domínio>/<domínio>Schema.ts`                                            |
-| Pasta de domínio em camelCase (`hooks/scanPaths/`)       | kebab-case (`hooks/scan-paths/`)                                                |
-| Import relativo que sai da própria pasta (`from '../…'`) | alias `@/` ou `@shared/`                                                        |
-
-A migração é por app, nesta ordem: `git-dlog`, `meu-negocio-app`, e os dois
-restantes depois. Enquanto a fila não anda, app não convertido está divergindo
-deste documento — e a divergência é do código, nunca do documento.
+App que divergir deste documento está com um bug no código: a divergência é do
+código, nunca do documento.
 
 ### 2.5 Nomes na fronteira
 
