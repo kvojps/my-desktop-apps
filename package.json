@@ -14,6 +14,7 @@
     "format:check": "prettier --check .",
     "typecheck": "npm run typecheck --workspaces",
     "build": "npm run build --workspaces",
+    "notices": "npm run notices --workspaces --if-present",
     "dev:dinheiro": "npm run dev -w meu-dinheiro-app",
     "dev:negocio": "npm run dev -w meu-negocio-app",
     "dev:dlog": "npm run dev -w git-dlog",
@@ -23,8 +24,8 @@
     "dist:dlog": "npm run dist:win -w git-dlog",
     "dist:movel": "npm run dist:win -w meu-movel-planejado",
     "dist:linux:dinheiro": "npm run dist:linux -w meu-dinheiro-app",
-    "dist:linux:dlog": "npm run dist:linux -w git-dlog",
     "dist:linux:negocio": "npm run dist:linux -w meu-negocio-app",
+    "dist:linux:dlog": "npm run dist:linux -w git-dlog",
     "dist:linux:movel": "npm run dist:linux -w meu-movel-planejado"
   },
   "devDependencies": {

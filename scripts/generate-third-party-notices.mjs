@@ -42,7 +42,10 @@ function licenseTextOf(dir) {
     .filter((entry) => entry.isFile() && LICENSE_FILE.test(entry.name))
     .sort((a, b) => a.name.localeCompare(b.name))[0];
   if (!match) return null;
-  return readFileSync(join(dir, match.name), 'utf8').trim();
+  // Alguns pacotes publicam o texto da licença com CRLF; normaliza para LF para
+  // o arquivo gerado casar com o `eol=lf` do `.gitattributes` e uma re-geração
+  // não sujar o working tree.
+  return readFileSync(join(dir, match.name), 'utf8').replace(/\r\n/g, '\n').trim();
 }
 
 function authorOf(pkg) {
@@ -68,13 +71,24 @@ function collect(node) {
   }
 }
 
-const tree = JSON.parse(
-  execFileSync('npm', ['ls', '--omit=dev', '--all', '--long', '--json', '-w', app], {
-    cwd: root,
-    encoding: 'utf8',
-    maxBuffer: 64 * 1024 * 1024,
-  }),
-);
+// `npm ls` sai com código != 0 quando a árvore tem qualquer problema (dep
+// extraneous, versão inválida herdada de outro workspace), mas ainda assim
+// emite o JSON completo no stdout. O que interessa aqui é a árvore; lê-se o
+// stdout do erro nesse caso em vez de abortar.
+function npmLs() {
+  try {
+    return execFileSync('npm', ['ls', '--omit=dev', '--all', '--long', '--json', '-w', app], {
+      cwd: root,
+      encoding: 'utf8',
+      maxBuffer: 64 * 1024 * 1024,
+    });
+  } catch (err) {
+    if (err.stdout) return err.stdout;
+    throw err;
+  }
+}
+
+const tree = JSON.parse(npmLs());
 collect(tree);
 
 // O Electron é devDependency porque não é importado pelo bundle, mas é o binário

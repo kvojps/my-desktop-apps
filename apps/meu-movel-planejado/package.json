@@ -12,8 +12,9 @@
     "preview": "electron-vite preview",
     "build": "electron-vite build",
     "typecheck": "tsc --noEmit",
-    "dist:win": "electron-vite build && electron-builder --win",
-    "dist:linux": "electron-vite build && electron-builder --linux deb"
+    "notices": "node ../../scripts/generate-third-party-notices.mjs meu-movel-planejado",
+    "dist:win": "npm run notices && electron-vite build && electron-builder --win",
+    "dist:linux": "npm run notices && electron-vite build && electron-builder --linux deb"
   },
   "build": {
     "appId": "com.meumovelplanejado.app",
@@ -32,6 +33,14 @@
       {
         "from": "resources",
         "to": "resources"
+      },
+      {
+        "from": "THIRD-PARTY-NOTICES.md",
+        "to": "THIRD-PARTY-NOTICES.md"
+      },
+      {
+        "from": "../../LICENSE",
+        "to": "LICENSE"
       }
     ],
     "win": {
@@ -39,7 +48,7 @@
       "target": "nsis"
     },
     "linux": {
-      "icon": "build/icon.png",
+      "icon": "resources/icon.png",
       "target": "deb",
       "category": "Office",
       "maintainer": "kvojps <josebazjunior09@gmail.com>"
