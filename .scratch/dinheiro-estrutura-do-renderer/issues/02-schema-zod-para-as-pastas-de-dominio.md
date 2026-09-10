@@ -1,4 +1,4 @@
-Status: aberto
+Status: resolvido
 Blocked by: 01
 
 # Meu Dinheiro: schema zod para as pastas de domínio
@@ -57,3 +57,33 @@ importam `@/pages/month-detail/hooks/<x>Schema`: `AddExpenseDialog`,
   morarem no mesmo arquivo.
 - Não criar `hooks/expenses/` nem `hooks/incomes/` no topo — é domínio de uma tela.
 - Não mexer no `theme/` (ticket 03).
+
+## Comments
+
+Implementado. Os dois `formSchemas.ts` se desfizeram:
+
+- `settings/` → `hooks/bank-accounts/bankAccountSchema.ts`,
+  `hooks/categories/categorySchema.ts`,
+  `hooks/default-expenses/defaultExpenseSchema.ts`,
+  `hooks/default-incomes/defaultIncomeSchema.ts`.
+- `month-detail/` → `pages/month-detail/hooks/expenseSchema.ts` (com
+  `payFormSchema`) e `incomeSchema.ts` (com `receiveFormSchema`).
+- `optionalNumberField`/`optionalDayField` são usados por mais de um domínio
+  (o primeiro por três, e agora por duas telas), então foram para
+  `utils/formFields.ts` como módulo puro — a ramificação `utils/` do charter do
+  §2.4, não a co-locação. `categorySchema.ts` não usa helper nenhum.
+- Os 4 formulários e os 6 diálogos importam por alias `@/`; nenhum `./formSchemas`
+  sobra.
+
+Forma do schema intacta: mesmos campos, mesmas mensagens, mesmo `…FormValues`
+inferido. `git diff` é só movimentação de schema e troca de import.
+
+Verificação: `npm run typecheck`, `npm run lint` (só os 2 warnings pré-existentes
+do Negócio), `npm test` (187 ok), `npm run build -w meu-dinheiro-app`,
+`prettier --check` nos arquivos tocados — todos verdes.
+
+Code-review (Standards + Spec): sem violação dura nos dois eixos. Único ponto
+levantado — `utils/formFields.ts` servir também o `month-detail`, cuja seção do
+ticket não repete a regra de promoção do helper — fica: a alternativa estrita
+(duplicar o helper em cada arquivo) é pior, e `optionalNumberField` passa a ser
+"usado por 2+ telas", o caso literal do `utils/` do topo no §2.4.
