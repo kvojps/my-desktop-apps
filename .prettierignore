@@ -10,3 +10,4 @@ uploads
 *.db-wal
 *.tsbuildinfo
 package-lock.json
+apps/*/THIRD-PARTY-NOTICES.md

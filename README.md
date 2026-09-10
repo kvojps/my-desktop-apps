@@ -387,3 +387,39 @@ Fica em cada app, porque é específico dele:
 - `electron.vite.config.ts` — usa `__dirname` para resolver os aliases
 - `package.json` — deps de runtime, config do `electron-builder`, versão do Electron
 - `build/icon.ico` e `resources/icon.png`
+
+## 4. Licença e créditos
+
+O código deste repositório está sob a licença MIT, no [`LICENSE`](LICENSE) da raiz.
+
+### 4.1 Avisos de terceiros
+
+Os apps são distribuídos como binários, e isso carrega as obrigações das licenças
+que eles empacotam: a MIT exige que o aviso de copyright acompanhe a cópia, e a
+SIL OFL 1.1 das fontes (Geist, Inter, JetBrains Mono) exige o mesmo dos arquivos
+da fonte. O `electron-builder` não faz isso sozinho.
+
+O `git-dlog` gera esse aviso a partir da árvore de dependências de produção
+resolvida pelo npm:
+
+```bash
+npm run notices -w git-dlog
+```
+
+O resultado é o `THIRD-PARTY-NOTICES.md` do app, versionado e instalado junto do
+executável. Os scripts `dist:*` regeneram antes de empacotar, então o arquivo não
+sai de sincronia com o `package-lock.json` — mas ele é gerado, não editado à mão.
+Os avisos de Chromium e Node.js vêm do próprio Electron, no
+`LICENSES.chromium.html` que o `electron-builder` instala ao lado do binário.
+
+Para cobrir outro app, o gerador recebe o nome do workspace:
+`node scripts/generate-third-party-notices.mjs <app>`.
+
+### 4.2 Orca
+
+A direção visual do `git-dlog` é inspirada no
+[Orca](https://github.com/stablyai/orca) (MIT), da Stably. O que veio de lá foram
+decisões de design — paleta, medidas, composição da navegação — extraídas do
+commit fixado nos [tokens do piloto](apps/git-dlog/docs/orca-theme.md), com os
+valores adaptados às regras de contraste deste repositório. Nenhum código do Orca
+foi copiado, e os projetos não têm vínculo.

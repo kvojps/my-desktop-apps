@@ -12,8 +12,9 @@
     "build": "electron-vite build",
     "preview": "electron-vite preview",
     "typecheck": "tsc --noEmit",
-    "dist:win": "electron-vite build && electron-builder --win",
-    "dist:linux": "electron-vite build && electron-builder --linux deb"
+    "dist:win": "npm run notices && electron-vite build && electron-builder --win",
+    "dist:linux": "npm run notices && electron-vite build && electron-builder --linux deb",
+    "notices": "node ../../scripts/generate-third-party-notices.mjs git-dlog"
   },
   "build": {
     "appId": "com.gitdlog.desktop",
@@ -32,6 +33,14 @@
       {
         "from": "resources",
         "to": "resources"
+      },
+      {
+        "from": "THIRD-PARTY-NOTICES.md",
+        "to": "THIRD-PARTY-NOTICES.md"
+      },
+      {
+        "from": "../../LICENSE",
+        "to": "LICENSE"
       }
     ],
     "win": {
@@ -76,5 +85,6 @@
     "electron-builder": "^26.15.3",
     "electron-vite": "^5.0.0",
     "tailwindcss": "^4.3.3"
-  }
+  },
+  "license": "MIT"
 }
