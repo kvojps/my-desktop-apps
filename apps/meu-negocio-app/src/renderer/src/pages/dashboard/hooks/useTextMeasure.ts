@@ -6,9 +6,16 @@ import { useEffect, useMemo, useState } from 'react';
  * caiba no rótulo mais largo, ou uma margem direita que caiba no valor mais
  * largo, precisa medir por fora.
  *
- * Vive num módulo ao lado do `chartTheme` porque os dois gráficos de barra
- * horizontal do dashboard precisam da mesma medida: cada cópia é uma chance de
- * uma delas ficar para trás na próxima mudança de tipografia.
+ * Vive num hook da tela porque os dois gráficos de barra horizontal do dashboard
+ * precisam da mesma medida: cada cópia é uma chance de uma delas ficar para trás
+ * na próxima mudança de tipografia.
+ *
+ * As três constantes de folga (`TICK_LEFT_PADDING`, `TICK_BAR_GAP`,
+ * `LABEL_BAR_GAP`) moram aqui, e não no código que desenha, porque são o
+ * contrato entre o espaço que este hook reserva e a coordenada em que o
+ * `renderLeftAlignedTick` e o `ValueLabels` do `AccountsReceivable` pintam:
+ * separar a constante da fórmula que lhe dá sentido é garantir a divergência que
+ * o módulo existe para evitar.
  */
 
 export const TICK_LEFT_PADDING = 4;
@@ -120,16 +127,4 @@ export interface TextMeasure {
 export function useTextMeasure(): TextMeasure {
   const fontsReady = useFontsReady();
   return useMemo(() => ({ fontsReady, getYAxisWidth, getLabelMargin }), [fontsReady]);
-}
-
-export function renderLeftAlignedTick(
-  props: { y?: number | string; payload?: { value: string } },
-  fill: string,
-) {
-  const { y, payload } = props;
-  return (
-    <text x={TICK_LEFT_PADDING} y={y} dy={4} textAnchor="start" fontSize={12} fill={fill}>
-      {payload?.value}
-    </text>
-  );
 }

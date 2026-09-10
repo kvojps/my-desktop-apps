@@ -14,10 +14,11 @@ import {
   useYAxisTicks,
 } from 'recharts';
 import { EmptyState } from '@/components/EmptyState';
+import { LABEL_BAR_GAP, useTextMeasure } from '@/pages/dashboard/hooks/useTextMeasure';
+import type { AgingBucket, BucketRow, Receivables } from '@/pages/dashboard/utils/receivables';
+import { tooltipProps } from '@/theme/chartTheme';
 import { formatCurrency } from '@/utils/format';
-import { tooltipProps } from '../chartTheme';
-import type { AgingBucket, BucketRow, Receivables } from '../receivables';
-import { LABEL_BAR_GAP, renderLeftAlignedTick, useTextMeasure } from '../textMeasure';
+import { renderLeftAlignedTick } from './renderLeftAlignedTick';
 
 interface AccountsReceivableProps {
   receivables: Receivables;

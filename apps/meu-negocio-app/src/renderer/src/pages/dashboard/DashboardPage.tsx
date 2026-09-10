@@ -15,12 +15,14 @@ import { getOrderProfit, getOrderTotal } from '@shared/types/order';
 import type { Order } from '@shared/types/order';
 import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
+import { MonthRangeFilter } from '@/components/MonthRangeFilter';
 import { PageHeader } from '@/components/PageHeader';
 import { TONE_COLOR } from '@/components/StatCard';
 import type { StatTone } from '@/components/StatCard';
 import { useOrders } from '@/hooks/orders/useOrders';
 import { useProducts } from '@/hooks/products/useProducts';
 import { contentQuery } from '@/theme';
+import { CHART_MIN_HEIGHT, axisTick, tooltipProps } from '@/theme/chartTheme';
 import {
   enumerateMonthKeys,
   monthDiff,
@@ -29,11 +31,10 @@ import {
   parseLocalDate,
 } from '@/utils/date';
 import { formatCurrency, formatCurrencyCompact, formatPercent } from '@/utils/format';
+import { useTextMeasure } from './hooks/useTextMeasure';
 import { AccountsReceivable } from './components/AccountsReceivable';
-import { MonthRangeFilter } from './components/MonthRangeFilter';
-import { CHART_MIN_HEIGHT, axisTick, tooltipProps } from './chartTheme';
-import { buildReceivables } from './receivables';
-import { renderLeftAlignedTick, useTextMeasure } from './textMeasure';
+import { renderLeftAlignedTick } from './components/renderLeftAlignedTick';
+import { buildReceivables } from './utils/receivables';
 
 function formatShortMonth(monthKey: string, withYear: boolean): string {
   const date = monthKeyToDate(monthKey);

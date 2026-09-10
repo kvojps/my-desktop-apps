@@ -1,5 +1,5 @@
 import type { Theme } from '@mui/material/styles';
-import { CONTROL_RADIUS } from '@/theme';
+import { CONTROL_RADIUS } from './index';
 
 /**
  * Piso da altura de gráfico — nomeado e nunca derivado do conteúdo, que é o que

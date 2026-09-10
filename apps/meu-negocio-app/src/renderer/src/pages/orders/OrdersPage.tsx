@@ -9,6 +9,9 @@ import { DataTable } from '@/components/DataTable';
 import type { Column } from '@/components/DataTable';
 import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
+import { MonthRangeFilter } from '@/components/MonthRangeFilter';
+import { OrderFilters } from '@/components/OrderFilters';
+import { OrderViewModal } from '@/components/OrderViewModal';
 import { PageHeader } from '@/components/PageHeader';
 import { useOrderConfirm } from '@/hooks/orders/useOrderConfirm';
 import { useOrderForm } from '@/hooks/orders/useOrderForm';
@@ -18,11 +21,8 @@ import { useProducts } from '@/hooks/products/useProducts';
 import { usePagination } from '@/hooks/usePagination';
 import { formatDate } from '@/utils/date';
 import { formatCurrency } from '@/utils/format';
-import { MonthRangeFilter } from '../dashboard/components/MonthRangeFilter';
-import { OrderFilters } from './components/OrderFilters';
 import { OrderFormModal } from './components/OrderFormModal';
 import { OrderStatusSelect } from './components/OrderStatusSelect';
-import { OrderViewModal } from './components/OrderViewModal';
 
 export function OrdersPage() {
   const { products } = useProducts();

@@ -2,7 +2,7 @@ import { TravelExploreOutlined } from '@mui/icons-material';
 import { Button } from '@mui/material';
 import { Link } from 'react-router-dom';
 import { EmptyState } from '@/components/EmptyState';
-import { ROUTES } from '../../routes';
+import { ROUTES } from '@/routes';
 
 /**
  * Uma rota inexistente é uma página vazia como qualquer outra — ícone, uma
