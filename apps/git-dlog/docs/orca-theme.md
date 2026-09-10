@@ -41,3 +41,36 @@ publicados pelo mesmo tema MUI em `CssBaseline`, inclusive para futuros portais;
 os dois sistemas recebem o modo inicial do preload e a persistência existente.
 O fundo nativo acompanha os novos valores pelo gateway atual, sem novo contrato.
 Somente a navegação usa controles locais Radix e Lucide nesta etapa.
+
+## Validação da etapa 01 — 2026-09-10
+
+Contraste WCAG calculado em sRGB: texto secundário sobre seleção 5,27:1 no
+claro e 5,86:1 no escuro; foco contra seleção 4,48:1 e 4,16:1. Success, error e
+info sobre o papel do respectivo modo permanecem acima de 4,5:1 (mínimo 4,75:1).
+
+- Typecheck dos quatro apps aprovado; build de produção do Git Dlog aprovado.
+- Suíte completa: 21 arquivos, 187 testes aprovados; teste direcionado de canais
+  IPC: 6 aprovados. Nenhuma regra pura foi alterada, sem novos testes de UI.
+- Lint sem erros; dois avisos preexistentes de dependências de hooks em
+  `meu-negocio-app` (OrdersContext e ProductsContext).
+- Electron real, build de produção, perfil temporário: três rotas nos temas claro
+  e escuro, viewports 960 × 640 e 1280 × 800, sem overflow horizontal. Capturas
+  inspecionadas de Configurações no claro, Diretórios no escuro e diálogo de token.
+- Lateral 224px inicialmente e 64px recolhida; Enter recolhe e ativa os links;
+  Tab percorre controles e foco tem anel de 2px nos dois temas. Tema claro salvo
+  pela navegação restaurado após encerrar e reabrir o Electron, lateral expandida.
+- Estado sem diretórios, detecção das integrações e abertura/cancelamento do
+  diálogo de token conferidos; cancelar devolve foco ao botão que abriu o diálogo.
+- Limites: o gerenciador de janelas manteve a janela externa maximizada apesar
+  das chamadas de redimensionamento; os tamanhos foram aplicados ao viewport via
+  DevTools no Electron. Falta a conferência manual da moldura em 960 × 640 e
+  operações com dados reais (seletor nativo, cadastro/remoção, fetch e token).
+  Não houve mudança de contratos ou implementação dessas operações. O ambiente
+  exigiu `--no-sandbox` porque seu helper SUID do Electron não está configurado;
+  isso foi somente argumento da execução de validação, sem alterar o app.
+
+Revisão em dois agentes, base `cbdebc59bcce812cf48d9837d61cbc0eb44c8a1f`:
+Standards sem violações documentadas, uma sugestão de baixa prioridade sobre
+repetição dos tokens entre paleta MUI e variáveis CSS; Spec sem defeitos de
+implementação. A sugestão fica registrada para a consolidação do tema; a
+validação manual acima permanece pendente e não é substituída pela suíte pura.
