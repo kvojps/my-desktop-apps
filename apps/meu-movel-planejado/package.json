@@ -2,6 +2,9 @@
   "name": "meu-movel-planejado",
   "version": "1.0.0",
   "private": true,
+  "description": "Meu Móvel Planejado - orçamentos de móveis planejados",
+  "author": "kvojps <josebazjunior09@gmail.com>",
+  "homepage": "https://github.com/kvojps/my-desktop-apps",
   "main": "./out/main/index.js",
   "scripts": {
     "dev": "electron-vite dev",
@@ -9,7 +12,8 @@
     "build": "electron-vite build",
     "preview": "electron-vite preview",
     "typecheck": "tsc --noEmit",
-    "dist:win": "electron-vite build && electron-builder --win"
+    "dist:win": "electron-vite build && electron-builder --win",
+    "dist:linux": "electron-vite build && electron-builder --linux deb"
   },
   "build": {
     "appId": "com.meumovelplanejado.app",
@@ -33,6 +37,12 @@
     "win": {
       "icon": "build/icon.ico",
       "target": "nsis"
+    },
+    "linux": {
+      "target": "deb",
+      "icon": "build/icon.png",
+      "category": "Office",
+      "maintainer": "kvojps <josebazjunior09@gmail.com>"
     },
     "nsis": {
       "oneClick": false,
