@@ -1,6 +1,14 @@
 import { PaletteMode, ThemeOptions, createTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 
+/**
+ * A escolha do rótulo sobre um preenchimento colorido (§1.8) vive em
+ * `labelOn.ts` e é reexportada daqui: quem consome fala com o módulo de tema,
+ * como fala para `SURFACE_RADIUS` e `CONTROL_RADIUS`, e a conta de contraste
+ * fica num arquivo que não arrasta o MUI para a suíte de testes.
+ */
+export { labelOn } from './labelOn';
+
 /** Raio das superfícies (cards, papers, diálogos). */
 export const SURFACE_RADIUS = 12;
 /** Raio dos controles (botões, inputs, toggles), um degrau abaixo das superfícies. */

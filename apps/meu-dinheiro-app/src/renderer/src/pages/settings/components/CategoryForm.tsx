@@ -6,6 +6,7 @@ import { Controller, useForm } from 'react-hook-form';
 import { Category } from '@shared/types/category';
 import { Modal } from '@/components/Modal';
 import { CategoryFormValues, categoryFormSchema } from '@/hooks/categories/categorySchema';
+import { labelOn } from '@/theme';
 
 export const CATEGORY_COLORS = [
   '#5C6BC0',
@@ -19,19 +20,6 @@ export const CATEGORY_COLORS = [
   '#B85C38',
   '#757575',
 ];
-
-/**
- * As cores são escolhidas pelo usuário, então o check não pode ser branco fixo:
- * sobre as amostras claras da paleta ele sumia. Decide pela luminância relativa
- * da própria amostra, que é a mesma conta do `contrastText` do tema.
- */
-function checkColorOn(hex: string): string {
-  const channels = [1, 3, 5]
-    .map((i) => parseInt(hex.substr(i, 2), 16) / 255)
-    .map((c) => (c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)));
-  const luminance = 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2];
-  return luminance > 0.4 ? 'rgba(0, 0, 0, 0.87)' : '#fff';
-}
 
 interface CategoryFormProps {
   open: boolean;
@@ -118,7 +106,7 @@ export function CategoryForm({ open, onClose, onSave, initial }: CategoryFormPro
                 }}
               >
                 {field.value === swatch && (
-                  <Check fontSize="small" sx={{ color: checkColorOn(swatch) }} />
+                  <Check fontSize="small" sx={{ color: labelOn(swatch) }} />
                 )}
               </ButtonBase>
             ))}

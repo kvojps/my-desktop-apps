@@ -13,8 +13,8 @@ import {
 } from 'recharts';
 import { Month } from '@shared/types/month';
 import { BALANCE_LABELS, computeMonthBalance } from '@/hooks/months/useMonthBalance';
+import { CHART_HEIGHT, axisStyle, tooltipProps } from '@/theme/chartTheme';
 import { formatCurrency } from '@/utils/format';
-import { CHART_HEIGHT, axisStyle, tooltipProps } from './chartTheme';
 
 /**
  * O eixo X recebe o mês abreviado, não o rótulo inteiro. Doze rótulos como

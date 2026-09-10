@@ -11,8 +11,8 @@ import {
   YAxis,
 } from 'recharts';
 import type { CategoryTotalRow } from '@/hooks/categories/useCategoryTotals';
+import { CHART_HEIGHT, axisStyle, tooltipProps } from '@/theme/chartTheme';
 import { formatCurrency } from '@/utils/format';
-import { CHART_HEIGHT, axisStyle, tooltipProps } from './chartTheme';
 
 /** Largura de um dígito no `caption` de 12px, com o `tabular-nums` do `body`. */
 const LABEL_CHAR_WIDTH = 7;

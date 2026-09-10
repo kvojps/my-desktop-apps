@@ -1,5 +1,5 @@
 import type { Theme } from '@mui/material';
-import { CONTROL_RADIUS } from '@/theme';
+import { CONTROL_RADIUS } from './index';
 
 /**
  * Altura reservada para o gráfico de qualquer aba do Histórico.

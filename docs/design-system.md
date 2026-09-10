@@ -338,15 +338,14 @@ O `meu-movel-planejado` é a primeira implementação da regra, em
 `apps/meu-movel-planejado/src/renderer/src/theme/categorical.ts`, ao lado da
 paleta que ela mede.
 
-**Pendência (2026-08-22):** o `meu-dinheiro-app` faz exatamente essa escolha em
-`apps/meu-dinheiro-app/src/renderer/src/pages/settings/components/CategoryForm.tsx`,
-para o check sobre a amostra de cor da categoria, com um limiar fixo de `0.4`
-sobre a luminância. Duas divergências, nesta
-ordem de gravidade: o limiar de 0.4 devolve **branco para os dez swatches**,
-inclusive `#FB8C00` (2.37:1) e `#00ACC1` (2.74:1), que não passam nem no 3:1 de
-objeto gráfico exigido do check; e a conta mora numa tela, fora do módulo de tema.
-Fica registrado como bug do código, que é o que a introdução deste documento manda
-fazer com divergência — corrigi-lo é trabalho de outra feature.
+O `meu-dinheiro-app` é a segunda, em
+`apps/meu-dinheiro-app/src/renderer/src/theme/labelOn.ts`, reexportada de
+`theme/index.ts` e consumida pelo check sobre a amostra de cor da categoria em
+`CategoryForm.tsx`. Antes disso a tela decidia o check por um limiar fixo de `0.4`
+sobre a luminância, que devolvia branco para os dez swatches — inclusive `#FB8C00`
+(2.37:1) e `#00ACC1` (2.74:1), que não passam nem no 3:1 exigido do check. Como as
+dez cores são oferecidas ao usuário (§1.7), não há paleta a encolher: `labelOn`
+mede a que ele escolheu.
 
 ## 2. Forma, tipografia e espaço
 

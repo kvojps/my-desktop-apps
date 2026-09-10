@@ -17,11 +17,11 @@ import { useCategoryTotals } from '@/hooks/categories/useCategoryTotals';
 import { BALANCE_LABELS, sumMonthBalances } from '@/hooks/months/useMonthBalance';
 import { useMonths } from '@/hooks/months/useMonths';
 import { ROUTES, monthDetailPath } from '@/routes';
+import { CHART_HEIGHT } from '@/theme/chartTheme';
 import { formatCurrency } from '@/utils/format';
 import { CategoryBreakdownChart } from './components/CategoryBreakdownChart';
 import { MonthComparisonChart } from './components/MonthComparisonChart';
 import { YearControl } from './components/YearControl';
-import { CHART_HEIGHT } from './components/chartTheme';
 
 type TabValue = 'comparativo' | 'categories';
 
