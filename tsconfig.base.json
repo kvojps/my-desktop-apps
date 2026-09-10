@@ -12,6 +12,12 @@
     "noEmit": true,
     "jsx": "react-jsx",
     "strict": true,
-    "types": ["node"]
-  }
+    "types": ["node"],
+    "baseUrl": "${configDir}",
+    "paths": {
+      "@shared/*": ["src/shared/*"],
+      "@/*": ["src/renderer/src/*"]
+    }
+  },
+  "include": ["${configDir}/src", "${configDir}/electron.vite.config.ts"]
 }
