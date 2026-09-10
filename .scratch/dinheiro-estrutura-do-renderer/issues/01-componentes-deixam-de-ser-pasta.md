@@ -1,4 +1,4 @@
-Status: aberto
+Status: resolvido
 
 # Meu Dinheiro: componentes deixam de ser pasta
 
@@ -49,3 +49,18 @@ relativo. Depois disso o renderer fica sem nenhum `from '../…'`.
 - Não tocar em `pages/month-detail/components/expenseColumns.tsx` /
   `incomeColumns.tsx`: têm JSX, ficam em `components/` pelo precedente do ticket 04.
 - Não mexer em schema zod (ticket 02) nem em `theme/` (ticket 03).
+
+## Comments
+
+Implementado. As 15 pastas viraram `components/<Nome>.tsx` por `git mv` puro
+(rename com `similarity index 100%`, zero churn de import — `moduleResolution:
+"Bundler"` resolve o alias para os dois layouts). `ItemActionDialogs.tsx`:
+`../hooks/useItemActions` → `@/pages/month-detail/hooks/useItemActions`; depois
+disso `grep -rn "from '\.\./"` no renderer não acha nada. `Layout` ao subir de
+nível só importa por `@/` e por pacote — nada relativo que resolva fora de `src/`.
+
+Verificação: `npm run typecheck`, `npm run lint` (só os 2 warnings pré-existentes
+do Negócio), `npm test` (187 ok), `npm run build -w meu-dinheiro-app`,
+`prettier --check` no renderer — todos verdes. `git diff --stat`: 15 renames +
+1 linha de import, nenhum hunk de lógica. Code-review (Standards + Spec): limpo
+nos dois eixos.

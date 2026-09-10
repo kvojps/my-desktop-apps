@@ -1,5 +1,5 @@
 import { ConfirmDialog } from '@/components/ConfirmDialog';
-import { ItemActions } from '../hooks/useItemActions';
+import { ItemActions } from '@/pages/month-detail/hooks/useItemActions';
 
 interface ItemActionDialogsProps<T extends { id: number; name: string }> {
   actions: ItemActions<T>;
