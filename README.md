@@ -176,6 +176,10 @@ foco da janela é o exemplo. Ver
 
 `HashRouter` (necessário no `file://` do build), MUI com tema em `theme/`, imports
 por alias (`@/` e `@shared/`) sempre que saírem da própria pasta.
+No piloto Git Dlog, Tailwind e componentes locais shadcn/Radix coexistem com MUI;
+Geist e Lucide são permitidos nas partes migradas, conforme os
+[tokens locais](apps/git-dlog/docs/orca-theme.md). Os demais apps mantêm MUI e
+Material Icons; não há compartilhamento de código.
 
 A organização é **horizontal no topo e vertical dentro de `pages/<tela>/`**: as
 pastas do topo são as camadas do renderer, e dentro da tela valem as mesmas —
@@ -222,7 +226,7 @@ src/renderer/src/
   `main` que não depende de `electron` entra no bundle sem erro e duplica o
   domínio em silêncio, e decidir o que atravessa o IPC é do `main`
   ([ADR-0003](docs/adr/0003-logica-de-dominio-no-main.md)).
-- **`assets/`** — o logo do app, e só. Ícone é `@mui/icons-material`; imagem que
+- **`assets/`** — o logo do app, e só. Ícone é `@mui/icons-material` (Lucide nas partes migradas do piloto Git Dlog); imagem que
   a tela gera não mora aqui.
 - **`theme/`** — o tema MUI e o provider do modo claro/escuro. Cor que se calcula
   em vez de se escolher mora aqui também, e não na tela que precisou dela
@@ -262,7 +266,8 @@ src/renderer/src/
   `showError` para erro vindo do IPC, numa fila de uma mensagem por vez. Falha ao
   carregar uma tela usa `components/ErrorState`, que oferece tentar de novo e
   abrir a pasta de dados. O texto exibido sai sempre de `describeAppError`.
-- **Ícones** — sempre `@mui/icons-material`. Não há conjunto de SVG próprio.
+- **Ícones** — `@mui/icons-material`; no piloto Git Dlog, `lucide-react` nas
+  partes migradas. Não há conjunto de SVG próprio.
 
 Quatro regras valem em qualquer uma dessas pastas:
 

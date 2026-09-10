@@ -12,8 +12,8 @@ import type { ThemeModeEntity } from '../../../domain/settings';
  * `show: false` + `ready-to-show`.
  */
 const BACKGROUND: Record<ThemeModeEntity, string> = {
-  light: '#F4F6FB',
-  dark: '#10131C',
+  light: '#FFFFFF',
+  dark: '#0a0a0a',
 };
 
 /**

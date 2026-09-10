@@ -23,8 +23,8 @@ declare module '@mui/material/styles' {
  * sempre um degrau abaixo, para botões, inputs, toggles e ladrilhos de ícone
  * (docs/design-system.md §2).
  */
-export const SURFACE_RADIUS = 12;
-export const CONTROL_RADIUS = 8;
+export const SURFACE_RADIUS = 10;
+export const CONTROL_RADIUS = 6;
 
 // Rótulo correto por §1.3 do design system: branco no claro e
 // rgba(0,0,0,0.87) no escuro para toda cor de estado, exceto warning, que é
@@ -64,12 +64,16 @@ const getDesignTokens = (mode: PaletteMode): ThemeOptions => ({
     },
     background:
       mode === 'light'
-        ? { default: '#F4F6FB', paper: '#FFFFFF' }
-        : { default: '#10131C', paper: '#181C27' },
-    divider: mode === 'light' ? '#E4E8F1' : '#2A2F3D',
+        ? { default: '#FFFFFF', paper: '#FFFFFF' }
+        : { default: '#0a0a0a', paper: '#171717' },
+    text: {
+      primary: mode === 'light' ? '#0a0a0a' : '#fafafa',
+      secondary: mode === 'light' ? '#666666' : '#a1a1a1',
+    },
+    divider: mode === 'light' ? '#e5e5e5' : 'rgba(255, 255, 255, 0.07)',
   },
   typography: {
-    fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+    fontFamily: '"Geist", "Roboto", "Helvetica", "Arial", sans-serif',
     mono: MONO_FONT_FAMILY,
     h4: { fontWeight: 700, letterSpacing: -0.5 },
     h5: { fontWeight: 700, letterSpacing: -0.3 },
@@ -84,8 +88,16 @@ const getDesignTokens = (mode: PaletteMode): ThemeOptions => ({
   components: {
     MuiCssBaseline: {
       styleOverrides: {
+        ':root': {
+          '--dlog-sidebar': mode === 'light' ? '#fafafa' : '#171717',
+          '--dlog-foreground': mode === 'light' ? '#0a0a0a' : '#fafafa',
+          '--dlog-muted-foreground': mode === 'light' ? '#666666' : '#a1a1a1',
+          '--dlog-accent': mode === 'light' ? '#f5f5f5' : '#262626',
+          '--dlog-border': mode === 'light' ? '#e5e5e5' : 'rgba(255, 255, 255, 0.07)',
+          '--dlog-focus': mode === 'light' ? '#2771CA' : '#3987e5',
+        },
         body: {
-          scrollbarColor: mode === 'light' ? '#c1c1c1 #f4f6fb' : '#3a3f4d #10131c',
+          scrollbarColor: mode === 'light' ? '#c1c1c1 #ffffff' : '#404040 #0a0a0a',
           fontVariantNumeric: 'tabular-nums',
         },
         '*:focus-visible': {
@@ -112,7 +124,7 @@ const getDesignTokens = (mode: PaletteMode): ThemeOptions => ({
       styleOverrides: {
         root: {
           border: '1px solid',
-          borderColor: mode === 'light' ? '#E4E8F1' : '#2A2F3D',
+          borderColor: mode === 'light' ? '#e5e5e5' : 'rgba(255, 255, 255, 0.07)',
           boxShadow:
             mode === 'light' ? '0 1px 2px rgba(16, 24, 40, 0.04)' : '0 1px 2px rgba(0, 0, 0, 0.2)',
         },
@@ -123,7 +135,7 @@ const getDesignTokens = (mode: PaletteMode): ThemeOptions => ({
       styleOverrides: {
         root: {
           borderBottom: '1px solid',
-          borderColor: mode === 'light' ? '#E4E8F1' : '#2A2F3D',
+          borderColor: mode === 'light' ? '#e5e5e5' : 'rgba(255, 255, 255, 0.07)',
         },
       },
     },

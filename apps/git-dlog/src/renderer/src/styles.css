@@ -1,11 +1,78 @@
-html,
-body,
-#root {
-  height: 100%;
-  margin: 0;
-  width: 100%;
+/* Sem Preflight: preservar o reset e os componentes MUI durante a migração. */
+@layer theme, components, utilities;
+@import 'tailwindcss/theme.css' layer(theme) prefix(orca);
+@import 'tailwindcss/utilities.css' layer(utilities) prefix(orca);
+@source './';
+
+@theme inline {
+  --color-sidebar: var(--dlog-sidebar);
+  --color-foreground: var(--dlog-foreground);
+  --color-muted-foreground: var(--dlog-muted-foreground);
+  --color-accent: var(--dlog-accent);
+  --radius-md: 6px;
 }
 
-body {
-  min-height: 100vh;
+@layer components {
+  html,
+  body,
+  #root {
+    height: 100%;
+    margin: 0;
+    width: 100%;
+  }
+
+  body {
+    min-height: 100vh;
+  }
+
+  .orca-sidebar {
+    width: 224px;
+    border-right: 1px solid var(--dlog-border);
+  }
+
+  .orca-sidebar[data-collapsed='true'] {
+    width: 64px;
+  }
+
+  .orca-button {
+    position: relative;
+    border: 0;
+    background: transparent;
+    font-family: inherit;
+    line-height: 20px;
+    text-decoration: none;
+    cursor: pointer;
+    text-align: left;
+  }
+
+  .orca-button svg {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+  }
+
+  .orca-sidebar[data-collapsed='true'] .orca-button {
+    justify-content: center;
+    padding-inline: 0;
+  }
+
+  .orca-button[aria-current='page']::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    width: 3px;
+    height: 16px;
+    border-radius: 6px;
+    background: currentColor;
+  }
+
+  .orca-button:focus-visible {
+    outline: 2px solid var(--dlog-focus);
+    outline-offset: 2px;
+  }
+
+  .orca-content {
+    container-type: inline-size;
+    container-name: content;
+  }
 }

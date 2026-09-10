@@ -6,7 +6,9 @@ O `apps/git-dlog` foi escolhido como piloto de uma direção visual inspirada no
 Orca, conforme o [plano aprovado por decisões](../apps/git-dlog/docs/orca-design-plan.md).
 Durante a migração incremental, ele pode substituir paleta, fontes, raios,
 superfícies, controles e navegação pelas convenções registradas no plano e no tema
-do piloto. Essa exceção inclui a coexistência temporária das duas bases visuais.
+do piloto. Essa exceção inclui a coexistência temporária de MUI com Tailwind sem Preflight
+e componentes locais shadcn/Radix, Geist e ícones Lucide nas partes migradas.
+Os valores concretos estão nos [tokens do piloto](../apps/git-dlog/docs/orca-theme.md).
 As exigências de acessibilidade, contraste e clareza dos estados continuam válidas.
 
 Os demais apps seguem a norma abaixo. Após a validação do piloto, as convenções
