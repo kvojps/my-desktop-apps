@@ -2,6 +2,9 @@ import { useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import type { Plan, PlanShortfall } from '@shared/types/plan';
 import type { Project } from '@shared/types/project';
+import type { PlanLegend } from '@/pages/plan/utils/planLegend';
+import { buildPlanPieceList } from '@/pages/plan/utils/planPrint';
+import { SHORTFALL_COPY, describeRejection } from '@/pages/plan/utils/shortfallCopy';
 import { describeFitRule } from '@/utils/cuttingGeometry';
 import { formatDateTime } from '@/utils/date';
 import {
@@ -11,9 +14,6 @@ import {
   formatPercent,
   formatSquareMeters,
 } from '@/utils/format';
-import type { PlanLegend } from '../planLegend';
-import { buildPlanPieceList } from '../planPrint';
-import { SHORTFALL_COPY, describeRejection } from '../shortfallCopy';
 import { PrintSheetDrawing } from './PrintSheetDrawing';
 
 /**

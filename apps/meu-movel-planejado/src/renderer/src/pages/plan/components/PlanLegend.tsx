@@ -1,7 +1,7 @@
 import { Box, Stack, Typography } from '@mui/material';
+import type { SheetLegendEntry } from '@/pages/plan/utils/planLegend';
 import { CONTROL_RADIUS, labelOn } from '@/theme';
 import { formatDimensions } from '@/utils/format';
-import type { SheetLegendEntry } from '../planLegend';
 
 /**
  * A legenda da chapa à vista: quem é cada número desenhado nela.

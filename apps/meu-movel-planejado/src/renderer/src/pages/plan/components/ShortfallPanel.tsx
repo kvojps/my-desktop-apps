@@ -1,8 +1,8 @@
 import { Card, CardContent, Divider, Stack, Typography } from '@mui/material';
 import type { PlanDeficit, PlanShortfall } from '@shared/types/plan';
+import { SHORTFALL_COPY, describeRejection } from '@/pages/plan/utils/shortfallCopy';
 import { describeFitRule } from '@/utils/cuttingGeometry';
 import { formatCount, formatDimensions, formatSquareMeters } from '@/utils/format';
-import { SHORTFALL_COPY, describeRejection } from '../shortfallCopy';
 
 /**
  * O que ficou de fora do plano — e é a razão de o app existir em vez de uma

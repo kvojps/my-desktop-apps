@@ -3,11 +3,11 @@ import { useId, useMemo } from 'react';
 import { usableArea } from '@shared/plan/usableArea';
 import type { PlanPlacement, PlanSheet } from '@shared/types/plan';
 import { useElementSize } from '@/hooks/useElementSize';
+import { usePieceLabels } from '@/pages/plan/hooks/usePieceLabels';
+import { LABEL_FONT_PX, LABEL_LINE_PX, type PieceLabel } from '@/pages/plan/utils/pieceLabels';
+import { type PlanPiece, pieceIdentity } from '@/pages/plan/utils/planLegend';
 import { labelOn } from '@/theme';
 import { formatCount, formatDimensions, formatPercent } from '@/utils/format';
-import { LABEL_FONT_PX, LABEL_LINE_PX, type PieceLabel } from '../pieceLabels';
-import { type PlanPiece, pieceIdentity } from '../planLegend';
-import { usePieceLabels } from '../usePieceLabels';
 
 /**
  * Uma chapa planejada, desenhada em escala.

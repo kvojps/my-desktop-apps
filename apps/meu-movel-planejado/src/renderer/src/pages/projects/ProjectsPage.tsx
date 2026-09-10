@@ -14,8 +14,8 @@ import { useProjectForm } from '@/hooks/projects/useProjectForm';
 import type { SortKey } from '@/hooks/projects/useProjects';
 import { useProjects } from '@/hooks/projects/useProjects';
 import { usePagination } from '@/hooks/usePagination';
+import { projectPath } from '@/routes';
 import { formatDateTime } from '@/utils/date';
-import { projectPath } from '../../routes';
 import { ProjectFormModal } from './components/ProjectFormModal';
 
 export function ProjectsPage() {

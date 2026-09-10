@@ -1,8 +1,8 @@
 import { usableArea } from '@shared/plan/usableArea';
 import type { PlanPlacement, PlanSheet } from '@shared/types/plan';
-import { LABEL_FONT_PX, LABEL_LINE_PX, type PieceLabel } from '../pieceLabels';
-import type { PlanPiece } from '../planLegend';
-import { usePieceLabels } from '../usePieceLabels';
+import { usePieceLabels } from '@/pages/plan/hooks/usePieceLabels';
+import { LABEL_FONT_PX, LABEL_LINE_PX, type PieceLabel } from '@/pages/plan/utils/pieceLabels';
+import type { PlanPiece } from '@/pages/plan/utils/planLegend';
 
 /**
  * A chapa desenhada **fora da tela**: na folha e no arquivo exportado.

@@ -21,10 +21,10 @@ import { useExportPlan } from '@/hooks/plan/useExportPlan';
 import { useGeneratePlan } from '@/hooks/plan/useGeneratePlan';
 import { usePlan } from '@/hooks/plan/usePlan';
 import { usePrintPlan } from '@/hooks/plan/usePrintPlan';
+import { ROUTES, projectPath } from '@/routes';
 import { CATEGORICAL_PALETTE, contentQuery } from '@/theme';
 import { formatDateTime } from '@/utils/date';
 import { formatCount, formatDimensions, formatMillimeters, formatPercent } from '@/utils/format';
-import { ROUTES, projectPath } from '../../routes';
 import { ExportMenu } from './components/ExportMenu';
 import { OutdatedPlanNotice } from './components/OutdatedPlanNotice';
 import { PlanImageDocument } from './components/PlanImageDocument';
@@ -32,7 +32,7 @@ import { PlanLegend } from './components/PlanLegend';
 import { PlanPrintDocument } from './components/PlanPrintDocument';
 import { SheetDrawing } from './components/SheetDrawing';
 import { ShortfallPanel } from './components/ShortfallPanel';
-import { buildPlanLegend } from './planLegend';
+import { buildPlanLegend } from './utils/planLegend';
 
 /**
  * A prancheta: cada chapa do plano desenhada em escala, com as peças no lugar,

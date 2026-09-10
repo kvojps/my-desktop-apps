@@ -1,6 +1,6 @@
 import type { PlanSheet } from '@shared/types/plan';
-import type { PlanPiece } from '../planLegend';
-import { PRINT_DRAWING_MM, PRINT_DRAWING_PX } from '../printGeometry';
+import type { PlanPiece } from '@/pages/plan/utils/planLegend';
+import { PRINT_DRAWING_MM, PRINT_DRAWING_PX } from '@/pages/plan/utils/printGeometry';
 import { OffscreenSheetDrawing } from './OffscreenSheetDrawing';
 
 /**

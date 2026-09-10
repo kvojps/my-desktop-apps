@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { LABEL_FONT_PX } from './pieceLabels';
+import { LABEL_FONT_PX } from '@/pages/plan/utils/pieceLabels';
 
 /**
  * Quanto espaço um rótulo ocupa, para o desenho saber se ele cabe dentro da

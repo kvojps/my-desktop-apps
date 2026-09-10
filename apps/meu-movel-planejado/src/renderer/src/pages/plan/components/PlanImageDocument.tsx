@@ -2,6 +2,17 @@ import { Fragment, type RefObject, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import type { Plan, PlanShortfall } from '@shared/types/plan';
 import type { Project } from '@shared/types/project';
+import { useTextMeasure } from '@/pages/plan/hooks/textMeasure';
+import {
+  CONTENT_WIDTH,
+  IMAGE,
+  buildPlanImageLayout,
+  truncateToWidth,
+  wrapToWidth,
+} from '@/pages/plan/utils/planImage';
+import { type PlanLegend, pieceIdentity } from '@/pages/plan/utils/planLegend';
+import { buildPlanPieceList } from '@/pages/plan/utils/planPrint';
+import { SHORTFALL_COPY } from '@/pages/plan/utils/shortfallCopy';
 import { formatDateTime } from '@/utils/date';
 import {
   formatCount,
@@ -10,17 +21,6 @@ import {
   formatPercent,
   formatSquareMeters,
 } from '@/utils/format';
-import {
-  CONTENT_WIDTH,
-  IMAGE,
-  buildPlanImageLayout,
-  truncateToWidth,
-  wrapToWidth,
-} from '../planImage';
-import { type PlanLegend, pieceIdentity } from '../planLegend';
-import { buildPlanPieceList } from '../planPrint';
-import { SHORTFALL_COPY } from '../shortfallCopy';
-import { useTextMeasure } from '../textMeasure';
 import { OffscreenSheetDrawing } from './OffscreenSheetDrawing';
 
 /**

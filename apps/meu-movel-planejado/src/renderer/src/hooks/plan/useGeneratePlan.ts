@@ -4,7 +4,7 @@ import type { Piece } from '@shared/types/piece';
 import type { Project } from '@shared/types/project';
 import { api } from '@/api/client';
 import { useSnackbar } from '@/contexts/SnackbarContext';
-import { planPath } from '../../routes';
+import { planPath } from '@/routes';
 
 /**
  * A geração do plano: um pedido `plans:generate` com o id do projeto. O

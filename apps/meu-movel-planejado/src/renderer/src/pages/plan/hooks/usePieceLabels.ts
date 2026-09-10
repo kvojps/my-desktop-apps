@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
 import type { PlanPlacement } from '@shared/types/plan';
+import { type PieceLabel, fitPieceLabels } from '@/pages/plan/utils/pieceLabels';
+import { type PlanPiece, pieceIdentity } from '@/pages/plan/utils/planLegend';
 import { formatDimensions } from '@/utils/format';
-import { type PieceLabel, fitPieceLabels } from './pieceLabels';
-import { type PlanPiece, pieceIdentity } from './planLegend';
 import { useTextMeasure } from './textMeasure';
 
 /**
