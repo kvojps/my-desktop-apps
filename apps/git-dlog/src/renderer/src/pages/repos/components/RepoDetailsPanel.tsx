@@ -1,22 +1,21 @@
 import { ArrowLeft } from 'lucide-react';
 import type { RepoScanResult } from '@shared/types/repoScan';
 import { Button } from '@/components/Button';
-import { RepoCard } from './RepoCard';
+import { RepoDetails } from './RepoDetails';
 
 /**
- * Painel do repositório selecionado. O conteúdo ainda é o `RepoCard` que já
- * existia — o ticket 03 é que migra os detalhes; aqui o que muda é onde eles
- * aparecem e de quem eles são.
+ * Painel do repositório selecionado: o botão de voltar fica parado e só o
+ * conteúdo rola.
  *
- * O `key` pelo caminho é o que garante o "de quem": trocar de repositório
- * remonta o cartão, e nenhuma seção expandida do anterior sobrevive para ser
- * lida como se fosse do novo.
+ * O `key` pelo caminho é o que garante de quem são os detalhes: trocar de
+ * repositório remonta o conteúdo, e nenhuma seção expandida do anterior
+ * sobrevive para ser lida como se fosse do novo.
  */
 export function RepoDetailsPanel({ repo, onBack }: { repo: RepoScanResult; onBack?: () => void }) {
   return (
     <section
       aria-label={`Detalhes de ${repo.name}`}
-      className="orca:flex orca:min-h-0 orca:flex-1 orca:flex-col orca:gap-2"
+      className="orca:flex orca:min-h-0 orca:min-w-0 orca:flex-1 orca:flex-col orca:gap-2"
     >
       {onBack && (
         <Button variant="outline" onClick={onBack} className="orca:self-start">
@@ -24,8 +23,8 @@ export function RepoDetailsPanel({ repo, onBack }: { repo: RepoScanResult; onBac
           Voltar para a lista
         </Button>
       )}
-      <div className="orca:min-h-0 orca:flex-1 orca:overflow-y-auto">
-        <RepoCard key={repo.path} repo={repo} expandedByDefault />
+      <div className="orca:min-h-0 orca:flex-1 orca:overflow-y-auto orca:pr-1">
+        <RepoDetails key={repo.path} repo={repo} />
       </div>
     </section>
   );

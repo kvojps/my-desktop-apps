@@ -60,7 +60,7 @@ Nos documentos normativos da raiz (`README.md`, `docs/design-system.md`,
 apontando:
 
 - **Arquivo real de um app** — completo a partir de `apps/`:
-  `apps/git-dlog/src/renderer/src/pages/repos/components/RepoCard.tsx`. É o que
+  `apps/git-dlog/src/renderer/src/pages/repos/components/RepoDetails.tsx`. É o que
   torna a citação verificável com um `cat`, e o que evita a ambiguidade de
   `pages/settings/` num repo em que quatro apps têm uma tela de configurações.
 - **Posição na árvore**, quando a regra vale em qualquer app — relativa à

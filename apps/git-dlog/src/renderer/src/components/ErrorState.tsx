@@ -1,7 +1,7 @@
-import { ErrorOutline, FolderOpen } from '@mui/icons-material';
-import { Box, Button, Stack, Typography } from '@mui/material';
+import { CircleAlert, FolderOpen } from 'lucide-react';
 import { APP_ERROR_DESCRIPTIONS, decodeAppError } from '@shared/errors/appError';
 import { api } from '@/api/client';
+import { Button } from '@/components/Button';
 import { useSnackbar } from '@/contexts/SnackbarContext';
 
 interface ErrorStateProps {
@@ -14,10 +14,14 @@ interface ErrorStateProps {
 /**
  * Estado de erro das páginas. O texto descreve a falha que realmente pode ter
  * acontecido num app local (banco inacessível, corrompido, sem permissão) e
- * oferece a ação correspondente.
+ * oferece a ação correspondente. Ele substitui a tela inteira, então é o título
+ * dele que responde pelo `h1` e o ícone é o de 48 (design system §5.4).
  *
  * Sem "Restaurar backup" aqui: o banco do git-dlog guarda só os diretórios
  * cadastrados e o token, e o app não tem exportação para restaurar.
+ *
+ * A mensagem crua do erro é conteúdo, e vai em texto secundário: apagá-la mais
+ * do que isso reprovaria em contraste (design system §1.4).
  */
 export function ErrorState({ title, error, onRetry }: ErrorStateProps) {
   const { code, message } = decodeAppError(error);
@@ -34,33 +38,28 @@ export function ErrorState({ title, error, onRetry }: ErrorStateProps) {
   }
 
   return (
-    <Box sx={{ textAlign: 'center', mt: 8, mx: 'auto', maxWidth: 560 }}>
-      <ErrorOutline sx={{ fontSize: 48, color: 'error.main', mb: 1 }} />
-      <Typography variant="h5" gutterBottom>
-        {title}
-      </Typography>
-      <Typography color="text.secondary" sx={{ mb: 2 }}>
+    <div className="orca:mx-auto orca:mt-16 orca:max-w-[560px] orca:space-y-3 orca:text-center">
+      <CircleAlert aria-hidden width={48} height={48} className="orca:mx-auto orca:text-danger" />
+      <h1 className="orca:m-0 orca:text-xl orca:font-bold orca:text-foreground">{title}</h1>
+      <p className="orca:m-0 orca:text-sm orca:text-muted-foreground">
         {APP_ERROR_DESCRIPTIONS[code]}
-      </Typography>
+      </p>
 
-      <Stack direction="row" spacing={1} justifyContent="center" flexWrap="wrap" useFlexGap>
-        <Button variant="contained" onClick={onRetry}>
+      <div className="orca:flex orca:flex-wrap orca:justify-center orca:gap-2">
+        <Button variant="primary" onClick={onRetry}>
           Tentar novamente
         </Button>
         {canOpenFolder && (
-          <Button variant="outlined" startIcon={<FolderOpen />} onClick={handleOpenFolder}>
+          <Button variant="outline" onClick={() => void handleOpenFolder()}>
+            <FolderOpen aria-hidden />
             Abrir pasta de dados
           </Button>
         )}
-      </Stack>
+      </div>
 
-      <Typography
-        variant="caption"
-        color="text.disabled"
-        sx={{ display: 'block', mt: 3, fontFamily: 'mono', wordBreak: 'break-word' }}
-      >
+      <p className="orca:m-0 orca:pt-2 orca:font-mono orca:text-xs orca:break-words orca:text-muted-foreground">
         {message}
-      </Typography>
-    </Box>
+      </p>
+    </div>
   );
 }

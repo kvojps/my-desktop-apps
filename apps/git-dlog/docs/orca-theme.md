@@ -17,13 +17,14 @@ nem os estilos globais do aplicativo de referência.
 | Borda              | `#e5e5e5`          | `rgb(255 255 255 / 7%)` | `--dlog-border`           |
 | Foco               | `#2771ca`          | `#3987e5`               | `--dlog-focus`            |
 | Ação               | `#2771ca`          | `#3987e5`               | `--dlog-primary`          |
+| Sucesso            | `#0a7d0a`          | `#0ca30c`               | `--dlog-success`          |
 | Risco              | `#cf3939`          | `#d85b5b`               | `--dlog-danger`           |
 | Atenção            | `#fab219`          | `#fab219`               | `--dlog-warning`          |
 | Rótulo sobre cor   | `#ffffff`          | `rgb(0 0 0 / 87%)`      | `--dlog-on-color`         |
 | Rótulo sobre âmbar | `rgb(0 0 0 / 87%)` | `rgb(0 0 0 / 87%)`      | `--dlog-on-warning`       |
 
 Só vira variável CSS o token que o CSS do piloto consome; o resto da paleta
-chega pelo tema MUI, e página e success estão nesse caso hoje. `--dlog-mono`
+chega pelo tema MUI, e página e info estão nesse caso hoje. `--dlog-mono`
 publica a família monoespaçada. Raios: superfície 10px (`--radius-lg`),
 controle 6px (`--radius-md`).
 
@@ -76,6 +77,54 @@ contorno neutro — sempre com ícone e palavra ao lado da cor (§1.7). As pend�
 não recebem cor: sobre a linha selecionada do tema claro o `#cf3939` cai de
 4,89:1 para 4,06:1, abaixo de AA, então o peso do texto é que separa o que é
 risco. A seleção usa fundo `accent`, barra lateral em `primary` e `aria-current`.
+
+## Detalhes do repositório — etapa 03
+
+O painel do repositório escolhido é um cabeçalho de identidade — severidade,
+nome, site publicado, último fetch e caminho completo — seguido de quatro seções
+na ordem que o ticket pede: resumo e pendências, PRs, branches e último commit.
+Só as duas do meio recolhem, e recolher é decisão de conteúdo: PRs nascem
+abertos porque é ali que está a ação; branches nasce fechada porque é a seção
+extensa e os problemas dela — nunca publicada, upstream apagado, PR mergeado —
+já estão em cima, na seção que não recolhe. Seção sem conteúdo não vira botão:
+ela diz o que não tem e fica. O cabeçalho de cada seção recolhível é um `button`
+com `aria-expanded`/`aria-controls`, e o painel continua montado sob `hidden`
+para que o `aria-controls` sempre aponte para algo que existe.
+
+**Três tons, e o âmbar não é um deles.** O `StatusChip` do piloto tem `danger`,
+`success`, `emphasis` e `neutral`. Medido sobre o papel dos dois modos: danger
+4,89:1 no claro e 4,75:1 no escuro; success 5,32:1 e 5,34:1. Nenhum deles vai
+sobre `accent` — ali o mesmo vermelho cai para 4,48:1 e o azul do link para
+4,48:1, abaixo de AA (design system §1.1). Daí duas consequências: o PR da
+branch atual se destaca por etiqueta preenchida, posição e peso, e não por fundo
+tingido; e o link de PR não ganha fundo no hover, ganha sublinhado. O âmbar não
+entra como tom porque como texto ele dá 1,83:1 e nem como ícone alcança os 3:1
+de objeto gráfico (§1.4, ADR-0001); ele continua preenchido no `SeverityBadge`,
+que é onde já estava.
+
+Sem o âmbar sobra decidir o que ocupa o lugar dele, e a regra é uma só: **o tom
+espelha `summarizePendencies`** — o que é risco na lista vira `emphasis` aqui, o
+que é neutro lá continua neutro —, **e `danger` fica reservado aos dois casos em
+que o trabalho pode sumir de vez**: conflito e trabalho que só existe nesta
+máquina (branch nunca publicada, branch sem upstream). Lista e painel descrevem
+o mesmo repositório; uma pendência que grita num e sussurra no outro seria uma
+contradição entre as duas metades da tela, e é por isso que a regra é testada —
+`repoDetails.test.ts` compara os dois lados em vez de confiar na leitura.
+
+O `StatusChip` de MUI foi retirado: ele só tinha consumidores nesta tela, e o do
+piloto nasce em `pages/repos/components/` pela regra de promoção do ADR-0004 —
+sobe para `components/` quando uma segunda tela precisar. O `ErrorState`, que já
+serve duas telas, foi migrado no lugar em que está; Diretórios passa a vê-lo na
+linguagem nova até a etapa 04. A mensagem crua do erro deixou `text.disabled`
+para trás e vai em texto secundário, que é o que a §1.4 manda.
+
+As regras do painel moram em `pages/repos/utils/repoDetails.ts`: estado de
+sincronia, itens da working tree, avisos de branch, contagem local/remota e a
+ordem dos PRs. O agrupamento por commit carrega só nomes, então quem diz o que é
+remoto é a leitura do repositório, não a barra no nome — `feat/a` é local e tem
+barra igual a `origin/main`. E como o nome não distingue, a etiqueta da branch
+não pode distinguir só por cor: ela leva ícone de nuvem ou de disco, com rótulo
+acessível, que é o segundo canal da §1.7.
 
 ## Validação da etapa 01 — 2026-09-10
 
@@ -162,3 +211,74 @@ repeti-lo. Spec apontou três, também corrigidas: o foco não voltava ao item a
 sair dos detalhes, a queda de seleção por filtro não se comprometia com o que a
 lista destacava, e a janela estreita pintava um quadro lado a lado antes da
 primeira medição.
+
+## Validação da etapa 03 — 2026-09-11
+
+Electron real, build de produção, perfil temporário e os mesmos dez repositórios
+sintéticos da etapa 02, recriados: nomes repetidos, caminho e assunto longos,
+working tree suja com stash, conflito de merge em andamento, branch nunca
+publicada, branch com upstream apagado, HEAD detached, repositório sem remoto e
+repositório sem nenhum commit.
+
+- Ordem das seções conforme o ticket, com resumo e pendências sempre aberto,
+  PRs abertos por padrão e branches fechada. Recolher e expandir funciona por
+  clique, por `Enter` e por `Espaço`, com `aria-expanded` acompanhando.
+- Caminho completo, nome ligado ao remoto, globo do site publicado e "remoto
+  lido há N / nunca buscado" conferidos. `Enter` no globo chegou ao
+  `shell.openExternal`: um servidor local anotado em `dlog.url` registrou o
+  acesso, provando o caminho fachada → IPC → main sem abrir link de terceiros.
+- Working tree: conflito em `danger`, staged/modificados/não rastreados/stashes
+  em `emphasis`, e "Working tree limpa" quando não há nada. Sincronia coerente
+  em todos os casos — sem upstream, ahead/behind, sincronizada, HEAD detached e
+  sem commits.
+- Branches: contagem local/remota, agrupamento por commit com hash, assunto,
+  autor e idade, e a distinção local/remota vinda da leitura do repositório
+  (`origin/main` neutra, `feat/rodape` local, apesar da barra).
+- PRs exercitados com um `gh` de mentira no PATH, apenas na execução de
+  validação: o PR da branch atual apareceu primeiro, com etiqueta "branch
+  atual", título em negrito, "mudanças pedidas" e "CI falhou"; rascunho com CI
+  rodando e PR aprovado com CI ok nas linhas seguintes; o PR mergeado virou
+  "PR já mergeado, pode ser apagada" no resumo. Origem → destino e atualização
+  relativa em todas as linhas.
+- Seções vazias: sem PRs com remoto, sem remoto configurado, sem branches e sem
+  commits — cada uma com a frase que descreve o caso, em vez de seção em branco.
+  Com HEAD detached, "Último commit" explica que o commit está no agrupamento,
+  em vez de afirmar que o repositório não tem commits.
+- Temas claro e escuro conferidos nas duas telas do fluxo; 960 × 640 com a
+  lateral expandida alterna lista e detalhes, e o caminho de 150 caracteres e a
+  branch de 70 quebram sem overflow horizontal (`scrollWidth` = `clientWidth`).
+  Tab percorre lista, nome, globo e cabeçalhos de seção com anel de foco visível.
+- Seleção, busca, filtros, Atualizar/Buscar do remoto, progresso por fase e
+  retorno à lista continuam como a etapa 02 os deixou.
+- Typecheck dos quatro apps, lint, `prettier --check` e build de produção do Git
+  Dlog aprovados; suíte completa com 24 arquivos e 238 testes, dos quais 20
+  novos em `pages/repos/utils/repoDetails.test.ts`. Lint mantém os dois avisos
+  preexistentes de dependências de hooks em `meu-negocio-app`.
+- MUI na tela de Repositórios: nenhum componente dela importa mais `@mui`. O que
+  resta no caminho é global e das outras telas — o `AppSnackbar` do contexto de
+  avisos e o `ThemeProvider`, que é quem publica os tokens `--dlog-*`. Nenhuma
+  dependência foi removida do `package.json`; isso é da etapa 06.
+- Limites: o provedor de PRs continua não tendo sido exercitado contra GitHub ou
+  GitLab de verdade — o `gh` de mentira devolve JSON no formato que o
+  `ghCli.parseGhOutput` já converte, então o que foi verificado é a apresentação,
+  não a integração. O ambiente exigiu `--no-sandbox` por falta do helper SUID do
+  Electron; isso foi argumento da execução de validação, sem alterar o app.
+
+Revisão em dois agentes, base `264e9ac234baded0ad31cb8ce39d4b523f9f7f8b`. Spec
+apontou que a migração tinha achatado a urgência: sem o âmbar, tudo que era
+risco virou peso e o que era atenção subiu junto, então "2 não rastreados"
+gritava igual a "2 modificados" e o painel contradizia a lista em três pontos.
+Daí saiu a regra de tom registrada acima, agora testada contra
+`summarizePendencies` — `gone` e HEAD detached voltaram a neutro. Standards
+apontou quatro correções, todas feitas: o `map.md` do tracker não tinha sido
+atualizado e ainda afirmava que os detalhes eram o `RepoCard`; o ADR-0003
+justificava `isWorktreeDirty` em `shared` por ser chamado dos dois lados, e o
+chamador do renderer era justamente o `RepoCard` — a emenda está no ADR; o
+`docs/agents/domain.md` citava o arquivo apagado como exemplo de caminho
+verificável; e a etiqueta de branch separava local de remota só por cor, contra
+a §1.7, e ganhou ícone com rótulo acessível. Os demais achados eram de forma e
+foram aceitos: chaves de ícone tipadas em vez de `Record<string, …>`, o mapa de
+tons num lugar só, `CommitLine` recebendo o `RepoCommit` inteiro e `LucideIcon`
+no lugar de `typeof CircleCheck`. Fica de pé, sem mudança: o `title` nativo onde
+havia `Tooltip` de MUI — nenhum dos dois alcança o teclado num `span`, então não
+há regressão a corrigir aqui.

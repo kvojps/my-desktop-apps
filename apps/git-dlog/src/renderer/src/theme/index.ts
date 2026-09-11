@@ -125,6 +125,7 @@ const getDesignTokens = (mode: PaletteMode): ThemeOptions => {
             '--dlog-border': orca.border,
             '--dlog-focus': orca.focus,
             '--dlog-primary': orca.primary,
+            '--dlog-success': orca.success,
             '--dlog-danger': orca.danger,
             '--dlog-warning': orca.warning,
             '--dlog-on-color': orca.onColor,

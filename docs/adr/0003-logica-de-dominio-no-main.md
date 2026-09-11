@@ -64,6 +64,22 @@ pronta.
 A distinção que separa os dois casos: **descrever o que já atravessou o IPC é do
 renderer; decidir o que atravessa é do main.**
 
+**Emenda (etapa 03 do redesign do Git Dlog).** O segundo chamador acabou: o
+`RepoCard.tsx` citado acima foi substituído pelo painel de detalhes em
+`apps/git-dlog/src/renderer/src/pages/repos/components/RepoDetails.tsx`, e a
+pergunta "há o que mostrar sobre esta working tree?" virou a lista de contagens
+de `worktreeItems`, em
+`apps/git-dlog/src/renderer/src/pages/repos/utils/repoDetails.ts` — que precisa
+de cada contagem separada para desenhá-la, e não do predicado combinado. Hoje
+`isWorktreeDirty` é chamado só pelo `repoScanner`.
+
+A recomendação não muda, mas a razão muda: ele fica em `shared` por ser leitura
+combinada de um tipo do contrato, e não mais por ser chamado dos dois lados. Com
+um chamador só, e do lado do main, ele é candidato a descer para
+`main/domain/repo.ts` — decisão da revisão final do redesign (ticket 06), que já
+é quem confere o que sobrou de compartilhado. Registrado aqui para não virar
+exceção implícita, que é justamente o que esta seção existe para impedir.
+
 ## Alternativas consideradas
 
 - **Manter o critério "toca banco ou disco?".** É o precedente vigente e não

@@ -16,6 +16,7 @@
   --color-accent: var(--dlog-accent);
   --color-border: var(--dlog-border);
   --color-primary: var(--dlog-primary);
+  --color-success: var(--dlog-success);
   --color-danger: var(--dlog-danger);
   --color-warning: var(--dlog-warning);
   --color-on-color: var(--dlog-on-color);
@@ -106,6 +107,32 @@
 
   .orca-shell:has(> [data-fill-height]) {
     height: 100%;
+  }
+
+  /*
+    Link que é botão: abrir uma URL externa passa pela fachada de API, então o
+    elemento é `button`, e sem Preflight ele chega com a moldura e a fonte do
+    agente de usuário. Não ganha fundo sob o cursor — `#2771ca` sobre o accent
+    claro cai de 4,88:1 para 4,48:1, abaixo de AA (design system §1.1) —, então
+    quem responde ao hover é o sublinhado.
+  */
+  .orca-link {
+    border: 0;
+    padding: 0;
+    background: transparent;
+    font: inherit;
+    color: var(--dlog-primary);
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .orca-link:hover {
+    text-decoration: underline;
+  }
+
+  .orca-link:focus-visible {
+    outline: 2px solid var(--dlog-focus);
+    outline-offset: 2px;
   }
 
   /* Sem Preflight, o campo nativo mantém a fonte e o corpo do agente de usuário. */
