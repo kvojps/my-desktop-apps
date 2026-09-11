@@ -38,6 +38,7 @@ export function Layout({ children }: { children: ReactNode }) {
           {!collapsed && <span className="orca:text-sm orca:font-semibold">Git Dlog</span>}
         </div>
         <Button
+          variant="nav"
           onClick={() => setCollapsed((value) => !value)}
           aria-label={collapseLabel}
           aria-expanded={!collapsed}
@@ -49,7 +50,7 @@ export function Layout({ children }: { children: ReactNode }) {
         </Button>
         <div id="primary-navigation" className="orca:mt-3 orca:flex orca:flex-col orca:gap-1">
           {NAV_ITEMS.map(({ label, path, icon: Icon }) => (
-            <Button key={path} asChild>
+            <Button key={path} asChild variant="nav">
               <NavLink to={path} aria-label={label} title={collapsed ? label : undefined}>
                 <Icon />
                 {!collapsed && <span>{label}</span>}
@@ -58,6 +59,7 @@ export function Layout({ children }: { children: ReactNode }) {
           ))}
         </div>
         <Button
+          variant="nav"
           onClick={toggleMode}
           aria-label={themeLabel}
           title={themeLabel}
@@ -68,7 +70,9 @@ export function Layout({ children }: { children: ReactNode }) {
         </Button>
       </nav>
       <main className="orca-content orca:min-w-0 orca:flex-1 orca:overflow-y-auto orca:p-6">
-        <div className="orca:mx-auto orca:max-w-[1440px]">{children}</div>
+        <div className="orca-shell orca:mx-auto orca:flex orca:max-w-[1440px] orca:flex-col">
+          {children}
+        </div>
       </main>
     </div>
   );

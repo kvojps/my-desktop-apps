@@ -223,9 +223,20 @@ function isQuiet(repo: RepoScanResult): boolean {
 
 const COMPACT_CONTENT_SX = { py: 1.25, '&:last-child': { pb: 1.25 } };
 
-export function RepoCard({ repo }: { repo: RepoScanResult }) {
+/**
+ * `expandedByDefault` é para quando o cartão já é o painel de detalhes de um
+ * repositório escolhido: ali a linha reduzida do repositório quieto esconderia
+ * justamente o que a pessoa pediu para ver.
+ */
+export function RepoCard({
+  repo,
+  expandedByDefault = false,
+}: {
+  repo: RepoScanResult;
+  expandedByDefault?: boolean;
+}) {
   const [expanded, setExpanded] = useState(false);
-  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [detailsOpen, setDetailsOpen] = useState(expandedByDefault);
 
   if (repo.error) {
     return (

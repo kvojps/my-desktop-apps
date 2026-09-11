@@ -33,127 +33,166 @@ const stateContrastText = (mode: PaletteMode) =>
   mode === 'light' ? '#FFFFFF' : 'rgba(0, 0, 0, 0.87)';
 const WARNING_CONTRAST_TEXT = 'rgba(0, 0, 0, 0.87)';
 
-const getDesignTokens = (mode: PaletteMode): ThemeOptions => ({
-  palette: {
-    mode,
-    primary: {
-      main: mode === 'light' ? '#2771CA' : '#3987e5',
-      contrastText: stateContrastText(mode),
+/**
+ * Os valores do tema do piloto, num lugar só. A paleta MUI e as variáveis CSS
+ * que o Tailwind consome são duas leituras da mesma tabela — quando estavam
+ * escritas duas vezes, nada impedia que divergissem em silêncio.
+ * Medições e procedência em `apps/git-dlog/docs/orca-theme.md`.
+ */
+const orcaTokens = (mode: PaletteMode) => {
+  const light = mode === 'light';
+  return {
+    background: light ? '#ffffff' : '#0a0a0a',
+    paper: light ? '#ffffff' : '#171717',
+    sidebar: light ? '#fafafa' : '#171717',
+    foreground: light ? '#0a0a0a' : '#fafafa',
+    mutedForeground: light ? '#666666' : '#a1a1a1',
+    accent: light ? '#f5f5f5' : '#262626',
+    border: light ? '#e5e5e5' : 'rgba(255, 255, 255, 0.07)',
+    focus: light ? '#2771CA' : '#3987e5',
+    primary: light ? '#2771CA' : '#3987e5',
+    secondary: light ? '#4a3aa7' : '#9085e9',
+    success: light ? '#0a7d0a' : '#0ca30c',
+    danger: light ? '#CF3939' : '#D85B5B',
+    info: light ? '#0F7C91' : '#1190A9',
+    /** Só preenchimento — nunca texto (design system §1.4): 1.70:1 sobre papel claro. */
+    warning: '#fab219',
+    onColor: stateContrastText(mode),
+  };
+};
+
+const getDesignTokens = (mode: PaletteMode): ThemeOptions => {
+  const orca = orcaTokens(mode);
+
+  return {
+    palette: {
+      mode,
+      primary: {
+        main: orca.primary,
+        contrastText: orca.onColor,
+      },
+      secondary: {
+        main: orca.secondary,
+        contrastText: orca.onColor,
+      },
+      success: {
+        main: orca.success,
+        contrastText: orca.onColor,
+      },
+      warning: {
+        main: orca.warning,
+        contrastText: WARNING_CONTRAST_TEXT,
+      },
+      error: {
+        main: orca.danger,
+        contrastText: orca.onColor,
+      },
+      info: {
+        main: orca.info,
+        contrastText: orca.onColor,
+      },
+      background: { default: orca.background, paper: orca.paper },
+      text: {
+        primary: orca.foreground,
+        secondary: orca.mutedForeground,
+      },
+      divider: orca.border,
     },
-    secondary: {
-      main: mode === 'light' ? '#4a3aa7' : '#9085e9',
-      contrastText: stateContrastText(mode),
+    typography: {
+      fontFamily: '"Geist", "Roboto", "Helvetica", "Arial", sans-serif',
+      mono: MONO_FONT_FAMILY,
+      h4: { fontWeight: 700, letterSpacing: -0.5 },
+      h5: { fontWeight: 700, letterSpacing: -0.3 },
+      h6: { fontWeight: 600 },
+      subtitle1: { fontWeight: 500 },
+      button: { fontWeight: 600, textTransform: 'none' },
     },
-    success: {
-      main: mode === 'light' ? '#0a7d0a' : '#0ca30c',
-      contrastText: stateContrastText(mode),
+    shape: {
+      borderRadius: SURFACE_RADIUS,
     },
-    // Só preenchimento — nunca texto (docs/design-system.md §1.4): #fab219
-    // dá 1.70:1 sobre papel claro.
-    warning: {
-      main: '#fab219',
-      contrastText: WARNING_CONTRAST_TEXT,
-    },
-    error: {
-      main: mode === 'light' ? '#CF3939' : '#D85B5B',
-      contrastText: stateContrastText(mode),
-    },
-    info: {
-      main: mode === 'light' ? '#0F7C91' : '#1190A9',
-      contrastText: stateContrastText(mode),
-    },
-    background:
-      mode === 'light'
-        ? { default: '#FFFFFF', paper: '#FFFFFF' }
-        : { default: '#0a0a0a', paper: '#171717' },
-    text: {
-      primary: mode === 'light' ? '#0a0a0a' : '#fafafa',
-      secondary: mode === 'light' ? '#666666' : '#a1a1a1',
-    },
-    divider: mode === 'light' ? '#e5e5e5' : 'rgba(255, 255, 255, 0.07)',
-  },
-  typography: {
-    fontFamily: '"Geist", "Roboto", "Helvetica", "Arial", sans-serif',
-    mono: MONO_FONT_FAMILY,
-    h4: { fontWeight: 700, letterSpacing: -0.5 },
-    h5: { fontWeight: 700, letterSpacing: -0.3 },
-    h6: { fontWeight: 600 },
-    subtitle1: { fontWeight: 500 },
-    button: { fontWeight: 600, textTransform: 'none' },
-  },
-  shape: {
-    borderRadius: SURFACE_RADIUS,
-  },
-  spacing: 8,
-  components: {
-    MuiCssBaseline: {
-      styleOverrides: {
-        ':root': {
-          '--dlog-sidebar': mode === 'light' ? '#fafafa' : '#171717',
-          '--dlog-foreground': mode === 'light' ? '#0a0a0a' : '#fafafa',
-          '--dlog-muted-foreground': mode === 'light' ? '#666666' : '#a1a1a1',
-          '--dlog-accent': mode === 'light' ? '#f5f5f5' : '#262626',
-          '--dlog-border': mode === 'light' ? '#e5e5e5' : 'rgba(255, 255, 255, 0.07)',
-          '--dlog-focus': mode === 'light' ? '#2771CA' : '#3987e5',
+    spacing: 8,
+    components: {
+      MuiCssBaseline: {
+        styleOverrides: {
+          // Só os tokens que o CSS do piloto consome; o resto da paleta chega
+          // pelo tema MUI. Documentados em `docs/orca-theme.md`.
+          ':root': {
+            '--dlog-paper': orca.paper,
+            '--dlog-sidebar': orca.sidebar,
+            '--dlog-foreground': orca.foreground,
+            '--dlog-muted-foreground': orca.mutedForeground,
+            '--dlog-accent': orca.accent,
+            '--dlog-border': orca.border,
+            '--dlog-focus': orca.focus,
+            '--dlog-primary': orca.primary,
+            '--dlog-danger': orca.danger,
+            '--dlog-warning': orca.warning,
+            '--dlog-on-color': orca.onColor,
+            '--dlog-on-warning': WARNING_CONTRAST_TEXT,
+            '--dlog-mono': MONO_FONT_FAMILY,
+          },
+          body: {
+            scrollbarColor:
+              mode === 'light' ? `#c1c1c1 ${orca.background}` : `#404040 ${orca.background}`,
+            fontVariantNumeric: 'tabular-nums',
+          },
+          '*:focus-visible': {
+            outline: `2px solid ${orca.focus}`,
+            outlineOffset: 2,
+          },
+          '@media (prefers-reduced-motion: reduce)': {
+            '*, *::before, *::after': {
+              animationDuration: '0.01ms !important',
+              transitionDuration: '0.01ms !important',
+            },
+          },
         },
-        body: {
-          scrollbarColor: mode === 'light' ? '#c1c1c1 #ffffff' : '#404040 #0a0a0a',
-          fontVariantNumeric: 'tabular-nums',
+      },
+      MuiPaper: {
+        defaultProps: { elevation: 0 },
+        styleOverrides: {
+          root: {
+            backgroundImage: 'none',
+          },
         },
-        '*:focus-visible': {
-          outline: `2px solid ${mode === 'light' ? '#2771CA' : '#3987e5'}`,
-          outlineOffset: 2,
+      },
+      MuiCard: {
+        styleOverrides: {
+          root: {
+            border: '1px solid',
+            borderColor: orca.border,
+            boxShadow:
+              mode === 'light'
+                ? '0 1px 2px rgba(16, 24, 40, 0.04)'
+                : '0 1px 2px rgba(0, 0, 0, 0.2)',
+          },
         },
-        '@media (prefers-reduced-motion: reduce)': {
-          '*, *::before, *::after': {
-            animationDuration: '0.01ms !important',
-            transitionDuration: '0.01ms !important',
+      },
+      MuiAppBar: {
+        defaultProps: { elevation: 0 },
+        styleOverrides: {
+          root: {
+            borderBottom: '1px solid',
+            borderColor: orca.border,
+          },
+        },
+      },
+      MuiButton: {
+        styleOverrides: {
+          root: {
+            borderRadius: CONTROL_RADIUS,
+          },
+        },
+      },
+      MuiChip: {
+        styleOverrides: {
+          root: {
+            fontWeight: 600,
           },
         },
       },
     },
-    MuiPaper: {
-      defaultProps: { elevation: 0 },
-      styleOverrides: {
-        root: {
-          backgroundImage: 'none',
-        },
-      },
-    },
-    MuiCard: {
-      styleOverrides: {
-        root: {
-          border: '1px solid',
-          borderColor: mode === 'light' ? '#e5e5e5' : 'rgba(255, 255, 255, 0.07)',
-          boxShadow:
-            mode === 'light' ? '0 1px 2px rgba(16, 24, 40, 0.04)' : '0 1px 2px rgba(0, 0, 0, 0.2)',
-        },
-      },
-    },
-    MuiAppBar: {
-      defaultProps: { elevation: 0 },
-      styleOverrides: {
-        root: {
-          borderBottom: '1px solid',
-          borderColor: mode === 'light' ? '#e5e5e5' : 'rgba(255, 255, 255, 0.07)',
-        },
-      },
-    },
-    MuiButton: {
-      styleOverrides: {
-        root: {
-          borderRadius: CONTROL_RADIUS,
-        },
-      },
-    },
-    MuiChip: {
-      styleOverrides: {
-        root: {
-          fontWeight: 600,
-        },
-      },
-    },
-  },
-});
+  };
+};
 
 export const getAppTheme = (mode: PaletteMode) => createTheme(getDesignTokens(mode));

@@ -4,12 +4,25 @@
 @import 'tailwindcss/utilities.css' layer(utilities) prefix(orca);
 @source './';
 
+/*
+  Só o apelido Tailwind dos tokens que o tema publica em `theme/index.ts`; o
+  valor mora lá, e a tabela que o documenta, em `docs/orca-theme.md`.
+*/
 @theme inline {
+  --color-paper: var(--dlog-paper);
   --color-sidebar: var(--dlog-sidebar);
   --color-foreground: var(--dlog-foreground);
   --color-muted-foreground: var(--dlog-muted-foreground);
   --color-accent: var(--dlog-accent);
+  --color-border: var(--dlog-border);
+  --color-primary: var(--dlog-primary);
+  --color-danger: var(--dlog-danger);
+  --color-warning: var(--dlog-warning);
+  --color-on-color: var(--dlog-on-color);
+  --color-on-warning: var(--dlog-on-warning);
   --radius-md: 6px;
+  --radius-lg: 10px;
+  --font-mono: var(--dlog-mono);
 }
 
 @layer components {
@@ -45,6 +58,10 @@
     text-align: left;
   }
 
+  .orca-button:disabled {
+    cursor: default;
+  }
+
   .orca-button svg {
     width: 18px;
     height: 18px;
@@ -56,7 +73,7 @@
     padding-inline: 0;
   }
 
-  .orca-button[aria-current='page']::before {
+  .orca-sidebar .orca-button[aria-current='page']::before {
     content: '';
     position: absolute;
     left: 0;
@@ -74,5 +91,100 @@
   .orca-content {
     container-type: inline-size;
     container-name: content;
+  }
+
+  /*
+    A tela em fluxo normal cresce e empurra a rolagem do `main`, mantendo o
+    respiro do padding embaixo. A tela que se divide em painéis com rolagem
+    própria precisa do contrário — uma altura fechada para os painéis medirem
+    — e pede isso declarando `data-fill-height`. Prender a altura para todas
+    custaria esse respiro nas telas ainda em fluxo normal.
+  */
+  .orca-shell {
+    min-height: 100%;
+  }
+
+  .orca-shell:has(> [data-fill-height]) {
+    height: 100%;
+  }
+
+  /* Sem Preflight, o campo nativo mantém a fonte e o corpo do agente de usuário. */
+  .orca-input {
+    font-family: inherit;
+    font-size: 14px;
+    line-height: 20px;
+    appearance: none;
+  }
+
+  .orca-input::placeholder {
+    color: var(--dlog-muted-foreground);
+    opacity: 1;
+  }
+
+  /* O botão de limpar é o nosso, com rótulo acessível; o nativo seria um segundo. */
+  .orca-input::-webkit-search-cancel-button {
+    display: none;
+  }
+
+  .orca-input:focus-visible {
+    outline: 2px solid var(--dlog-focus);
+    outline-offset: 2px;
+  }
+
+  /*
+    Item da lista de repositórios. A seleção não é só o fundo: a barra lateral
+    sobrevive a qualquer tema e o `aria-current` diz o mesmo ao leitor de tela.
+    Cor de texto não muda com a seleção — o fundo selecionado do tema claro
+    derruba o vermelho de 4.89:1 para 4.06:1, abaixo de AA (design system §1.1).
+  */
+  .orca-repo-item {
+    position: relative;
+    display: block;
+    width: 100%;
+    border: 0;
+    background: transparent;
+    font-family: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .orca-repo-item:hover {
+    background: var(--dlog-accent);
+  }
+
+  .orca-repo-item[aria-current='true'] {
+    background: var(--dlog-accent);
+  }
+
+  .orca-repo-item[aria-current='true']::before {
+    content: '';
+    position: absolute;
+    top: 10px;
+    bottom: 10px;
+    left: 0;
+    width: 3px;
+    border-radius: 0 6px 6px 0;
+    background: var(--dlog-primary);
+  }
+
+  .orca-repo-item:focus-visible {
+    outline: 2px solid var(--dlog-focus);
+    outline-offset: -2px;
+  }
+
+  /* Esqueleto de carregamento; a animação some sob `prefers-reduced-motion`. */
+  .orca-skeleton {
+    background: var(--dlog-accent);
+    animation: orca-pulse 1.6s ease-in-out infinite;
+  }
+
+  @keyframes orca-pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
   }
 }
