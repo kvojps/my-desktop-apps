@@ -13,10 +13,9 @@
     "jsx": "react-jsx",
     "strict": true,
     "types": ["node"],
-    "baseUrl": "${configDir}",
     "paths": {
-      "@shared/*": ["src/shared/*"],
-      "@/*": ["src/renderer/src/*"]
+      "@shared/*": ["${configDir}/src/shared/*"],
+      "@/*": ["${configDir}/src/renderer/src/*"]
     }
   },
   "include": ["${configDir}/src", "${configDir}/electron.vite.config.ts"]
