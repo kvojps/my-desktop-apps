@@ -164,19 +164,19 @@ export function ReposPage() {
   }
 
   return (
-    <div data-fill-height className="orca:flex orca:min-h-0 orca:flex-1 orca:flex-col orca:gap-4">
-      <header className="orca:flex orca:flex-wrap orca:items-start orca:justify-between orca:gap-3">
+    <div data-fill-height className="ui:flex ui:min-h-0 ui:flex-1 ui:flex-col ui:gap-4">
+      <header className="ui:flex ui:flex-wrap ui:items-start ui:justify-between ui:gap-3">
         <div>
-          <h1 className="orca:m-0 orca:text-xl orca:font-bold orca:text-foreground">
+          <h1 className="ui:m-0 ui:text-xl ui:font-bold ui:text-foreground">
             Repositórios
           </h1>
-          <p className="orca:mt-1 orca:mb-0 orca:text-sm orca:text-muted-foreground">
+          <p className="ui:mt-1 ui:mb-0 ui:text-sm ui:text-muted-foreground">
             {lastScanAt
               ? `Última leitura local: ${formatDateTime(lastScanAt)}`
               : 'Clique em "Atualizar" para ler o estado dos repositórios'}
           </p>
         </div>
-        <div className="orca:flex orca:gap-2">
+        <div className="ui:flex ui:gap-2">
           <Button
             variant="outline"
             onClick={() => void scan()}
@@ -200,12 +200,12 @@ export function ReposPage() {
 
       <div
         ref={layoutRef}
-        className="orca:flex orca:min-h-0 orca:flex-1 orca:gap-4 orca:overflow-hidden"
+        className="ui:flex ui:min-h-0 ui:flex-1 ui:gap-4 ui:overflow-hidden"
       >
         {showList && (
           <div
-            className={`orca:flex orca:min-h-0 orca:min-w-0 orca:flex-col orca:gap-3 ${
-              isNarrow ? 'orca:flex-1' : 'orca:w-[360px] orca:shrink-0'
+            className={`ui:flex ui:min-h-0 ui:min-w-0 ui:flex-col ui:gap-3 ${
+              isNarrow ? 'ui:flex-1' : 'ui:w-[360px] ui:shrink-0'
             }`}
           >
             {/*
@@ -223,7 +223,7 @@ export function ReposPage() {
               />
             )}
 
-            <div className="orca:flex orca:min-h-0 orca:flex-1 orca:flex-col orca:overflow-hidden orca:rounded-lg orca:border orca:border-border orca:bg-paper">
+            <div className="ui:flex ui:min-h-0 ui:flex-1 ui:flex-col ui:overflow-hidden ui:rounded-lg ui:border ui:border-border ui:bg-paper">
               {listState === 'loading' && <RepoListSkeleton />}
 
               {listState === 'list' && (

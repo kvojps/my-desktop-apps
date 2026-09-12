@@ -13,18 +13,18 @@ import type { DetailTone } from '@/pages/repos/utils/repoDetails';
  * atenção chega como `emphasis`: peso, e não cor.
  */
 export const TONE_TEXT: Record<DetailTone, string> = {
-  danger: 'orca:text-danger orca:font-semibold',
-  success: 'orca:text-success',
-  emphasis: 'orca:text-foreground orca:font-semibold',
-  neutral: 'orca:text-muted-foreground',
+  danger: 'ui:text-danger ui:font-semibold',
+  success: 'ui:text-success',
+  emphasis: 'ui:text-foreground ui:font-semibold',
+  neutral: 'ui:text-muted-foreground',
 };
 
 /** Só quem pinta o texto pinta a borda; o resto fica na borda neutra. */
 const TONE_BORDER: Record<DetailTone, string> = {
-  danger: 'orca:border-danger',
-  success: 'orca:border-success',
-  emphasis: 'orca:border-border',
-  neutral: 'orca:border-border',
+  danger: 'ui:border-danger',
+  success: 'ui:border-success',
+  emphasis: 'ui:border-border',
+  neutral: 'ui:border-border',
 };
 
 export function StatusChip({
@@ -46,10 +46,10 @@ export function StatusChip({
   return (
     <span
       title={title}
-      className={`orca:inline-flex orca:max-w-full orca:items-center orca:gap-1 orca:rounded-md orca:border orca:px-1.5 orca:py-0.5 orca:text-xs ${TONE_BORDER[tone]} ${TONE_TEXT[tone]}`}
+      className={`ui:inline-flex ui:max-w-full ui:items-center ui:gap-1 ui:rounded-md ui:border ui:px-1.5 ui:py-0.5 ui:text-xs ${TONE_BORDER[tone]} ${TONE_TEXT[tone]}`}
     >
-      <Icon aria-hidden width={13} height={13} className="orca:shrink-0" />
-      <span className={`orca:truncate ${mono ? 'orca:font-mono' : ''}`}>{label}</span>
+      <Icon aria-hidden width={13} height={13} className="ui:shrink-0" />
+      <span className={`ui:truncate ${mono ? 'ui:font-mono' : ''}`}>{label}</span>
     </span>
   );
 }

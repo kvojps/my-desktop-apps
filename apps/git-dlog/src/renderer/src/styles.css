@@ -1,7 +1,7 @@
 /* Sem Preflight: os estilos base continuam explícitos e locais ao piloto. */
 @layer theme, components, utilities;
-@import 'tailwindcss/theme.css' layer(theme) prefix(orca);
-@import 'tailwindcss/utilities.css' layer(utilities) prefix(orca);
+@import 'tailwindcss/theme.css' layer(theme) prefix(ui);
+@import 'tailwindcss/utilities.css' layer(utilities) prefix(ui);
 @source './';
 
 /*
@@ -65,16 +65,16 @@
     }
   }
 
-  .orca-sidebar {
+  .ui-sidebar {
     width: 224px;
     border-right: 1px solid var(--dlog-border);
   }
 
-  .orca-sidebar[data-collapsed='true'] {
+  .ui-sidebar[data-collapsed='true'] {
     width: 64px;
   }
 
-  .orca-button {
+  .ui-button {
     position: relative;
     border: 0;
     background: transparent;
@@ -85,17 +85,17 @@
     text-align: left;
   }
 
-  .orca-button:disabled {
+  .ui-button:disabled {
     cursor: default;
   }
 
-  .orca-button svg {
+  .ui-button svg {
     width: 18px;
     height: 18px;
     flex-shrink: 0;
   }
 
-  .orca-sidebar .orca-button[aria-current='page']::before {
+  .ui-sidebar .ui-button[aria-current='page']::before {
     content: '';
     position: absolute;
     top: 50%;
@@ -107,12 +107,12 @@
     transform: translateY(-50%);
   }
 
-  .orca-button:focus-visible {
+  .ui-button:focus-visible {
     outline: 2px solid var(--dlog-focus);
     outline-offset: 2px;
   }
 
-  .orca-content {
+  .ui-content {
     container-type: inline-size;
     container-name: content;
   }
@@ -124,11 +124,11 @@
     — e pede isso declarando `data-fill-height`. Prender a altura para todas
     custaria esse respiro nas telas ainda em fluxo normal.
   */
-  .orca-shell {
+  .ui-shell {
     min-height: 100%;
   }
 
-  .orca-shell:has(> [data-fill-height]) {
+  .ui-shell:has(> [data-fill-height]) {
     height: 100%;
   }
 
@@ -139,7 +139,7 @@
     claro cai de 4,88:1 para 4,48:1, abaixo de AA (design system §1.1) —, então
     quem responde ao hover é o sublinhado.
   */
-  .orca-link {
+  .ui-link {
     border: 0;
     padding: 0;
     background: transparent;
@@ -149,34 +149,34 @@
     cursor: pointer;
   }
 
-  .orca-link:hover {
+  .ui-link:hover {
     text-decoration: underline;
   }
 
-  .orca-link:focus-visible {
+  .ui-link:focus-visible {
     outline: 2px solid var(--dlog-focus);
     outline-offset: 2px;
   }
 
   /* Sem Preflight, o campo nativo mantém a fonte e o corpo do agente de usuário. */
-  .orca-input {
+  .ui-input {
     font-family: inherit;
     font-size: 14px;
     line-height: 20px;
     appearance: none;
   }
 
-  .orca-input::placeholder {
+  .ui-input::placeholder {
     color: var(--dlog-muted-foreground);
     opacity: 1;
   }
 
   /* O botão de limpar é o nosso, com rótulo acessível; o nativo seria um segundo. */
-  .orca-input::-webkit-search-cancel-button {
+  .ui-input::-webkit-search-cancel-button {
     display: none;
   }
 
-  .orca-input:focus-visible {
+  .ui-input:focus-visible {
     outline: 2px solid var(--dlog-focus);
     outline-offset: 2px;
   }
@@ -187,7 +187,7 @@
     Cor de texto não muda com a seleção — o fundo selecionado do tema claro
     derruba o vermelho de 4.89:1 para 4.06:1, abaixo de AA (design system §1.1).
   */
-  .orca-repo-item {
+  .ui-repo-item {
     position: relative;
     display: block;
     width: 100%;
@@ -198,15 +198,15 @@
     cursor: pointer;
   }
 
-  .orca-repo-item:hover {
+  .ui-repo-item:hover {
     background: var(--dlog-accent);
   }
 
-  .orca-repo-item[aria-current='true'] {
+  .ui-repo-item[aria-current='true'] {
     background: var(--dlog-accent);
   }
 
-  .orca-repo-item[aria-current='true']::before {
+  .ui-repo-item[aria-current='true']::before {
     content: '';
     position: absolute;
     top: 10px;
@@ -217,28 +217,28 @@
     background: var(--dlog-primary);
   }
 
-  .orca-repo-item:focus-visible {
+  .ui-repo-item:focus-visible {
     outline: 2px solid var(--dlog-focus);
     outline-offset: -2px;
   }
 
   /* Esqueleto de carregamento; a animação some sob `prefers-reduced-motion`. */
-  .orca-skeleton {
+  .ui-skeleton {
     background: var(--dlog-accent);
-    animation: orca-pulse 1.6s ease-in-out infinite;
+    animation: ui-pulse 1.6s ease-in-out infinite;
   }
 
-  .orca-dialog {
+  .ui-dialog {
     margin: auto;
     padding: 0;
     color: var(--dlog-foreground);
   }
 
-  .orca-dialog::backdrop {
+  .ui-dialog::backdrop {
     background: rgb(0 0 0 / 45%);
   }
 
-  @keyframes orca-pulse {
+  @keyframes ui-pulse {
     0%,
     100% {
       opacity: 1;
@@ -251,7 +251,7 @@
 
 /* Na mesma camada das classes Tailwind, a especificidade preserva o modo recolhido. */
 @layer utilities {
-  .orca-sidebar[data-collapsed='true'] .orca-button {
+  .ui-sidebar[data-collapsed='true'] .ui-button {
     justify-content: center;
     padding-inline: 0;
   }

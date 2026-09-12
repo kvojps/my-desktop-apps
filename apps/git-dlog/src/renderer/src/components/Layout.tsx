@@ -27,15 +27,15 @@ export function Layout({ children }: { children: ReactNode }) {
   const themeLabel = mode === 'dark' ? 'Ativar tema claro' : 'Ativar tema escuro';
 
   return (
-    <div className="orca:flex orca:h-screen orca:bg-background orca:text-foreground">
+    <div className="ui:flex ui:h-screen ui:bg-background ui:text-foreground">
       <nav
         aria-label="Navegação principal"
         data-collapsed={collapsed}
-        className="orca-sidebar orca:flex orca:shrink-0 orca:flex-col orca:gap-1 orca:bg-sidebar orca:p-3"
+        className="ui-sidebar ui:flex ui:shrink-0 ui:flex-col ui:gap-1 ui:bg-sidebar ui:p-3"
       >
-        <div className="orca:mb-4 orca:flex orca:h-9 orca:items-center orca:gap-3 orca:px-1">
+        <div className="ui:mb-4 ui:flex ui:h-9 ui:items-center ui:gap-3 ui:px-1">
           <img src={logo32x32} alt="" width={28} height={28} />
-          {!collapsed && <span className="orca:text-sm orca:font-semibold">Git Dlog</span>}
+          {!collapsed && <span className="ui:text-sm ui:font-semibold">Git Dlog</span>}
         </div>
         <Button
           variant="nav"
@@ -48,7 +48,7 @@ export function Layout({ children }: { children: ReactNode }) {
           {collapsed ? <PanelLeftOpen /> : <PanelLeftClose />}
           {!collapsed && <span>Recolher lateral</span>}
         </Button>
-        <div id="primary-navigation" className="orca:mt-3 orca:flex orca:flex-col orca:gap-1">
+        <div id="primary-navigation" className="ui:mt-3 ui:flex ui:flex-col ui:gap-1">
           {NAV_ITEMS.map(({ label, path, icon: Icon }) => (
             <Button key={path} asChild variant="nav">
               <NavLink to={path} aria-label={label} title={collapsed ? label : undefined}>
@@ -63,14 +63,14 @@ export function Layout({ children }: { children: ReactNode }) {
           onClick={toggleMode}
           aria-label={themeLabel}
           title={themeLabel}
-          className="orca:mt-auto"
+          className="ui:mt-auto"
         >
           {mode === 'dark' ? <Sun /> : <Moon />}
           {!collapsed && <span>{mode === 'dark' ? 'Tema claro' : 'Tema escuro'}</span>}
         </Button>
       </nav>
-      <main className="orca-content orca:min-w-0 orca:flex-1 orca:overflow-y-auto orca:p-6">
-        <div className="orca-shell orca:mx-auto orca:flex orca:max-w-[1440px] orca:flex-col">
+      <main className="ui-content ui:min-w-0 ui:flex-1 ui:overflow-y-auto ui:p-6">
+        <div className="ui-shell ui:mx-auto ui:flex ui:max-w-[1440px] ui:flex-col">
           {children}
         </div>
       </main>

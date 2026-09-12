@@ -22,30 +22,30 @@ export function AppSnackbar({ snackbar, open, onClose, onExited }: AppSnackbarPr
 
   const icon =
     snackbar?.severity === 'success' ? (
-      <CheckCircle2 aria-hidden className="orca:size-5 orca:text-success" />
+      <CheckCircle2 aria-hidden className="ui:size-5 ui:text-success" />
     ) : snackbar?.severity === 'error' ? (
-      <CircleAlert aria-hidden className="orca:size-5 orca:text-danger" />
+      <CircleAlert aria-hidden className="ui:size-5 ui:text-danger" />
     ) : (
-      <Info aria-hidden className="orca:size-5 orca:text-primary" />
+      <Info aria-hidden className="ui:size-5 ui:text-primary" />
     );
 
   if (!open || !snackbar) return null;
 
   return (
-    <div className="orca:fixed orca:inset-x-4 orca:bottom-4 orca:z-50 orca:flex orca:justify-center">
+    <div className="ui:fixed ui:inset-x-4 ui:bottom-4 ui:z-50 ui:flex ui:justify-center">
       <div
         role="status"
-        className="orca:flex orca:max-w-[min(32rem,calc(100vw-2rem))] orca:items-start orca:gap-3 orca:rounded-lg orca:border orca:border-border orca:bg-paper orca:px-4 orca:py-3 orca:shadow-lg"
+        className="ui:flex ui:max-w-[min(32rem,calc(100vw-2rem))] ui:items-start ui:gap-3 ui:rounded-lg ui:border ui:border-border ui:bg-paper ui:px-4 ui:py-3 ui:shadow-lg"
       >
         {icon}
-        <p className="orca:m-0 orca:flex-1 orca:text-sm orca:text-foreground">{snackbar.message}</p>
+        <p className="ui:m-0 ui:flex-1 ui:text-sm ui:text-foreground">{snackbar.message}</p>
         <button
           type="button"
           aria-label="Fechar aviso"
           onClick={onClose}
-          className="orca-link orca:leading-none orca:text-muted-foreground"
+          className="ui-link ui:leading-none ui:text-muted-foreground"
         >
-          <X aria-hidden className="orca:size-4" />
+          <X aria-hidden className="ui:size-4" />
         </button>
       </div>
     </div>

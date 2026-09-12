@@ -15,15 +15,15 @@ export function RepoDetailsPanel({ repo, onBack }: { repo: RepoScanResult; onBac
   return (
     <section
       aria-label={`Detalhes de ${repo.name}`}
-      className="orca:flex orca:min-h-0 orca:min-w-0 orca:flex-1 orca:flex-col orca:gap-2"
+      className="ui:flex ui:min-h-0 ui:min-w-0 ui:flex-1 ui:flex-col ui:gap-2"
     >
       {onBack && (
-        <Button variant="outline" onClick={onBack} className="orca:self-start">
+        <Button variant="outline" onClick={onBack} className="ui:self-start">
           <ArrowLeft aria-hidden />
           Voltar para a lista
         </Button>
       )}
-      <div className="orca:min-h-0 orca:flex-1 orca:overflow-y-auto orca:pr-1">
+      <div className="ui:min-h-0 ui:flex-1 ui:overflow-y-auto ui:pr-1">
         <RepoDetails key={repo.path} repo={repo} />
       </div>
     </section>

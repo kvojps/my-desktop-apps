@@ -19,9 +19,9 @@ export function RepoListMessage({
   action?: ReactNode;
 }) {
   return (
-    <div className="orca:flex orca:flex-1 orca:flex-col orca:items-center orca:justify-center orca:gap-3 orca:p-6 orca:text-center">
-      <Icon aria-hidden width={40} height={40} className="orca:text-muted-foreground" />
-      <p className="orca:m-0 orca:max-w-[40ch] orca:text-sm orca:text-muted-foreground">
+    <div className="ui:flex ui:flex-1 ui:flex-col ui:items-center ui:justify-center ui:gap-3 ui:p-6 ui:text-center">
+      <Icon aria-hidden width={40} height={40} className="ui:text-muted-foreground" />
+      <p className="ui:m-0 ui:max-w-[40ch] ui:text-sm ui:text-muted-foreground">
         {description}
       </p>
       {action}

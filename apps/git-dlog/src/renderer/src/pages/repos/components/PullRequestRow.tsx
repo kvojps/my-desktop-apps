@@ -47,10 +47,10 @@ export function PullRequestRow({
   const checks = pr.checks ? CHECKS[pr.checks] : null;
 
   return (
-    <li className="orca:space-y-1.5 orca:py-2">
-      <div className="orca:flex orca:flex-wrap orca:items-center orca:gap-2">
+    <li className="ui:space-y-1.5 ui:py-2">
+      <div className="ui:flex ui:flex-wrap ui:items-center ui:gap-2">
         {isCurrentBranch && (
-          <span className="orca:shrink-0 orca:rounded-md orca:bg-primary orca:px-1.5 orca:py-0.5 orca:text-xs orca:font-semibold orca:text-on-color">
+          <span className="ui:shrink-0 ui:rounded-md ui:bg-primary ui:px-1.5 ui:py-0.5 ui:text-xs ui:font-semibold ui:text-on-color">
             branch atual
           </span>
         )}
@@ -58,8 +58,8 @@ export function PullRequestRow({
           type="button"
           onClick={() => void api.openExternal(pr.url)}
           title={`Abrir ${pr.url}`}
-          className={`orca-link orca:min-w-0 orca:text-sm orca:break-words ${
-            needsAction(pr) ? 'orca:font-bold' : 'orca:font-medium'
+          className={`ui-link ui:min-w-0 ui:text-sm ui:break-words ${
+            needsAction(pr) ? 'ui:font-bold' : 'ui:font-medium'
           }`}
         >
           #{pr.number} {pr.title}
@@ -67,23 +67,23 @@ export function PullRequestRow({
             aria-hidden
             width={12}
             height={12}
-            className="orca:ml-1 orca:inline orca:align-middle"
+            className="ui:ml-1 ui:inline ui:align-middle"
           />
         </button>
       </div>
 
-      <div className="orca:flex orca:flex-wrap orca:items-center orca:gap-x-2 orca:gap-y-1">
+      <div className="ui:flex ui:flex-wrap ui:items-center ui:gap-x-2 ui:gap-y-1">
         {pr.isDraft && <StatusChip label="rascunho" icon={FilePen} />}
         {review && <StatusChip label={review.label} icon={review.icon} tone={review.tone} />}
         {checks && <StatusChip label={checks.label} icon={checks.icon} tone={checks.tone} />}
         <span
-          className="orca:min-w-0 orca:truncate orca:font-mono orca:text-xs orca:text-muted-foreground"
+          className="ui:min-w-0 ui:truncate ui:font-mono ui:text-xs ui:text-muted-foreground"
           title={`De ${pr.headBranch} para ${pr.baseBranch}`}
         >
           {pr.headBranch} → {pr.baseBranch}
         </span>
         {pr.updatedAt && (
-          <span className="orca:ml-auto orca:shrink-0 orca:text-xs orca:text-muted-foreground">
+          <span className="ui:ml-auto ui:shrink-0 ui:text-xs ui:text-muted-foreground">
             {formatRelativeDate(pr.updatedAt)}
           </span>
         )}

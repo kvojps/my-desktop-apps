@@ -40,7 +40,7 @@ export function Modal({
     <dialog
       ref={dialogRef}
       aria-labelledby="modal-title"
-      className="orca-dialog orca:w-[min(32rem,calc(100vw-2rem))] orca:max-w-none orca:rounded-lg orca:border orca:border-border orca:bg-paper orca:shadow-lg"
+      className="ui-dialog ui:w-[min(32rem,calc(100vw-2rem))] ui:max-w-none ui:rounded-lg ui:border ui:border-border ui:bg-paper ui:shadow-lg"
       onCancel={(event) => {
         if (disableClose) {
           event.preventDefault();
@@ -59,14 +59,14 @@ export function Modal({
           onSubmit?.();
         }}
       >
-        <div className="orca:p-5">
-          <h2 id="modal-title" className="orca:m-0 orca:text-base orca:font-semibold">
+        <div className="ui:p-5">
+          <h2 id="modal-title" className="ui:m-0 ui:text-base ui:font-semibold">
             {title}
           </h2>
-          <div className="orca:mt-4">{children}</div>
+          <div className="ui:mt-4">{children}</div>
         </div>
         {actions && (
-          <div className="orca:flex orca:justify-end orca:gap-2 orca:border-t orca:border-border orca:px-5 orca:py-3">
+          <div className="ui:flex ui:justify-end ui:gap-2 ui:border-t ui:border-border ui:px-5 ui:py-3">
             {actions}
           </div>
         )}

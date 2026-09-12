@@ -58,7 +58,7 @@ export function RepoList({
     <ul
       ref={ref}
       aria-label="Repositórios encontrados"
-      className="orca:m-0 orca:min-h-0 orca:flex-1 orca:list-none orca:divide-y orca:divide-border orca:overflow-y-auto orca:p-0"
+      className="ui:m-0 ui:min-h-0 ui:flex-1 ui:list-none ui:divide-y ui:divide-border ui:overflow-y-auto ui:p-0"
     >
       {repos.map((repo) => (
         <RepoListItem

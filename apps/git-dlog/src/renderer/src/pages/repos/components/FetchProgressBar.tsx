@@ -14,15 +14,15 @@ export function FetchProgressBar({ progress }: { progress: RepoFetchProgress | n
   const percent = progress ? Math.round((progress.done / Math.max(progress.total, 1)) * 100) : null;
 
   return (
-    <div className="orca:space-y-2 orca:rounded-lg orca:border orca:border-border orca:bg-paper orca:p-3">
-      <div className="orca:flex orca:items-center orca:justify-between orca:gap-2 orca:text-xs orca:text-muted-foreground">
-        <span className="orca:truncate">
+    <div className="ui:space-y-2 ui:rounded-lg ui:border ui:border-border ui:bg-paper ui:p-3">
+      <div className="ui:flex ui:items-center ui:justify-between ui:gap-2 ui:text-xs ui:text-muted-foreground">
+        <span className="ui:truncate">
           {progress
             ? `${PHASE_LABEL[progress.phase]}: ${progress.current}`
             : 'Preparando busca nos remotos...'}
         </span>
         {progress && (
-          <span className="orca:shrink-0">
+          <span className="ui:shrink-0">
             {progress.done}/{progress.total}
           </span>
         )}
@@ -33,10 +33,10 @@ export function FetchProgressBar({ progress }: { progress: RepoFetchProgress | n
         aria-valuemin={0}
         aria-valuemax={100}
         aria-valuenow={percent ?? undefined}
-        className="orca:h-1 orca:overflow-hidden orca:rounded-md orca:bg-accent"
+        className="ui:h-1 ui:overflow-hidden ui:rounded-md ui:bg-accent"
       >
         <div
-          className={`orca:h-full orca:bg-primary ${percent === null ? 'orca-skeleton orca:w-full' : ''}`}
+          className={`ui:h-full ui:bg-primary ${percent === null ? 'ui-skeleton ui:w-full' : ''}`}
           style={percent === null ? undefined : { width: `${percent}%` }}
         />
       </div>

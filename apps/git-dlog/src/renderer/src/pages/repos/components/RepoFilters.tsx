@@ -21,13 +21,13 @@ export function RepoFilters({
   counts: Record<RepoFilter, number>;
 }) {
   return (
-    <div className="orca:space-y-2">
-      <div className="orca:relative orca:max-w-[360px]">
+    <div className="ui:space-y-2">
+      <div className="ui:relative ui:max-w-[360px]">
         <Search
           aria-hidden
           width={15}
           height={15}
-          className="orca:pointer-events-none orca:absolute orca:top-1/2 orca:left-2.5 orca:-translate-y-1/2 orca:text-muted-foreground"
+          className="ui:pointer-events-none ui:absolute ui:top-1/2 ui:left-2.5 ui:-translate-y-1/2 ui:text-muted-foreground"
         />
         <input
           type="search"
@@ -35,21 +35,21 @@ export function RepoFilters({
           onChange={(event) => onSearchChange(event.target.value)}
           aria-label="Filtrar repositórios por nome ou caminho"
           placeholder="Filtrar por nome ou caminho"
-          className="orca-input orca:h-9 orca:w-full orca:rounded-md orca:border orca:border-border orca:bg-paper orca:pr-9 orca:pl-8 orca:text-foreground"
+          className="ui-input ui:h-9 ui:w-full ui:rounded-md ui:border ui:border-border ui:bg-paper ui:pr-9 ui:pl-8 ui:text-foreground"
         />
         {search && (
           <Button
             variant="icon"
             aria-label="Limpar busca"
             onClick={() => onSearchChange('')}
-            className="orca:absolute orca:top-1/2 orca:right-1 orca:-translate-y-1/2"
+            className="ui:absolute ui:top-1/2 ui:right-1 ui:-translate-y-1/2"
           >
             <X aria-hidden width={15} height={15} />
           </Button>
         )}
       </div>
 
-      <div className="orca:flex orca:flex-wrap orca:gap-1.5">
+      <div className="ui:flex ui:flex-wrap ui:gap-1.5">
         <FilterChip
           label={`todos (${counts.all})`}
           active={filter === 'all'}
@@ -87,10 +87,10 @@ function FilterChip({
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className={`orca-button orca:h-7 orca:rounded-md orca:border orca:px-2.5 orca:text-xs orca:font-medium ${
+      className={`ui-button ui:h-7 ui:rounded-md ui:border ui:px-2.5 ui:text-xs ui:font-medium ${
         active
-          ? 'orca:border-primary orca:bg-accent orca:text-foreground'
-          : 'orca:border-border orca:text-muted-foreground orca:hover:bg-accent orca:hover:text-foreground'
+          ? 'ui:border-primary ui:bg-accent ui:text-foreground'
+          : 'ui:border-border ui:text-muted-foreground ui:hover:bg-accent ui:hover:text-foreground'
       }`}
     >
       {label}

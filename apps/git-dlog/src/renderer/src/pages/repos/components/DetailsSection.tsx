@@ -28,9 +28,9 @@ export function DetailsSection({
 
   const heading = (
     <>
-      <h3 className="orca:m-0 orca:text-sm orca:font-semibold orca:text-foreground">{title}</h3>
+      <h3 className="ui:m-0 ui:text-sm ui:font-semibold ui:text-foreground">{title}</h3>
       {meta && (
-        <span className="orca:ml-auto orca:truncate orca:text-xs orca:text-muted-foreground">
+        <span className="ui:ml-auto ui:truncate ui:text-xs ui:text-muted-foreground">
           {meta}
         </span>
       )}
@@ -38,25 +38,25 @@ export function DetailsSection({
   );
 
   return (
-    <section className="orca:rounded-lg orca:border orca:border-border orca:bg-paper">
+    <section className="ui:rounded-lg ui:border ui:border-border ui:bg-paper">
       {collapsible ? (
         <button
           type="button"
           onClick={() => setOpen((value) => !value)}
           aria-expanded={open}
           aria-controls={panelId}
-          className="orca-button orca:flex orca:w-full orca:items-center orca:gap-2 orca:rounded-lg orca:px-3 orca:py-2.5 orca:hover:bg-accent"
+          className="ui-button ui:flex ui:w-full ui:items-center ui:gap-2 ui:rounded-lg ui:px-3 ui:py-2.5 ui:hover:bg-accent"
         >
           {heading}
           <ChevronDown
             aria-hidden
-            className={`orca:shrink-0 orca:text-muted-foreground orca:transition-transform ${
-              open ? 'orca:rotate-180' : ''
+            className={`ui:shrink-0 ui:text-muted-foreground ui:transition-transform ${
+              open ? 'ui:rotate-180' : ''
             }`}
           />
         </button>
       ) : (
-        <div className="orca:flex orca:items-center orca:gap-2 orca:px-3 orca:py-2.5">
+        <div className="ui:flex ui:items-center ui:gap-2 ui:px-3 ui:py-2.5">
           {heading}
         </div>
       )}
@@ -64,7 +64,7 @@ export function DetailsSection({
       <div
         id={panelId}
         hidden={collapsible && !open}
-        className="orca:border-t orca:border-border orca:px-3 orca:py-3"
+        className="ui:border-t ui:border-border ui:px-3 ui:py-3"
       >
         {children}
       </div>

@@ -13,13 +13,13 @@ interface PageHeaderProps {
  */
 export function PageHeader({ icon, title, subtitle, actions }: PageHeaderProps) {
   return (
-    <header className="orca:flex orca:flex-wrap orca:items-start orca:justify-between orca:gap-3">
-      <div className="orca:flex orca:items-center orca:gap-3">
+    <header className="ui:flex ui:flex-wrap ui:items-start ui:justify-between ui:gap-3">
+      <div className="ui:flex ui:items-center ui:gap-3">
         {icon}
         <div>
-          <h1 className="orca:m-0 orca:text-xl orca:font-bold orca:text-foreground">{title}</h1>
+          <h1 className="ui:m-0 ui:text-xl ui:font-bold ui:text-foreground">{title}</h1>
           {subtitle && (
-            <p className="orca:mt-1 orca:mb-0 orca:text-sm orca:text-muted-foreground">
+            <p className="ui:mt-1 ui:mb-0 ui:text-sm ui:text-muted-foreground">
               {subtitle}
             </p>
           )}

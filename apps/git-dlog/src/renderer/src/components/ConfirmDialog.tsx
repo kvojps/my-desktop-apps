@@ -31,9 +31,9 @@ export function ConfirmDialog({
   const dialogRef = useRef<HTMLDialogElement>(null);
   const confirmClass =
     confirmColor === 'error'
-      ? 'orca:bg-danger orca:hover:bg-danger'
+      ? 'ui:bg-danger ui:hover:bg-danger'
       : confirmColor === 'warning'
-        ? 'orca:bg-warning orca:text-on-warning orca:hover:bg-warning'
+        ? 'ui:bg-warning ui:text-on-warning ui:hover:bg-warning'
         : '';
 
   useEffect(() => {
@@ -48,7 +48,7 @@ export function ConfirmDialog({
       ref={dialogRef}
       aria-labelledby="confirm-dialog-title"
       aria-describedby="confirm-dialog-message"
-      className="orca-dialog orca:w-[min(32rem,calc(100vw-2rem))] orca:max-w-none orca:rounded-lg orca:border orca:border-border orca:bg-paper orca:shadow-lg"
+      className="ui-dialog ui:w-[min(32rem,calc(100vw-2rem))] ui:max-w-none ui:rounded-lg ui:border ui:border-border ui:bg-paper ui:shadow-lg"
       onCancel={(event) => {
         if (loading) {
           event.preventDefault();
@@ -61,18 +61,18 @@ export function ConfirmDialog({
         if (!loading && event.target === event.currentTarget) onClose();
       }}
     >
-      <div className="orca:p-5">
-        <h2 id="confirm-dialog-title" className="orca:m-0 orca:text-base orca:font-semibold">
+      <div className="ui:p-5">
+        <h2 id="confirm-dialog-title" className="ui:m-0 ui:text-base ui:font-semibold">
           {title}
         </h2>
         <div
           id="confirm-dialog-message"
-          className="orca:mt-2 orca:text-sm orca:text-muted-foreground"
+          className="ui:mt-2 ui:text-sm ui:text-muted-foreground"
         >
           {message}
         </div>
       </div>
-      <div className="orca:flex orca:justify-end orca:gap-2 orca:border-t orca:border-border orca:px-5 orca:py-3">
+      <div className="ui:flex ui:justify-end ui:gap-2 ui:border-t ui:border-border ui:px-5 ui:py-3">
         <Button variant="outline" onClick={onClose} disabled={loading} autoFocus>
           Cancelar
         </Button>

@@ -30,9 +30,9 @@ const PROVIDER_LABELS: Record<PrProviderKind, string> = {
 
 function InfoRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="orca:grid orca:grid-cols-[7rem_minmax(0,1fr)] orca:gap-x-4 orca:gap-y-1">
-      <dt className="orca:text-sm orca:text-muted-foreground">{label}</dt>
-      <dd className="orca:m-0 orca:text-sm orca:text-foreground">{value}</dd>
+    <div className="ui:grid ui:grid-cols-[7rem_minmax(0,1fr)] ui:gap-x-4 ui:gap-y-1">
+      <dt className="ui:text-sm ui:text-muted-foreground">{label}</dt>
+      <dd className="ui:m-0 ui:text-sm ui:text-foreground">{value}</dd>
     </div>
   );
 }
@@ -47,21 +47,21 @@ function ProviderRow({
   detail: string;
 }) {
   return (
-    <li className="orca:flex orca:items-start orca:gap-3">
+    <li className="ui:flex ui:items-start ui:gap-3">
       {available ? (
         <CheckCircle2
           aria-hidden
-          className="orca:mt-0.5 orca:size-4 orca:shrink-0 orca:text-success"
+          className="ui:mt-0.5 ui:size-4 ui:shrink-0 ui:text-success"
         />
       ) : (
         <Circle
           aria-hidden
-          className="orca:mt-0.5 orca:size-4 orca:shrink-0 orca:text-muted-foreground"
+          className="ui:mt-0.5 ui:size-4 ui:shrink-0 ui:text-muted-foreground"
         />
       )}
       <div>
-        <p className="orca:m-0 orca:text-sm orca:font-semibold orca:text-foreground">{label}</p>
-        <p className="orca:mt-0.5 orca:mb-0 orca:text-sm orca:text-muted-foreground">{detail}</p>
+        <p className="ui:m-0 ui:text-sm ui:font-semibold ui:text-foreground">{label}</p>
+        <p className="ui:mt-0.5 ui:mb-0 ui:text-sm ui:text-muted-foreground">{detail}</p>
       </div>
     </li>
   );
@@ -161,20 +161,20 @@ export function SettingsPage() {
   }
 
   return (
-    <div className="orca:space-y-4">
+    <div className="ui:space-y-4">
       <PageHeader
-        icon={<Settings aria-hidden className="orca:size-[22px] orca:text-muted-foreground" />}
+        icon={<Settings aria-hidden className="ui:size-[22px] ui:text-muted-foreground" />}
         title="Configurações"
         subtitle="Integração com pull requests e informações do aplicativo."
       />
 
-      <section className="orca:rounded-lg orca:border orca:border-border orca:bg-paper orca:p-5">
-        <div className="orca:flex orca:flex-wrap orca:items-start orca:justify-between orca:gap-3">
+      <section className="ui:rounded-lg ui:border ui:border-border ui:bg-paper ui:p-5">
+        <div className="ui:flex ui:flex-wrap ui:items-start ui:justify-between ui:gap-3">
           <div>
-            <h2 className="orca:m-0 orca:text-base orca:font-semibold orca:text-foreground">
+            <h2 className="ui:m-0 ui:text-base ui:font-semibold ui:text-foreground">
               Integrações de pull requests
             </h2>
-            <p className="orca:mt-1 orca:mb-0 orca:max-w-[72ch] orca:text-sm orca:text-muted-foreground">
+            <p className="ui:mt-1 ui:mb-0 ui:max-w-[72ch] ui:text-sm ui:text-muted-foreground">
               Para mostrar PRs, o app usa uma ferramenta já autenticada nesta máquina. Se nenhuma
               estiver disponível, use um token do GitHub como alternativa.
             </p>
@@ -190,18 +190,18 @@ export function SettingsPage() {
         </div>
 
         {status && !status.anyAvailable && (
-          <div className="orca:mt-4 orca:flex orca:gap-3 orca:rounded-md orca:border orca:border-border orca:bg-accent orca:p-3">
-            <Info aria-hidden className="orca:mt-0.5 orca:size-4 orca:shrink-0 orca:text-primary" />
-            <p className="orca:m-0 orca:text-sm orca:text-foreground">
+          <div className="ui:mt-4 ui:flex ui:gap-3 ui:rounded-md ui:border ui:border-border ui:bg-accent ui:p-3">
+            <Info aria-hidden className="ui:mt-0.5 ui:size-4 ui:shrink-0 ui:text-primary" />
+            <p className="ui:m-0 ui:text-sm ui:text-foreground">
               Nenhuma integração ativa — os repositórios continuam funcionando normalmente, apenas
               sem PRs. A opção mais simples é instalar o GitHub CLI e rodar{' '}
-              <code className="orca:font-mono">gh auth login</code>.
+              <code className="ui:font-mono">gh auth login</code>.
             </p>
           </div>
         )}
 
         {statusError && !status ? (
-          <div className="orca:mt-5 orca:rounded-md orca:border orca:border-border orca:bg-accent orca:p-4">
+          <div className="ui:mt-5 ui:rounded-md ui:border ui:border-border ui:bg-accent ui:p-4">
             <ErrorState
               dense
               title="Não foi possível verificar as integrações de PRs"
@@ -210,20 +210,20 @@ export function SettingsPage() {
             />
           </div>
         ) : isLoading && !status ? (
-          <div aria-hidden className="orca:mt-5 orca:space-y-4">
+          <div aria-hidden className="ui:mt-5 ui:space-y-4">
             {Array.from({ length: 3 }, (_, index) => (
-              <div key={index} className="orca:flex orca:gap-3">
-                <div className="orca-skeleton orca:mt-0.5 orca:size-4 orca:rounded-full" />
-                <div className="orca:flex-1 orca:space-y-2">
-                  <div className="orca-skeleton orca:h-4 orca:w-36 orca:rounded" />
-                  <div className="orca-skeleton orca:h-4 orca:w-3/4 orca:rounded" />
+              <div key={index} className="ui:flex ui:gap-3">
+                <div className="ui-skeleton ui:mt-0.5 ui:size-4 ui:rounded-full" />
+                <div className="ui:flex-1 ui:space-y-2">
+                  <div className="ui-skeleton ui:h-4 ui:w-36 ui:rounded" />
+                  <div className="ui-skeleton ui:h-4 ui:w-3/4 ui:rounded" />
                 </div>
               </div>
             ))}
           </div>
         ) : (
           <ul
-            className="orca:mt-5 orca:mb-0 orca:list-none orca:space-y-4 orca:p-0"
+            className="ui:mt-5 ui:mb-0 ui:list-none ui:space-y-4 ui:p-0"
             aria-label="Provedores de pull requests"
           >
             {status?.providers.map((provider) => (
@@ -238,18 +238,18 @@ export function SettingsPage() {
         )}
       </section>
 
-      <section className="orca:rounded-lg orca:border orca:border-border orca:bg-paper orca:p-5">
-        <div className="orca:flex orca:flex-wrap orca:items-start orca:justify-between orca:gap-3">
-          <div className="orca:flex orca:gap-3">
+      <section className="ui:rounded-lg ui:border ui:border-border ui:bg-paper ui:p-5">
+        <div className="ui:flex ui:flex-wrap ui:items-start ui:justify-between ui:gap-3">
+          <div className="ui:flex ui:gap-3">
             <ShieldCheck
               aria-hidden
-              className="orca:mt-0.5 orca:size-5 orca:shrink-0 orca:text-muted-foreground"
+              className="ui:mt-0.5 ui:size-5 ui:shrink-0 ui:text-muted-foreground"
             />
             <div>
-              <h2 className="orca:m-0 orca:text-base orca:font-semibold orca:text-foreground">
+              <h2 className="ui:m-0 ui:text-base ui:font-semibold ui:text-foreground">
                 Token do GitHub
               </h2>
-              <p className="orca:mt-1 orca:mb-0 orca:max-w-[62ch] orca:text-sm orca:text-muted-foreground">
+              <p className="ui:mt-1 ui:mb-0 ui:max-w-[62ch] ui:text-sm ui:text-muted-foreground">
                 {status?.hasGithubToken
                   ? 'Há um token salvo, cifrado pelo cofre de credenciais do sistema.'
                   : status
@@ -262,7 +262,7 @@ export function SettingsPage() {
             <Button
               ref={removeTokenButtonRef}
               variant="outline"
-              className="orca:border-danger orca:text-danger"
+              className="ui:border-danger ui:text-danger"
               onClick={() => setDeleteTokenOpen(true)}
               disabled={isLoading}
             >
@@ -299,11 +299,11 @@ export function SettingsPage() {
           </>
         }
       >
-        <div className="orca:space-y-4 orca:pt-1">
-          <div className="orca:space-y-1.5">
+        <div className="ui:space-y-4 ui:pt-1">
+          <div className="ui:space-y-1.5">
             <label
               htmlFor="github-token"
-              className="orca:block orca:text-sm orca:font-medium orca:text-foreground"
+              className="ui:block ui:text-sm ui:font-medium ui:text-foreground"
             >
               Personal access token
             </label>
@@ -316,22 +316,22 @@ export function SettingsPage() {
               onChange={(event) => setToken(event.target.value)}
               autoComplete="off"
               aria-describedby="github-token-help"
-              className="orca-input orca:h-9 orca:w-full orca:rounded-md orca:border orca:border-border orca:bg-paper orca:px-3 orca:text-foreground"
+              className="ui-input ui:h-9 ui:w-full ui:rounded-md ui:border ui:border-border ui:bg-paper ui:px-3 ui:text-foreground"
             />
-            <p id="github-token-help" className="orca:m-0 orca:text-sm orca:text-muted-foreground">
+            <p id="github-token-help" className="ui:m-0 ui:text-sm ui:text-muted-foreground">
               Precisa do escopo repo (ou equivalente somente leitura em tokens fine-grained).
             </p>
             {token.length > 0 && token.trim().length < 8 && (
-              <p className="orca:m-0 orca:text-sm orca:text-danger" role="alert">
+              <p className="ui:m-0 ui:text-sm ui:text-danger" role="alert">
                 Digite um token com pelo menos 8 caracteres para continuar.
               </p>
             )}
           </div>
-          <p className="orca:m-0 orca:text-sm orca:text-muted-foreground">
+          <p className="ui:m-0 ui:text-sm ui:text-muted-foreground">
             O token é validado antes de ser salvo e nunca volta para a interface.{' '}
             <button
               type="button"
-              className="orca-link"
+              className="ui-link"
               onClick={() => void openTokenDocumentation()}
             >
               Gerar um token no GitHub
@@ -340,9 +340,9 @@ export function SettingsPage() {
         </div>
       </Modal>
 
-      <section className="orca:rounded-lg orca:border orca:border-border orca:bg-paper orca:p-5">
-        <h2 className="orca:m-0 orca:text-base orca:font-semibold orca:text-foreground">Sobre</h2>
-        <dl className="orca:mt-4 orca:mb-0 orca:space-y-3">
+      <section className="ui:rounded-lg ui:border ui:border-border ui:bg-paper ui:p-5">
+        <h2 className="ui:m-0 ui:text-base ui:font-semibold ui:text-foreground">Sobre</h2>
+        <dl className="ui:mt-4 ui:mb-0 ui:space-y-3">
           <InfoRow label="Aplicativo" value="Git Dlog" />
           <InfoRow label="Versão" value={APP_VERSION} />
           <InfoRow

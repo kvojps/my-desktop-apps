@@ -41,12 +41,12 @@ export function ErrorState({ title, error, onRetry, dense = false }: ErrorStateP
 
   const Title = dense ? 'h3' : 'h1';
   const containerClass = dense
-    ? 'orca:mx-0 orca:mt-0 orca:max-w-none orca:space-y-3'
-    : 'orca:mx-auto orca:mt-16 orca:max-w-[560px] orca:space-y-3 orca:text-center';
-  const iconClass = dense ? 'orca:text-danger' : 'orca:mx-auto orca:text-danger';
+    ? 'ui:mx-0 ui:mt-0 ui:max-w-none ui:space-y-3'
+    : 'ui:mx-auto ui:mt-16 ui:max-w-[560px] ui:space-y-3 ui:text-center';
+  const iconClass = dense ? 'ui:text-danger' : 'ui:mx-auto ui:text-danger';
   const actionsClass = dense
-    ? 'orca:flex orca:flex-wrap orca:gap-2'
-    : 'orca:flex orca:flex-wrap orca:justify-center orca:gap-2';
+    ? 'ui:flex ui:flex-wrap ui:gap-2'
+    : 'ui:flex ui:flex-wrap ui:justify-center ui:gap-2';
 
   return (
     <div className={containerClass}>
@@ -56,8 +56,8 @@ export function ErrorState({ title, error, onRetry, dense = false }: ErrorStateP
         height={dense ? 40 : 48}
         className={iconClass}
       />
-      <Title className="orca:m-0 orca:text-xl orca:font-bold orca:text-foreground">{title}</Title>
-      <p className="orca:m-0 orca:text-sm orca:text-muted-foreground">
+      <Title className="ui:m-0 ui:text-xl ui:font-bold ui:text-foreground">{title}</Title>
+      <p className="ui:m-0 ui:text-sm ui:text-muted-foreground">
         {APP_ERROR_DESCRIPTIONS[code]}
       </p>
 
@@ -73,7 +73,7 @@ export function ErrorState({ title, error, onRetry, dense = false }: ErrorStateP
         )}
       </div>
 
-      <p className="orca:m-0 orca:pt-2 orca:font-mono orca:text-xs orca:break-words orca:text-muted-foreground">
+      <p className="ui:m-0 ui:pt-2 ui:font-mono ui:text-xs ui:break-words ui:text-muted-foreground">
         {message}
       </p>
     </div>

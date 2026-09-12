@@ -19,14 +19,14 @@ interface EmptyStateProps {
  */
 export function EmptyState({ icon, description, action, size = 'page' }: EmptyStateProps) {
   return (
-    <div className="orca:flex orca:flex-col orca:items-center orca:gap-3 orca:rounded-lg orca:border orca:border-border orca:bg-paper orca:p-8 orca:text-center">
+    <div className="ui:flex ui:flex-col ui:items-center ui:gap-3 ui:rounded-lg ui:border ui:border-border ui:bg-paper ui:p-8 ui:text-center">
       <div
         aria-hidden
-        className={`orca:text-muted-foreground ${size === 'page' ? 'orca:[&>svg]:size-12' : 'orca:[&>svg]:size-10'}`}
+        className={`ui:text-muted-foreground ${size === 'page' ? 'ui:[&>svg]:size-12' : 'ui:[&>svg]:size-10'}`}
       >
         {icon}
       </div>
-      <p className="orca:m-0 orca:text-sm orca:text-muted-foreground">{description}</p>
+      <p className="ui:m-0 ui:text-sm ui:text-muted-foreground">{description}</p>
       {action}
     </div>
   );

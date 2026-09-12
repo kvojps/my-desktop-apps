@@ -31,7 +31,7 @@ const WARNING_CONTRAST_TEXT = 'rgba(0, 0, 0, 0.87)';
  * escritas duas vezes, nada impedia que divergissem em silêncio.
  * Medições e procedência em `apps/git-dlog/docs/orca-theme.md`.
  */
-const orcaTokens = (mode: ThemeMode) => {
+const uiTokens = (mode: ThemeMode) => {
   const light = mode === 'light';
   return {
     background: light ? '#ffffff' : '#0a0a0a',
@@ -55,21 +55,21 @@ const orcaTokens = (mode: ThemeMode) => {
 
 /** Variáveis consumidas pelo Tailwind e pelos componentes locais do piloto. */
 export function getThemeVariables(mode: ThemeMode): CSSProperties {
-  const orca = orcaTokens(mode);
+  const ui = uiTokens(mode);
   return {
-    '--dlog-background': orca.background,
-    '--dlog-paper': orca.paper,
-    '--dlog-sidebar': orca.sidebar,
-    '--dlog-foreground': orca.foreground,
-    '--dlog-muted-foreground': orca.mutedForeground,
-    '--dlog-accent': orca.accent,
-    '--dlog-border': orca.border,
-    '--dlog-focus': orca.focus,
-    '--dlog-primary': orca.primary,
-    '--dlog-success': orca.success,
-    '--dlog-danger': orca.danger,
-    '--dlog-warning': orca.warning,
-    '--dlog-on-color': orca.onColor,
+    '--dlog-background': ui.background,
+    '--dlog-paper': ui.paper,
+    '--dlog-sidebar': ui.sidebar,
+    '--dlog-foreground': ui.foreground,
+    '--dlog-muted-foreground': ui.mutedForeground,
+    '--dlog-accent': ui.accent,
+    '--dlog-border': ui.border,
+    '--dlog-focus': ui.focus,
+    '--dlog-primary': ui.primary,
+    '--dlog-success': ui.success,
+    '--dlog-danger': ui.danger,
+    '--dlog-warning': ui.warning,
+    '--dlog-on-color': ui.onColor,
     '--dlog-on-warning': WARNING_CONTRAST_TEXT,
     '--dlog-mono': MONO_FONT_FAMILY,
   } as CSSProperties;

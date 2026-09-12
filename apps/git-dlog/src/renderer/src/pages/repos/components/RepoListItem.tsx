@@ -27,16 +27,16 @@ export function RepoListItem({
         type="button"
         onClick={onSelect}
         aria-current={selected ? 'true' : undefined}
-        className="orca-repo-item orca:space-y-1 orca:px-3 orca:py-2.5"
+        className="ui-repo-item ui:space-y-1 ui:px-3 ui:py-2.5"
       >
-        <span className="orca:flex orca:items-center orca:gap-2">
+        <span className="ui:flex ui:items-center ui:gap-2">
           <SeverityBadge level={repo.error ? 'error' : repo.severity} />
-          <span className="orca:truncate orca:text-sm orca:font-semibold orca:text-foreground">
+          <span className="ui:truncate ui:text-sm ui:font-semibold ui:text-foreground">
             {repo.name}
           </span>
           {pathHint && (
             <span
-              className="orca:truncate orca:font-mono orca:text-xs orca:text-muted-foreground"
+              className="ui:truncate ui:font-mono ui:text-xs ui:text-muted-foreground"
               title={repo.path}
             >
               {pathHint}
@@ -45,27 +45,27 @@ export function RepoListItem({
         </span>
 
         {repo.error ? (
-          <span className="orca:line-clamp-2 orca:text-xs orca:text-muted-foreground">
+          <span className="ui:line-clamp-2 ui:text-xs ui:text-muted-foreground">
             {repo.error}
           </span>
         ) : (
-          <span className="orca:flex orca:flex-wrap orca:items-center orca:gap-x-2 orca:gap-y-1 orca:text-xs">
+          <span className="ui:flex ui:flex-wrap ui:items-center ui:gap-x-2 ui:gap-y-1 ui:text-xs">
             {repo.head?.branch && (
-              <span className="orca:inline-flex orca:min-w-0 orca:items-center orca:gap-1 orca:text-muted-foreground">
-                <GitBranch aria-hidden width={12} height={12} className="orca:shrink-0" />
-                <span className="orca:truncate orca:font-mono">{repo.head.branch}</span>
+              <span className="ui:inline-flex ui:min-w-0 ui:items-center ui:gap-1 ui:text-muted-foreground">
+                <GitBranch aria-hidden width={12} height={12} className="ui:shrink-0" />
+                <span className="ui:truncate ui:font-mono">{repo.head.branch}</span>
               </span>
             )}
             {pendencies.length === 0 ? (
-              <span className="orca:text-muted-foreground">nada pendente</span>
+              <span className="ui:text-muted-foreground">nada pendente</span>
             ) : (
               pendencies.map((pendency) => (
                 <span
                   key={pendency.key}
                   className={
                     pendency.tone === 'risk'
-                      ? 'orca:font-semibold orca:text-foreground'
-                      : 'orca:text-muted-foreground'
+                      ? 'ui:font-semibold ui:text-foreground'
+                      : 'ui:text-muted-foreground'
                   }
                 >
                   {pendency.label}

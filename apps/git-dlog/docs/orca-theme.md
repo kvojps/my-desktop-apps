@@ -45,7 +45,7 @@ padding 24px, teto 1440px e rolagem independente; janela mínima 960 × 640.
 
 ## Base concluída
 
-Tailwind v4 é carregado com prefixo `orca`, sem Preflight, somente tema e
+Tailwind v4 é carregado com prefixo `ui`, sem Preflight, somente tema e
 utilitários. Controles, diálogos, notificações, tabela e estados são locais; o
 `<dialog>` nativo fornece modalidade, Esc e retorno de foco. O modo inicial vem
 do preload e a preferência continua persistida pelo banco via API. O fundo nativo
@@ -66,7 +66,7 @@ tela alterna entre lista e detalhes. Lista com 360px fixos quando lado a lado.
 Para os painéis medirem, a tela precisa de altura fechada; a tela em fluxo
 normal precisa do contrário, sob pena de perder o respiro do padding embaixo
 quando o conteúdo passa da janela. Quem pede a altura é a tela, declarando
-`data-fill-height`, e `.orca-shell:has(> [data-fill-height])` responde.
+`data-fill-height`, e `.ui-shell:has(> [data-fill-height])` responde.
 
 Severidade na lista: `risco` e `erro` em preenchimento `danger` com o rótulo de
 contraste do modo, `atenção` em âmbar com rótulo preto (ADR-0001) e `limpo` em

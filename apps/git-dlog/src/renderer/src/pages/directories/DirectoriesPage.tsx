@@ -60,11 +60,11 @@ export function DirectoriesPage() {
   }
 
   return (
-    <div className="orca:space-y-4">
-      <header className="orca:flex orca:flex-wrap orca:items-start orca:justify-between orca:gap-3">
+    <div className="ui:space-y-4">
+      <header className="ui:flex ui:flex-wrap ui:items-start ui:justify-between ui:gap-3">
         <div>
-          <h1 className="orca:m-0 orca:text-xl orca:font-bold orca:text-foreground">Diretórios</h1>
-          <p className="orca:mt-1 orca:mb-0 orca:text-sm orca:text-muted-foreground">
+          <h1 className="ui:m-0 ui:text-xl ui:font-bold ui:text-foreground">Diretórios</h1>
+          <p className="ui:mt-1 ui:mb-0 ui:text-sm ui:text-muted-foreground">
             Diretórios-base usados na procura recursiva de repositórios git.
           </p>
         </div>
@@ -82,22 +82,22 @@ export function DirectoriesPage() {
       {isLoading ? (
         <div
           aria-hidden
-          className="orca:overflow-hidden orca:rounded-lg orca:border orca:border-border orca:bg-paper"
+          className="ui:overflow-hidden ui:rounded-lg ui:border ui:border-border ui:bg-paper"
         >
           {Array.from({ length: 4 }, (_, index) => (
             <div
               key={index}
-              className="orca:flex orca:items-center orca:gap-3 orca:border-b orca:border-border orca:px-3 orca:py-3 last:orca:border-b-0"
+              className="ui:flex ui:items-center ui:gap-3 ui:border-b ui:border-border ui:px-3 ui:py-3 last:ui:border-b-0"
             >
-              <div className="orca-skeleton orca:h-4 orca:w-4 orca:shrink-0 orca:rounded" />
-              <div className="orca-skeleton orca:h-4 orca:w-2/3 orca:rounded" />
+              <div className="ui-skeleton ui:h-4 ui:w-4 ui:shrink-0 ui:rounded" />
+              <div className="ui-skeleton ui:h-4 ui:w-2/3 ui:rounded" />
             </div>
           ))}
         </div>
       ) : scanPaths.length === 0 ? (
-        <div className="orca:flex orca:min-h-64 orca:flex-col orca:items-center orca:justify-center orca:gap-3 orca:rounded-lg orca:border orca:border-border orca:bg-paper orca:p-6 orca:text-center">
-          <Folder aria-hidden width={48} height={48} className="orca:text-muted-foreground" />
-          <p className="orca:m-0 orca:max-w-[48ch] orca:text-sm orca:text-muted-foreground">
+        <div className="ui:flex ui:min-h-64 ui:flex-col ui:items-center ui:justify-center ui:gap-3 ui:rounded-lg ui:border ui:border-border ui:bg-paper ui:p-6 ui:text-center">
+          <Folder aria-hidden width={48} height={48} className="ui:text-muted-foreground" />
+          <p className="ui:m-0 ui:max-w-[48ch] ui:text-sm ui:text-muted-foreground">
             Nenhum diretório-base cadastrado ainda. Adicione um diretório-base para o app procurar
             repositórios git dentro dele.
           </p>
@@ -108,26 +108,26 @@ export function DirectoriesPage() {
         </div>
       ) : (
         <ul
-          className="orca:m-0 orca:list-none orca:overflow-hidden orca:rounded-lg orca:border orca:border-border orca:bg-paper orca:p-0"
+          className="ui:m-0 ui:list-none ui:overflow-hidden ui:rounded-lg ui:border ui:border-border ui:bg-paper ui:p-0"
           aria-label="Diretórios-base cadastrados"
         >
           {scanPaths.map((scanPath) => (
             <li
               key={scanPath.id}
-              className="orca:flex orca:items-center orca:gap-3 orca:border-b orca:border-border orca:px-3 orca:py-2.5 last:orca:border-b-0"
+              className="ui:flex ui:items-center ui:gap-3 ui:border-b ui:border-border ui:px-3 ui:py-2.5 last:ui:border-b-0"
             >
               <Folder
                 aria-hidden
                 width={18}
                 height={18}
-                className="orca:shrink-0 orca:text-muted-foreground"
+                className="ui:shrink-0 ui:text-muted-foreground"
               />
-              <span className="orca:min-w-0 orca:flex-1 orca:break-all orca:font-mono orca:text-sm orca:text-foreground orca:select-text">
+              <span className="ui:min-w-0 ui:flex-1 ui:break-all ui:font-mono ui:text-sm ui:text-foreground ui:select-text">
                 {scanPath.path}
               </span>
               <Button
                 variant="icon"
-                className="orca:shrink-0 orca:hover:text-danger"
+                className="ui:shrink-0 ui:hover:text-danger"
                 aria-label={`Remover cadastro de ${scanPath.path}`}
                 title="Remover diretório-base"
                 onClick={() => setDeleting(scanPath)}
