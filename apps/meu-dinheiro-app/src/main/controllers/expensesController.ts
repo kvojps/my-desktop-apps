@@ -5,7 +5,6 @@ import type { ExpensesService } from '../services/expensesService';
 import { parseId } from '../utils/parseId';
 import { parseOrThrow } from '../utils/validate';
 import { handle } from './handle';
-import { expenseToResponse } from './responses/expense.response';
 import {
   createExpenseSchema,
   payExpenseSchema,
@@ -16,7 +15,8 @@ import { receiptFilenameSchema } from './schemas/receipts.schema';
 /**
  * As Despesas de um Mês e o pagamento: débito da Conta, comprovante em disco e
  * estorno. Toda a composição transacional é do `expensesService`; aqui ficam
- * `parseOrThrow` / `parseId` na entrada e `expenseToResponse` na saída.
+ * `parseOrThrow` / `parseId` na entrada. `Expense` (`@shared/types/expense`)
+ * atravessa direto — sem mapper de saída (ADR-0005).
  *
  * `receipts:open` não tem controller próprio — o comprovante é recurso do
  * domínio de Despesas (spec, decisão 10). O `filename` cru do renderer passa a
@@ -24,15 +24,15 @@ import { receiptFilenameSchema } from './schemas/receipts.schema';
  */
 export function registerExpensesController(expenses: ExpensesService): void {
   handle(IPC_CHANNELS.expensesListForMonth, (_event, monthId: unknown): Expense[] =>
-    expenses.listForMonth(parseId(monthId)).map(expenseToResponse),
+    expenses.listForMonth(parseId(monthId)),
   );
 
   handle(IPC_CHANNELS.expensesCreate, (_event, monthId: unknown, data: unknown): Expense =>
-    expenseToResponse(expenses.create(parseId(monthId), parseOrThrow(createExpenseSchema, data))),
+    expenses.create(parseId(monthId), parseOrThrow(createExpenseSchema, data)),
   );
 
   handle(IPC_CHANNELS.expensesUpdate, (_event, id: unknown, data: unknown): Expense =>
-    expenseToResponse(expenses.update(parseId(id), parseOrThrow(updateExpenseSchema, data))),
+    expenses.update(parseId(id), parseOrThrow(updateExpenseSchema, data)),
   );
 
   handle(IPC_CHANNELS.expensesDelete, (_event, id: unknown): { message: string } => {
@@ -57,20 +57,16 @@ export function registerExpensesController(expenses: ExpensesService): void {
         paidAt: payload?.paidAt,
         bankAccountId: payload?.bankAccountId,
       });
-      return expenseToResponse(
-        expenses.pay(parseId(id), {
-          paidAt: body.paidAt,
-          bankAccountId: body.bankAccountId,
-          notes: body.notes,
-          receipt: payload?.receipt,
-        }),
-      );
+      return expenses.pay(parseId(id), {
+        paidAt: body.paidAt,
+        bankAccountId: body.bankAccountId,
+        notes: body.notes,
+        receipt: payload?.receipt,
+      });
     },
   );
 
-  handle(IPC_CHANNELS.expensesUnpay, (_event, id: unknown): Expense =>
-    expenseToResponse(expenses.unpay(parseId(id))),
-  );
+  handle(IPC_CHANNELS.expensesUnpay, (_event, id: unknown): Expense => expenses.unpay(parseId(id)));
 
   handle(IPC_CHANNELS.receiptsOpen, (_event, filename: unknown): Promise<void> =>
     expenses.openReceipt(parseOrThrow(receiptFilenameSchema, filename)),

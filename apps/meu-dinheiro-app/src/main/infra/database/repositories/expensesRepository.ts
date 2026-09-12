@@ -1,5 +1,5 @@
+import type { Expense } from '@shared/types/expense';
 import Database from 'better-sqlite3';
-import type { ExpenseEntity } from '../../../domain/expense';
 
 /** Colunas cruas da tabela; o banco continua em snake_case. */
 export interface ExpenseRow {
@@ -24,8 +24,8 @@ interface ExpenseJoinRow extends ExpenseRow {
   category_color: string | null;
 }
 
-export function rowToExpense(row: ExpenseRow | ExpenseJoinRow): ExpenseEntity {
-  const joined = row as ExpenseJoinRow;
+export function rowToExpense(row: ExpenseRow | ExpenseJoinRow): Expense {
+  const joined = 'bank_account_name' in row ? (row as ExpenseJoinRow) : null;
   return {
     id: row.id,
     monthId: row.month_id,
@@ -38,11 +38,15 @@ export function rowToExpense(row: ExpenseRow | ExpenseJoinRow): ExpenseEntity {
     receipt: row.receipt,
     notes: row.notes,
     bankAccountId: row.bank_account_id,
-    bankAccountName: joined.bank_account_name,
     categoryId: row.category_id,
-    categoryName: joined.category_name,
-    categoryColor: joined.category_color,
     createdAt: row.created_at,
+    ...(joined
+      ? {
+          bankAccountName: joined.bank_account_name,
+          categoryName: joined.category_name,
+          categoryColor: joined.category_color,
+        }
+      : {}),
   };
 }
 
@@ -63,13 +67,13 @@ function todayLocalDate(): string {
 }
 
 export function makeExpensesRepository(db: Database.Database) {
-  function findById(id: number): ExpenseEntity | null {
+  function findById(id: number): Expense | null {
     const row = selectExpenseRow(db, id);
     return row ? rowToExpense(row) : null;
   }
 
   return {
-    listForMonth(monthId: number): ExpenseEntity[] {
+    listForMonth(monthId: number): Expense[] {
       const rows = db
         .prepare(`${WITH_JOINS} WHERE e.month_id = ? ORDER BY e.due_date, e.name`)
         .all(monthId) as ExpenseJoinRow[];
@@ -77,7 +81,7 @@ export function makeExpensesRepository(db: Database.Database) {
     },
 
     /** Todas as despesas, para o backup. Sem JOINs — só as colunas próprias. */
-    listAll(): ExpenseEntity[] {
+    listAll(): Expense[] {
       const rows = db.prepare('SELECT * FROM expenses ORDER BY month_id').all() as ExpenseRow[];
       return rows.map(rowToExpense);
     },
@@ -110,7 +114,7 @@ export function makeExpensesRepository(db: Database.Database) {
         amount?: number;
         categoryId?: number | null;
       },
-    ): ExpenseEntity {
+    ): Expense {
       const result = db
         .prepare(
           'INSERT INTO expenses (month_id, name, due_date, amount, category_id) VALUES (?, ?, ?, ?, ?)',
@@ -131,7 +135,7 @@ export function makeExpensesRepository(db: Database.Database) {
         notes?: string | null;
         categoryId?: number | null;
       },
-    ): ExpenseEntity | null {
+    ): Expense | null {
       const existing = selectExpenseRow(db, id);
       if (!existing) return null;
 
@@ -150,7 +154,7 @@ export function makeExpensesRepository(db: Database.Database) {
     },
 
     /** Apaga a despesa. O comprovante em disco é apagado pelo `expensesService`. */
-    delete(id: number): ExpenseEntity | null {
+    delete(id: number): Expense | null {
       const existing = selectExpenseRow(db, id);
       if (!existing) return null;
       db.prepare('DELETE FROM expenses WHERE id = ?').run(id);
@@ -168,7 +172,7 @@ export function makeExpensesRepository(db: Database.Database) {
       notes: string | undefined,
       paidAt: string | undefined,
       bankAccountId: number | undefined,
-    ): ExpenseEntity | null {
+    ): Expense | null {
       const existing = selectExpenseRow(db, id);
       if (!existing) return null;
 
@@ -189,7 +193,7 @@ export function makeExpensesRepository(db: Database.Database) {
      * Desmarca o pagamento. O crédito de volta na Conta e a exclusão do
      * comprovante são do `expensesService`.
      */
-    unpay(id: number): ExpenseEntity | null {
+    unpay(id: number): Expense | null {
       const existing = selectExpenseRow(db, id);
       if (!existing) return null;
 

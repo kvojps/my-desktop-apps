@@ -1,3 +1,11 @@
+/**
+ * A Despesa de um Mês: um gasto lançado, nascido de uma Despesa padrão ou
+ * avulso (`CONTEXT.md`).
+ *
+ * Sem `ExpenseEntity` em `domain/`: nenhum campo aqui precisa ficar de fora do
+ * IPC, então o repositório devolve este tipo direto, sem par no domínio nem
+ * mapper de resposta (ADR-0005).
+ */
 export interface Expense {
   id: number;
   monthId: number;

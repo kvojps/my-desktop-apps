@@ -31,6 +31,14 @@ A fronteira `Row → Entity/Shared` (banco) não muda: `interface XRow` e
 para camelCase e valores como `is_paid` (0/1) para boolean. O que colapsa é só
 a segunda travessia — `entity → response` —, nunca a primeira.
 
+Exceção pontual: quando o campo condicional de JOIN (`bankAccountName` e
+afins, ausente — não `undefined` — nas consultas sem JOIN) já era filtrado
+pelo mapper `entity → response` que deixa de existir, essa filtragem passa a
+ser do próprio `rowToX`, porque não sobra mais nenhuma travessia depois dela
+para fazer o trabalho. Não é a primeira travessia ganhando responsabilidade
+nova — é a mesma regra de "ausente quando não veio do JOIN" migrando de
+mapper para mapper, porque um dos dois deixou de existir.
+
 ## O risco aceito: o `tsc` para de avisar sozinho
 
 O motivo de existir a segunda travessia, no ADR-0002 (seção "Nenhuma camada é

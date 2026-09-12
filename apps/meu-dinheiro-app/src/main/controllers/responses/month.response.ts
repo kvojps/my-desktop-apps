@@ -1,6 +1,5 @@
 import type { Month, MonthDetail } from '@shared/types/month';
 import type { MonthDetailEntity, MonthEntity } from '../../domain/month';
-import { expenseToResponse } from './expense.response';
 import { incomeToResponse } from './income.response';
 
 /**
@@ -35,13 +34,15 @@ export function monthToResponse(entity: MonthEntity): Month {
 }
 
 /**
- * O Mês com as folhas resolvidas: cada Despesa e Entrada pelo seu próprio mapper,
- * sem atravessar o objeto inteiro por identidade estrutural (README §2.5).
+ * O Mês com as folhas resolvidas. `Expense` colapsou `Entity` e o tipo de
+ * `shared/types/` num só (ADR-0005) e atravessa direto; `Income` ainda não
+ * colapsou e mantém o mapper por nó, sem atravessar o objeto inteiro por
+ * identidade estrutural (README §2.5).
  */
 export function monthDetailToResponse(entity: MonthDetailEntity): MonthDetail {
   return {
     ...monthToResponse(entity),
-    expenses: entity.expenses.map(expenseToResponse),
+    expenses: entity.expenses,
     incomes: entity.incomes.map(incomeToResponse),
   };
 }
