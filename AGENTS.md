@@ -36,6 +36,8 @@ Mesmo nível de heading do README raiz (título é o único `#`).
   a falha por `toIpcError`.
 - SQL vive só nos repositórios de `main/db/`. `snake_case` para no banco; a
   conversão para camelCase acontece no `rowToX` do repositório.
+- Commits seguem [Conventional Commits](https://www.conventionalcommits.org/)
+  e são escritos em inglês, independente do idioma da conversa.
 
 ## Comandos
 
@@ -62,6 +64,8 @@ idênticas e mantidas pela ferramenta de skills — não editar à mão. O manif
 
 Issues e specs vivem como markdown em `.scratch/<feature>/` neste repo — não há
 fluxo de GitHub Issues. Ver [`docs/agents/issue-tracker.md`](docs/agents/issue-tracker.md).
+Ao resolver uma issue, atualize a linha `Status:` no arquivo correspondente antes
+de encerrar a tarefa e marque os itens do checklist que foram resolvidos.
 
 ### Domain docs
 
