@@ -1,4 +1,4 @@
-import type { BankAccountEntity } from '../domain/bankAccount';
+import type { BankAccount } from '@shared/types/bank-account';
 import type { Repositories } from '../infra/database';
 import { AppError } from '../utils/errors/AppError';
 
@@ -9,28 +9,28 @@ import { AppError } from '../utils/errors/AppError';
  * existia entre repositórios (spec desta pasta, problema 3 e decisão 6).
  */
 export function makeBankAccountsService(repos: Repositories) {
-  function requireAccount(id: number): BankAccountEntity {
+  function requireAccount(id: number): BankAccount {
     const account = repos.bankAccounts.findById(id);
     if (!account) throw new AppError(404, 'Conta bancária não encontrada');
     return account;
   }
 
-  function assertSufficientBalance(account: BankAccountEntity, amount: number): void {
+  function assertSufficientBalance(account: BankAccount, amount: number): void {
     if (account.balance < amount) {
       throw new AppError(400, 'Saldo insuficiente na conta selecionada');
     }
   }
 
   return {
-    list(): BankAccountEntity[] {
+    list(): BankAccount[] {
       return repos.bankAccounts.list();
     },
 
-    create(data: { name: string; balance?: number }): BankAccountEntity {
+    create(data: { name: string; balance?: number }): BankAccount {
       return repos.bankAccounts.create(data);
     },
 
-    update(id: number, data: { name?: string; balance?: number }): BankAccountEntity {
+    update(id: number, data: { name?: string; balance?: number }): BankAccount {
       const updated = repos.bankAccounts.update(id, data);
       if (!updated) throw new AppError(404, 'Conta bancária não encontrada');
       return updated;

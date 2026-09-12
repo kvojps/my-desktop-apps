@@ -1,4 +1,4 @@
-Status: ready-for-agent
+Status: done (QA manual pendente — ver checklist)
 
 # 04: Colapsar tipos de Conta bancária (BankAccount)
 
@@ -9,20 +9,25 @@ bancária continua funcionando de ponta a ponta.
 
 **Blocked by:** 01 (Documentar critério de colapso Domain + Shared)
 
-- [ ] `main/domain/bankAccount.ts` apagado; `BankAccountEntity` deixa de
+- [x] `main/domain/bankAccount.ts` apagado; `BankAccountEntity` deixa de
       existir.
-- [ ] `main/controllers/responses/bankAccount.response.ts` apagado;
+- [x] `main/controllers/responses/bankAccount.response.ts` apagado;
       `bankAccountToResponse` deixa de existir.
-- [ ] `bankAccountsRepository.ts`: `rowToBankAccount` e todos os métodos do
+- [x] `bankAccountsRepository.ts`: `rowToBankAccount` e todos os métodos do
       repositório devolvem `BankAccount` (de `@shared/types/bank-account`)
       diretamente.
-- [ ] `bankAccountsController.ts` chama o service direto, sem
+- [x] `bankAccountsController.ts` chama o service direto, sem
       `bankAccountToResponse`.
-- [ ] `bankAccountsService.ts` (e qualquer outro consumidor, incluindo
+- [x] `bankAccountsService.ts` (e qualquer outro consumidor, incluindo
       `expensesService`/`incomesService`, que debitam/creditam saldo)
       atualizado para o novo tipo — usar o `tsc` para achar todos os call
-      sites.
-- [ ] `npm run typecheck`, `npm run lint` e `npm test` passam limpos.
+      sites. `expensesService`/`incomesService` só consomem
+      `BankAccountsService.debit`/`credit`/`assertCanDebit` (números in/out),
+      sem referenciar o tipo diretamente — nenhuma mudança necessária ali.
+- [x] `npm run typecheck`, `npm run lint` e `npm test` passam limpos.
 - [ ] QA manual em `npm run dev:dinheiro`: criar, editar e excluir uma Conta
       bancária; conferir que pagar/despagar uma Despesa vinculada a uma
-      Conta ainda debita/credita o saldo corretamente.
+      Conta ainda debita/credita o saldo corretamente. **Não executado nesta
+      rodada** — sem infra de automação de UI Electron neste repo (sem
+      `xvfb`/driver Playwright); precisa de verificação manual humana antes
+      de considerar a issue totalmente fechada.

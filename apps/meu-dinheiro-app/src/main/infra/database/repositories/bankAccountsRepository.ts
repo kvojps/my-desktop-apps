@@ -1,5 +1,5 @@
 import Database from 'better-sqlite3';
-import type { BankAccountEntity } from '../../../domain/bankAccount';
+import type { BankAccount } from '@shared/types/bank-account';
 
 /** Colunas cruas da tabela; o banco continua em snake_case. */
 export interface BankAccountRow {
@@ -9,7 +9,7 @@ export interface BankAccountRow {
   created_at: string;
 }
 
-export function rowToBankAccount(row: BankAccountRow): BankAccountEntity {
+export function rowToBankAccount(row: BankAccountRow): BankAccount {
   return {
     id: row.id,
     name: row.name,
@@ -24,13 +24,13 @@ function selectBankAccountRow(db: Database.Database, id: number): BankAccountRow
 }
 
 export function makeBankAccountsRepository(db: Database.Database) {
-  function findById(id: number): BankAccountEntity | null {
+  function findById(id: number): BankAccount | null {
     const row = selectBankAccountRow(db, id);
     return row ? rowToBankAccount(row) : null;
   }
 
   return {
-    list(): BankAccountEntity[] {
+    list(): BankAccount[] {
       const rows = db
         .prepare('SELECT * FROM bank_accounts ORDER BY name')
         .all() as BankAccountRow[];
@@ -39,7 +39,7 @@ export function makeBankAccountsRepository(db: Database.Database) {
 
     findById,
 
-    create(data: { name: string; balance?: number }): BankAccountEntity {
+    create(data: { name: string; balance?: number }): BankAccount {
       const result = db
         .prepare('INSERT INTO bank_accounts (name, balance) VALUES (?, ?)')
         .run(data.name, data.balance || 0);
@@ -48,7 +48,7 @@ export function makeBankAccountsRepository(db: Database.Database) {
       return created;
     },
 
-    update(id: number, data: { name?: string; balance?: number }): BankAccountEntity | null {
+    update(id: number, data: { name?: string; balance?: number }): BankAccount | null {
       const existing = selectBankAccountRow(db, id);
       if (!existing) return null;
 
@@ -75,7 +75,7 @@ export function makeBankAccountsRepository(db: Database.Database) {
      * atomicidade são compostos pelo `bankAccountsService` (spec desta pasta,
      * decisão 7). Devolve `null` — sem decidir 404. Excluir não desfaz pagamentos.
      */
-    delete(id: number): BankAccountEntity | null {
+    delete(id: number): BankAccount | null {
       const existing = selectBankAccountRow(db, id);
       if (!existing) return null;
 
