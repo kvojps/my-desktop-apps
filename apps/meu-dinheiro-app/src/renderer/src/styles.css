@@ -1,3 +1,8 @@
+@layer theme, utilities;
+@import 'tailwindcss/theme.css' layer(theme) prefix(ui);
+@import 'tailwindcss/utilities.css' layer(utilities) prefix(ui);
+@source './';
+
 html,
 body,
 #root {
@@ -5,7 +10,239 @@ body,
   margin: 0;
   width: 100%;
 }
-
 body {
   min-height: 100vh;
+}
+.money-layout {
+  background: var(--money-background);
+}
+.money-sidebar,
+.money-surface,
+.money-button {
+  font-family: var(--money-font);
+  font-size: 14px;
+  line-height: 20px;
+  font-variant-numeric: tabular-nums;
+  color: var(--money-foreground);
+}
+.money-sidebar,
+.money-surface {
+  box-sizing: border-box;
+}
+.money-sidebar {
+  width: 224px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+  background: var(--money-sidebar);
+  border-right: 1px solid var(--money-border);
+}
+.money-sidebar[data-collapsed='true'] {
+  width: 64px;
+}
+.money-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  margin-bottom: 24px;
+  color: inherit;
+  text-decoration: none;
+  font-weight: 600;
+}
+.money-brand img {
+  flex-shrink: 0;
+  border-radius: 6px;
+}
+.money-sidebar[data-collapsed='true'] .money-brand {
+  justify-content: center;
+}
+.money-nav-item,
+.money-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 8px;
+  border-radius: 6px;
+  box-sizing: border-box;
+  text-decoration: none;
+  cursor: pointer;
+}
+.money-nav-item {
+  position: relative;
+  color: var(--money-muted);
+}
+.money-nav-item:hover,
+.money-nav-item[aria-current='page'] {
+  background: var(--money-accent);
+  color: var(--money-foreground);
+}
+.money-nav-item[aria-current='page'] {
+  font-weight: 600;
+}
+.money-nav-item[aria-current='page']::before {
+  content: '';
+  position: absolute;
+  left: -12px;
+  top: calc(50% - 10px);
+  width: 3px;
+  height: 20px;
+  background: var(--money-focus);
+}
+.money-nav-item svg,
+.money-button svg {
+  flex-shrink: 0;
+}
+.money-sidebar-footer {
+  margin-top: auto;
+  padding-top: 24px;
+}
+.money-sidebar[data-collapsed='true'] .money-nav-item,
+.money-sidebar[data-collapsed='true'] .money-button {
+  justify-content: center;
+}
+.money-button {
+  border: 1px solid var(--money-border);
+  background: var(--money-paper);
+  justify-content: center;
+  font-weight: 500;
+}
+.money-button:hover {
+  background: var(--money-accent);
+}
+.money-button-primary {
+  background: var(--money-primary);
+  color: var(--money-on-primary);
+  border-color: var(--money-primary);
+}
+.money-button-primary:hover {
+  background: var(--money-primary);
+  text-decoration: underline;
+}
+.money-button-ghost {
+  background: transparent;
+  border-color: transparent;
+}
+.money-sidebar .money-button {
+  justify-content: flex-start;
+}
+.money-button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.money-sidebar :focus-visible,
+.money-surface :focus-visible,
+.money-button:focus-visible {
+  outline: 2px solid var(--money-focus);
+  outline-offset: 2px;
+}
+.money-content {
+  background: var(--mui-content-background);
+}
+.money-content-container {
+  padding: 24px;
+  max-width: 1440px;
+  margin: 0 auto;
+  container-type: inline-size;
+  container-name: content;
+}
+.money-surface {
+  background: var(--money-paper);
+  border-radius: 10px;
+}
+.money-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 48px 16px;
+  text-align: center;
+}
+.money-empty p {
+  margin: 0;
+  color: var(--money-muted);
+}
+.money-state-icon {
+  display: flex;
+  color: var(--money-muted);
+}
+.money-description {
+  font-size: 12px;
+  line-height: 18px;
+  max-width: 420px;
+}
+.money-error {
+  max-width: 560px;
+  margin: 64px auto 0;
+  padding: 24px;
+  text-align: center;
+}
+.money-error[data-dense='true'] {
+  margin-top: 0;
+}
+.money-error h2 {
+  margin: 8px 0;
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 600;
+}
+.money-error[data-dense='true'] h2 {
+  font-size: 20px;
+  line-height: 28px;
+}
+.money-error p {
+  color: var(--money-muted);
+  margin: 0 0 16px;
+}
+.money-error-icon {
+  color: var(--money-danger);
+}
+.money-state-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.money-error .money-error-detail {
+  margin: 24px 0 0;
+  font: 12px/18px var(--money-mono);
+  overflow-wrap: anywhere;
+}
+.money-snackbar {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: min(560px, calc(100vw - 48px));
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--money-border);
+  z-index: 1500;
+}
+.money-notification-message {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+.money-notification-message svg {
+  flex-shrink: 0;
+}
+.money-snackbar > button {
+  flex-shrink: 0;
+}
+.money-skeleton {
+  background: var(--money-accent);
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+.money-skeleton-text {
+  min-height: 20px;
 }

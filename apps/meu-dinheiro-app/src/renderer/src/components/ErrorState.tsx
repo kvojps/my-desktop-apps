@@ -1,8 +1,8 @@
-import { ErrorOutline, FolderOpen, Restore } from '@mui/icons-material';
-import { Box, Button, Stack, Typography } from '@mui/material';
+import { CircleAlert, FolderOpen, RotateCcw } from 'lucide-react';
 import { useState } from 'react';
 import { APP_ERROR_DESCRIPTIONS, decodeAppError } from '@shared/errors/appError';
 import { api } from '@/api/client';
+import { Button } from '@/components/Button';
 import { useSnackbar } from '@/contexts/SnackbarContext';
 
 interface ErrorStateProps {
@@ -57,43 +57,28 @@ export function ErrorState({ title, error, onRetry, dense }: ErrorStateProps) {
   }
 
   return (
-    <Box sx={{ textAlign: 'center', mt: dense ? 0 : 8, mx: 'auto', maxWidth: 560 }}>
-      <ErrorOutline sx={{ fontSize: dense ? 40 : 48, color: 'error.main', mb: 1 }} />
-      <Typography variant={dense ? 'h6' : 'h5'} gutterBottom>
-        {title}
-      </Typography>
-      <Typography color="text.secondary" sx={{ mb: 2 }}>
-        {APP_ERROR_DESCRIPTIONS[code]}
-      </Typography>
-
-      <Stack direction="row" spacing={1} justifyContent="center" flexWrap="wrap" useFlexGap>
-        <Button variant="contained" onClick={onRetry}>
+    <section className="money-error money-surface" data-dense={!!dense} role="alert">
+      <CircleAlert size={dense ? 40 : 48} className="money-error-icon" aria-hidden="true" />
+      <h2>{title}</h2>
+      <p>{APP_ERROR_DESCRIPTIONS[code]}</p>
+      <div className="money-state-actions">
+        <Button variant="primary" onClick={onRetry}>
           Tentar novamente
         </Button>
         {canRestore && (
-          <Button
-            variant="outlined"
-            startIcon={<Restore />}
-            onClick={handleRestore}
-            disabled={restoring}
-          >
-            Restaurar backup
+          <Button onClick={handleRestore} disabled={restoring}>
+            <RotateCcw size={18} aria-hidden="true" />
+            {restoring ? 'Restaurando...' : 'Restaurar backup'}
           </Button>
         )}
         {canOpenFolder && (
-          <Button variant="outlined" startIcon={<FolderOpen />} onClick={handleOpenFolder}>
+          <Button onClick={handleOpenFolder}>
+            <FolderOpen size={18} aria-hidden="true" />
             Abrir pasta de dados
           </Button>
         )}
-      </Stack>
-
-      <Typography
-        variant="caption"
-        color="text.secondary"
-        sx={{ display: 'block', mt: 3, fontFamily: 'monospace', wordBreak: 'break-word' }}
-      >
-        {message}
-      </Typography>
-    </Box>
+      </div>
+      <p className="money-error-detail">{message}</p>
+    </section>
   );
 }

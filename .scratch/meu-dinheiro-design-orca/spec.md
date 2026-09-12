@@ -1,4 +1,4 @@
-Status: ready-for-agent
+Status: in-progress
 
 # Meu Dinheiro — migração incremental do design inspirado no Orca
 
@@ -138,7 +138,8 @@ compilado como evidência de aprovação visual.
 
 As decisões Q1–Q11 e o entendimento consolidado foram confirmados pelo usuário.
 A decomposição e o estado de execução ficam no [mapa](map.md). As seis issues
-estão prontas para implementação, mas ainda não foram executadas.
+têm execução acompanhada no mapa: a issue 01 está resolvida e as demais
+aguardam a sequência de implementação.
 
 Referências: [Orca](https://www.onorca.dev/),
 [spec do precedente](../git-dlog-design-orca/spec.md),

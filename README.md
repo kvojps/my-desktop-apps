@@ -169,8 +169,10 @@ tema em `theme/`. O Git Dlog concluiu sua exceção local com Tailwind sem
 Preflight, componentes locais, Geist e Lucide, conforme os
 [tokens locais](apps/git-dlog/docs/orca-theme.md); ele não usa MUI ou Emotion.
 O Meu Dinheiro tem uma [migração incremental aprovada](.scratch/meu-dinheiro-design-orca/spec.md)
-para Tailwind sem Preflight, componentes locais, Geist e Lucide, ainda não
-implementada. Nele, MUI/Material Icons permanecem nas superfícies não migradas;
+para Tailwind sem Preflight, componentes locais, Geist e Lucide. A base de
+navegação e estados transversais está implementada, com valores nos
+[tokens locais](apps/meu-dinheiro-app/docs/orca-theme.md).
+Nele, MUI/Material Icons permanecem nas superfícies não migradas;
 as prescrições de biblioteca, ícones e tema abaixo admitem a substituição local
 conforme a [exceção normativa](docs/design-system.md). Meu Negócio e Meu Móvel
 Planejado mantêm MUI e Material Icons. Não há compartilhamento de código.

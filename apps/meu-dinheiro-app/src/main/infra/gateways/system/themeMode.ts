@@ -1,10 +1,10 @@
 import { BrowserWindow, nativeTheme } from 'electron';
 import type { ThemeModeEntity } from '../../../domain/theme';
 
-/** Igual a `background.default` do tema do renderer, por modo. */
+/** Igual ao token Orca `background` do renderer (docs/orca-theme.md). */
 const BACKGROUND: Record<ThemeModeEntity, string> = {
-  light: '#F4F6FB',
-  dark: '#10131C',
+  light: '#ffffff',
+  dark: '#0a0a0a',
 };
 
 /**

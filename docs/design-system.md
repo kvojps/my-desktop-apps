@@ -17,7 +17,7 @@ uma migração própria aprovada, descrita abaixo. Cada migração deve registra
 valores locais antes de mudar código; a independência de código entre apps
 permanece vigente.
 
-## Transição aprovada, ainda não implementada: Meu Dinheiro
+## Transição incremental: Meu Dinheiro
 
 A [spec aprovada](../.scratch/meu-dinheiro-design-orca/spec.md) e o
 [ADR local](../apps/meu-dinheiro-app/docs/adr/0001-migracao-visual-orca.md)
@@ -32,9 +32,10 @@ interna de seis seções, uma visível por vez, com seletor em espaço reduzido,
 substituindo os acordeões da §4.1. O tema ficará no rodapé da navegação, com
 identificação acessível do modo, sem exigir a duplicação da §4.1.
 
-Os valores concretos devem ser documentados em
-`apps/meu-dinheiro-app/docs/orca-theme.md` **antes da primeira alteração de UI**,
-conforme a issue 01. Até sua migração, cada superfície segue a norma MUI vigente.
+A issue 01 implementou a lateral recolhível e os estados transversais.
+Os valores concretos foram registrados nos
+[tokens locais](../apps/meu-dinheiro-app/docs/orca-theme.md) **antes da primeira
+alteração de UI**. As limitações de validação estão documentadas ali. Até sua migração, cada superfície segue a norma MUI vigente.
 Coexistência é temporária e exige proteção contra interferência de estilos.
 Permanecem obrigatórias as regras de contraste medido nas superfícies reais,
 alinhamento de tabelas, segundo canal além da cor, teclado/foco, movimento reduzido,

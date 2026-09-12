@@ -1,6 +1,6 @@
-import { SearchOffOutlined } from '@mui/icons-material';
-import { Button } from '@mui/material';
+import { SearchX } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/Button';
 import { EmptyState } from '@/components/EmptyState';
 import { ROUTES } from '@/routes';
 
@@ -9,11 +9,11 @@ export function NotFoundPage() {
 
   return (
     <EmptyState
-      icon={<SearchOffOutlined sx={{ fontSize: 48 }} />}
+      icon={<SearchX size={48} />}
       title="Página não encontrada"
       description="O endereço acessado não existe."
       action={
-        <Button variant="contained" onClick={() => navigate(ROUTES.DASHBOARD)}>
+        <Button variant="primary" onClick={() => navigate(ROUTES.DASHBOARD)}>
           Voltar para a Visão Geral
         </Button>
       }

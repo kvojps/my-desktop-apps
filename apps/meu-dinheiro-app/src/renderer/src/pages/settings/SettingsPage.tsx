@@ -19,7 +19,6 @@ import {
   Box,
   Button,
   Chip,
-  Skeleton,
   Stack,
   Typography,
 } from '@mui/material';
@@ -33,6 +32,7 @@ import { DataTable } from '@/components/DataTable';
 import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { PageHeader } from '@/components/PageHeader';
+import { Skeleton } from '@/components/Skeleton';
 import { useBankAccounts } from '@/hooks/bank-accounts/useBankAccounts';
 import { useCategories } from '@/hooks/categories/useCategories';
 import { useDefaultExpenses } from '@/hooks/default-expenses/useDefaultExpenses';

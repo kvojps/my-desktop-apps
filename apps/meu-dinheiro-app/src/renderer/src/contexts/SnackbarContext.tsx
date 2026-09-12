@@ -65,7 +65,13 @@ export function SnackbarProvider({ children }: { children: ReactNode }) {
   return (
     <SnackbarContext.Provider value={{ showSnackbar, showError }}>
       {children}
-      <AppSnackbar snackbar={current} open={open} onClose={closeSnackbar} onExited={handleExited} />
+      <AppSnackbar
+        key={current?.key}
+        snackbar={current}
+        open={open}
+        onClose={closeSnackbar}
+        onExited={handleExited}
+      />
     </SnackbarContext.Provider>
   );
 }

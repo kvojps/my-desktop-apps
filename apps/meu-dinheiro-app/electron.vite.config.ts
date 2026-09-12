@@ -1,3 +1,4 @@
+import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'electron-vite';
 import path from 'path';
@@ -10,7 +11,7 @@ export default defineConfig({
     resolve: { alias: { '@shared': path.resolve(__dirname, 'src/shared') } },
   },
   renderer: {
-    plugins: [react()],
+    plugins: [react(), tailwindcss()],
     resolve: {
       alias: {
         '@shared': path.resolve(__dirname, 'src/shared'),

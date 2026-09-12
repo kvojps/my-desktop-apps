@@ -1,0 +1,13 @@
+[
+  "Tema escuro persistido ao reabrir",
+  "Fundo e moldura restaurados",
+  "Diálogo MUI foca campo de nome",
+  "Shift+Tab fica no diálogo",
+  "Escape fecha diálogo",
+  "Diálogo devolve foco ao acionador",
+  "Salvar conta gera notificação local de sucesso",
+  "Notificação pausa com foco",
+  "Escape fora da notificação fecha aviso",
+  "Fila apresenta próxima notificação após fechar",
+  "Próxima notificação fecha automaticamente sem foco ou hover residual"
+]

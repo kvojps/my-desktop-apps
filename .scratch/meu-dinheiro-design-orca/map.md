@@ -1,4 +1,4 @@
-Status: ready-for-agent
+Status: in-progress
 
 # Meu Dinheiro — adequação ao design inspirado no Orca
 
@@ -50,10 +50,14 @@ Decisões Q10–Q11 e entendimento consolidado confirmados pelo usuário:
   pura existente, sem infraestrutura nova de componentes/E2E. Usar dados de teste
   para operações financeiras, comprovantes e importação.
 
+Etapa 01 resolvida em 2026-09-12: base local Tailwind/Geist/Lucide, lateral
+recolhível, estados transversais e pintura de janela, preservando as telas MUI.
+[Evidências e limites](issues/01-tema-e-navegacao.md); issue 02 desbloqueada.
+
 ## Plano de execução
 
-A [spec](spec.md) consolida o escopo aprovado. Todos os tickets estão
-`ready-for-agent`; nenhum foi implementado por esta atividade documental.
+A [spec](spec.md) consolida o escopo aprovado. Issue 01 resolvida; issues 02–06
+permanecem `ready-for-agent`, respeitando a ordem de bloqueio.
 
 | Issue                                | Escopo                                              | Bloqueada por |
 | ------------------------------------ | --------------------------------------------------- | ------------- |
@@ -66,9 +70,10 @@ A [spec](spec.md) consolida o escopo aprovado. Todos os tickets estão
 
 ## Fog
 
-Nenhuma decisão de produto pendente. Valores concretos de tokens e dimensões
-serão documentados antes de mudar UI na issue 01; não foram medidos nesta
-atividade. Validações visuais e funcionais são entregas das issues, ainda pendentes.
+Nenhuma decisão de produto pendente. Tokens e medições da base estão em
+`apps/meu-dinheiro-app/docs/orca-theme.md`. As validações das telas consumidoras
+continuam nas issues 02–06; a limitação da janela externa mínima e da moldura
+Windows está registrada na issue 01.
 
 ## Inventário inicial
 

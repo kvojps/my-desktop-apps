@@ -19,7 +19,6 @@ import {
   InputLabel,
   MenuItem,
   Select,
-  Skeleton,
   Stack,
   Tab,
   Tabs,
@@ -35,6 +34,7 @@ import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { PageHeader } from '@/components/PageHeader';
+import { Skeleton } from '@/components/Skeleton';
 import { StatCard, StatCardGrid, StatCardSkeleton } from '@/components/StatCard';
 import { useBankAccounts } from '@/hooks/bank-accounts/useBankAccounts';
 import { useCategories } from '@/hooks/categories/useCategories';

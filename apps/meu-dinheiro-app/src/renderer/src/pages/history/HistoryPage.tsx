@@ -6,12 +6,13 @@ import {
   TrendingDownOutlined,
   TrendingUpOutlined,
 } from '@mui/icons-material';
-import { Button, Card, Skeleton, Stack, Tab, Tabs } from '@mui/material';
+import { Button, Card, Stack, Tab, Tabs } from '@mui/material';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { PageHeader } from '@/components/PageHeader';
+import { Skeleton } from '@/components/Skeleton';
 import { StatCard, StatCardGrid, StatCardSkeleton } from '@/components/StatCard';
 import { useCategoryTotals } from '@/hooks/categories/useCategoryTotals';
 import { BALANCE_LABELS, sumMonthBalances } from '@/hooks/months/useMonthBalance';

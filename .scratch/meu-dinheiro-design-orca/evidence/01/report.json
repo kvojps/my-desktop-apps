@@ -1,0 +1,863 @@
+[
+  {
+    "boot": {
+      "theme": "light",
+      "nav": 224
+    },
+    "native": "light",
+    "background": "#FFFFFF"
+  },
+  "Navegação expandida por padrão",
+  "Moldura light",
+  "Fundo nativo light",
+  "light 960 aberta /dashboard: sem overflow",
+  {
+    "mode": "light",
+    "width": 960,
+    "height": 640,
+    "collapsed": false,
+    "route": "/dashboard",
+    "viewport": [
+      960,
+      640
+    ],
+    "nav": 224,
+    "overflow": false,
+    "mainOverflow": false,
+    "active": "Visão Geral",
+    "mui": false,
+    "window": [
+      1004,
+      684
+    ]
+  },
+  "light 960 aberta /history: sem overflow",
+  {
+    "mode": "light",
+    "width": 960,
+    "height": 640,
+    "collapsed": false,
+    "route": "/history",
+    "viewport": [
+      960,
+      640
+    ],
+    "nav": 224,
+    "overflow": false,
+    "mainOverflow": false,
+    "active": "Histórico",
+    "mui": false,
+    "window": [
+      1004,
+      684
+    ]
+  },
+  "light 960 aberta /settings: sem overflow",
+  {
+    "mode": "light",
+    "width": 960,
+    "height": 640,
+    "collapsed": false,
+    "route": "/settings",
+    "viewport": [
+      960,
+      640
+    ],
+    "nav": 224,
+    "overflow": false,
+    "mainOverflow": false,
+    "active": "Configurações",
+    "mui": true,
+    "window": [
+      1004,
+      684
+    ]
+  },
+  "light 960 aberta /months/1: sem overflow",
+  {
+    "mode": "light",
+    "width": 960,
+    "height": 640,
+    "collapsed": false,
+    "route": "/months/1",
+    "viewport": [
+      960,
+      640
+    ],
+    "nav": 224,
+    "overflow": false,
+    "mainOverflow": false,
+    "active": "Histórico",
+    "mui": true,
+    "window": [
+      1004,
+      684
+    ]
+  },
+  "light 960 aberta /missing: sem overflow",
+  {
+    "mode": "light",
+    "width": 960,
+    "height": 640,
+    "collapsed": false,
+    "route": "/missing",
+    "viewport": [
+      960,
+      640
+    ],
+    "nav": 224,
+    "overflow": false,
+    "mainOverflow": false,
+    "mui": false,
+    "window": [
+      1004,
+      684
+    ]
+  },
+  "light 960 recolhida /dashboard: sem overflow",
+  {
+    "mode": "light",
+    "width": 960,
+    "height": 640,
+    "collapsed": true,
+    "route": "/dashboard",
+    "viewport": [
+      960,
+      640
+    ],
+    "nav": 64,
+    "overflow": false,
+    "mainOverflow": false,
+    "active": "Visão Geral",
+    "mui": false,
+    "window": [
+      1004,
+      684
+    ]
+  },
+  "light 960 recolhida /history: sem overflow",
+  {
+    "mode": "light",
+    "width": 960,
+    "height": 640,
+    "collapsed": true,
+    "route": "/history",
+    "viewport": [
+      960,
+      640
+    ],
+    "nav": 64,
+    "overflow": false,
+    "mainOverflow": false,
+    "active": "Histórico",
+    "mui": false,
+    "window": [
+      1004,
+      684
+    ]
+  },
+  "light 960 recolhida /settings: sem overflow",
+  {
+    "mode": "light",
+    "width": 960,
+    "height": 640,
+    "collapsed": true,
+    "route": "/settings",
+    "viewport": [
+      960,
+      640
+    ],
+    "nav": 64,
+    "overflow": false,
+    "mainOverflow": false,
+    "active": "Configurações",
+    "mui": true,
+    "window": [
+      1004,
+      684
+    ]
+  },
+  "light 960 recolhida /months/1: sem overflow",
+  {
+    "mode": "light",
+    "width": 960,
+    "height": 640,
+    "collapsed": true,
+    "route": "/months/1",
+    "viewport": [
+      960,
+      640
+    ],
+    "nav": 64,
+    "overflow": false,
+    "mainOverflow": false,
+    "active": "Histórico",
+    "mui": true,
+    "window": [
+      1004,
+      684
+    ]
+  },
+  "light 960 recolhida /missing: sem overflow",
+  {
+    "mode": "light",
+    "width": 960,
+    "height": 640,
+    "collapsed": true,
+    "route": "/missing",
+    "viewport": [
+      960,
+      640
+    ],
+    "nav": 64,
+    "overflow": false,
+    "mainOverflow": false,
+    "mui": false,
+    "window": [
+      1004,
+      684
+    ]
+  },
+  "light 1280 aberta /dashboard: sem overflow",
+  {
+    "mode": "light",
+    "width": 1280,
+    "height": 800,
+    "collapsed": false,
+    "route": "/dashboard",
+    "viewport": [
+      1280,
+      800
+    ],
+    "nav": 224,
+    "overflow": false,
+    "mainOverflow": false,
+    "active": "Visão Geral",
+    "mui": false,
+    "window": [
+      1280,
+      800
+    ]
+  },
+  "light 1280 aberta /history: sem overflow",
+  {
+    "mode": "light",
+    "width": 1280,
+    "height": 800,
+    "collapsed": false,
+    "route": "/history",
+    "viewport": [
+      1280,
+      800
+    ],
+    "nav": 224,
+    "overflow": false,
+    "mainOverflow": false,
+    "active": "Histórico",
+    "mui": false,
+    "window": [
+      1280,
+      800
+    ]
+  },
+  "light 1280 aberta /settings: sem overflow",
+  {
+    "mode": "light",
+    "width": 1280,
+    "height": 800,
+    "collapsed": false,
+    "route": "/settings",
+    "viewport": [
+      1280,
+      800
+    ],
+    "nav": 224,
+    "overflow": false,
+    "mainOverflow": false,
+    "active": "Configurações",
+    "mui": true,
+    "window": [
+      1280,
+      800
+    ]
+  },
+  "light 1280 aberta /months/1: sem overflow",
+  {
+    "mode": "light",
+    "width": 1280,
+    "height": 800,
+    "collapsed": false,
+    "route": "/months/1",
+    "viewport": [
+      1280,
+      800
+    ],
+    "nav": 224,
+    "overflow": false,
+    "mainOverflow": false,
+    "active": "Histórico",
+    "mui": true,
+    "window": [
+      1280,
+      800
+    ]
+  },
+  "light 1280 aberta /missing: sem overflow",
+  {
+    "mode": "light",
+    "width": 1280,
+    "height": 800,
+    "collapsed": false,
+    "route": "/missing",
+    "viewport": [
+      1280,
+      800
+    ],
+    "nav": 224,
+    "overflow": false,
+    "mainOverflow": false,
+    "mui": false,
+    "window": [
+      1280,
+      800
+    ]
+  },
+  "light 1280 recolhida /dashboard: sem overflow",
+  {
+    "mode": "light",
+    "width": 1280,
+    "height": 800,
+    "collapsed": true,
+    "route": "/dashboard",
+    "viewport": [
+      1280,
+      800
+    ],
+    "nav": 64,
+    "overflow": false,
+    "mainOverflow": false,
+    "active": "Visão Geral",
+    "mui": false,
+    "window": [
+      1280,
+      800
+    ]
+  },
+  "light 1280 recolhida /history: sem overflow",
+  {
+    "mode": "light",
+    "width": 1280,
+    "height": 800,
+    "collapsed": true,
+    "route": "/history",
+    "viewport": [
+      1280,
+      800
+    ],
+    "nav": 64,
+    "overflow": false,
+    "mainOverflow": false,
+    "active": "Histórico",
+    "mui": false,
+    "window": [
+      1280,
+      800
+    ]
+  },
+  "light 1280 recolhida /settings: sem overflow",
+  {
+    "mode": "light",
+    "width": 1280,
+    "height": 800,
+    "collapsed": true,
+    "route": "/settings",
+    "viewport": [
+      1280,
+      800
+    ],
+    "nav": 64,
+    "overflow": false,
+    "mainOverflow": false,
+    "active": "Configurações",
+    "mui": true,
+    "window": [
+      1280,
+      800
+    ]
+  },
+  "light 1280 recolhida /months/1: sem overflow",
+  {
+    "mode": "light",
+    "width": 1280,
+    "height": 800,
+    "collapsed": true,
+    "route": "/months/1",
+    "viewport": [
+      1280,
+      800
+    ],
+    "nav": 64,
+    "overflow": false,
+    "mainOverflow": false,
+    "active": "Histórico",
+    "mui": true,
+    "window": [
+      1280,
+      800
+    ]
+  },
+  "light 1280 recolhida /missing: sem overflow",
+  {
+    "mode": "light",
+    "width": 1280,
+    "height": 800,
+    "collapsed": true,
+    "route": "/missing",
+    "viewport": [
+      1280,
+      800
+    ],
+    "nav": 64,
+    "overflow": false,
+    "mainOverflow": false,
+    "mui": false,
+    "window": [
+      1280,
+      800
+    ]
+  },
+  "Shift+Tab alcança tema",
+  "Foco visível light",
+  {
+    "beforeEnter": "<button type=\"button\" class=\"money-button money-button-ghost \" aria-expanded=\"false\" aria-controls=\"main-navigation\" aria-label=\"Expandir navegação\" title=\"Expandir navegação\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-panel-left-open lucide-sidebar-open\" aria-hidden=\"true\"><rect width=\"18\" height=\"18\" x=\"3\" y=\"3\" rx=\"2\"></rect><path d=\"M9 3v18\"></path><path d=\"m14 9 3 3-3 3\"></path></svg></button>"
+  },
+  "Enter expande navegação",
+  "Espaço recolhe navegação",
+  "Enter navega para Histórico",
+  "Moldura dark",
+  "Fundo nativo dark",
+  "dark 960 aberta /dashboard: sem overflow",
+  {
+    "mode": "dark",
+    "width": 960,
+    "height": 640,
+    "collapsed": false,
+    "route": "/dashboard",
+    "viewport": [
+      960,
+      640
+    ],
+    "nav": 224,
+    "overflow": false,
+    "mainOverflow": false,
+    "active": "Visão Geral",
+    "mui": false,
+    "window": [
+      1004,
+      684
+    ]
+  },
+  "dark 960 aberta /history: sem overflow",
+  {
+    "mode": "dark",
+    "width": 960,
+    "height": 640,
+    "collapsed": false,
+    "route": "/history",
+    "viewport": [
+      960,
+      640
+    ],
+    "nav": 224,
+    "overflow": false,
+    "mainOverflow": false,
+    "active": "Histórico",
+    "mui": false,
+    "window": [
+      1004,
+      684
+    ]
+  },
+  "dark 960 aberta /settings: sem overflow",
+  {
+    "mode": "dark",
+    "width": 960,
+    "height": 640,
+    "collapsed": false,
+    "route": "/settings",
+    "viewport": [
+      960,
+      640
+    ],
+    "nav": 224,
+    "overflow": false,
+    "mainOverflow": false,
+    "active": "Configurações",
+    "mui": true,
+    "window": [
+      1004,
+      684
+    ]
+  },
+  "dark 960 aberta /months/1: sem overflow",
+  {
+    "mode": "dark",
+    "width": 960,
+    "height": 640,
+    "collapsed": false,
+    "route": "/months/1",
+    "viewport": [
+      960,
+      640
+    ],
+    "nav": 224,
+    "overflow": false,
+    "mainOverflow": false,
+    "active": "Histórico",
+    "mui": true,
+    "window": [
+      1004,
+      684
+    ]
+  },
+  "dark 960 aberta /missing: sem overflow",
+  {
+    "mode": "dark",
+    "width": 960,
+    "height": 640,
+    "collapsed": false,
+    "route": "/missing",
+    "viewport": [
+      960,
+      640
+    ],
+    "nav": 224,
+    "overflow": false,
+    "mainOverflow": false,
+    "mui": false,
+    "window": [
+      1004,
+      684
+    ]
+  },
+  "dark 960 recolhida /dashboard: sem overflow",
+  {
+    "mode": "dark",
+    "width": 960,
+    "height": 640,
+    "collapsed": true,
+    "route": "/dashboard",
+    "viewport": [
+      960,
+      640
+    ],
+    "nav": 64,
+    "overflow": false,
+    "mainOverflow": false,
+    "active": "Visão Geral",
+    "mui": false,
+    "window": [
+      1004,
+      684
+    ]
+  },
+  "dark 960 recolhida /history: sem overflow",
+  {
+    "mode": "dark",
+    "width": 960,
+    "height": 640,
+    "collapsed": true,
+    "route": "/history",
+    "viewport": [
+      960,
+      640
+    ],
+    "nav": 64,
+    "overflow": false,
+    "mainOverflow": false,
+    "active": "Histórico",
+    "mui": false,
+    "window": [
+      1004,
+      684
+    ]
+  },
+  "dark 960 recolhida /settings: sem overflow",
+  {
+    "mode": "dark",
+    "width": 960,
+    "height": 640,
+    "collapsed": true,
+    "route": "/settings",
+    "viewport": [
+      960,
+      640
+    ],
+    "nav": 64,
+    "overflow": false,
+    "mainOverflow": false,
+    "active": "Configurações",
+    "mui": true,
+    "window": [
+      1004,
+      684
+    ]
+  },
+  "dark 960 recolhida /months/1: sem overflow",
+  {
+    "mode": "dark",
+    "width": 960,
+    "height": 640,
+    "collapsed": true,
+    "route": "/months/1",
+    "viewport": [
+      960,
+      640
+    ],
+    "nav": 64,
+    "overflow": false,
+    "mainOverflow": false,
+    "active": "Histórico",
+    "mui": true,
+    "window": [
+      1004,
+      684
+    ]
+  },
+  "dark 960 recolhida /missing: sem overflow",
+  {
+    "mode": "dark",
+    "width": 960,
+    "height": 640,
+    "collapsed": true,
+    "route": "/missing",
+    "viewport": [
+      960,
+      640
+    ],
+    "nav": 64,
+    "overflow": false,
+    "mainOverflow": false,
+    "mui": false,
+    "window": [
+      1004,
+      684
+    ]
+  },
+  "dark 1280 aberta /dashboard: sem overflow",
+  {
+    "mode": "dark",
+    "width": 1280,
+    "height": 800,
+    "collapsed": false,
+    "route": "/dashboard",
+    "viewport": [
+      1280,
+      800
+    ],
+    "nav": 224,
+    "overflow": false,
+    "mainOverflow": false,
+    "active": "Visão Geral",
+    "mui": false,
+    "window": [
+      1280,
+      800
+    ]
+  },
+  "dark 1280 aberta /history: sem overflow",
+  {
+    "mode": "dark",
+    "width": 1280,
+    "height": 800,
+    "collapsed": false,
+    "route": "/history",
+    "viewport": [
+      1280,
+      800
+    ],
+    "nav": 224,
+    "overflow": false,
+    "mainOverflow": false,
+    "active": "Histórico",
+    "mui": false,
+    "window": [
+      1280,
+      800
+    ]
+  },
+  "dark 1280 aberta /settings: sem overflow",
+  {
+    "mode": "dark",
+    "width": 1280,
+    "height": 800,
+    "collapsed": false,
+    "route": "/settings",
+    "viewport": [
+      1280,
+      800
+    ],
+    "nav": 224,
+    "overflow": false,
+    "mainOverflow": false,
+    "active": "Configurações",
+    "mui": true,
+    "window": [
+      1280,
+      800
+    ]
+  },
+  "dark 1280 aberta /months/1: sem overflow",
+  {
+    "mode": "dark",
+    "width": 1280,
+    "height": 800,
+    "collapsed": false,
+    "route": "/months/1",
+    "viewport": [
+      1280,
+      800
+    ],
+    "nav": 224,
+    "overflow": false,
+    "mainOverflow": false,
+    "active": "Histórico",
+    "mui": true,
+    "window": [
+      1280,
+      800
+    ]
+  },
+  "dark 1280 aberta /missing: sem overflow",
+  {
+    "mode": "dark",
+    "width": 1280,
+    "height": 800,
+    "collapsed": false,
+    "route": "/missing",
+    "viewport": [
+      1280,
+      800
+    ],
+    "nav": 224,
+    "overflow": false,
+    "mainOverflow": false,
+    "mui": false,
+    "window": [
+      1280,
+      800
+    ]
+  },
+  "dark 1280 recolhida /dashboard: sem overflow",
+  {
+    "mode": "dark",
+    "width": 1280,
+    "height": 800,
+    "collapsed": true,
+    "route": "/dashboard",
+    "viewport": [
+      1280,
+      800
+    ],
+    "nav": 64,
+    "overflow": false,
+    "mainOverflow": false,
+    "active": "Visão Geral",
+    "mui": false,
+    "window": [
+      1280,
+      800
+    ]
+  },
+  "dark 1280 recolhida /history: sem overflow",
+  {
+    "mode": "dark",
+    "width": 1280,
+    "height": 800,
+    "collapsed": true,
+    "route": "/history",
+    "viewport": [
+      1280,
+      800
+    ],
+    "nav": 64,
+    "overflow": false,
+    "mainOverflow": false,
+    "active": "Histórico",
+    "mui": false,
+    "window": [
+      1280,
+      800
+    ]
+  },
+  "dark 1280 recolhida /settings: sem overflow",
+  {
+    "mode": "dark",
+    "width": 1280,
+    "height": 800,
+    "collapsed": true,
+    "route": "/settings",
+    "viewport": [
+      1280,
+      800
+    ],
+    "nav": 64,
+    "overflow": false,
+    "mainOverflow": false,
+    "active": "Configurações",
+    "mui": true,
+    "window": [
+      1280,
+      800
+    ]
+  },
+  "dark 1280 recolhida /months/1: sem overflow",
+  {
+    "mode": "dark",
+    "width": 1280,
+    "height": 800,
+    "collapsed": true,
+    "route": "/months/1",
+    "viewport": [
+      1280,
+      800
+    ],
+    "nav": 64,
+    "overflow": false,
+    "mainOverflow": false,
+    "active": "Histórico",
+    "mui": true,
+    "window": [
+      1280,
+      800
+    ]
+  },
+  "dark 1280 recolhida /missing: sem overflow",
+  {
+    "mode": "dark",
+    "width": 1280,
+    "height": 800,
+    "collapsed": true,
+    "route": "/missing",
+    "viewport": [
+      1280,
+      800
+    ],
+    "nav": 64,
+    "overflow": false,
+    "mainOverflow": false,
+    "mui": false,
+    "window": [
+      1280,
+      800
+    ]
+  },
+  "Shift+Tab alcança tema",
+  "Foco visível dark",
+  {
+    "beforeEnter": "<button type=\"button\" class=\"money-button money-button-ghost \" aria-expanded=\"false\" aria-controls=\"main-navigation\" aria-label=\"Expandir navegação\" title=\"Expandir navegação\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-panel-left-open lucide-sidebar-open\" aria-hidden=\"true\"><rect width=\"18\" height=\"18\" x=\"3\" y=\"3\" rx=\"2\"></rect><path d=\"M9 3v18\"></path><path d=\"m14 9 3 3-3 3\"></path></svg></button>"
+  },
+  "Enter expande navegação",
+  "Espaço recolhe navegação",
+  "Enter navega para Histórico"
+]

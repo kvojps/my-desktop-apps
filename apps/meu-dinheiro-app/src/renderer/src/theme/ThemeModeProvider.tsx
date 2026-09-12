@@ -1,43 +1,40 @@
 import { CssBaseline, PaletteMode, ThemeProvider } from '@mui/material';
-import { ReactNode, useMemo, useState } from 'react';
+import { ReactNode, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { api } from '@/api/client';
 import { ThemeModeContext } from './themeModeContext';
 import { getAppTheme } from './index';
-
-/**
- * Cache do renderer, não a fonte da verdade — essa é o banco, porque o processo
- * main precisa do modo para pintar a janela antes de existir renderer. Só serve
- * de reserva para quando o valor injetado não chega (preload indisponível).
- */
-const STORAGE_KEY = 'meu-dinheiro-theme-mode';
+import { getOrcaVariables } from './orca';
 
 function getInitialMode(): PaletteMode {
-  const injected = api.initialThemeMode();
-  if (injected) return injected;
-
-  const cached = localStorage.getItem(STORAGE_KEY);
-  if (cached === 'light' || cached === 'dark') return cached;
-
-  return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  return (
+    api.initialThemeMode() ??
+    (window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+  );
 }
 
 export function ThemeModeProvider({ children }: { children: ReactNode }) {
   const [mode, setMode] = useState<PaletteMode>(getInitialMode);
 
+  const currentMode = useRef(mode);
   const toggleMode = () => {
-    setMode((prev) => {
-      const next = prev === 'light' ? 'dark' : 'light';
-      localStorage.setItem(STORAGE_KEY, next);
-      // Sem `showError`: este provider mora fora do `App`, e portanto fora do
-      // `SnackbarProvider`. Se a gravação falhar, a sessão mantém o modo novo e
-      // o próximo boot volta ao antigo — um banco que não escreve vai aparecer
-      // como `ErrorState` no primeiro carregamento de dados, de qualquer forma.
-      api.setThemeMode(next).catch((err) => console.error('[theme] falha ao persistir', err));
-      return next;
-    });
+    const next = currentMode.current === 'light' ? 'dark' : 'light';
+    currentMode.current = next;
+    setMode(next);
+    api.setThemeMode(next).catch((err) => console.error('[theme] falha ao persistir', err));
   };
 
   const theme = useMemo(() => getAppTheme(mode), [mode]);
+
+  useLayoutEffect(() => {
+    for (const [key, value] of Object.entries(getOrcaVariables(mode))) {
+      document.documentElement.style.setProperty(key, value);
+    }
+    document.documentElement.style.colorScheme = mode;
+    document.documentElement.style.setProperty(
+      '--mui-content-background',
+      theme.palette.background.default,
+    );
+  }, [mode, theme]);
 
   return (
     <ThemeModeContext.Provider value={{ mode, toggleMode }}>

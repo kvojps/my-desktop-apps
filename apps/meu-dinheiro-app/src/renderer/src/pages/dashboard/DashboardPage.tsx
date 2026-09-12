@@ -7,7 +7,7 @@ import {
   TrendingDownOutlined,
   TrendingUpOutlined,
 } from '@mui/icons-material';
-import { Box, Button, Chip, Skeleton, Stack, Tooltip } from '@mui/material';
+import { Box, Button, Chip, Stack, Tooltip } from '@mui/material';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DataTable } from '@/components/DataTable';
@@ -15,6 +15,7 @@ import type { Column } from '@/components/DataTable';
 import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { PageHeader } from '@/components/PageHeader';
+import { Skeleton } from '@/components/Skeleton';
 import { StatCard, StatCardGrid, StatCardSkeleton } from '@/components/StatCard';
 import { StatusChip } from '@/components/StatusChip';
 import { useBankAccounts } from '@/hooks/bank-accounts/useBankAccounts';

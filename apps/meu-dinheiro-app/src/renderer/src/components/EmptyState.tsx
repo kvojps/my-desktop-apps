@@ -1,4 +1,3 @@
-import { Box, Stack, Typography } from '@mui/material';
 import { ReactNode } from 'react';
 
 interface EmptyStateProps {
@@ -24,17 +23,13 @@ interface EmptyStateProps {
  */
 export function EmptyState({ icon, title, description, action }: EmptyStateProps) {
   return (
-    <Stack alignItems="center" spacing={1.5} sx={{ py: 6, px: 2, textAlign: 'center' }}>
-      <Box sx={{ display: 'flex', color: 'text.disabled' }}>{icon}</Box>
-      <Typography variant="body2" color="text.secondary">
-        {title}
-      </Typography>
-      {description && (
-        <Typography variant="caption" color="text.secondary" sx={{ maxWidth: 420 }}>
-          {description}
-        </Typography>
-      )}
+    <section className="money-empty money-surface">
+      <div className="money-state-icon" aria-hidden="true">
+        {icon}
+      </div>
+      <p>{title}</p>
+      {description && <p className="money-description">{description}</p>}
       {action}
-    </Stack>
+    </section>
   );
 }
