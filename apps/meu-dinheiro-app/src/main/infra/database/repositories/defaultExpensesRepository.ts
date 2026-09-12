@@ -1,5 +1,5 @@
 import Database from 'better-sqlite3';
-import type { DefaultExpenseEntity } from '../../../domain/defaultExpense';
+import type { DefaultExpense } from '@shared/types/expense';
 
 /** Colunas cruas da tabela; o banco continua em snake_case. */
 export interface DefaultExpenseRow {
@@ -19,17 +19,16 @@ interface DefaultExpenseJoinRow extends DefaultExpenseRow {
 
 export function rowToDefaultExpense(
   row: DefaultExpenseRow | DefaultExpenseJoinRow,
-): DefaultExpenseEntity {
-  const joined = row as DefaultExpenseJoinRow;
+): DefaultExpense {
+  const joined = 'category_name' in row ? (row as DefaultExpenseJoinRow) : null;
   return {
     id: row.id,
     name: row.name,
     dueDay: row.due_day,
     amount: row.amount,
     categoryId: row.category_id,
-    categoryName: joined.category_name,
-    categoryColor: joined.category_color,
     createdAt: row.created_at,
+    ...(joined ? { categoryName: joined.category_name, categoryColor: joined.category_color } : {}),
   };
 }
 
@@ -39,13 +38,13 @@ function selectDefaultExpenseRow(db: Database.Database, id: number): DefaultExpe
 }
 
 export function makeDefaultExpensesRepository(db: Database.Database) {
-  function findById(id: number): DefaultExpenseEntity | null {
+  function findById(id: number): DefaultExpense | null {
     const row = selectDefaultExpenseRow(db, id);
     return row ? rowToDefaultExpense(row) : null;
   }
 
   return {
-    list(): DefaultExpenseEntity[] {
+    list(): DefaultExpense[] {
       const rows = db
         .prepare(
           `SELECT d.*, c.name as category_name, c.color as category_color
@@ -69,7 +68,7 @@ export function makeDefaultExpensesRepository(db: Database.Database) {
       dueDay?: number | null;
       amount?: number;
       categoryId?: number | null;
-    }): DefaultExpenseEntity {
+    }): DefaultExpense {
       const result = db
         .prepare(
           'INSERT INTO default_expenses (name, due_day, amount, category_id) VALUES (?, ?, ?, ?)',
@@ -84,7 +83,7 @@ export function makeDefaultExpensesRepository(db: Database.Database) {
     update(
       id: number,
       data: { name?: string; dueDay?: number | null; amount?: number; categoryId?: number | null },
-    ): DefaultExpenseEntity | null {
+    ): DefaultExpense | null {
       const existing = selectDefaultExpenseRow(db, id);
       if (!existing) return null;
 
@@ -101,7 +100,7 @@ export function makeDefaultExpensesRepository(db: Database.Database) {
       return findById(id);
     },
 
-    delete(id: number): DefaultExpenseEntity | null {
+    delete(id: number): DefaultExpense | null {
       const existing = selectDefaultExpenseRow(db, id);
       if (!existing) return null;
       db.prepare('DELETE FROM default_expenses WHERE id = ?').run(id);

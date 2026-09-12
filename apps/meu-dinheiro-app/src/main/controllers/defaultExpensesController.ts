@@ -4,7 +4,6 @@ import type { DefaultExpensesService } from '../services/defaultExpensesService'
 import { parseId } from '../utils/parseId';
 import { parseOrThrow } from '../utils/validate';
 import { handle } from './handle';
-import { defaultExpenseToResponse } from './responses/defaultExpense.response';
 import {
   createDefaultExpenseSchema,
   updateDefaultExpenseSchema,
@@ -13,24 +12,19 @@ import {
 /**
  * As Despesas padrão — o modelo do que se repete todo Mês. `create` propaga uma
  * cópia para dentro de todo Mês já existente; a cascata e a transação são do
- * `defaultExpensesService`. Aqui ficam `parseOrThrow` / `parseId` na entrada e
- * `defaultExpenseToResponse` na saída.
+ * `defaultExpensesService`. Aqui ficam só `parseOrThrow` / `parseId` na
+ * entrada. `DefaultExpense` (`@shared/types/expense`) atravessa direto — sem
+ * mapper de saída (ADR-0005).
  */
 export function registerDefaultExpensesController(defaultExpenses: DefaultExpensesService): void {
-  handle(IPC_CHANNELS.defaultExpensesList, (): DefaultExpense[] =>
-    defaultExpenses.list().map(defaultExpenseToResponse),
-  );
+  handle(IPC_CHANNELS.defaultExpensesList, (): DefaultExpense[] => defaultExpenses.list());
 
   handle(IPC_CHANNELS.defaultExpensesCreate, (_event, data: unknown): DefaultExpense =>
-    defaultExpenseToResponse(
-      defaultExpenses.create(parseOrThrow(createDefaultExpenseSchema, data)),
-    ),
+    defaultExpenses.create(parseOrThrow(createDefaultExpenseSchema, data)),
   );
 
   handle(IPC_CHANNELS.defaultExpensesUpdate, (_event, id: unknown, data: unknown): DefaultExpense =>
-    defaultExpenseToResponse(
-      defaultExpenses.update(parseId(id), parseOrThrow(updateDefaultExpenseSchema, data)),
-    ),
+    defaultExpenses.update(parseId(id), parseOrThrow(updateDefaultExpenseSchema, data)),
   );
 
   handle(IPC_CHANNELS.defaultExpensesDelete, (_event, id: unknown): { message: string } => {

@@ -21,12 +21,21 @@ export interface Income {
   createdAt: string;
 }
 
+/**
+ * A Entrada padrão: o modelo do que se repete todo mês, de onde cada Mês novo
+ * tira uma cópia na criação (`CONTEXT.md`).
+ *
+ * Sem `DefaultIncomeEntity` em `domain/`: nenhum campo aqui precisa ficar de
+ * fora do IPC, então o repositório devolve este tipo direto, sem par no
+ * domínio nem mapper de resposta (ADR-0005).
+ */
 export interface DefaultIncome {
   id: number;
   name: string;
   expectedDay: number | null;
   amount: number;
   bankAccountId: number | null;
+  /** Vem do JOIN com bank_accounts; ausente nas consultas que não fazem o JOIN. */
   bankAccountName?: string | null;
   createdAt: string;
 }

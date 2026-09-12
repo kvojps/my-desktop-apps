@@ -4,8 +4,13 @@ import type { Income } from '@shared/types/income';
 /**
  * O Mês: o contêiner ano-mês em torno do qual o app se organiza (`CONTEXT.md`).
  *
- * `MonthEntity` é estruturalmente idêntica a `Month` de `@shared/types/month`;
- * o porquê do sufixo `Entity` está em `domain/defaultExpense.ts`.
+ * `MonthEntity` é estruturalmente idêntica a `Month` de `@shared/types/month`
+ * — e ainda não colapsou as duas num tipo só (ADR-0005). O sufixo `Entity`
+ * existe para o mapper do controller poder receber as duas formas lado a
+ * lado: sem nomes diferentes o `tsc` não pegaria a troca de uma pela outra.
+ * São peças diferentes — esta é o vocabulário do processo main, aquela é o
+ * contrato que atravessa o IPC — e nada garante que sigam iguais. É o mesmo
+ * motivo em todo `domain/*.ts` deste app que ainda não colapsou.
  *
  * Os 12 campos de totais são agregados pelo próprio SQL na listagem e ficam
  * ausentes quando o Mês é lido isoladamente — por isso opcionais. `Realizado`

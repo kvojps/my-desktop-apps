@@ -1,4 +1,4 @@
-import type { DefaultExpenseEntity } from '../domain/defaultExpense';
+import type { DefaultExpense } from '@shared/types/expense';
 import { formatDueDate } from '../domain/monthNames';
 import type { Repositories } from '../infra/database';
 import { AppError } from '../utils/errors/AppError';
@@ -19,11 +19,11 @@ export type UpdateDefaultExpenseInput = Partial<CreateDefaultExpenseInput>;
  */
 export function makeDefaultExpensesService(repos: Repositories) {
   return {
-    list(): DefaultExpenseEntity[] {
+    list(): DefaultExpense[] {
       return repos.defaultExpenses.list();
     },
 
-    create(data: CreateDefaultExpenseInput): DefaultExpenseEntity {
+    create(data: CreateDefaultExpenseInput): DefaultExpense {
       return repos.transaction(() => {
         const created = repos.defaultExpenses.create(data);
 
@@ -40,7 +40,7 @@ export function makeDefaultExpensesService(repos: Repositories) {
       });
     },
 
-    update(id: number, data: UpdateDefaultExpenseInput): DefaultExpenseEntity {
+    update(id: number, data: UpdateDefaultExpenseInput): DefaultExpense {
       const updated = repos.defaultExpenses.update(id, data);
       if (!updated) throw new AppError(404, 'Despesa padrão não encontrada');
       return updated;

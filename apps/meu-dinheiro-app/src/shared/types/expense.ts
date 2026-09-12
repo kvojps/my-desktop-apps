@@ -25,12 +25,21 @@ export interface Expense {
   createdAt: string;
 }
 
+/**
+ * A Despesa padrão: o modelo do que se repete todo mês, de onde cada Mês novo
+ * tira uma cópia na criação (`CONTEXT.md`).
+ *
+ * Sem `DefaultExpenseEntity` em `domain/`: nenhum campo aqui precisa ficar de
+ * fora do IPC, então o repositório devolve este tipo direto, sem par no
+ * domínio nem mapper de resposta (ADR-0005).
+ */
 export interface DefaultExpense {
   id: number;
   name: string;
   dueDay: number | null;
   amount: number;
   categoryId: number | null;
+  /** Vem do JOIN com categories; ausente nas consultas que não fazem o JOIN. */
   categoryName?: string | null;
   categoryColor?: string | null;
   createdAt: string;

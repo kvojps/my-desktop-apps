@@ -1,4 +1,4 @@
-import type { DefaultIncomeEntity } from '../domain/defaultIncome';
+import type { DefaultIncome } from '@shared/types/income';
 import { formatDueDate } from '../domain/monthNames';
 import type { Repositories } from '../infra/database';
 import { AppError } from '../utils/errors/AppError';
@@ -19,11 +19,11 @@ export type UpdateDefaultIncomeInput = Partial<CreateDefaultIncomeInput>;
  */
 export function makeDefaultIncomesService(repos: Repositories) {
   return {
-    list(): DefaultIncomeEntity[] {
+    list(): DefaultIncome[] {
       return repos.defaultIncomes.list();
     },
 
-    create(data: CreateDefaultIncomeInput): DefaultIncomeEntity {
+    create(data: CreateDefaultIncomeInput): DefaultIncome {
       return repos.transaction(() => {
         const created = repos.defaultIncomes.create(data);
 
@@ -40,7 +40,7 @@ export function makeDefaultIncomesService(repos: Repositories) {
       });
     },
 
-    update(id: number, data: UpdateDefaultIncomeInput): DefaultIncomeEntity {
+    update(id: number, data: UpdateDefaultIncomeInput): DefaultIncome {
       const updated = repos.defaultIncomes.update(id, data);
       if (!updated) throw new AppError(404, 'Entrada padrão não encontrada');
       return updated;

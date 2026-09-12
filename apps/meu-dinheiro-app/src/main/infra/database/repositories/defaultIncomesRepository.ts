@@ -1,5 +1,5 @@
 import Database from 'better-sqlite3';
-import type { DefaultIncomeEntity } from '../../../domain/defaultIncome';
+import type { DefaultIncome } from '@shared/types/income';
 
 /** Colunas cruas da tabela; o banco continua em snake_case. */
 export interface DefaultIncomeRow {
@@ -16,18 +16,16 @@ interface DefaultIncomeJoinRow extends DefaultIncomeRow {
   bank_account_name: string | null;
 }
 
-export function rowToDefaultIncome(
-  row: DefaultIncomeRow | DefaultIncomeJoinRow,
-): DefaultIncomeEntity {
-  const joined = row as DefaultIncomeJoinRow;
+export function rowToDefaultIncome(row: DefaultIncomeRow | DefaultIncomeJoinRow): DefaultIncome {
+  const joined = 'bank_account_name' in row ? (row as DefaultIncomeJoinRow) : null;
   return {
     id: row.id,
     name: row.name,
     expectedDay: row.expected_day,
     amount: row.amount,
     bankAccountId: row.bank_account_id,
-    bankAccountName: joined.bank_account_name,
     createdAt: row.created_at,
+    ...(joined ? { bankAccountName: joined.bank_account_name } : {}),
   };
 }
 
@@ -37,13 +35,13 @@ function selectDefaultIncomeRow(db: Database.Database, id: number): DefaultIncom
 }
 
 export function makeDefaultIncomesRepository(db: Database.Database) {
-  function findById(id: number): DefaultIncomeEntity | null {
+  function findById(id: number): DefaultIncome | null {
     const row = selectDefaultIncomeRow(db, id);
     return row ? rowToDefaultIncome(row) : null;
   }
 
   return {
-    list(): DefaultIncomeEntity[] {
+    list(): DefaultIncome[] {
       const rows = db
         .prepare(
           `SELECT di.*, ba.name as bank_account_name
@@ -67,7 +65,7 @@ export function makeDefaultIncomesRepository(db: Database.Database) {
       expectedDay?: number | null;
       amount?: number;
       bankAccountId?: number | null;
-    }): DefaultIncomeEntity {
+    }): DefaultIncome {
       const result = db
         .prepare(
           'INSERT INTO default_incomes (name, expected_day, amount, bank_account_id) VALUES (?, ?, ?, ?)',
@@ -87,7 +85,7 @@ export function makeDefaultIncomesRepository(db: Database.Database) {
         amount?: number;
         bankAccountId?: number | null;
       },
-    ): DefaultIncomeEntity | null {
+    ): DefaultIncome | null {
       const existing = selectDefaultIncomeRow(db, id);
       if (!existing) return null;
 
@@ -104,7 +102,7 @@ export function makeDefaultIncomesRepository(db: Database.Database) {
       return findById(id);
     },
 
-    delete(id: number): DefaultIncomeEntity | null {
+    delete(id: number): DefaultIncome | null {
       const existing = selectDefaultIncomeRow(db, id);
       if (!existing) return null;
       db.prepare('DELETE FROM default_incomes WHERE id = ?').run(id);
