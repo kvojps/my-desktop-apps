@@ -96,11 +96,13 @@
   .orca-sidebar .orca-button[aria-current='page']::before {
     content: '';
     position: absolute;
-    left: 0;
+    top: 50%;
+    left: -12px;
     width: 3px;
     height: 16px;
     border-radius: 6px;
     background: currentColor;
+    transform: translateY(-50%);
   }
 
   .orca-button:focus-visible {
