@@ -3,7 +3,7 @@
  *
  * `CategoryEntity` é estruturalmente idêntica a `Category` de
  * `@shared/types/category`; o porquê do sufixo `Entity` está em
- * `domain/income.ts`.
+ * `domain/defaultExpense.ts`.
  */
 export type CategoryEntity = {
   id: number;

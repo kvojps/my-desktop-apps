@@ -1,5 +1,5 @@
+import type { Income } from '@shared/types/income';
 import Database from 'better-sqlite3';
-import type { IncomeEntity } from '../../../domain/income';
 
 /** Colunas cruas da tabela; o banco continua em snake_case. */
 export interface IncomeRow {
@@ -20,8 +20,8 @@ interface IncomeJoinRow extends IncomeRow {
   bank_account_name: string | null;
 }
 
-export function rowToIncome(row: IncomeRow | IncomeJoinRow): IncomeEntity {
-  const joined = row as IncomeJoinRow;
+export function rowToIncome(row: IncomeRow | IncomeJoinRow): Income {
+  const joined = 'bank_account_name' in row ? (row as IncomeJoinRow) : null;
   return {
     id: row.id,
     monthId: row.month_id,
@@ -33,8 +33,8 @@ export function rowToIncome(row: IncomeRow | IncomeJoinRow): IncomeEntity {
     receivedAt: row.received_at,
     notes: row.notes,
     bankAccountId: row.bank_account_id,
-    bankAccountName: joined.bank_account_name,
     createdAt: row.created_at,
+    ...(joined ? { bankAccountName: joined.bank_account_name } : {}),
   };
 }
 
@@ -54,13 +54,13 @@ function todayLocalDate(): string {
 }
 
 export function makeIncomesRepository(db: Database.Database) {
-  function findById(id: number): IncomeEntity | null {
+  function findById(id: number): Income | null {
     const row = selectIncomeRow(db, id);
     return row ? rowToIncome(row) : null;
   }
 
   return {
-    listForMonth(monthId: number): IncomeEntity[] {
+    listForMonth(monthId: number): Income[] {
       const rows = db
         .prepare(`${WITH_JOINS} WHERE i.month_id = ? ORDER BY i.expected_date, i.name`)
         .all(monthId) as IncomeJoinRow[];
@@ -68,7 +68,7 @@ export function makeIncomesRepository(db: Database.Database) {
     },
 
     /** Todas as entradas, para o backup. Sem JOINs — só as colunas próprias. */
-    listAll(): IncomeEntity[] {
+    listAll(): Income[] {
       const rows = db.prepare('SELECT * FROM incomes ORDER BY month_id').all() as IncomeRow[];
       return rows.map(rowToIncome);
     },
@@ -87,7 +87,7 @@ export function makeIncomesRepository(db: Database.Database) {
         amount?: number;
         bankAccountId?: number | null;
       },
-    ): IncomeEntity {
+    ): Income {
       const result = db
         .prepare(
           'INSERT INTO incomes (month_id, name, expected_date, amount, bank_account_id) VALUES (?, ?, ?, ?, ?)',
@@ -114,7 +114,7 @@ export function makeIncomesRepository(db: Database.Database) {
         notes?: string | null;
         bankAccountId?: number | null;
       },
-    ): IncomeEntity | null {
+    ): Income | null {
       const existing = selectIncomeRow(db, id);
       if (!existing) return null;
 
@@ -132,7 +132,7 @@ export function makeIncomesRepository(db: Database.Database) {
       return findById(id);
     },
 
-    delete(id: number): IncomeEntity | null {
+    delete(id: number): Income | null {
       const existing = selectIncomeRow(db, id);
       if (!existing) return null;
       db.prepare('DELETE FROM incomes WHERE id = ?').run(id);
@@ -148,7 +148,7 @@ export function makeIncomesRepository(db: Database.Database) {
       notes: string | undefined,
       receivedAt: string | undefined,
       bankAccountId: number | undefined,
-    ): IncomeEntity | null {
+    ): Income | null {
       const existing = selectIncomeRow(db, id);
       if (!existing) return null;
 
@@ -164,7 +164,7 @@ export function makeIncomesRepository(db: Database.Database) {
       return findById(id);
     },
 
-    unreceive(id: number): IncomeEntity | null {
+    unreceive(id: number): Income | null {
       const existing = selectIncomeRow(db, id);
       if (!existing) return null;
 

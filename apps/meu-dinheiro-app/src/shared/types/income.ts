@@ -1,3 +1,11 @@
+/**
+ * A Entrada de um Mês: um recebimento previsto ou lançado, nascido de uma
+ * Entrada padrão ou avulso (`CONTEXT.md`).
+ *
+ * Sem `IncomeEntity` em `domain/`: nenhum campo aqui precisa ficar de fora do
+ * IPC, então o repositório devolve este tipo direto, sem par no domínio nem
+ * mapper de resposta (ADR-0005).
+ */
 export interface Income {
   id: number;
   monthId: number;

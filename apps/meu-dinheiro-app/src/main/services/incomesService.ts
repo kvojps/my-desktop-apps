@@ -1,4 +1,4 @@
-import type { IncomeEntity } from '../domain/income';
+import type { Income } from '@shared/types/income';
 import type { Repositories } from '../infra/database';
 import { AppError } from '../utils/errors/AppError';
 import type { BankAccountsService } from './bankAccountsService';
@@ -14,14 +14,14 @@ export interface ReceiveIncomeInput {
  * recebidas. A composição transacional mora aqui; o repositório só tem verbos.
  */
 export function makeIncomesService(repos: Repositories, bankAccounts: BankAccountsService) {
-  function requireIncome(id: number): IncomeEntity {
+  function requireIncome(id: number): Income {
     const income = repos.incomes.findById(id);
     if (!income) throw new AppError(404, 'Entrada não encontrada');
     return income;
   }
 
   return {
-    listForMonth(monthId: number): IncomeEntity[] {
+    listForMonth(monthId: number): Income[] {
       return repos.incomes.listForMonth(monthId);
     },
 
@@ -33,7 +33,7 @@ export function makeIncomesService(repos: Repositories, bankAccounts: BankAccoun
         amount?: number;
         bankAccountId?: number | null;
       },
-    ): IncomeEntity {
+    ): Income {
       if (!repos.months.exists(monthId)) throw new AppError(404, 'Mês não encontrado');
       return repos.incomes.create(monthId, data);
     },
@@ -47,7 +47,7 @@ export function makeIncomesService(repos: Repositories, bankAccounts: BankAccoun
         notes?: string | null;
         bankAccountId?: number | null;
       },
-    ): IncomeEntity {
+    ): Income {
       const updated = repos.incomes.update(id, data);
       if (!updated) throw new AppError(404, 'Entrada não encontrada');
       return updated;
@@ -59,7 +59,7 @@ export function makeIncomesService(repos: Repositories, bankAccounts: BankAccoun
     },
 
     /** Marca recebida e credita a Conta, na mesma transação. */
-    receive(id: number, { notes, receivedAt, bankAccountId }: ReceiveIncomeInput): IncomeEntity {
+    receive(id: number, { notes, receivedAt, bankAccountId }: ReceiveIncomeInput): Income {
       const existing = requireIncome(id);
 
       const received = repos.transaction(() => {
@@ -75,7 +75,7 @@ export function makeIncomesService(repos: Repositories, bankAccounts: BankAccoun
      * saldo já não cobre. Preserva o `bankAccountId`: ali a Conta descreve para
      * onde a entrada costuma cair, é a sugestão do próximo recebimento.
      */
-    unreceive(id: number): IncomeEntity {
+    unreceive(id: number): Income {
       const existing = requireIncome(id);
 
       const unreceived = repos.transaction(() => {

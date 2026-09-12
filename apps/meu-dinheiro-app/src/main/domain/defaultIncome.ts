@@ -3,7 +3,7 @@
  * tira uma cópia na criação (`CONTEXT.md`).
  *
  * Estruturalmente idêntica a `DefaultIncome` de `@shared/types/income`; o
- * porquê do sufixo `Entity` está em `domain/income.ts`.
+ * porquê do sufixo `Entity` está em `domain/defaultExpense.ts`.
  */
 export type DefaultIncomeEntity = {
   id: number;

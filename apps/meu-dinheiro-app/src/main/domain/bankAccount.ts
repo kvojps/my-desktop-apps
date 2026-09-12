@@ -3,7 +3,7 @@
  * pagar debita, receber credita (`CONTEXT.md`).
  *
  * Estruturalmente idêntica a `BankAccount` de `@shared/types/bank-account`; o
- * porquê do sufixo `Entity` está em `domain/income.ts`.
+ * porquê do sufixo `Entity` está em `domain/defaultExpense.ts`.
  */
 export type BankAccountEntity = {
   id: number;
