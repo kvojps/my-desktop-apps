@@ -1,15 +1,15 @@
 import type {
-  PrIntegrationStatusEntity,
-  PrProviderKindEntity,
-  PrProviderStatusEntity,
-  PullRequestEntity,
-  RepoRemoteEntity,
-} from '../domain/pullRequest';
+  PrIntegrationStatus,
+  PrProviderKind,
+  PrProviderStatus,
+  PullRequest,
+  RepoRemote,
+} from '@shared/types/pullRequest';
 import type {
-  RepoFetchFailureEntity,
-  RepoFetchProgressEntity,
-  RepoScanResultEntity,
-} from '../domain/repo';
+  RepoFetchFailure,
+  RepoFetchProgress,
+  RepoScanResult,
+} from '@shared/types/repoScan';
 import { listPullRequestsWithGh } from '../infra/gateways/pr/ghCli';
 import { listPullRequestsWithToken, verifyGithubToken } from '../infra/gateways/pr/githubToken';
 import { listMergeRequestsWithGlab } from '../infra/gateways/pr/glabCli';
@@ -26,14 +26,13 @@ interface CliAvailability {
 }
 
 export interface PrFetchOutcome {
-  prsByPath: Map<string, PullRequestEntity[]>;
+  prsByPath: Map<string, PullRequest[]>;
   /**
-   * A falha de um repositório na fase `'prs'`, na mesma entidade que a fase
+   * A falha de um repositório na fase `'prs'`, no mesmo tipo que a fase
    * `'git'` usa — o `reposService` devolve as duas listas lado a lado em
-   * `RepoFetchResultEntity`, e é a entidade única que declara que elas têm o
-   * mesmo shape.
+   * `RepoFetchResult`, que declara que elas têm o mesmo shape.
    */
-  failures: RepoFetchFailureEntity[];
+  failures: RepoFetchFailure[];
 }
 
 export interface FetchPullRequestsOptions {
@@ -42,7 +41,7 @@ export interface FetchPullRequestsOptions {
    * de progresso que o `fetchRepos` emite na fase `'git'`. Quem recebe não
    * precisa remontá-la campo a campo.
    */
-  onProgress?: (progress: RepoFetchProgressEntity) => void;
+  onProgress?: (progress: RepoFetchProgress) => void;
 }
 
 async function isGhAuthenticated(): Promise<boolean> {
@@ -78,7 +77,7 @@ export function makePrsService(settings: SettingsService) {
    * acontece no "Buscar do remoto"; uma releitura local reaproveita o que já foi
    * baixado em vez de esvaziar a tela.
    */
-  const prCache = new Map<string, PullRequestEntity[]>();
+  const prCache = new Map<string, PullRequest[]>();
 
   async function detectCliAvailability(): Promise<CliAvailability> {
     if (cachedAvailability) return cachedAvailability;
@@ -92,9 +91,9 @@ export function makePrsService(settings: SettingsService) {
 
   /** Escolhe o provedor conforme o host do remote e o que está disponível. */
   async function pickProvider(
-    remote: RepoRemoteEntity,
+    remote: RepoRemote,
     hasToken: boolean,
-  ): Promise<PrProviderKindEntity> {
+  ): Promise<PrProviderKind> {
     const availability = await detectCliAvailability();
 
     if (remote.kind === 'github') {
@@ -110,11 +109,11 @@ export function makePrsService(settings: SettingsService) {
     return 'none';
   }
 
-  async function getIntegrationStatus(): Promise<PrIntegrationStatusEntity> {
+  async function getIntegrationStatus(): Promise<PrIntegrationStatus> {
     const availability = await detectCliAvailability();
     const hasToken = settings.hasGithubToken();
 
-    const providers: PrProviderStatusEntity[] = [
+    const providers: PrProviderStatus[] = [
       {
         kind: 'gh-cli',
         available: availability.gh && availability.ghAuthenticated,
@@ -151,7 +150,7 @@ export function makePrsService(settings: SettingsService) {
     getIntegrationStatus,
 
     /** Esquece a detecção de CLI e responde o estado já redetectado. */
-    async redetectProviders(): Promise<PrIntegrationStatusEntity> {
+    async redetectProviders(): Promise<PrIntegrationStatus> {
       cachedAvailability = null;
       return getIntegrationStatus();
     },
@@ -176,19 +175,19 @@ export function makePrsService(settings: SettingsService) {
      * repositório nunca derruba os demais: o erro é coletado e a lista segue.
      */
     async fetchPullRequests(
-      repos: RepoScanResultEntity[],
+      repos: RepoScanResult[],
       options: FetchPullRequestsOptions = {},
     ): Promise<PrFetchOutcome> {
       const token = settings.getGithubToken();
       const hasToken = Boolean(token);
       const candidates = repos.filter((repo) => repo.remote && repo.remote.kind !== 'other');
 
-      const prsByPath = new Map<string, PullRequestEntity[]>();
-      const failures: RepoFetchFailureEntity[] = [];
+      const prsByPath = new Map<string, PullRequest[]>();
+      const failures: RepoFetchFailure[] = [];
       let done = 0;
 
       await mapWithConcurrency(candidates, PR_CONCURRENCY, async (repo) => {
-        const remote = repo.remote as RepoRemoteEntity;
+        const remote = repo.remote as RepoRemote;
 
         try {
           const provider = await pickProvider(remote, hasToken);
@@ -220,14 +219,14 @@ export function makePrsService(settings: SettingsService) {
       return { prsByPath, failures };
     },
 
-    updatePrCache(prsByPath: Map<string, PullRequestEntity[]>): void {
+    updatePrCache(prsByPath: Map<string, PullRequest[]>): void {
       for (const [path, prs] of prsByPath) {
         prCache.set(path, prs);
       }
     },
 
     /** Anexa os PRs em cache e deriva o que depende do cruzamento com as branches locais. */
-    attachPullRequests(repos: RepoScanResultEntity[]): RepoScanResultEntity[] {
+    attachPullRequests(repos: RepoScanResult[]): RepoScanResult[] {
       return repos.map((repo) => {
         const prs = prCache.get(repo.path) ?? [];
         if (prs.length === 0) return { ...repo, prs, mergedBranchesToClean: [] };

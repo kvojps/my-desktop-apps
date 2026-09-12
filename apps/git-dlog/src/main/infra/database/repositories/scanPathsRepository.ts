@@ -1,6 +1,6 @@
+import type { ScanPath } from '@shared/types/scanPath';
 import type Database from 'better-sqlite3';
 import { randomUUID } from 'node:crypto';
-import type { ScanPathEntity } from '../../../domain/scanPath';
 
 interface ScanPathRow {
   id: string;
@@ -9,7 +9,7 @@ interface ScanPathRow {
   updated_at: string;
 }
 
-function rowToScanPath(row: ScanPathRow): ScanPathEntity {
+function rowToScanPath(row: ScanPathRow): ScanPath {
   return {
     id: row.id,
     path: row.path,
@@ -20,29 +20,29 @@ function rowToScanPath(row: ScanPathRow): ScanPathEntity {
 
 export function makeScanPathsRepository(db: Database.Database) {
   return {
-    list(): ScanPathEntity[] {
+    list(): ScanPath[] {
       const rows = db
         .prepare('SELECT * FROM scan_paths ORDER BY created_at ASC')
         .all() as ScanPathRow[];
       return rows.map(rowToScanPath);
     },
 
-    findById(id: string): ScanPathEntity | null {
+    findById(id: string): ScanPath | null {
       const row = db.prepare('SELECT * FROM scan_paths WHERE id = ?').get(id) as
         ScanPathRow | undefined;
       return row ? rowToScanPath(row) : null;
     },
 
     /** Quem consulta é o `scanPathsService`, para decidir o 409 de duplicata. */
-    findByPath(path: string): ScanPathEntity | null {
+    findByPath(path: string): ScanPath | null {
       const row = db.prepare('SELECT * FROM scan_paths WHERE path = ?').get(path) as
         ScanPathRow | undefined;
       return row ? rowToScanPath(row) : null;
     },
 
-    create(data: { path: string }): ScanPathEntity {
+    create(data: { path: string }): ScanPath {
       const now = new Date().toISOString();
-      const scanPath: ScanPathEntity = {
+      const scanPath: ScanPath = {
         id: randomUUID(),
         path: data.path,
         createdAt: now,

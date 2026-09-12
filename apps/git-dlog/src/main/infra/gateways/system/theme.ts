@@ -1,5 +1,5 @@
+import type { ThemeMode } from '@shared/types/theme';
 import { BrowserWindow, nativeTheme } from 'electron';
-import type { ThemeModeEntity } from '../../../domain/settings';
 
 /**
  * O que só o processo main controla no tema: a moldura nativa (`nativeTheme`) e
@@ -11,7 +11,7 @@ import type { ThemeModeEntity } from '../../../domain/settings';
  * aparece como flash ao redimensionar/maximizar em modo escuro, mesmo com
  * `show: false` + `ready-to-show`.
  */
-const BACKGROUND: Record<ThemeModeEntity, string> = {
+const BACKGROUND: Record<ThemeMode, string> = {
   light: '#FFFFFF',
   dark: '#0a0a0a',
 };
@@ -22,7 +22,7 @@ const BACKGROUND: Record<ThemeModeEntity, string> = {
  */
 export interface ThemeGateway {
   /** Aplica o modo à moldura nativa e às janelas vivas. */
-  apply(mode: ThemeModeEntity): void;
+  apply(mode: ThemeMode): void;
 }
 
 /**
@@ -32,9 +32,9 @@ export interface ThemeGateway {
  */
 export interface ThemeSystemGateway extends ThemeGateway {
   /** A cor de fundo da janela, para quem a constrói. */
-  windowBackgroundFor(mode: ThemeModeEntity): string;
+  windowBackgroundFor(mode: ThemeMode): string;
   systemPrefersDarkColors(): boolean;
-  currentMode(): ThemeModeEntity;
+  currentMode(): ThemeMode;
 }
 
 export const theme: ThemeSystemGateway = {
@@ -43,14 +43,14 @@ export const theme: ThemeSystemGateway = {
    * usuário alterna o tema: `backgroundColor` é fixado na construção da janela
    * e não acompanharia a troca sozinho.
    */
-  apply(mode: ThemeModeEntity): void {
+  apply(mode: ThemeMode): void {
     nativeTheme.themeSource = mode;
     for (const window of BrowserWindow.getAllWindows()) {
       window.setBackgroundColor(BACKGROUND[mode]);
     }
   },
 
-  windowBackgroundFor(mode: ThemeModeEntity): string {
+  windowBackgroundFor(mode: ThemeMode): string {
     return BACKGROUND[mode];
   },
 
@@ -70,7 +70,7 @@ export const theme: ThemeSystemGateway = {
    * a última escolha aplicada — sem uma segunda cópia do estado para
    * dessincronizar.
    */
-  currentMode(): ThemeModeEntity {
+  currentMode(): ThemeMode {
     return nativeTheme.themeSource === 'dark' ? 'dark' : 'light';
   },
 };

@@ -1,4 +1,5 @@
-import type { EncryptedGithubTokenEntity, ThemeModeEntity } from '../domain/settings';
+import type { ThemeMode } from '@shared/types/theme';
+import type { EncryptedGithubTokenEntity } from '../domain/settings';
 import type { Repositories } from '../infra/database';
 import type { SecretVaultGateway } from '../infra/gateways/system/safeStorage';
 import type { ThemeGateway } from '../infra/gateways/system/theme';
@@ -20,7 +21,7 @@ export function makeSettingsService(
 ) {
   return {
     /** Persiste e aplica: a janela e a moldura nativa acompanham a escolha. */
-    saveThemeMode(mode: ThemeModeEntity): void {
+    saveThemeMode(mode: ThemeMode): void {
       repos.settings.saveThemeMode(mode);
       theme.apply(mode);
     },

@@ -1,9 +1,10 @@
 import { BrowserWindow, app, dialog, shell } from 'electron';
 import path from 'node:path';
 import { APP_ERROR_DESCRIPTIONS } from '@shared/errors/appError';
+import type { ThemeMode } from '@shared/types/theme';
 import icon from '../../resources/icon.png?asset';
 import { registerIpcHandlers } from './controllers/registerIpc';
-import { type ThemeModeEntity, resolveThemeMode } from './domain/settings';
+import { resolveThemeMode } from './domain/settings';
 import { initDb } from './infra/database/connection';
 import { makeSettingsRepository } from './infra/database/repositories/settingsRepository';
 import { theme } from './infra/gateways/system/theme';
@@ -14,7 +15,7 @@ import { classifyError } from './utils/errors/toIpcError';
 // release deixa o banco de dados dos usuários órfão.
 app.setName('git-dlog');
 
-function createWindow(mode: ThemeModeEntity) {
+function createWindow(mode: ThemeMode) {
   const mainWindow = new BrowserWindow({
     width: 1280,
     height: 800,

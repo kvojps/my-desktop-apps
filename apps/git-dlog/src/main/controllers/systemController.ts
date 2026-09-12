@@ -30,10 +30,8 @@ export function registerSystemController(system: SystemService, settings: Settin
 
   handle(IPC_CHANNELS.dataOpenFolder, (): Promise<void> => system.openDataFolder());
 
-  // `ThemeMode` e `ThemeModeEntity` são a mesma união de literais, e por isso o
-  // valor validado entra no service sem mapper: uma variante nova de um lado
-  // quebra o `tsc` aqui na chamada, que é a decisão que um mapper forçaria.
-  // O critério está escrito por extenso em `responses/pullRequest.response.ts`.
+  // `ThemeMode` colapsou (ADR-0005): não há mais domain/response separados
+  // para o tema, então o valor validado entra no service sem mapper.
   handle(IPC_CHANNELS.settingsSaveThemeMode, (_event, data: unknown): void => {
     settings.saveThemeMode(parseOrThrow(themeModeSchema, data));
   });

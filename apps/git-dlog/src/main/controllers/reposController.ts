@@ -3,11 +3,6 @@ import type { RepoFetchResult, RepoScanResult } from '@shared/types/repoScan';
 import type { ReposService } from '../services/reposService';
 import { parseOrThrow } from '../utils/validate';
 import { handle } from './handle';
-import {
-  repoFetchProgressToResponse,
-  repoFetchResultToResponse,
-  repoScanResultToResponse,
-} from './responses/repo.response';
 import { fetchReposSchema } from './schemas/repoFetch.schema';
 
 /**
@@ -16,23 +11,19 @@ import { fetchReposSchema } from './schemas/repoFetch.schema';
  * o único ponto que toca o `event`.
  */
 export function registerReposController(repos: ReposService): void {
-  handle(IPC_CHANNELS.reposScan, async (): Promise<RepoScanResult[]> =>
-    (await repos.scan()).map(repoScanResultToResponse),
-  );
+  handle(IPC_CHANNELS.reposScan, (): Promise<RepoScanResult[]> => repos.scan());
 
-  handle(IPC_CHANNELS.reposFetch, async (event, data: unknown): Promise<RepoFetchResult> => {
+  handle(IPC_CHANNELS.reposFetch, (event, data: unknown): Promise<RepoFetchResult> => {
     const requestedPaths = parseOrThrow(fetchReposSchema, data);
 
     // O progresso é o único ponto do fluxo que precisa do `event`: o service
     // avisa que andou, e traduzir isso em mensagem para a janela é daqui.
-    const result = await repos.fetch(requestedPaths, {
+    return repos.fetch(requestedPaths, {
       onProgress: (progress) => {
         if (!event.sender.isDestroyed()) {
-          event.sender.send(IPC_CHANNELS.reposFetchProgress, repoFetchProgressToResponse(progress));
+          event.sender.send(IPC_CHANNELS.reposFetchProgress, progress);
         }
       },
     });
-
-    return repoFetchResultToResponse(result);
   });
 }

@@ -3,7 +3,6 @@ import type { PrIntegrationStatus } from '@shared/types/pullRequest';
 import type { PrsService } from '../services/prsService';
 import { parseOrThrow } from '../utils/validate';
 import { handle } from './handle';
-import { prIntegrationStatusToResponse } from './responses/pullRequest.response';
 import { githubTokenSchema } from './schemas/prs.schema';
 
 /**
@@ -12,9 +11,7 @@ import { githubTokenSchema } from './schemas/prs.schema';
  * repos. O que este responde é o estado da integração e a guarda do token.
  */
 export function registerPrsController(prs: PrsService): void {
-  handle(IPC_CHANNELS.prsGetStatus, async (): Promise<PrIntegrationStatus> =>
-    prIntegrationStatusToResponse(await prs.getIntegrationStatus()),
-  );
+  handle(IPC_CHANNELS.prsGetStatus, (): Promise<PrIntegrationStatus> => prs.getIntegrationStatus());
 
   // O login devolvido é `string`, não entidade: não há nó de domínio para
   // mapear, e o valor nasce no gateway que verifica o token.
@@ -26,7 +23,5 @@ export function registerPrsController(prs: PrsService): void {
     prs.deleteGithubToken();
   });
 
-  handle(IPC_CHANNELS.prsRedetect, async (): Promise<PrIntegrationStatus> =>
-    prIntegrationStatusToResponse(await prs.redetectProviders()),
-  );
+  handle(IPC_CHANNELS.prsRedetect, (): Promise<PrIntegrationStatus> => prs.redetectProviders());
 }

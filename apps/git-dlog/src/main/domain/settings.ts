@@ -1,11 +1,19 @@
+import type { ThemeMode } from '@shared/types/theme';
+
 /**
  * `settings` é uma tabela chave-valor, então não há entidade rica a modelar
  * aqui: o que este arquivo carrega são os tipos do que está guardado em cada
- * chave. O porquê do sufixo `Entity` está em `domain/scanPath.ts`.
+ * chave.
+ *
+ * `EncryptedGithubTokenEntity`, abaixo, é o único tipo `Entity` que resta no
+ * `git-dlog` (as demais entidades colapsaram no critério do ADR-0005). O
+ * sufixo existe porque o token cifrado e o token que o usuário digita são as
+ * duas `string`, e sem nomes diferentes o TypeScript não pegaria a troca de
+ * uma pela outra — o mesmo motivo que já valia para `ScanPathEntity`/
+ * `ScanPath` antes de colapsarem. `ThemeMode`, por outro lado, já colapsou:
+ * é a mesma união de literais de `@shared/types/theme`, sem nenhum campo a
+ * filtrar antes do IPC.
  */
-
-/** A preferência de tema, como está no banco. */
-export type ThemeModeEntity = 'light' | 'dark';
 
 /**
  * O token do GitHub como ele está no banco: cifrado e codificado em base64,
@@ -23,7 +31,7 @@ export type EncryptedGithubTokenEntity = string;
  * O que está guardado é texto livre: nada impede que a chave do tema tenha um
  * valor de uma versão antiga do app, ou escrito à mão no arquivo do banco.
  */
-export function isThemeModeEntity(value: string): value is ThemeModeEntity {
+export function isThemeMode(value: string): value is ThemeMode {
   return value === 'light' || value === 'dark';
 }
 
@@ -40,8 +48,8 @@ export function isThemeModeEntity(value: string): value is ThemeModeEntity {
  * daí em diante (docs/design-system.md §5.1). A linha nasce no primeiro toggle.
  */
 export function resolveThemeMode(
-  stored: ThemeModeEntity | null,
+  stored: ThemeMode | null,
   systemPrefersDark: boolean,
-): ThemeModeEntity {
+): ThemeMode {
   return stored ?? (systemPrefersDark ? 'dark' : 'light');
 }

@@ -1,4 +1,4 @@
-import type { PullRequestEntity, RepoRemoteEntity } from '../../../domain/pullRequest';
+import type { PullRequest, RepoRemote } from '@shared/types/pullRequest';
 import { AppError } from '../../../utils/errors/AppError';
 import { normalizeReviewDecision, normalizeState, summarizeChecks } from './ghCli';
 
@@ -65,7 +65,7 @@ export function getGraphQlEndpoint(host: string): string {
  * estado do CI vem enterrado no último commit, e é este mapper que o desenterra
  * antes que qualquer outra camada veja a árvore da consulta.
  */
-function graphQlPrToPullRequest(pr: GraphQlPr): PullRequestEntity {
+function graphQlPrToPullRequest(pr: GraphQlPr): PullRequest {
   const rollup = pr.commits.nodes[0]?.commit.statusCheckRollup;
 
   return {
@@ -84,9 +84,9 @@ function graphQlPrToPullRequest(pr: GraphQlPr): PullRequestEntity {
 }
 
 export async function listPullRequestsWithToken(
-  remote: RepoRemoteEntity,
+  remote: RepoRemote,
   token: string,
-): Promise<PullRequestEntity[]> {
+): Promise<PullRequest[]> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
 

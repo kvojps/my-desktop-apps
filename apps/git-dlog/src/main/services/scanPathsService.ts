@@ -1,4 +1,4 @@
-import type { ScanPathEntity } from '../domain/scanPath';
+import type { ScanPath } from '@shared/types/scanPath';
 import type { Repositories } from '../infra/database';
 import type { FileSystemGateway } from '../infra/gateways/system/fileSystem';
 import { AppError } from '../utils/errors/AppError';
@@ -12,11 +12,11 @@ import { AppError } from '../utils/errors/AppError';
  */
 export function makeScanPathsService(repos: Repositories, fileSystem: FileSystemGateway) {
   return {
-    list(): ScanPathEntity[] {
+    list(): ScanPath[] {
       return repos.scanPaths.list();
     },
 
-    create(path: string): ScanPathEntity {
+    create(path: string): ScanPath {
       if (!fileSystem.isDirectory(path)) {
         throw new AppError(400, 'O caminho informado não existe ou não é um diretório');
       }

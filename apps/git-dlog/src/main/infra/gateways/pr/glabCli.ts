@@ -1,8 +1,4 @@
-import type {
-  ChecksStateEntity,
-  PullRequestEntity,
-  PullRequestStateEntity,
-} from '../../../domain/pullRequest';
+import type { ChecksState, PullRequest, PullRequestState } from '@shared/types/pullRequest';
 import { runCommand } from '../system/exec';
 
 const MR_LIMIT = 50;
@@ -24,7 +20,7 @@ interface GlabMergeRequest {
   head_pipeline?: { status?: string } | null;
 }
 
-function normalizeMrState(raw: string | undefined): PullRequestStateEntity {
+function normalizeMrState(raw: string | undefined): PullRequestState {
   switch ((raw ?? '').toLowerCase()) {
     case 'merged':
       return 'merged';
@@ -36,7 +32,7 @@ function normalizeMrState(raw: string | undefined): PullRequestStateEntity {
   }
 }
 
-function normalizePipeline(status: string | undefined): ChecksStateEntity {
+function normalizePipeline(status: string | undefined): ChecksState {
   switch ((status ?? '').toLowerCase()) {
     case 'success':
       return 'passing';
@@ -59,7 +55,7 @@ function normalizePipeline(status: string | undefined): ChecksStateEntity {
  * pull request de casa. O vocabulário do provedor (`iid`, `source_branch`,
  * `head_pipeline`) para aqui, junto com o snake_case da API.
  */
-function glabMrToPullRequest(mr: GlabMergeRequest): PullRequestEntity {
+function glabMrToPullRequest(mr: GlabMergeRequest): PullRequest {
   return {
     number: (mr.iid ?? mr.id) as number,
     title: mr.title ?? '',
@@ -77,7 +73,7 @@ function glabMrToPullRequest(mr: GlabMergeRequest): PullRequestEntity {
   };
 }
 
-export function parseGlabOutput(stdout: string): PullRequestEntity[] {
+export function parseGlabOutput(stdout: string): PullRequest[] {
   if (!stdout) return [];
 
   const parsed = JSON.parse(stdout) as GlabMergeRequest[];
@@ -86,7 +82,7 @@ export function parseGlabOutput(stdout: string): PullRequestEntity[] {
   return parsed.filter((mr) => mr.iid ?? mr.id).map(glabMrToPullRequest);
 }
 
-export async function listMergeRequestsWithGlab(repoDir: string): Promise<PullRequestEntity[]> {
+export async function listMergeRequestsWithGlab(repoDir: string): Promise<PullRequest[]> {
   const stdout = await runCommand(
     'glab',
     ['mr', 'list', '--all', '--output', 'json', '--per-page', String(MR_LIMIT)],

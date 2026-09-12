@@ -1,25 +1,16 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
-// `isWorktreeDirty` é o único helper que este gateway busca no contrato em vez
-// do domínio, e é exceção nomeada: ele descreve uma working tree em vez de
-// decidir alguma coisa sobre ela, então mora em `shared` e é chamado também
-// pelo renderer. Ver `docs/adr/0003-logica-de-dominio-no-main.md`.
-//
-// O preço da exceção é uma travessia silenciosa: `computeSeverity` entrega um
-// `RepoWorktreeEntity` a um parâmetro `RepoWorktree`, e só typecheca porque as
-// duas formas são idênticas hoje. Se `RepoWorktree` mudar sem a entidade
-// mudar junto, é aqui que ninguém vai ser avisado.
-import { isWorktreeDirty } from '@shared/types/repoScan';
-import type { RepoRemoteEntity } from '../../../domain/pullRequest';
-import type {
-  RepoBranchEntity,
-  RepoCommitGroupEntity,
-  RepoHeadEntity,
-  RepoScanResultEntity,
-  RepoSeverityEntity,
-  RepoSyncEntity,
-  RepoWorktreeEntity,
-} from '../../../domain/repo';
+import type { RepoRemote } from '@shared/types/pullRequest';
+import {
+  isWorktreeDirty,
+  type RepoBranch,
+  type RepoCommitGroup,
+  type RepoHead,
+  type RepoScanResult,
+  type RepoSeverity,
+  type RepoSync,
+  type RepoWorktree,
+} from '@shared/types/repoScan';
 import { mapWithConcurrency } from '../../../utils/concurrency';
 import { getGitErrorMessage, runGit } from './gitCommand';
 import { readRemotes, readRepoConfig } from './remoteUrl';
@@ -102,8 +93,8 @@ export async function listRepoDirs(baseDirs: string[]): Promise<string[]> {
 interface ParsedStatus {
   branch: string | null;
   detached: boolean;
-  sync: RepoSyncEntity;
-  counts: Omit<RepoWorktreeEntity, 'stashes'>;
+  sync: RepoSync;
+  counts: Omit<RepoWorktree, 'stashes'>;
 }
 
 /**
@@ -165,8 +156,8 @@ function parseTrack(track: string): { ahead: number; behind: number; gone: boole
   };
 }
 
-function parseRefs(output: string): RepoBranchEntity[] {
-  const branches: RepoBranchEntity[] = [];
+function parseRefs(output: string): RepoBranch[] {
+  const branches: RepoBranch[] = [];
 
   for (const line of output.split('\n')) {
     if (!line) continue;
@@ -203,8 +194,8 @@ function parseRefs(output: string): RepoBranchEntity[] {
   return branches;
 }
 
-function groupBranchesByCommit(branches: RepoBranchEntity[]): RepoCommitGroupEntity[] {
-  const groupsByHash = new Map<string, RepoCommitGroupEntity>();
+function groupBranchesByCommit(branches: RepoBranch[]): RepoCommitGroup[] {
+  const groupsByHash = new Map<string, RepoCommitGroup>();
 
   for (const branch of branches) {
     let group = groupsByHash.get(branch.commitHash);
@@ -227,12 +218,12 @@ function groupBranchesByCommit(branches: RepoBranchEntity[]): RepoCommitGroupEnt
 }
 
 function computeSeverity(
-  worktree: RepoWorktreeEntity,
-  sync: RepoSyncEntity,
+  worktree: RepoWorktree,
+  sync: RepoSync,
   unpublishedBranches: string[],
   goneBranches: string[],
-  head: RepoHeadEntity | null,
-): RepoSeverityEntity {
+  head: RepoHead | null,
+): RepoSeverity {
   // Risco = existe trabalho que só está nesta máquina.
   if (isWorktreeDirty(worktree) || worktree.stashes > 0 || unpublishedBranches.length > 0) {
     return 'risk';
@@ -277,7 +268,7 @@ async function readLastFetchedAt(gitDir: string): Promise<string | null> {
 
 interface GitDirInfo {
   lastFetchedAt: string | null;
-  remote: RepoRemoteEntity | null;
+  remote: RepoRemote | null;
   appUrl: string | null;
 }
 
@@ -304,7 +295,7 @@ export async function hasAnyRemote(repoDir: string): Promise<boolean> {
   }
 }
 
-function emptyResult(repoDir: string, error?: string): RepoScanResultEntity {
+function emptyResult(repoDir: string, error?: string): RepoScanResult {
   return {
     path: repoDir,
     name: path.basename(repoDir),
@@ -329,7 +320,7 @@ function emptyResult(repoDir: string, error?: string): RepoScanResultEntity {
  * Lê o estado completo de um repositório com três chamadas ao git, todas em
  * paralelo — antes era uma chamada de `rev-parse` e duas de `log` por branch.
  */
-export async function scanRepo(repoDir: string): Promise<RepoScanResultEntity> {
+export async function scanRepo(repoDir: string): Promise<RepoScanResult> {
   try {
     const [statusOutput, refsOutput, stashOutput, gitDirInfo] = await Promise.all([
       runGit(repoDir, ['status', '--porcelain=v2', '--branch']),
@@ -343,7 +334,7 @@ export async function scanRepo(repoDir: string): Promise<RepoScanResultEntity> {
     const status = parseStatus(statusOutput);
     const branches = parseRefs(refsOutput);
 
-    const worktree: RepoWorktreeEntity = {
+    const worktree: RepoWorktree = {
       ...status.counts,
       stashes: stashOutput ? stashOutput.split('\n').filter(Boolean).length : 0,
     };
@@ -378,7 +369,7 @@ export async function scanRepo(repoDir: string): Promise<RepoScanResultEntity> {
   }
 }
 
-function buildHead(status: ParsedStatus, branches: RepoBranchEntity[]): RepoHeadEntity | null {
+function buildHead(status: ParsedStatus, branches: RepoBranch[]): RepoHead | null {
   if (status.branch) {
     const current = branches.find((branch) => !branch.isRemote && branch.name === status.branch);
     if (current) {
@@ -409,15 +400,15 @@ function buildHead(status: ParsedStatus, branches: RepoBranchEntity[]): RepoHead
   return null;
 }
 
-export async function scanRepos(repoDirs: string[]): Promise<RepoScanResultEntity[]> {
+export async function scanRepos(repoDirs: string[]): Promise<RepoScanResult[]> {
   const results = await mapWithConcurrency(repoDirs, SCAN_CONCURRENCY, scanRepo);
   return sortBySeverity(results);
 }
 
-const SEVERITY_ORDER: Record<RepoSeverityEntity, number> = { risk: 0, attention: 1, clean: 2 };
+const SEVERITY_ORDER: Record<RepoSeverity, number> = { risk: 0, attention: 1, clean: 2 };
 
 /** Mais urgente primeiro; empate resolvido pelo nome para a lista não "dançar". */
-function sortBySeverity(results: RepoScanResultEntity[]): RepoScanResultEntity[] {
+function sortBySeverity(results: RepoScanResult[]): RepoScanResult[] {
   return [...results].sort((a, b) => {
     if (a.error && !b.error) return -1;
     if (!a.error && b.error) return 1;

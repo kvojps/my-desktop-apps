@@ -1,8 +1,8 @@
 import type {
-  RepoFetchProgressEntity,
-  RepoFetchResultEntity,
-  RepoScanResultEntity,
-} from '../domain/repo';
+  RepoFetchProgress,
+  RepoFetchResult,
+  RepoScanResult,
+} from '@shared/types/repoScan';
 import type { Repositories } from '../infra/database';
 import { fetchRepos, filterReposWithRemote } from '../infra/gateways/git/repoFetcher';
 import { listRepoDirs, scanRepos } from '../infra/gateways/git/repoScanner';
@@ -14,7 +14,7 @@ export interface FetchOptions {
    * Quem o transforma em mensagem de IPC é o controller: `event.sender` é
    * fronteira de IPC e não atravessa para cá.
    */
-  onProgress?: (progress: RepoFetchProgressEntity) => void;
+  onProgress?: (progress: RepoFetchProgress) => void;
 }
 
 /**
@@ -31,7 +31,7 @@ export function makeReposService(repos: Repositories, prs: PrsService) {
 
   return {
     /** Leitura local: lê o disco e anexa os PRs que já estiverem em cache. */
-    async scan(): Promise<RepoScanResultEntity[]> {
+    async scan(): Promise<RepoScanResult[]> {
       return prs.attachPullRequests(await scanRepos(await listRepoDirs(baseDirs())));
     },
 
@@ -42,7 +42,7 @@ export function makeReposService(repos: Repositories, prs: PrsService) {
     async fetch(
       requestedPaths: string[] | null | undefined,
       options: FetchOptions = {},
-    ): Promise<RepoFetchResultEntity> {
+    ): Promise<RepoFetchResult> {
       const repoDirs = await listRepoDirs(baseDirs());
 
       // O filtro é a própria validação: só entram caminhos que a varredura

@@ -106,17 +106,38 @@ de tornar normativo; pelo mesmo princípio do ADR-0002 ("a divergência é do
 código, nunca do documento"), essa divergência é aceita como fila de
 migração, não como bug a corrigir na hora deste ADR.
 
-`git-dlog`, `meu-negocio-app` e `meu-movel-planejado` ficam fora desta
-rodada. O `meu-negocio-app` porque já não qualifica — `stock_applied` acima.
-Os outros dois porque têm pares `Entity`/`Shared` hoje comentados como
-"estruturalmente idênticos" (`apps/git-dlog/src/main/domain/repo.ts`,
-`apps/git-dlog/src/main/domain/scanPath.ts` e
-`apps/git-dlog/src/main/domain/pullRequest.ts` no Git Dlog;
-`apps/meu-movel-planejado/src/main/domain/sheet.ts`,
+`meu-negocio-app` e `meu-movel-planejado` ficam fora desta rodada. O
+`meu-negocio-app` porque já não qualifica — `stock_applied` acima. O outro
+porque tem pares `Entity`/`Shared` hoje comentados como "estruturalmente
+idênticos" (`apps/meu-movel-planejado/src/main/domain/sheet.ts`,
 `apps/meu-movel-planejado/src/main/domain/project.ts`,
 `apps/meu-movel-planejado/src/main/domain/plan.ts` e
-`apps/meu-movel-planejado/src/main/domain/piece.ts` no Meu Móvel Planejado)
-que ainda não foram auditados um a um sob este critério — fica para uma
-rodada futura, entidade por entidade, e até lá também não contam como bug: a
-auditoria em si é o trabalho pendente, não uma escolha de manter a
-duplicação.
+`apps/meu-movel-planejado/src/main/domain/piece.ts`) que ainda não foram
+auditados um a um sob este critério — fica para uma rodada futura, entidade
+por entidade, e até lá também não conta como bug: a auditoria em si é o
+trabalho pendente, não uma escolha de manter a duplicação.
+
+## Auditoria do `git-dlog` (rodada seguinte a este ADR)
+
+O `git-dlog` foi auditado e colapsado por completo
+(`.scratch/git-dlog-colapso-tipos/issues/01` a `04`): Pull Request,
+Repositório (a árvore de varredura inteira — Commit, Branch, Worktree, Head,
+Sync, CommitGroup, ScanResult, FetchFailure, FetchResult, FetchProgress,
+Severidade, FetchPhase), Diretório-base (`ScanPath`) e `ThemeMode`
+colapsaram no critério deste ADR — todos hoje vivem só em `shared/types/`.
+
+Duas exceções confirmam o critério em vez de contradizê-lo — o mesmo
+raciocínio de `stock_applied` e de `Month`/`MonthEntity`, aplicado a casos
+reais do `git-dlog`:
+
+- `EncryptedGithubTokenEntity` (`apps/git-dlog/src/main/domain/settings.ts`)
+  não colapsa: é o token do GitHub cifrado, nunca atravessa o IPC, e não tem
+  par em `shared/types/` — o mesmo papel de `stock_applied` no
+  `meu-negocio-app`.
+- `isThemeMode`/`resolveThemeMode`, no mesmo arquivo, também não colapsam:
+  são funções de domínio de verdade (a segunda resolve a preferência do
+  sistema operacional quando não há escolha gravada, e é lida pelo bootstrap
+  do main antes de existir camada IPC), não cópia pura de tipo — o mesmo
+  papel de `Month`/`MonthEntity` no `meu-dinheiro-app`. Por isso
+  `domain/settings.ts` continua existindo, mesmo com `ThemeModeEntity`
+  colapsado.

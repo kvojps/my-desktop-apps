@@ -1,9 +1,6 @@
+import type { ThemeMode } from '@shared/types/theme';
 import type Database from 'better-sqlite3';
-import {
-  type EncryptedGithubTokenEntity,
-  type ThemeModeEntity,
-  isThemeModeEntity,
-} from '../../../domain/settings';
+import { type EncryptedGithubTokenEntity, isThemeMode } from '../../../domain/settings';
 
 const GITHUB_TOKEN_KEY = 'githubToken';
 const THEME_MODE_KEY = 'themeMode';
@@ -63,12 +60,12 @@ export function makeSettingsRepository(db: Database.Database) {
      * `nativeTheme.themeSource` sem flash branco (docs/design-system.md §5.1).
      * Texto plano — não é segredo, ao contrário do token do GitHub.
      */
-    getThemeMode(): ThemeModeEntity | null {
+    getThemeMode(): ThemeMode | null {
       const stored = getSetting(THEME_MODE_KEY);
-      return stored !== null && isThemeModeEntity(stored) ? stored : null;
+      return stored !== null && isThemeMode(stored) ? stored : null;
     },
 
-    saveThemeMode(mode: ThemeModeEntity): void {
+    saveThemeMode(mode: ThemeMode): void {
       setSetting(THEME_MODE_KEY, mode);
     },
   };
