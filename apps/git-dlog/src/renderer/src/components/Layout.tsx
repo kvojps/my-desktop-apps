@@ -27,7 +27,7 @@ export function Layout({ children }: { children: ReactNode }) {
   const themeLabel = mode === 'dark' ? 'Ativar tema claro' : 'Ativar tema escuro';
 
   return (
-    <div className="orca:flex orca:h-screen">
+    <div className="orca:flex orca:h-screen orca:bg-background orca:text-foreground">
       <nav
         aria-label="Navegação principal"
         data-collapsed={collapsed}

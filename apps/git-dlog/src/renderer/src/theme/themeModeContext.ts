@@ -1,8 +1,9 @@
-import { PaletteMode } from '@mui/material';
 import { createContext } from 'react';
 
+export type ThemeMode = 'light' | 'dark';
+
 export interface ThemeModeContextValue {
-  mode: PaletteMode;
+  mode: ThemeMode;
   toggleMode: () => void;
 }
 

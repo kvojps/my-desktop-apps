@@ -1,5 +1,5 @@
-import { Snackbar } from '@mui/material';
 import { CheckCircle2, CircleAlert, Info, X } from 'lucide-react';
+import { useEffect } from 'react';
 import type { SnackbarState } from '@/contexts/SnackbarContext';
 
 interface AppSnackbarProps {
@@ -11,6 +11,15 @@ interface AppSnackbarProps {
 }
 
 export function AppSnackbar({ snackbar, open, onClose, onExited }: AppSnackbarProps) {
+  useEffect(() => {
+    if (!open) {
+      onExited();
+      return;
+    }
+    const timeout = window.setTimeout(onClose, 4000);
+    return () => window.clearTimeout(timeout);
+  }, [onClose, onExited, open, snackbar?.key]);
+
   const icon =
     snackbar?.severity === 'success' ? (
       <CheckCircle2 aria-hidden className="orca:size-5 orca:text-success" />
@@ -20,36 +29,25 @@ export function AppSnackbar({ snackbar, open, onClose, onExited }: AppSnackbarPr
       <Info aria-hidden className="orca:size-5 orca:text-primary" />
     );
 
+  if (!open || !snackbar) return null;
+
   return (
-    <Snackbar
-      // A key reinicia o timer a cada mensagem: sem ela, a segunda da fila
-      // herdaria o tempo já corrido da primeira.
-      key={snackbar?.key}
-      open={open}
-      autoHideDuration={4000}
-      onClose={onClose}
-      TransitionProps={{ onExited }}
-      anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-    >
-      {snackbar ? (
-        <div
-          role="status"
-          className="orca:flex orca:max-w-[min(32rem,calc(100vw-2rem))] orca:items-start orca:gap-3 orca:rounded-lg orca:border orca:border-border orca:bg-paper orca:px-4 orca:py-3 orca:shadow-lg"
+    <div className="orca:fixed orca:inset-x-4 orca:bottom-4 orca:z-50 orca:flex orca:justify-center">
+      <div
+        role="status"
+        className="orca:flex orca:max-w-[min(32rem,calc(100vw-2rem))] orca:items-start orca:gap-3 orca:rounded-lg orca:border orca:border-border orca:bg-paper orca:px-4 orca:py-3 orca:shadow-lg"
+      >
+        {icon}
+        <p className="orca:m-0 orca:flex-1 orca:text-sm orca:text-foreground">{snackbar.message}</p>
+        <button
+          type="button"
+          aria-label="Fechar aviso"
+          onClick={onClose}
+          className="orca-link orca:leading-none orca:text-muted-foreground"
         >
-          {icon}
-          <p className="orca:m-0 orca:flex-1 orca:text-sm orca:text-foreground">
-            {snackbar.message}
-          </p>
-          <button
-            type="button"
-            aria-label="Fechar aviso"
-            onClick={onClose}
-            className="orca-link orca:leading-none orca:text-muted-foreground"
-          >
-            <X aria-hidden className="orca:size-4" />
-          </button>
-        </div>
-      ) : undefined}
-    </Snackbar>
+          <X aria-hidden className="orca:size-4" />
+        </button>
+      </div>
+    </div>
   );
 }

@@ -1,20 +1,21 @@
 # Design system
 
-## Transição em curso: piloto Git Dlog
+## Transição implementada: Git Dlog
 
-O `apps/git-dlog` foi escolhido como piloto de uma direção visual inspirada no
-Orca, conforme o [plano aprovado por decisões](../apps/git-dlog/docs/orca-design-plan.md).
-Durante a migração incremental, ele pode substituir paleta, fontes, raios,
-superfícies, controles e navegação pelas convenções registradas no plano e no tema
-do piloto. Essa exceção inclui a coexistência temporária de MUI com Tailwind sem Preflight
-e componentes locais shadcn/Radix, Geist e ícones Lucide nas partes migradas.
-Os valores concretos estão nos [tokens do piloto](../apps/git-dlog/docs/orca-theme.md).
-As exigências de acessibilidade, contraste e clareza dos estados continuam válidas.
+O `apps/git-dlog` concluiu a migração de código para a direção visual inspirada
+no Orca, conforme o [plano aprovado por decisões](../apps/git-dlog/docs/orca-design-plan.md).
+Ele usa Tailwind sem Preflight, componentes locais, Geist e Lucide; MUI e Emotion
+não integram mais esse app. Os valores concretos, a revisão da referência e as
+evidências estão nos [tokens do piloto](../apps/git-dlog/docs/orca-theme.md).
+Ainda falta a validação visual manual final no Electron; até ela ocorrer, esta
+seção registra a direção implementada, não uma aprovação para migrar outros apps.
 
-Os demais apps seguem a norma abaixo. Após a validação do piloto, as convenções
-aprovadas serão incorporadas a este documento e a migração dos demais será
-planejada. O piloto não se torna referência implícita: os valores devem ser
-documentados. A independência de código entre apps permanece vigente.
+Esta transição não cria um pacote compartilhado nem migra implicitamente os
+demais apps. Meu Dinheiro,
+Meu Negócio e Meu Móvel Planejado seguem as regras MUI e Material Icons deste
+documento até receberem uma migração planejada. Cada migração deve registrar seus
+valores locais antes de mudar código; a independência de código entre apps
+permanece vigente.
 
 Este documento descreve o padrão visual comum aos apps do monorepo. Ele existe porque os
 apps deliberadamente **não compartilham código** (ver README, §2): sem um pacote

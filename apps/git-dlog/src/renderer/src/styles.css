@@ -1,4 +1,4 @@
-/* Sem Preflight: preservar o reset e os componentes MUI durante a migração. */
+/* Sem Preflight: os estilos base continuam explícitos e locais ao piloto. */
 @layer theme, components, utilities;
 @import 'tailwindcss/theme.css' layer(theme) prefix(orca);
 @import 'tailwindcss/utilities.css' layer(utilities) prefix(orca);
@@ -10,6 +10,7 @@
 */
 @theme inline {
   --color-paper: var(--dlog-paper);
+  --color-background: var(--dlog-background);
   --color-sidebar: var(--dlog-sidebar);
   --color-foreground: var(--dlog-foreground);
   --color-muted-foreground: var(--dlog-muted-foreground);
@@ -37,6 +38,24 @@
 
   body {
     min-height: 100vh;
+    background: var(--dlog-background);
+    color: var(--dlog-foreground);
+    font-family: 'Geist', 'Roboto', 'Helvetica', 'Arial', sans-serif;
+    font-variant-numeric: tabular-nums;
+  }
+
+  *:focus-visible {
+    outline: 2px solid var(--dlog-focus);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 
   .orca-sidebar {
@@ -203,6 +222,16 @@
   .orca-skeleton {
     background: var(--dlog-accent);
     animation: orca-pulse 1.6s ease-in-out infinite;
+  }
+
+  .orca-dialog {
+    margin: auto;
+    padding: 0;
+    color: var(--dlog-foreground);
+  }
+
+  .orca-dialog::backdrop {
+    background: rgb(0 0 0 / 45%);
   }
 
   @keyframes orca-pulse {

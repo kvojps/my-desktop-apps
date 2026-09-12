@@ -23,15 +23,15 @@ nem os estilos globais do aplicativo de referência.
 | Rótulo sobre cor   | `#ffffff`          | `rgb(0 0 0 / 87%)`      | `--dlog-on-color`         |
 | Rótulo sobre âmbar | `rgb(0 0 0 / 87%)` | `rgb(0 0 0 / 87%)`      | `--dlog-on-warning`       |
 
-Só vira variável CSS o token que o CSS do piloto consome; o resto da paleta
-chega pelo tema MUI, e página e info estão nesse caso hoje. `--dlog-mono`
-publica a família monoespaçada. Raios: superfície 10px (`--radius-lg`),
-controle 6px (`--radius-md`).
+As variáveis CSS são a única fonte dos tokens do renderer, publicadas pelo
+`ThemeModeProvider`; `--dlog-background` cobre a página e `--dlog-mono` publica
+a família monoespaçada. Raios: superfície 10px (`--radius-lg`), controle 6px
+(`--radius-md`).
 
 O secundário claro é adaptado de `#737373` para `#666666`, garantindo AA inclusive
 sobre hover e seleção. Foco mantém o azul do Git Dlog para passar 3:1 contra as
 superfícies. A seleção também usa peso 600, indicador lateral e `aria-current`.
-As cores semânticas MUI permanecem as do manual: primary `#2771ca` / `#3987e5`,
+As cores semânticas do manual permanecem: primary `#2771ca` / `#3987e5`,
 secondary `#4a3aa7` / `#9085e9`, success `#0a7d0a` / `#0ca30c`, error `#cf3939` /
 `#d85b5b`, info `#0f7c91` / `#1190a9`. Warning `#fab219` continua somente
 preenchimento, com rótulo preto, conforme ADR-0001. Não adotamos os contrastes
@@ -43,20 +43,17 @@ navegação: texto 14px/20px, ícones 18px, controles 36px de altura, intervalo 
 padding interno 12px, lateral expandida 224px e recolhida 64px. Conteúdo mantém
 padding 24px, teto 1440px e rolagem independente; janela mínima 960 × 640.
 
-## Coexistência
+## Base concluída
 
 Tailwind v4 é carregado com prefixo `orca`, sem Preflight, somente tema e
-utilitários. O reset MUI existente continua responsável pela base. Estilos de
-controles nativos ficam restritos à classe local do botão. Tokens CSS são
-publicados pelo mesmo tema MUI em `CssBaseline`, inclusive para futuros portais;
-os dois sistemas recebem o modo inicial do preload e a persistência existente.
-O fundo nativo acompanha os novos valores pelo gateway atual, sem novo contrato.
-Somente a navegação usa controles locais Radix e Lucide nesta etapa.
+utilitários. Controles, diálogos, notificações, tabela e estados são locais; o
+`<dialog>` nativo fornece modalidade, Esc e retorno de foco. O modo inicial vem
+do preload e a preferência continua persistida pelo banco via API. O fundo nativo
+acompanha os novos valores pelo gateway atual, sem novo contrato.
 
-A tabela acima continua sendo a referência — divergir dela é bug do código. Desde
-a etapa 02 o código a lê num ponto só: `orcaTokens`, em `theme/index.ts`,
-alimenta a paleta MUI e as variáveis `--dlog-*` de uma vez, em vez de repetir os
-valores nos dois lugares. Era o achado de baixa prioridade da revisão da etapa 01.
+A tabela acima continua sendo a referência — divergir dela é bug do código.
+`getThemeVariables`, em `theme/index.ts`, é o único ponto que materializa os
+tokens para o renderer.
 
 ## Lista e painel — etapa 02
 
@@ -282,3 +279,23 @@ tons num lugar só, `CommitLine` recebendo o `RepoCommit` inteiro e `LucideIcon`
 no lugar de `typeof CircleCheck`. Fica de pé, sem mudança: o `title` nativo onde
 havia `Tooltip` de MUI — nenhum dos dois alcança o teclado num `span`, então não
 há regressão a corrigir aqui.
+
+## Validação da etapa 06 — 2026-09-12
+
+- Não restaram imports ou dependências diretas de MUI e Emotion no Git Dlog.
+  `ThemeModeProvider` publica os tokens CSS e mantém a preferência no banco pela
+  fachada existente; o cache em `localStorage` foi removido.
+- `Modal` e `ConfirmDialog` usam `<dialog>` nativo, com `Esc`, foco modal e
+  retorno ao acionador; `AppSnackbar`, estado vazio e rota desconhecida agora
+  usam componentes locais. A tabela MUI, que já não tinha consumidores, foi
+  removida.
+- Typecheck, lint, testes (24 arquivos/238 testes) e build de produção do
+  monorepo foram aprovados. O lint mantém somente os dois avisos preexistentes
+  de hooks no Meu Negócio. O aviso de licenças foi regenerado com 55 pacotes após
+  retirar as dependências.
+- Limitação desta rodada: a validação visual manual no Electron real (claro e
+  escuro, 960 × 640 e janela maior) continua necessária para confirmar o
+  comportamento do diálogo nativo na sessão gráfica. As verificações de fluxos
+  funcionais, repositórios reais, integrações autenticadas e seletor nativo são
+  as evidências já registradas nas etapas 01–05; não foram repetidas por esta
+  troca de infraestrutura de apresentação.

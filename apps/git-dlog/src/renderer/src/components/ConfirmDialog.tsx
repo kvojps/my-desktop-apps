@@ -1,5 +1,4 @@
-import { Dialog } from '@mui/material';
-import { ReactNode } from 'react';
+import { ReactNode, useEffect, useRef } from 'react';
 import { Button } from './Button';
 
 interface ConfirmDialogProps {
@@ -12,10 +11,11 @@ interface ConfirmDialogProps {
   loading?: boolean;
   onClose: () => void;
   onConfirm: () => void;
-  /** Roda após a transição de saída, quando o destino de foco já existe na tela. */
+  /** Roda depois que o navegador restaura o foco ao controle de origem. */
   onExited?: () => void;
 }
 
+/** Confirmação destrutiva independente: bloqueia fechamento enquanto age. */
 export function ConfirmDialog({
   open,
   title,
@@ -28,23 +28,41 @@ export function ConfirmDialog({
   onConfirm,
   onExited,
 }: ConfirmDialogProps) {
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const confirmClass =
+    confirmColor === 'error'
+      ? 'orca:bg-danger orca:hover:bg-danger'
+      : confirmColor === 'warning'
+        ? 'orca:bg-warning orca:text-on-warning orca:hover:bg-warning'
+        : '';
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    if (open && !dialog.open) dialog.showModal();
+    if (!open && dialog.open) dialog.close();
+  }, [open]);
+
   return (
-    <Dialog
-      open={open}
-      onClose={() => !loading && onClose()}
+    <dialog
+      ref={dialogRef}
       aria-labelledby="confirm-dialog-title"
       aria-describedby="confirm-dialog-message"
-      PaperProps={{
-        className:
-          'orca:m-4 orca:w-full orca:max-w-md orca:rounded-lg orca:border orca:border-border orca:bg-paper orca:shadow-lg',
+      className="orca-dialog orca:w-[min(32rem,calc(100vw-2rem))] orca:max-w-none orca:rounded-lg orca:border orca:border-border orca:bg-paper orca:shadow-lg"
+      onCancel={(event) => {
+        if (loading) {
+          event.preventDefault();
+          return;
+        }
+        onClose();
       }}
-      TransitionProps={{ onExited }}
+      onClose={onExited}
+      onClick={(event) => {
+        if (!loading && event.target === event.currentTarget) onClose();
+      }}
     >
       <div className="orca:p-5">
-        <h2
-          id="confirm-dialog-title"
-          className="orca:m-0 orca:text-base orca:font-semibold orca:text-foreground"
-        >
+        <h2 id="confirm-dialog-title" className="orca:m-0 orca:text-base orca:font-semibold">
           {title}
         </h2>
         <div
@@ -58,21 +76,10 @@ export function ConfirmDialog({
         <Button variant="outline" onClick={onClose} disabled={loading} autoFocus>
           Cancelar
         </Button>
-        <Button
-          variant="primary"
-          className={
-            confirmColor === 'error'
-              ? 'orca:bg-danger orca:hover:bg-danger'
-              : confirmColor === 'warning'
-                ? 'orca:bg-warning orca:text-on-warning orca:hover:bg-warning'
-                : ''
-          }
-          onClick={onConfirm}
-          disabled={loading}
-        >
+        <Button variant="primary" className={confirmClass} onClick={onConfirm} disabled={loading}>
           {loading ? (loadingLabel ?? `${confirmLabel}...`) : confirmLabel}
         </Button>
       </div>
-    </Dialog>
+    </dialog>
   );
 }
