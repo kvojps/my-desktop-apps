@@ -1,11 +1,13 @@
-import { AttachFile } from '@mui/icons-material';
-import { Box, Button, Chip, Typography } from '@mui/material';
+import { CheckCircle2, Clock, Paperclip } from 'lucide-react';
 import { Expense } from '@shared/types/expense';
 import { api } from '@/api/client';
+import { Button } from '@/components/Button';
 import { CategoryTag } from '@/components/CategoryTag';
 import { Modal } from '@/components/Modal';
+import { StatusChip } from '@/components/StatusChip';
 import { formatDateOnly, formatPaidDate } from '@/utils/date';
 import { formatCurrencyOrFallback } from '@/utils/format';
+import { DetailField } from './DetailField';
 
 interface ExpenseDetailDialogProps {
   open: boolean;
@@ -19,94 +21,48 @@ export function ExpenseDetailDialog({ open, expense, onClose }: ExpenseDetailDia
       open={open}
       onClose={onClose}
       title={expense?.name ?? 'Despesa'}
-      footer={
-        <>
-          <Button onClick={onClose}>Fechar</Button>
-        </>
-      }
+      footer={<Button onClick={onClose}>Fechar</Button>}
     >
       {expense && (
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, py: 1 }}>
-          <Box>
-            <Typography variant="caption" color="text.secondary">
-              Valor
-            </Typography>
-            <Typography>{formatCurrencyOrFallback(expense.amount)}</Typography>
-          </Box>
+        <dl className="money-detail">
+          <DetailField label="Valor">{formatCurrencyOrFallback(expense.amount)}</DetailField>
           {expense.categoryName && (
-            <Box>
-              <Typography variant="caption" color="text.secondary">
-                Categoria
-              </Typography>
-              <CategoryTag
-                name={expense.categoryName}
-                color={expense.categoryColor}
-                sx={{ mt: 0.5 }}
-              />
-            </Box>
+            <DetailField label="Categoria">
+              <CategoryTag name={expense.categoryName} color={expense.categoryColor} />
+            </DetailField>
           )}
           {expense.dueDate && (
-            <Box>
-              <Typography variant="caption" color="text.secondary">
-                Vencimento
-              </Typography>
-              <Typography>{formatDateOnly(expense.dueDate)}</Typography>
-            </Box>
+            <DetailField label="Vencimento">{formatDateOnly(expense.dueDate)}</DetailField>
           )}
-          <Box>
-            {/* `component="div"`: o Chip é inline-flex e colava no rótulo, que
-                por padrão é um span — nos outros campos o valor é um bloco. */}
-            <Typography variant="caption" color="text.secondary" component="div">
-              Status
-            </Typography>
-            <Chip
-              label={expense.isPaid ? 'Paga' : 'Pendente'}
-              color={expense.isPaid ? 'success' : 'default'}
-              size="small"
-              sx={{ mt: 0.5 }}
-            />
-          </Box>
+          <DetailField label="Status">
+            {expense.isPaid ? (
+              <StatusChip label="Paga" color="success" icon={<CheckCircle2 aria-hidden="true" />} />
+            ) : (
+              <StatusChip label="Pendente" color="warning" icon={<Clock aria-hidden="true" />} />
+            )}
+          </DetailField>
           {expense.paidAt && (
-            <Box>
-              <Typography variant="caption" color="text.secondary">
-                Pago em
-              </Typography>
-              <Typography>{formatPaidDate(expense.paidAt)}</Typography>
-            </Box>
+            <DetailField label="Pago em">{formatPaidDate(expense.paidAt)}</DetailField>
           )}
           {expense.bankAccountName && (
-            <Box>
-              <Typography variant="caption" color="text.secondary">
-                Conta
-              </Typography>
-              <Typography>{expense.bankAccountName}</Typography>
-            </Box>
+            <DetailField label="Conta">{expense.bankAccountName}</DetailField>
           )}
           {expense.receipt && (
-            <Box>
-              <Typography variant="caption" color="text.secondary">
-                Comprovante
-              </Typography>
-              <Box>
-                <Button
-                  size="small"
-                  startIcon={<AttachFile />}
-                  onClick={() => api.openReceipt(expense.receipt!)}
-                >
-                  Abrir comprovante
-                </Button>
-              </Box>
-            </Box>
+            <DetailField label="Comprovante">
+              {/* Abre no programa do sistema: o app não tem visualizador
+                  próprio, e inventar um aqui seria recurso novo. */}
+              <Button onClick={() => api.openReceipt(expense.receipt!)}>
+                <Paperclip size={18} aria-hidden="true" />
+                Abrir comprovante
+              </Button>
+            </DetailField>
           )}
           {expense.notes && (
-            <Box>
-              <Typography variant="caption" color="text.secondary">
-                Observação
-              </Typography>
-              <Typography sx={{ fontStyle: 'italic' }}>"{expense.notes}"</Typography>
-            </Box>
+            <DetailField label="Observação">
+              <span className="money-detail-note">&quot;{expense.notes}&quot;</span>
+            </DetailField>
           )}
-        </Box>
+        </dl>
       )}
     </Modal>
   );

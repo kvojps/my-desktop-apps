@@ -1,18 +1,14 @@
-import {
-  AttachFile,
-  CheckCircle,
-  ReportProblemOutlined,
-  ScheduleOutlined,
-  StickyNote2Outlined,
-} from '@mui/icons-material';
-import { Box, Button, Stack, Tooltip, Typography } from '@mui/material';
+import { Clock, Paperclip, StickyNote, TriangleAlert } from 'lucide-react';
 import { Expense } from '@shared/types/expense';
 import { ActionsMenu } from '@/components/ActionsMenu';
+import { Button } from '@/components/Button';
 import { CategoryTag } from '@/components/CategoryTag';
 import type { Column } from '@/components/DataTable';
 import { StatusChip } from '@/components/StatusChip';
-import { formatDateOnly, formatPaidDate } from '@/utils/date';
+import { Tooltip } from '@/components/Tooltip';
+import { formatDateOnly } from '@/utils/date';
 import { formatCurrencyOrFallback } from '@/utils/format';
+import { SettledChip } from './SettledChip';
 
 export function isExpenseOverdue(expense: Expense, today: string) {
   return !expense.isPaid && !!expense.dueDate && expense.dueDate < today;
@@ -21,29 +17,17 @@ export function isExpenseOverdue(expense: Expense, today: string) {
 /**
  * O status da despesa como `StatusChip`. O chip é preenchido, que é a única
  * coisa que o âmbar pode fazer (§1.4), e o ícone repete o que a cor diz.
- *
- * A data do pagamento vai no tooltip, e não em coluna própria: um cabeçalho de
- * tabela é fixo, e "Vencimento" e "Pago em" não podem ser a mesma coluna. É o
- * mesmo recurso que a Visão Geral usa para o valor em atraso.
  */
 function ExpenseStatus({ expense, today }: { expense: Expense; today: string }) {
   if (expense.isPaid) {
-    const chip = <StatusChip label="Paga" color="success" icon={<CheckCircle />} />;
-    if (!expense.paidAt) return chip;
-    return (
-      <Tooltip title={`Pago em ${formatPaidDate(expense.paidAt)}`}>
-        <Box component="span" sx={{ display: 'inline-flex' }}>
-          {chip}
-        </Box>
-      </Tooltip>
-    );
+    return <SettledChip label="Paga" verb="Pago" date={expense.paidAt} />;
   }
 
   if (isExpenseOverdue(expense, today)) {
-    return <StatusChip label="Vencida" color="error" icon={<ReportProblemOutlined />} />;
+    return <StatusChip label="Vencida" color="error" icon={<TriangleAlert aria-hidden="true" />} />;
   }
 
-  return <StatusChip label="Pendente" color="warning" icon={<ScheduleOutlined />} />;
+  return <StatusChip label="Pendente" color="warning" icon={<Clock aria-hidden="true" />} />;
 }
 
 /**
@@ -58,24 +42,21 @@ export function expenseColumns(today: string): Column<Expense>[] {
       label: 'Despesa',
       sortable: true,
       render: (expense) => (
-        <Stack direction="row" spacing={0.5} alignItems="center" sx={{ minWidth: 0 }}>
-          <Typography variant="body2" noWrap title={expense.name} sx={{ fontWeight: 600 }}>
+        <span className="money-item-cell">
+          <span className="money-item-name money-truncate" title={expense.name}>
             {expense.name}
-          </Typography>
+          </span>
           {expense.notes && (
             <Tooltip title="Possui observação">
-              <StickyNote2Outlined
-                fontSize="small"
-                sx={{ color: 'text.secondary', flexShrink: 0 }}
-              />
+              <StickyNote aria-hidden="true" />
             </Tooltip>
           )}
           {expense.receipt && (
             <Tooltip title="Possui comprovante">
-              <AttachFile fontSize="small" sx={{ color: 'text.secondary', flexShrink: 0 }} />
+              <Paperclip aria-hidden="true" />
             </Tooltip>
           )}
-        </Stack>
+        </span>
       ),
     },
     {
@@ -94,12 +75,12 @@ export function expenseColumns(today: string): Column<Expense>[] {
       render: (expense) => {
         const overdue = isExpenseOverdue(expense, today);
         return (
-          <Box
-            component="span"
-            sx={{ color: overdue ? 'error.main' : 'text.primary', fontWeight: overdue ? 600 : 400 }}
+          <span
+            className={overdue ? 'money-amount money-tone' : 'money-tone'}
+            data-tone={overdue ? 'alert' : 'neutral'}
           >
             {expense.dueDate ? formatDateOnly(expense.dueDate) : '—'}
-          </Box>
+          </span>
         );
       },
     },
@@ -113,9 +94,7 @@ export function expenseColumns(today: string): Column<Expense>[] {
       label: 'Valor',
       sortable: true,
       render: (expense) => (
-        <Box component="span" sx={{ fontWeight: 600 }}>
-          {formatCurrencyOrFallback(expense.amount, '—')}
-        </Box>
+        <span className="money-amount">{formatCurrencyOrFallback(expense.amount, '—')}</span>
       ),
     },
   ];
@@ -132,15 +111,17 @@ export interface ExpenseActions {
 /** A ação principal da linha mais o menu de três pontos. */
 export function renderExpenseActions(expense: Expense, actions: ExpenseActions) {
   return (
-    <Stack direction="row" spacing={0.5} alignItems="center" justifyContent="flex-end">
+    <span className="money-row-actions">
       {expense.isPaid ? (
-        // "Desmarcar" era `color="warning"` — âmbar sobre papel dá 1.83:1 como
-        // rótulo de botão. Ele fica no primário.
-        <Button size="small" onClick={() => actions.onUnpay(expense)}>
+        <Button onClick={() => actions.onUnpay(expense)} aria-label={`Desmarcar ${expense.name}`}>
           Desmarcar
         </Button>
       ) : (
-        <Button size="small" variant="contained" onClick={() => actions.onPay(expense)}>
+        <Button
+          variant="primary"
+          onClick={() => actions.onPay(expense)}
+          aria-label={`Pagar ${expense.name}`}
+        >
           Pagar
         </Button>
       )}
@@ -150,6 +131,6 @@ export function renderExpenseActions(expense: Expense, actions: ExpenseActions) 
         onEdit={() => actions.onEdit(expense)}
         onDelete={() => actions.onDelete(expense)}
       />
-    </Stack>
+    </span>
   );
 }

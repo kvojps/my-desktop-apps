@@ -18,6 +18,7 @@ import { PageHeader } from '@/components/PageHeader';
 import { Skeleton } from '@/components/Skeleton';
 import { StatCard, StatCardGrid, StatCardSkeleton } from '@/components/StatCard';
 import { StatusChip } from '@/components/StatusChip';
+import { Tooltip } from '@/components/Tooltip';
 import { useNavigationMemory } from '@/contexts/NavigationContext';
 import { useBankAccounts } from '@/hooks/bank-accounts/useBankAccounts';
 import { BALANCE_LABELS, pendingSubtitle, useMonthsBalance } from '@/hooks/months/useMonthBalance';
@@ -47,11 +48,11 @@ export function DashboardPage() {
   const navigate = useNavigate();
   const { months, loading, error, retry: handleRetry } = useMonths();
   const { bankAccounts, loading: accountsLoading } = useBankAccounts();
-  const { recallDashboard, rememberDashboard, restoreScroll, enterMonth } = useNavigationMemory();
+  const { recallQuery, rememberQuery, restoreScroll, enterMonth } = useNavigationMemory();
 
   // A consulta que a sessão guardou ao sair para um Mês, já confinada aos meses
   // que existem agora. Lida uma vez: depois disso quem manda é o estado da tela.
-  const [restored] = useState(() => restoreDashboardQuery(recallDashboard(), months));
+  const [restored] = useState(() => restoreDashboardQuery(recallQuery('dashboard'), months));
 
   // `null` é "ainda não escolheu", e não um intervalo vazio: é o que deixa o
   // padrão ser derivado em vez de aplicado por efeito. Antes a tela renderizava
@@ -132,14 +133,14 @@ export function DashboardPage() {
   // se guarda — ele significa "os meses não chegaram", não "nenhum mês".
   useEffect(() => {
     if (!fromValue || !toValue) return;
-    rememberDashboard({
+    rememberQuery('dashboard', {
       from: fromValue,
       to: toValue,
       sortKey: sort.key,
       sortDirection: sort.direction,
       page: currentPage,
     });
-  }, [fromValue, toValue, sort, currentPage, rememberDashboard]);
+  }, [fromValue, toValue, sort, currentPage, rememberQuery]);
 
   // A rolagem volta junto da consulta, depois que as linhas existem — antes
   // disso a faixa de conteúdo ainda não tem altura para rolar. Uma vez só: a
@@ -148,7 +149,7 @@ export function DashboardPage() {
   useLayoutEffect(() => {
     if (scrollRestored.current || loading) return;
     scrollRestored.current = true;
-    restoreScroll();
+    restoreScroll('dashboard');
   }, [loading, restoreScroll]);
 
   function openMonth(row: MonthRow) {
@@ -168,20 +169,17 @@ export function DashboardPage() {
           {row.overdue > 0 && (
             // O valor vencido já vinha do SQL e ficava sem uso: a contagem diz
             // quantas contas atrasaram, mas não se é uma fatura ou um cafezinho.
-            // A dica é o `title` nativo porque a rolagem da tabela recortaria
-            // uma dica desenhada na página.
-            <span
-              title={`${formatCurrency(row.overdueAmount)} em atraso`}
-              aria-label={`${row.overdue} vencida${row.overdue > 1 ? 's' : ''}, ${formatCurrency(
-                row.overdueAmount,
-              )} em atraso`}
-            >
+            // A dica é a desta base desde a issue 03 — ela é desenhada em
+            // portal, e a faixa de rolagem da tabela não a recorta mais. O
+            // valor vai junto no texto do marcador, e por isso ela é redundante.
+            <Tooltip title={`${formatCurrency(row.overdueAmount)} em atraso`} redundant>
               <StatusChip
                 label={`${row.overdue} vencida${row.overdue > 1 ? 's' : ''}`}
                 color="error"
                 icon={<TriangleAlert aria-hidden="true" />}
+                description={`${formatCurrency(row.overdueAmount)} em atraso`}
               />
-            </span>
+            </Tooltip>
           )}
         </span>
       ),
@@ -206,7 +204,10 @@ export function DashboardPage() {
       // inteira e, pela §1.5, cor sinaliza condição: fechar no azul é o estado
       // normal, não um aviso.
       render: (row) => (
-        <span className="money-amount money-tone" data-tone={row.realized < 0 ? 'alert' : 'neutral'}>
+        <span
+          className="money-amount money-tone"
+          data-tone={row.realized < 0 ? 'alert' : 'neutral'}
+        >
           {formatCurrency(row.realized)}
         </span>
       ),

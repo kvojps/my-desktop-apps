@@ -1,8 +1,8 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Button, MenuItem, TextField } from '@mui/material';
+import { Button, TextField } from '@mui/material';
 import { Controller, useForm } from 'react-hook-form';
 import { DefaultExpense } from '@shared/types/expense';
-import { CategoryTag } from '@/components/CategoryTag';
+import { Field, SelectInput } from '@/components/Field';
 import { Modal } from '@/components/Modal';
 import { useCategories } from '@/hooks/categories/useCategories';
 import {
@@ -95,20 +95,24 @@ export function DefaultExpenseForm({ open, onClose, onSave, initial }: DefaultEx
         sx={{ mb: 2 }}
         {...register('dueDay')}
       />
+      {/* Seletor local, e não o do MUI: o `Modal` desta base é um `<dialog>`
+          nativo, que ocupa a camada de topo do navegador — a lista do `Select`
+          do MUI é desenhada em portal no `body` e ficaria atrás dele. O resto
+          deste formulário segue MUI até a issue 05. */}
       <Controller
         name="categoryId"
         control={control}
         render={({ field }) => (
-          <TextField select label="Categoria" fullWidth {...field}>
-            <MenuItem value="">
-              <em>Sem categoria</em>
-            </MenuItem>
-            {categories.map((category) => (
-              <MenuItem key={category.id} value={String(category.id)}>
-                <CategoryTag name={category.name} color={category.color} />
-              </MenuItem>
-            ))}
-          </TextField>
+          <Field label="Categoria">
+            <SelectInput {...field}>
+              <option value="">Sem categoria</option>
+              {categories.map((category) => (
+                <option key={category.id} value={String(category.id)}>
+                  {category.name}
+                </option>
+              ))}
+            </SelectInput>
+          </Field>
         )}
       />
     </Modal>

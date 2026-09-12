@@ -1,8 +1,9 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Button, MenuItem, TextField } from '@mui/material';
+import { Button, TextField } from '@mui/material';
 import { Controller, useForm } from 'react-hook-form';
 import { BankAccount } from '@shared/types/bank-account';
 import { DefaultIncome } from '@shared/types/income';
+import { Field, SelectInput } from '@/components/Field';
 import { Modal } from '@/components/Modal';
 import {
   DefaultIncomeFormValues,
@@ -103,20 +104,24 @@ export function DefaultIncomeForm({
         sx={{ mb: 2 }}
         {...register('expectedDay')}
       />
+      {/* Seletor local, e não o do MUI: o `Modal` desta base é um `<dialog>`
+          nativo, que ocupa a camada de topo do navegador — a lista do `Select`
+          do MUI é desenhada em portal no `body` e ficaria atrás dele. O resto
+          deste formulário segue MUI até a issue 05. */}
       <Controller
         name="bankAccountId"
         control={control}
         render={({ field }) => (
-          <TextField select label="Conta (opcional)" fullWidth {...field}>
-            <MenuItem value="">
-              <em>Nenhuma</em>
-            </MenuItem>
-            {bankAccounts.map((account) => (
-              <MenuItem key={account.id} value={String(account.id)}>
-                {account.name} ({formatCurrency(account.balance)})
-              </MenuItem>
-            ))}
-          </TextField>
+          <Field label="Conta (opcional)">
+            <SelectInput {...field}>
+              <option value="">Nenhuma</option>
+              {bankAccounts.map((account) => (
+                <option key={account.id} value={String(account.id)}>
+                  {account.name} ({formatCurrency(account.balance)})
+                </option>
+              ))}
+            </SelectInput>
+          </Field>
         )}
       />
     </Modal>

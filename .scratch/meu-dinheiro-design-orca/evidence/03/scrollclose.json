@@ -1,0 +1,29 @@
+[
+  {
+    "rolar a faixa fecha o menu": {
+      "antes": {
+        "menu": true,
+        "rolagem": 0,
+        "rolavel": true
+      },
+      "depois": {
+        "menu": false,
+        "rolagem": 120
+      }
+    }
+  },
+  {
+    "rolar a faixa some com a dica": {
+      "dicaAntes": true,
+      "dicaDepois": false
+    }
+  },
+  {
+    "a nota descreve o campo, e não o nomeia": {
+      "dialogo": "Editar Despesa",
+      "nomeDoCampo": "Valor (R$)",
+      "textoDoRotulo": "Valor (R$)",
+      "descricao": "Deixe em branco para valor variável."
+    }
+  }
+]

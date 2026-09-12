@@ -1,0 +1,62 @@
+[
+  {
+    "carregamento reserva o lugar do conteúdo": {
+      "carregando": {
+        "esqueletos": 16,
+        "cards": 3,
+        "tabela": false,
+        "altura": 766
+      },
+      "pronto": {
+        "esqueletos": 0,
+        "cards": 3,
+        "linhas": 6,
+        "altura": 731
+      }
+    }
+  },
+  {
+    "falha de leitura do Mês": {
+      "papel": "alert",
+      "titulo": "Não foi possível carregar o mês",
+      "descricao": "Falha ao ler os dados locais.",
+      "acoes": ["Tentar novamente", "Restaurar backup", "Abrir pasta de dados"],
+      "lateralAlcancavel": 3
+    }
+  },
+  {
+    "tentar novamente recupera a tela": {
+      "titulo": "Agosto 2026",
+      "linhas": 6
+    }
+  },
+  {
+    "gravar recarrega sem piscar esqueleto": {
+      "observando": true,
+      "esqueletosDurante": 0,
+      "linhas": 6
+    }
+  },
+  {
+    "Mês sem item nenhum não ganha barra de filtros": {
+      "titulo": "Outubro 2026",
+      "barraDeFiltros": false,
+      "frase": "Nenhuma despesa cadastrada neste mês.",
+      "acao": "Adicionar Despesa",
+      "rodape": "Mostrando 0 de 0 despesas",
+      "abas": ["Despesas (0/0)", "Entradas (0/0)"]
+    }
+  },
+  {
+    "filtro sem resultado explica e oferece a saída": {
+      "frase": "Nenhuma despesa encontrada com esses filtros.",
+      "acao": "Limpar filtros",
+      "rodape": "Mostrando 0 de 0 despesas",
+      "barraDeFiltros": true,
+      "aposLimpar": {
+        "busca": "",
+        "linhas": 6
+      }
+    }
+  }
+]

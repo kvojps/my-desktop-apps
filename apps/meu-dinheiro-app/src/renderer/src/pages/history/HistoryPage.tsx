@@ -7,7 +7,7 @@ import {
   TrendingUpOutlined,
 } from '@mui/icons-material';
 import { Button, Card, Stack, Tab, Tabs } from '@mui/material';
-import { useMemo, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
@@ -24,6 +24,7 @@ import { formatCurrency } from '@/utils/format';
 import { CategoryBreakdownChart } from './components/CategoryBreakdownChart';
 import { MonthComparisonChart } from './components/MonthComparisonChart';
 import { YearControl } from './components/YearControl';
+import { restoreHistoryQuery } from './utils/historyQuery';
 
 type TabValue = 'comparativo' | 'categories';
 
@@ -32,19 +33,42 @@ function pluralMonths(count: number) {
 }
 
 export function HistoryPage() {
-  const [tab, setTab] = useState<TabValue>('comparativo');
   const { months: data, loading, error, retry } = useMonths();
   const navigate = useNavigate();
-  const { enterMonth } = useNavigationMemory();
+  const { enterMonth, rememberQuery, recallQuery, restoreScroll } = useNavigationMemory();
 
   const years = useMemo(() => {
     const set = new Set(data.map((m) => m.year));
     return Array.from(set).sort((a, b) => b - a);
   }, [data]);
 
-  const [yearOverride, setYearOverride] = useState<number | null>(null);
+  // A consulta que a sessão guardou ao sair para um Mês, já confinada aos anos
+  // que existem agora. Lida uma vez: depois disso quem manda é o estado da tela.
+  const [restored] = useState(() => restoreHistoryQuery(recallQuery('history'), years));
+
+  const [tab, setTab] = useState<TabValue>(
+    restored?.tab === 'categories' ? 'categories' : 'comparativo',
+  );
+  const [yearOverride, setYearOverride] = useState<number | null>(restored?.year ?? null);
   const selectedYear =
     yearOverride !== null && years.includes(yearOverride) ? yearOverride : (years[0] ?? 0);
+
+  // A consulta é guardada enquanto ela é verdade, e não só ao sair: é assim que
+  // voltar de um Mês encontra a mesma tela. Ano zero não se guarda — ele
+  // significa "os meses não chegaram", não um ano sem competência.
+  useEffect(() => {
+    if (!selectedYear) return;
+    rememberQuery('history', { year: selectedYear, tab });
+  }, [selectedYear, tab, rememberQuery]);
+
+  // A rolagem volta junto da consulta, depois que o conteúdo existe. Uma vez
+  // só: a posição guardada pertence àquela ida ao Mês, não às visitas seguintes.
+  const scrollRestored = useRef(false);
+  useLayoutEffect(() => {
+    if (scrollRestored.current || loading) return;
+    scrollRestored.current = true;
+    restoreScroll('history');
+  }, [loading, restoreScroll]);
 
   const yearMonths = useMemo(() => {
     return [...data].filter((m) => m.year === selectedYear).sort((a, b) => a.month - b.month);
@@ -131,8 +155,8 @@ export function HistoryPage() {
         <MonthComparisonChart
           months={yearMonths}
           onSelectMonth={(id) => {
-            // A origem acompanha o Mês aberto: é ela que a lateral marca e,
-            // na issue 04, o que o retorno do Histórico vai restaurar.
+            // A origem acompanha o Mês aberto: é ela que a lateral marca e o
+            // que o retorno restaura, com o ano e a aba desta consulta.
             enterMonth('history');
             navigate(monthDetailPath(id));
           }}

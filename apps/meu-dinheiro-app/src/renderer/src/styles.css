@@ -122,6 +122,11 @@ body {
   background: var(--money-primary);
   text-decoration: underline;
 }
+.money-button-primary[data-tone='danger'] {
+  background: var(--money-danger);
+  border-color: var(--money-danger);
+  color: var(--money-on-danger);
+}
 .money-button-ghost {
   background: transparent;
   border-color: transparent;
@@ -447,42 +452,13 @@ body {
 /* Dica ------------------------------------------------------------------- */
 
 /*
-  Aparece no ponteiro e no teclado: sem `:focus-within` ela seria uma
-  informação que só o mouse alcança. Fica acima do gatilho e centralizada,
-  com `translate` limitado pela borda do card — por isso `max-width` em vez
-  de largura fixa.
+  Aparece no ponteiro e no teclado: sem o foco ela seria uma informação que só
+  o mouse alcança. A bolha em si é `.money-tip-bubble`, desenhada em portal.
 */
 .money-tip {
   position: relative;
   display: inline-flex;
   max-width: 100%;
-}
-.money-tip > [role='tooltip'] {
-  position: absolute;
-  bottom: calc(100% + 6px);
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 20;
-  width: max-content;
-  max-width: 260px;
-  padding: 8px 10px;
-  /* Invertida: sobre um card da mesma cor, uma dica com o fundo do papel
-     depende só da sombra para existir, e no escuro a sombra não aparece. */
-  border: 1px solid var(--money-primary);
-  border-radius: 6px;
-  background: var(--money-primary);
-  color: var(--money-on-primary);
-  font-size: 12px;
-  line-height: 18px;
-  text-align: left;
-  white-space: normal;
-  opacity: 0;
-  visibility: hidden;
-}
-.money-tip:hover > [role='tooltip'],
-.money-tip:focus-within > [role='tooltip'] {
-  opacity: 1;
-  visibility: visible;
 }
 .money-tip[data-help='true'] {
   cursor: help;
@@ -686,6 +662,7 @@ body {
   background: var(--money-accent);
 }
 .money-segmented > button[aria-pressed='true'],
+.money-segmented > button[aria-selected='true'],
 .money-segmented > button[aria-expanded='true'] {
   background: var(--money-accent);
   color: var(--money-foreground);
@@ -727,8 +704,8 @@ body {
 .money-select {
   min-width: 160px;
   min-height: 36px;
-  padding: 6px 8px;
-  border: 1px solid var(--money-border);
+  padding: 8px 10px;
+  border: 1px solid var(--money-field-border);
   border-radius: 6px;
   background: var(--money-paper);
   color: var(--money-foreground);
@@ -791,4 +768,396 @@ body {
   align-items: center;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+/* ---------------------------------------------------------------------------
+   Superfícies migradas na issue 03 (detalhe de Mês, formulários e diálogos).
+   Valores em apps/meu-dinheiro-app/docs/orca-theme.md.
+   --------------------------------------------------------------------------- */
+
+/* Diálogos ---------------------------------------------------------------- */
+
+/*
+  `<dialog>` nativo: ele prende o foco, devolve-o ao gatilho e responde ao
+  Escape sem que nada disso precise ser reimplementado (§5.5). A contrapartida
+  é a camada de topo — conteúdo em portal no `body` fica **atrás** dele —, e é
+  por isso que a dica e o menu desta base sabem procurar o diálogo aberto antes
+  de escolher onde se desenhar.
+*/
+.money-dialog {
+  width: min(560px, calc(100vw - 48px));
+  max-width: none;
+  max-height: calc(100vh - 48px);
+  padding: 0;
+  border: 1px solid var(--money-border);
+  border-radius: 10px;
+  background: var(--money-paper);
+  color: var(--money-foreground);
+  font-family: var(--money-font);
+  font-size: 14px;
+  line-height: 20px;
+  font-variant-numeric: tabular-nums;
+  box-shadow: 0 12px 32px rgb(0 0 0 / 24%);
+  overflow: hidden;
+}
+/* Só o diálogo aberto é uma coluna. Declarar `display: flex` no elemento cru
+   atropelaria o `dialog:not([open]) { display: none }` do navegador, e todos os
+   diálogos da tela apareceriam de uma vez. */
+.money-dialog[open] {
+  display: flex;
+  flex-direction: column;
+}
+.money-dialog::backdrop {
+  background: rgb(0 0 0 / 50%);
+}
+.money-dialog :focus-visible {
+  outline: 2px solid var(--money-focus);
+  outline-offset: 2px;
+}
+.money-dialog form {
+  display: contents;
+}
+.money-dialog-header {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--money-border);
+}
+.money-dialog-header h2 {
+  margin: 0;
+  min-width: 0;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* O corpo é quem rola quando o formulário não cabe — o cabeçalho e o rodapé
+   ficam onde estão, que é o que mantém o botão de submissão alcançável. O
+   `display: contents` do formulário é o que deixa os três serem linhas desta
+   coluna mesmo morando dentro dele. */
+.money-dialog-body {
+  flex: 1;
+  min-height: 0;
+  padding: 20px;
+  overflow-y: auto;
+}
+.money-dialog-footer {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 20px;
+  border-top: 1px solid var(--money-border);
+}
+/* Confirmação não tem formulário nem X: as duas saídas são os botões do rodapé. */
+.money-dialog-message {
+  margin: 0;
+  color: var(--money-muted);
+}
+
+/* Campos de formulário ---------------------------------------------------- */
+
+.money-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.money-field > label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.money-field > label > span,
+.money-field > span {
+  font-weight: 500;
+}
+/* O grupo de controles do anexo ocupa a linha inteira do campo. */
+.money-field [role='group'] {
+  display: flex;
+  min-width: 0;
+}
+.money-input,
+.money-textarea {
+  width: 100%;
+  min-height: 36px;
+  padding: 8px 10px;
+  box-sizing: border-box;
+  border: 1px solid var(--money-field-border);
+  border-radius: 6px;
+  background: var(--money-paper);
+  color: var(--money-foreground);
+  font-family: var(--money-font);
+  font-size: 14px;
+  line-height: 20px;
+  font-variant-numeric: tabular-nums;
+}
+.money-textarea {
+  resize: vertical;
+}
+.money-select {
+  width: 100%;
+}
+.money-input[aria-invalid='true'],
+.money-textarea[aria-invalid='true'],
+.money-select[aria-invalid='true'] {
+  border-color: var(--money-danger);
+}
+/* Mensagem de campo: ela é conteúdo, nunca um cinza desabilitado (§1.4). */
+.money-field-note {
+  font-weight: 400;
+  color: var(--money-muted);
+}
+.money-field-note[data-invalid='true'] {
+  color: var(--money-danger);
+}
+.money-filters {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.money-filters .money-field {
+  width: 200px;
+}
+/* O campo de categoria cresce até caber o nome escolhido, o que na janela
+   mínima quebraria a barra em duas linhas; ali ele fica no orçamento de 150px. */
+.money-filters .money-field-narrow {
+  width: 150px;
+}
+@container content (min-width: 1000px) {
+  .money-filters .money-field-narrow {
+    width: 200px;
+  }
+}
+
+/* Menu de ações ----------------------------------------------------------- */
+
+/*
+  Em portal e com posição fixa: a faixa de rolagem da tabela recorta o que sai
+  dela, e o menu da última linha sairia.
+*/
+.money-menu {
+  position: fixed;
+  z-index: 40;
+  min-width: 184px;
+  padding: 4px;
+  border: 1px solid var(--money-border);
+  border-radius: 8px;
+  background: var(--money-paper);
+  box-shadow: 0 4px 16px rgb(0 0 0 / 18%);
+  font-family: var(--money-font);
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--money-foreground);
+}
+.money-menu > button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 36px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  font: inherit;
+  font-family: var(--money-font);
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.money-menu > button:hover {
+  background: var(--money-accent);
+}
+.money-menu > button[data-danger='true'] {
+  color: var(--money-danger);
+}
+.money-menu svg {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+}
+
+/* Abas -------------------------------------------------------------------- */
+
+.money-tablist {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: space-between;
+}
+.money-tablist .money-segmented {
+  min-width: 0;
+}
+/* A barra de filtros e a tabela são um bloco só dentro do painel da aba; o vão
+   de 24px do `.money-page` os leria como duas seções. */
+.money-tabpanel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Linha de item ----------------------------------------------------------- */
+
+.money-item-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.money-item-name {
+  font-weight: 600;
+}
+/*
+  Sem um teto a célula cresce com o texto, e um nome longo empurra a coluna de
+  ações para fora da faixa — a tabela passa a rolar na horizontal por causa de
+  uma linha. O nome inteiro continua no `title` e no leitor de tela.
+*/
+.money-truncate {
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.money-item-cell svg {
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+  color: var(--money-muted);
+}
+.money-category {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.money-category-dot {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--money-border);
+}
+.money-category span {
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.money-row-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+}
+.money-row-actions .money-button {
+  min-height: 32px;
+  padding: 6px 10px;
+}
+
+/* O anexo é um rótulo com cara de botão; o anel de foco precisa vir do input
+   escondido que ele veste, senão o teclado chega nele sem aparecer. */
+.money-button:has(input:focus-visible) {
+  outline: 2px solid var(--money-focus);
+  outline-offset: 2px;
+}
+.money-button[data-disabled='true'] {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* Detalhe e comprovante --------------------------------------------------- */
+
+.money-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.money-detail-field dt {
+  margin: 0 0 2px;
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--money-muted);
+}
+.money-detail-field dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.money-detail-note {
+  font-style: italic;
+}
+.money-dialog-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px;
+  border: 1px solid var(--money-border);
+  border-radius: 8px;
+  background: var(--money-accent);
+}
+.money-dialog-summary strong {
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+}
+.money-dialog-summary span {
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--money-muted);
+}
+.money-upload {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.money-upload .money-file-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--money-muted);
+}
+
+/* Dica em portal ---------------------------------------------------------- */
+
+/*
+  A dica desenhada sai do fluxo por completo: dentro da tabela, a caixa que rola
+  recortava a bolha da primeira e da última linha. Com posição fixa, ela é
+  medida contra a janela e não contra a caixa que a contém.
+*/
+.money-tip-bubble {
+  position: fixed;
+  z-index: 50;
+  width: max-content;
+  max-width: 260px;
+  padding: 8px 10px;
+  border: 1px solid var(--money-primary);
+  border-radius: 6px;
+  background: var(--money-primary);
+  color: var(--money-on-primary);
+  font-family: var(--money-font);
+  font-size: 12px;
+  line-height: 18px;
+  text-align: left;
+  white-space: normal;
+  pointer-events: none;
+}
+/* Fora da tela, mas no DOM: é o texto que o leitor anuncia por `aria-describedby`. */
+.money-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  clip-path: inset(50%);
+  overflow: hidden;
+  white-space: nowrap;
 }

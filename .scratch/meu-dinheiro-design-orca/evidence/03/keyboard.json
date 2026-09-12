@@ -1,0 +1,215 @@
+[
+  {
+    "ordem de tabulação a partir da lateral": [
+      {
+        "tag": "a",
+        "rotulo": "Visão Geral",
+        "tipo": null,
+        "dentroDoDialogo": false
+      },
+      {
+        "tag": "a",
+        "rotulo": "Histórico",
+        "tipo": null,
+        "dentroDoDialogo": false
+      },
+      {
+        "tag": "a",
+        "rotulo": "Configurações",
+        "tipo": null,
+        "dentroDoDialogo": false
+      },
+      {
+        "tag": "button",
+        "rotulo": "Tema claro. Ativar tema escuro",
+        "tipo": "button",
+        "dentroDoDialogo": false
+      },
+      {
+        "tag": "button",
+        "rotulo": "Recolher navegação",
+        "tipo": "button",
+        "dentroDoDialogo": false
+      },
+      {
+        "tag": "button",
+        "rotulo": "Voltar para a Visão Geral",
+        "tipo": "button",
+        "dentroDoDialogo": false
+      },
+      {
+        "tag": "button",
+        "rotulo": "Mês anterior",
+        "tipo": "button",
+        "dentroDoDialogo": false
+      },
+      {
+        "tag": "button",
+        "rotulo": "Mais ações do mês",
+        "tipo": "button",
+        "dentroDoDialogo": false
+      },
+      {
+        "tag": "button",
+        "rotulo": "Despesas (6/18)",
+        "tipo": "button",
+        "dentroDoDialogo": false
+      },
+      {
+        "tag": "button",
+        "rotulo": "Adicionar Despesa",
+        "tipo": "button",
+        "dentroDoDialogo": false
+      },
+      {
+        "tag": "input",
+        "rotulo": "",
+        "tipo": "search",
+        "dentroDoDialogo": false
+      },
+      {
+        "tag": "select",
+        "rotulo": "TodasPendentesPagasVencidas",
+        "tipo": null,
+        "dentroDoDialogo": false
+      },
+      {
+        "tag": "select",
+        "rotulo": "TodasAlimentaçãoAssinaturasEducaçãoImpos",
+        "tipo": null,
+        "dentroDoDialogo": false
+      },
+      {
+        "tag": "button",
+        "rotulo": "Despesa",
+        "tipo": "button",
+        "dentroDoDialogo": false
+      }
+    ]
+  },
+  {
+    "setas trocam de aba e o painel acompanha": {
+      "tabsBefore": [
+        ["Despesas (6/18)", "true", 0],
+        ["Entradas (4/14)", "false", -1]
+      ],
+      "tabsAfter": {
+        "abas": [
+          ["Despesas (6/18)", "false"],
+          ["Entradas (4/14)", "true"]
+        ],
+        "foco": "Entradas (4/14)",
+        "painel": true,
+        "colunas": ["Entrada", "Conta", "Previsto", "Status", "Valor", "Ações"]
+      }
+    }
+  },
+  {
+    "Enter na linha abre o detalhe, o foco fica preso e volta": {
+      "rowFocus": {
+        "tag": "tr",
+        "rotulo": "Aluguel — ver detalhes",
+        "tipo": "button",
+        "dentroDoDialogo": false
+      },
+      "detail": {
+        "titulo": "Aluguel",
+        "foco": {
+          "tag": "button",
+          "rotulo": "Abrir comprovante",
+          "tipo": "button",
+          "dentroDoDialogo": true
+        },
+        "campos": [
+          "Valor",
+          "Categoria",
+          "Vencimento",
+          "Status",
+          "Pago em",
+          "Conta",
+          "Comprovante",
+          "Observação"
+        ]
+      },
+      "trap": [
+        {
+          "tag": "button",
+          "rotulo": "Fechar",
+          "tipo": "button",
+          "dentroDoDialogo": true
+        },
+        {
+          "tag": "button",
+          "rotulo": "Fechar",
+          "tipo": "button",
+          "dentroDoDialogo": true
+        },
+        {
+          "tag": "button",
+          "rotulo": "Abrir comprovante",
+          "tipo": "button",
+          "dentroDoDialogo": true
+        },
+        {
+          "tag": "button",
+          "rotulo": "Fechar",
+          "tipo": "button",
+          "dentroDoDialogo": true
+        }
+      ],
+      "dialogoDepoisDoEscape": null,
+      "focoDevolvido": {
+        "tag": "tr",
+        "rotulo": "Aluguel — ver detalhes",
+        "tipo": "button",
+        "dentroDoDialogo": false
+      }
+    }
+  },
+  {
+    "menu de ações pelo teclado": {
+      "aoAbrir": {
+        "tag": "button",
+        "rotulo": "Ver detalhes",
+        "tipo": "button",
+        "dentroDoDialogo": false
+      },
+      "setaBaixo": {
+        "tag": "button",
+        "rotulo": "Editar",
+        "tipo": "button",
+        "dentroDoDialogo": false
+      },
+      "setaCima": {
+        "tag": "button",
+        "rotulo": "Ver detalhes",
+        "tipo": "button",
+        "dentroDoDialogo": false
+      },
+      "menuFechado": true,
+      "focoDevolvido": {
+        "tag": "button",
+        "rotulo": "Mais ações para Aluguel",
+        "tipo": "button",
+        "dentroDoDialogo": false
+      }
+    }
+  },
+  {
+    "a ação da linha não abre o detalhe junto": {
+      "dialogosAbertos": 1,
+      "titulo": "Desmarcar pagamento?"
+    }
+  },
+  {
+    "dica de linha desenhada fora da caixa que rola": {
+      "tip": "entrou",
+      "tipBox": {
+        "texto": "Possui observação",
+        "dentroDaJanela": true,
+        "recortadaPelaTabela": false,
+        "forcaDaTabela": true
+      }
+    }
+  }
+]

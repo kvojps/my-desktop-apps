@@ -1,0 +1,53 @@
+[
+  {
+    "sair do Mês pela lateral encerra o retorno": {
+      "antesDeAbrirOMes": {
+        "ano": "12 meses em 2025 · maior gasto em Sem categoria",
+        "aba": "Comparativo"
+      },
+      "noMes": {
+        "url": "#/months/6",
+        "voltar": "Voltar para o Histórico",
+        "lateral": "Histórico"
+      },
+      "naVisaoGeral": {
+        "url": "#/dashboard",
+        "lateral": "Visão Geral"
+      },
+      "aoChegarNoHistorico": {
+        "ano": "9 meses em 2026 · maior gasto em Sem categoria",
+        "aba": "Comparativo"
+      }
+    }
+  },
+  {
+    "voltar pelo botão continua restaurando o ano": {
+      "abriuDeNovo": "#/months/6",
+      "ano": "12 meses em 2025 · maior gasto em Sem categoria",
+      "aba": "Comparativo"
+    }
+  },
+  {
+    "diálogo de pagamento nomeado e anexo fora do rótulo": {
+      "nomeDoDialogo": "Pagar Despesa",
+      "rotuloDoGrupo": "Comprovante",
+      "rotulosAninhados": 0,
+      "notaDescreveOCampo": null,
+      "idsRepetidos": 0
+    }
+  },
+  {
+    "cada confirmação se anuncia com o próprio título": {
+      "nome": "Excluir despesa?",
+      "descricao": "Tem certeza que deseja excluir Despesa 1? Essa ação não pode ser desfeita.",
+      "dialogosNoDom": 9,
+      "idsRepetidos": 0
+    }
+  },
+  {
+    "a rolagem fecha o menu em portal": {
+      "menuAberto": true,
+      "depoisDeRolar": true
+    }
+  }
+]

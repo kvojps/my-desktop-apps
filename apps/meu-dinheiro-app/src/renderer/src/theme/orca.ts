@@ -73,10 +73,20 @@ export function getOrcaVariables(mode: PaletteMode): Record<string, string> {
     '--money-muted': light ? '#666666' : '#a1a1a1',
     '--money-accent': light ? '#f5f5f5' : '#262626',
     '--money-border': light ? '#e5e5e5' : '#272727',
+    // A borda do campo não é decorativa como a das superfícies: dentro de um
+    // diálogo o campo tem exatamente o fundo do papel, e ela é a única coisa
+    // que diz onde se digita. Por isso vale os 3:1 de objeto gráfico contra a
+    // pior superfície que ela encontra — 3,19:1 sobre o fundo da faixa de
+    // conteúdo no claro, 3,36:1 sobre o papel no escuro —, e não o cinza de
+    // contorno de card.
+    '--money-field-border': light ? '#8a8a8a' : '#6b6b6b',
     '--money-focus': light ? '#2771ca' : '#3987e5',
     '--money-primary': light ? '#0a0a0a' : '#fafafa',
     '--money-on-primary': light ? '#fafafa' : '#0a0a0a',
     '--money-danger': light ? '#b42318' : '#ff8a80',
+    // O rótulo sobre o botão destrutivo, declarado junto do preenchimento como
+    // todo par desta base (§1.8): 6,62:1 no claro e 7,98:1 no escuro.
+    '--money-on-danger': light ? '#ffffff' : 'rgba(0, 0, 0, 0.87)',
     // Par por modo do valor em bom estado. Não é o preenchimento verde do
     // ladrilho: aquele é marca, este é texto, e texto cobra 4,5:1 (§1.1).
     '--money-positive': light ? '#067306' : '#35c435',

@@ -1,8 +1,11 @@
-import { Box, Button, Chip, Typography } from '@mui/material';
+import { CheckCircle2, Clock } from 'lucide-react';
 import { Income } from '@shared/types/income';
+import { Button } from '@/components/Button';
 import { Modal } from '@/components/Modal';
+import { StatusChip } from '@/components/StatusChip';
 import { formatDateOnly, formatPaidDate } from '@/utils/date';
 import { formatCurrencyOrFallback } from '@/utils/format';
+import { DetailField } from './DetailField';
 
 interface IncomeDetailDialogProps {
   open: boolean;
@@ -16,66 +19,39 @@ export function IncomeDetailDialog({ open, income, onClose }: IncomeDetailDialog
       open={open}
       onClose={onClose}
       title={income?.name ?? 'Entrada'}
-      footer={
-        <>
-          <Button onClick={onClose}>Fechar</Button>
-        </>
-      }
+      footer={<Button onClick={onClose}>Fechar</Button>}
     >
       {income && (
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, py: 1 }}>
-          <Box>
-            <Typography variant="caption" color="text.secondary">
-              Valor
-            </Typography>
-            <Typography>{formatCurrencyOrFallback(income.amount)}</Typography>
-          </Box>
+        <dl className="money-detail">
+          <DetailField label="Valor">{formatCurrencyOrFallback(income.amount)}</DetailField>
           {income.expectedDate && (
-            <Box>
-              <Typography variant="caption" color="text.secondary">
-                Previsto
-              </Typography>
-              <Typography>{formatDateOnly(income.expectedDate)}</Typography>
-            </Box>
+            <DetailField label="Previsto">{formatDateOnly(income.expectedDate)}</DetailField>
           )}
-          <Box>
-            {/* `component="div"`: o Chip é inline-flex e colava no rótulo, que
-                por padrão é um span — nos outros campos o valor é um bloco. */}
-            <Typography variant="caption" color="text.secondary" component="div">
-              Status
-            </Typography>
-            <Chip
-              label={income.isReceived ? 'Recebida' : 'Pendente'}
-              color={income.isReceived ? 'success' : 'default'}
-              size="small"
-              sx={{ mt: 0.5 }}
-            />
-          </Box>
+          <DetailField label="Status">
+            {income.isReceived ? (
+              <StatusChip
+                label="Recebida"
+                color="success"
+                icon={<CheckCircle2 aria-hidden="true" />}
+              />
+            ) : (
+              <StatusChip label="Pendente" color="warning" icon={<Clock aria-hidden="true" />} />
+            )}
+          </DetailField>
           {income.receivedAt && (
-            <Box>
-              <Typography variant="caption" color="text.secondary">
-                Recebido em
-              </Typography>
-              <Typography>{formatPaidDate(income.receivedAt)}</Typography>
-            </Box>
+            <DetailField label="Recebido em">{formatPaidDate(income.receivedAt)}</DetailField>
           )}
           {income.bankAccountName && (
-            <Box>
-              <Typography variant="caption" color="text.secondary">
-                {income.isReceived ? 'Conta' : 'Conta prevista'}
-              </Typography>
-              <Typography>{income.bankAccountName}</Typography>
-            </Box>
+            <DetailField label={income.isReceived ? 'Conta' : 'Conta prevista'}>
+              {income.bankAccountName}
+            </DetailField>
           )}
           {income.notes && (
-            <Box>
-              <Typography variant="caption" color="text.secondary">
-                Observação
-              </Typography>
-              <Typography sx={{ fontStyle: 'italic' }}>"{income.notes}"</Typography>
-            </Box>
+            <DetailField label="Observação">
+              <span className="money-detail-note">&quot;{income.notes}&quot;</span>
+            </DetailField>
           )}
-        </Box>
+        </dl>
       )}
     </Modal>
   );

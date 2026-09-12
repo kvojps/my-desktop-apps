@@ -1,0 +1,140 @@
+[
+  {
+    "criar despesa, com recusa por nome vazio": {
+      "aoAbrir": {
+        "titulo": "Nova Despesa",
+        "campos": [
+          {
+            "rotulo": "Nome"
+          },
+          {
+            "rotulo": "Valor (R$)"
+          },
+          {
+            "rotulo": "Data de vencimento"
+          },
+          {
+            "rotulo": "Categoria"
+          }
+        ]
+      },
+      "semNome": {
+        "titulo": "Nova Despesa",
+        "campos": [
+          {
+            "rotulo": "Nome",
+            "nota": "Nome é obrigatório",
+            "recusado": "true",
+            "invalido": true
+          },
+          {
+            "rotulo": "Valor (R$)"
+          },
+          {
+            "rotulo": "Data de vencimento"
+          },
+          {
+            "rotulo": "Categoria"
+          }
+        ]
+      },
+      "gravada": {
+        "name": "Cursinho de inglês",
+        "amount": 349.9,
+        "is_paid": 0,
+        "paid_at": null,
+        "receipt": null,
+        "notes": null,
+        "bank_account_id": null
+      },
+      "dialogo": null
+    }
+  },
+  {
+    "editar para valor variável mantém a observação": {
+      "aoAbrir": {
+        "titulo": "Editar Despesa",
+        "campos": [
+          {
+            "rotulo": "Nome"
+          },
+          {
+            "rotulo": "Valor (R$)",
+            "nota": "Deixe em branco para valor variável.",
+            "recusado": "false"
+          },
+          {
+            "rotulo": "Data de vencimento"
+          },
+          {
+            "rotulo": "Categoria"
+          },
+          {
+            "rotulo": "Observação"
+          }
+        ]
+      },
+      "gravada": {
+        "name": "Cursinho de inglês",
+        "amount": 0,
+        "is_paid": 0,
+        "paid_at": null,
+        "receipt": null,
+        "notes": "Mensalidade muda todo mês",
+        "bank_account_id": null
+      },
+      "linha": "Cursinho de inglêsPossui observaçãoEducação25/09/2026Pendente—Pagar"
+    }
+  },
+  {
+    "anexar comprovante ao pagar": {
+      "upload": {
+        "arquivoNoBotao": "comprovante-de-teste.png",
+        "temRemover": true
+      },
+      "despesa": {
+        "name": "Cursinho de inglês",
+        "amount": 0,
+        "is_paid": 1,
+        "paid_at": "2026-09-12",
+        "receipt": "setembro_2026-cursinho_de_ingl_s-139.png",
+        "notes": "Mensalidade muda todo mês",
+        "bank_account_id": null
+      },
+      "arquivoNoDisco": true
+    }
+  },
+  {
+    "detalhe mostra comprovante, conta e observação": {
+      "titulo": "Cursinho de inglês",
+      "campos": [
+        ["Valor", "Valor não definido"],
+        ["Categoria", "Educação"],
+        ["Vencimento", "25/09/2026"],
+        ["Status", "Paga"],
+        ["Pago em", "12/09/2026"],
+        ["Comprovante", "Abrir comprovante"],
+        ["Observação", "\"Mensalidade muda todo mês\""]
+      ]
+    }
+  },
+  {
+    "excluir o Mês leva despesas e entradas e volta para a origem": {
+      "antesDoMes": {
+        "despesas": 18,
+        "entradas": 14
+      },
+      "menuDoMes": ["Excluir mês"],
+      "confirmacao": {
+        "titulo": "Excluir mês?",
+        "mensagem": "Tem certeza que deseja excluir Setembro 2026? Todas as despesas e entradas do mês serão removidas."
+      },
+      "depois": {
+        "despesas": 0,
+        "entradas": 0
+      },
+      "rota": "#/dashboard",
+      "tela": "Visão Geral"
+    }
+  }
+]

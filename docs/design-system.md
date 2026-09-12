@@ -35,7 +35,10 @@ identificação acessível do modo, sem exigir a duplicação da §4.1.
 A issue 01 implementou a lateral recolhível e os estados transversais, e a
 issue 02 migrou a Visão Geral com os componentes que ela compartilha —
 `PageHeader`, `StatCard`/`StatCardGrid`/`StatCardSkeleton`, `IconTile`,
-`DataTable`, `Pagination`, `StatusChip` e um `Tooltip` local. Esses componentes
+`DataTable`, `Pagination`, `StatusChip` e um `Tooltip` local. A issue 03 migrou
+o detalhe de Mês e, com ele, a camada de diálogos: `Modal`, `ConfirmDialog`,
+`ActionsMenu`, `CategoryTag`, `FileUploadButton`, `Tabs` e um conjunto de campos
+(`Field`/`FieldGroup`, `TextInput`, `TextArea`, `SelectInput`, `BankAccountField`). Esses componentes
 aparecem também no Histórico, no Mês e em Configurações, que continuam MUI no
 resto até suas issues. Neles, a §3.1 vale pelo comportamento e não pela
 biblioteca: `IconTile` continua quadrado, `StatusChip` continua carregando
@@ -46,6 +49,40 @@ zebra da §2 — a zebra depende do azul e da tinta do tema antigo, e a superfí
 neutra separa por borda. A fileira de indicadores passou a decidir colunas por
 largura de conteúdo (§2.2) em vez de breakpoint de janela, e a dica passou a
 aparecer no foco além do hover.
+
+Da issue 03 saem quatro decisões que valem enquanto a base migrada existir, e
+que estão medidas nos [tokens locais](../apps/meu-dinheiro-app/docs/orca-theme.md):
+
+- **`Modal` e `ConfirmDialog` são `<dialog>` nativos.** O foco preso, a
+  devolução ao gatilho e o Escape que a §5.5 exige passam a vir do navegador em
+  vez de serem reimplementados. Em troca, o diálogo aberto ocupa a camada de
+  topo: **camada flutuante em portal precisa procurar o diálogo antes do
+  `body`**, ou ela é desenhada atrás dele. É por isso que os dois `Select` do
+  MUI que ainda viviam dentro de um `Modal` em Configurações trocaram para o
+  seletor local antes da issue 05 — a lista deles não tinha como aparecer.
+- **Dica e menu de linha são desenhados em portal, com posição fixa.** Isto
+  encerra a pendência que a issue 02 deixou: a faixa de rolagem da tabela
+  recortava a bolha da primeira linha, e o `title` nativo que a substituía não
+  existia para o teclado. O texto da dica continua no DOM; quando ele já está
+  no nome acessível de quem ela descreve (o `description` do `StatusChip`), a
+  dica não o repete.
+- **Borda de campo não é borda decorativa.** A §1.2 dá uma borda só ao app, e
+  ela é ornamento — mas num diálogo o campo tem exatamente o fundo do papel, e
+  a borda é o único sinal de onde se digita. Ali ela cobra os 3:1 de objeto
+  gráfico, com um token próprio. Botão continua na borda decorativa: nele quem
+  identifica o controle é o rótulo. Nos apps MUI o `OutlinedInput` traz o seu
+  próprio contorno, e esta linha não os alcança.
+- **Seletor nativo não carrega a cor da categoria.** O filtro por categoria e o
+  formulário de despesa padrão mostravam o ponto colorido dentro da lista do
+  `Select` do MUI; num `<option>` nativo não há como desenhá-lo. A cor continua
+  onde ela identifica a categoria — na tabela e no detalhe —, e na lista quem
+  identifica é o nome. É perda de um segundo canal que nunca foi o único.
+- **Desfazer não é excluir.** A confirmação de desmarcar pagamento ou
+  recebimento deixou o âmbar e ficou com o botão primário neutro: o registro
+  continua lá, e pela §1.5 cor sinaliza condição. Vermelho fica com quem apaga,
+  e a confirmação declara a consequência que se aplica — desmarcar um pagamento
+  com comprovante avisa que ele será removido.
+
 Os valores concretos foram registrados nos
 [tokens locais](../apps/meu-dinheiro-app/docs/orca-theme.md) **antes da primeira
 alteração de UI**. As limitações de validação estão documentadas ali. Até sua migração, cada superfície segue a norma MUI vigente.

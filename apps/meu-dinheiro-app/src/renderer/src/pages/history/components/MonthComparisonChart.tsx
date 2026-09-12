@@ -87,28 +87,37 @@ export function MonthComparisonChart({ months, onSelectMonth }: MonthComparisonC
    * linha é o estado normal, não um aviso. É a decisão já tomada na coluna
    * "Realizado" da Visão Geral.
    */
-  function renderProjectedDot(props: {
-    cx?: number;
-    cy?: number;
-    payload?: { id: number; [BALANCE_LABELS.projected]: number };
-  }) {
-    const { cx, cy, payload } = props;
-    if (cx == null || cy == null || !payload) return <></>;
-    const projected = payload[BALANCE_LABELS.projected];
-    const color = projected < 0 ? theme.palette.error.main : theme.palette.primary.main;
-    return (
-      <circle
-        key={`projected-dot-${payload.id}`}
-        cx={cx}
-        cy={cy}
-        r={5}
-        fill={color}
-        stroke={theme.palette.background.paper}
-        strokeWidth={2}
-        cursor="pointer"
-        onClick={() => onSelectMonth(payload.id)}
-      />
-    );
+  /**
+   * O ponto é o que abre o Mês, e por isso o **mesmo** desenho serve ao ponto
+   * parado e ao ponto sob o cursor. Enquanto o ativo era o `{ r: 6 }` default
+   * do Recharts, ele cobria o ponto clicável no instante em que o ponteiro
+   * chegava: o clique acertava um círculo sem `onClick` e o Mês não abria — a
+   * única maneira de alcançar o gráfico é justamente com o cursor em cima.
+   */
+  function projectedDot(radius: number) {
+    return function renderProjectedDot(props: {
+      cx?: number;
+      cy?: number;
+      payload?: { id: number; [BALANCE_LABELS.projected]: number };
+    }) {
+      const { cx, cy, payload } = props;
+      if (cx == null || cy == null || !payload) return <></>;
+      const projected = payload[BALANCE_LABELS.projected];
+      const color = projected < 0 ? theme.palette.error.main : theme.palette.primary.main;
+      return (
+        <circle
+          key={`projected-dot-${payload.id}`}
+          cx={cx}
+          cy={cy}
+          r={radius}
+          fill={color}
+          stroke={theme.palette.background.paper}
+          strokeWidth={2}
+          cursor="pointer"
+          onClick={() => onSelectMonth(payload.id)}
+        />
+      );
+    };
   }
 
   return (
@@ -158,8 +167,8 @@ export function MonthComparisonChart({ months, onSelectMonth }: MonthComparisonC
           dataKey={BALANCE_LABELS.projected}
           stroke={theme.palette.primary.main}
           strokeWidth={2}
-          dot={renderProjectedDot}
-          activeDot={{ r: 6 }}
+          dot={projectedDot(5)}
+          activeDot={projectedDot(6)}
         />
       </ComposedChart>
     </ResponsiveContainer>

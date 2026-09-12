@@ -1,32 +1,21 @@
-import { CheckCircle, ScheduleOutlined, StickyNote2Outlined } from '@mui/icons-material';
-import { Box, Button, Stack, Tooltip, Typography } from '@mui/material';
+import { Clock, StickyNote } from 'lucide-react';
 import { Income } from '@shared/types/income';
 import { ActionsMenu } from '@/components/ActionsMenu';
+import { Button } from '@/components/Button';
 import type { Column } from '@/components/DataTable';
 import { StatusChip } from '@/components/StatusChip';
-import { formatDateOnly, formatPaidDate } from '@/utils/date';
+import { Tooltip } from '@/components/Tooltip';
+import { formatDateOnly } from '@/utils/date';
 import { formatCurrencyOrFallback } from '@/utils/format';
+import { SettledChip } from './SettledChip';
 
-/**
- * O status da entrada. Depois de recebida, a data que importa é a do
- * recebimento — ela vai no tooltip do chip, porque a coluna de data tem
- * cabeçalho fixo e não pode trocar de significado por linha.
- */
+/** O status da entrada, espelhando o da despesa sem o caso de vencida. */
 function IncomeStatus({ income }: { income: Income }) {
   if (!income.isReceived) {
-    return <StatusChip label="Pendente" color="warning" icon={<ScheduleOutlined />} />;
+    return <StatusChip label="Pendente" color="warning" icon={<Clock aria-hidden="true" />} />;
   }
 
-  const chip = <StatusChip label="Recebida" color="success" icon={<CheckCircle />} />;
-  if (!income.receivedAt) return chip;
-
-  return (
-    <Tooltip title={`Recebido em ${formatPaidDate(income.receivedAt)}`}>
-      <Box component="span" sx={{ display: 'inline-flex' }}>
-        {chip}
-      </Box>
-    </Tooltip>
-  );
+  return <SettledChip label="Recebida" verb="Recebido" date={income.receivedAt} />;
 }
 
 /** As colunas da aba de entradas, espelhando as de despesas. */
@@ -37,34 +26,29 @@ export function incomeColumns(): Column<Income>[] {
       label: 'Entrada',
       sortable: true,
       render: (income) => (
-        <Stack direction="row" spacing={0.5} alignItems="center" sx={{ minWidth: 0 }}>
-          <Typography variant="body2" noWrap title={income.name} sx={{ fontWeight: 600 }}>
+        <span className="money-item-cell">
+          <span className="money-item-name money-truncate" title={income.name}>
             {income.name}
-          </Typography>
+          </span>
           {income.notes && (
             <Tooltip title="Possui observação">
-              <StickyNote2Outlined
-                fontSize="small"
-                sx={{ color: 'text.secondary', flexShrink: 0 }}
-              />
+              <StickyNote aria-hidden="true" />
             </Tooltip>
           )}
-        </Stack>
+        </span>
       ),
     },
     {
       key: 'account',
       label: 'Conta',
-      render: (income) => (
-        <Typography
-          variant="body2"
-          color={income.bankAccountName ? 'text.primary' : 'text.secondary'}
-          noWrap
-          title={income.bankAccountName ?? undefined}
-        >
-          {income.bankAccountName ?? '—'}
-        </Typography>
-      ),
+      render: (income) =>
+        income.bankAccountName ? (
+          <span className="money-truncate" title={income.bankAccountName}>
+            {income.bankAccountName}
+          </span>
+        ) : (
+          <span className="money-muted-text">—</span>
+        ),
     },
     {
       key: 'expectedDate',
@@ -82,9 +66,7 @@ export function incomeColumns(): Column<Income>[] {
       label: 'Valor',
       sortable: true,
       render: (income) => (
-        <Box component="span" sx={{ fontWeight: 600 }}>
-          {formatCurrencyOrFallback(income.amount, '—')}
-        </Box>
+        <span className="money-amount">{formatCurrencyOrFallback(income.amount, '—')}</span>
       ),
     },
   ];
@@ -101,17 +83,16 @@ export interface IncomeActions {
 /** A ação principal da linha mais o menu de três pontos. */
 export function renderIncomeActions(income: Income, actions: IncomeActions) {
   return (
-    <Stack direction="row" spacing={0.5} alignItems="center" justifyContent="flex-end">
+    <span className="money-row-actions">
       {income.isReceived ? (
-        <Button size="small" onClick={() => actions.onUnreceive(income)}>
+        <Button onClick={() => actions.onUnreceive(income)} aria-label={`Desmarcar ${income.name}`}>
           Desmarcar
         </Button>
       ) : (
         <Button
-          size="small"
-          variant="contained"
-          color="success"
+          variant="primary"
           onClick={() => actions.onReceive(income)}
+          aria-label={`Receber ${income.name}`}
         >
           Receber
         </Button>
@@ -122,6 +103,6 @@ export function renderIncomeActions(income: Income, actions: IncomeActions) {
         onEdit={() => actions.onEdit(income)}
         onDelete={() => actions.onDelete(income)}
       />
-    </Stack>
+    </span>
   );
 }

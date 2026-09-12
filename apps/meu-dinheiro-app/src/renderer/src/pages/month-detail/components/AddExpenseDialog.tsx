@@ -1,6 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Button, MenuItem, TextField } from '@mui/material';
 import { Controller, useForm } from 'react-hook-form';
+import { Button } from '@/components/Button';
+import { Field, SelectInput, TextInput } from '@/components/Field';
 import { Modal } from '@/components/Modal';
 import { useCategories } from '@/hooks/categories/useCategories';
 import { ExpenseFormValues, expenseFormSchema } from '@/pages/month-detail/hooks/expenseSchema';
@@ -61,57 +62,48 @@ export function AddExpenseDialog({ open, onClose, onSubmit }: AddExpenseDialogPr
       footer={
         <>
           <Button onClick={handleClose}>Cancelar</Button>
-          <Button variant="contained" type="submit" disabled={isSubmitting}>
-            Adicionar
+          {/* Desligado enquanto a gravação corre: sem isto o Enter repetido
+              cria a mesma despesa duas vezes. */}
+          <Button variant="primary" type="submit" disabled={isSubmitting}>
+            {isSubmitting ? 'Adicionando...' : 'Adicionar'}
           </Button>
         </>
       }
     >
-      <TextField
-        autoFocus
-        label="Nome"
-        fullWidth
-        error={!!errors.name}
-        helperText={errors.name?.message}
-        sx={{ mt: 1, mb: 2 }}
-        {...register('name')}
-      />
-      {/* `type="number"` assume `step=1`: sem o step em centavos, um valor
-          quebrado vira stepMismatch e o <form> do Modal nem chega a submeter. */}
-      <TextField
-        label="Valor (R$)"
-        type="number"
-        fullWidth
-        error={!!errors.amount}
-        helperText={errors.amount?.message}
-        slotProps={{ htmlInput: { step: '0.01' } }}
-        sx={{ mb: 2 }}
-        {...register('amount')}
-      />
-      <TextField
-        label="Data de vencimento"
-        type="date"
-        fullWidth
-        InputLabelProps={{ shrink: true }}
-        sx={{ mb: 2 }}
-        {...register('dueDate')}
-      />
-      <Controller
-        name="categoryId"
-        control={control}
-        render={({ field }) => (
-          <TextField select label="Categoria" fullWidth {...field}>
-            <MenuItem value="">
-              <em>Sem categoria</em>
-            </MenuItem>
-            {categories.map((category) => (
-              <MenuItem key={category.id} value={String(category.id)}>
-                {category.name}
-              </MenuItem>
-            ))}
-          </TextField>
-        )}
-      />
+      <div className="money-form">
+        <Field label="Nome" note={errors.name?.message} invalid={!!errors.name}>
+          <TextInput aria-invalid={!!errors.name} {...register('name')} />
+        </Field>
+        {/* `type="number"` assume `step=1`: sem o step em centavos, um valor
+            quebrado vira stepMismatch e o <form> do Modal nem chega a submeter. */}
+        <Field label="Valor (R$)" note={errors.amount?.message} invalid={!!errors.amount}>
+          <TextInput
+            type="number"
+            step="0.01"
+            aria-invalid={!!errors.amount}
+            {...register('amount')}
+          />
+        </Field>
+        <Field label="Data de vencimento">
+          <TextInput type="date" {...register('dueDate')} />
+        </Field>
+        <Controller
+          name="categoryId"
+          control={control}
+          render={({ field }) => (
+            <Field label="Categoria">
+              <SelectInput {...field}>
+                <option value="">Sem categoria</option>
+                {categories.map((category) => (
+                  <option key={category.id} value={String(category.id)}>
+                    {category.name}
+                  </option>
+                ))}
+              </SelectInput>
+            </Field>
+          )}
+        />
+      </div>
     </Modal>
   );
 }

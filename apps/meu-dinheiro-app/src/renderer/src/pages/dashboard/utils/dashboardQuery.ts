@@ -1,5 +1,5 @@
 import type { Month } from '@shared/types/month';
-import type { DashboardQuery } from '@/contexts/NavigationContext';
+import type { DashboardQuery } from '@/contexts/pendingReturn';
 import { isInRange, totalPagesFor } from './monthRows';
 
 /**

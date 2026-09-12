@@ -1,41 +1,30 @@
 import {
-  Add,
-  ArrowBack,
-  ArrowBackIosNew,
-  ArrowForwardIos,
-  CalendarMonthOutlined,
-  PaymentsOutlined,
-  ReceiptLongOutlined,
-  SavingsOutlined,
-  SearchOffOutlined,
-  TrendingDownOutlined,
-  TrendingUpOutlined,
-} from '@mui/icons-material';
-import {
-  Box,
-  Button,
-  FormControl,
-  IconButton,
-  InputLabel,
-  MenuItem,
-  Select,
-  Stack,
-  Tab,
-  Tabs,
-  Tooltip,
-} from '@mui/material';
+  ArrowLeft,
+  CalendarDays,
+  ChevronLeft,
+  ChevronRight,
+  PiggyBank,
+  Plus,
+  Receipt,
+  SearchX,
+  TrendingDown,
+  TrendingUp,
+  Wallet,
+} from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Expense } from '@shared/types/expense';
 import { Income } from '@shared/types/income';
 import { ActionsMenu } from '@/components/ActionsMenu';
-import { CategoryTag } from '@/components/CategoryTag';
+import { Button } from '@/components/Button';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
+import { Field, SelectInput } from '@/components/Field';
 import { PageHeader } from '@/components/PageHeader';
 import { Skeleton } from '@/components/Skeleton';
 import { StatCard, StatCardGrid, StatCardSkeleton } from '@/components/StatCard';
+import { useNavigationMemory } from '@/contexts/NavigationContext';
 import { useBankAccounts } from '@/hooks/bank-accounts/useBankAccounts';
 import { useCategories } from '@/hooks/categories/useCategories';
 import { useMonth } from '@/hooks/months/useMonth';
@@ -45,8 +34,7 @@ import {
   pendingSubtitle,
 } from '@/hooks/months/useMonthBalance';
 import { useItemsFilter } from '@/hooks/useItemsFilter';
-import { ROUTES, monthDetailPath } from '@/routes';
-import { contentQuery } from '@/theme';
+import { monthDetailPath, originPath } from '@/routes';
 import { todayDateString } from '@/utils/date';
 import { formatCurrency } from '@/utils/format';
 import { useItemActions } from './hooks/useItemActions';
@@ -60,6 +48,7 @@ import { ItemActionDialogs } from './components/ItemActionDialogs';
 import { ItemsTab } from './components/ItemsTab';
 import { PayDialog } from './components/PayDialog';
 import { ReceiveDialog } from './components/ReceiveDialog';
+import { Tabs } from './components/Tabs';
 import {
   expenseColumns,
   isExpenseOverdue,
@@ -91,6 +80,7 @@ const NO_DATE = '9999-99-99';
 export function MonthDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { origin } = useNavigationMemory();
   const {
     month,
     loading,
@@ -119,6 +109,12 @@ export function MonthDetailPage() {
   const [deleteMonthOpen, setDeleteMonthOpen] = useState(false);
 
   const today = todayDateString();
+
+  // O Mês pertence à tela que o abriu: voltar é voltar para ela, com a consulta
+  // que ela tinha. Sem origem — uma rota aberta direto — o retorno é a Visão
+  // Geral, e andar de Mês em Mês não troca nem uma coisa nem outra.
+  const backPath = originPath(origin);
+  const backLabel = origin === 'history' ? 'Voltar para o Histórico' : 'Voltar para a Visão Geral';
 
   const expenseActions = useItemActions<Expense>({ remove: deleteExpense, undo: unpay });
   const incomeActions = useItemActions<Income>({ remove: deleteIncome, undo: unreceive });
@@ -162,7 +158,7 @@ export function MonthDetailPage() {
   async function handleDeleteMonth() {
     if (await deleteMonth()) {
       setDeleteMonthOpen(false);
-      navigate(ROUTES.DASHBOARD);
+      navigate(backPath);
     }
   }
 
@@ -171,17 +167,17 @@ export function MonthDetailPage() {
       /* Espelha o layout real: cabeçalho, os três indicadores, a fileira de
          abas, a barra de filtros e a tabela — para o conteúdo não saltar
          quando os dados chegam (§5.3). */
-      <Stack spacing={3}>
+      <div className="money-page">
         <Skeleton variant="text" width={240} height={48} />
         <StatCardGrid count={3}>
           {Array.from({ length: 3 }, (_, i) => (
             <StatCardSkeleton key={i} />
           ))}
         </StatCardGrid>
-        <Skeleton variant="rounded" height={56} />
         <Skeleton variant="rounded" height={40} />
+        <Skeleton variant="rounded" height={56} />
         <Skeleton variant="rounded" height={420} />
-      </Stack>
+      </div>
     );
   }
 
@@ -190,18 +186,18 @@ export function MonthDetailPage() {
   }
 
   if (notFound || !month) {
+    // Não é erro nem lista vazia: o Mês existia e não existe mais (§5.4). A
+    // saída é voltar — e o destino é a tela de onde ele foi aberto, que
+    // continua lá mesmo quando ele não está.
     return (
       <EmptyState
-        icon={<SearchOffOutlined sx={{ fontSize: 48 }} />}
+        icon={<SearchX size={48} aria-hidden="true" />}
         title="Mês não encontrado"
         description="O mês que você tentou abrir não existe mais."
         action={
-          <Button
-            variant="contained"
-            startIcon={<ArrowBack />}
-            onClick={() => navigate(ROUTES.DASHBOARD)}
-          >
-            Voltar para a Visão Geral
+          <Button variant="primary" onClick={() => navigate(backPath)}>
+            <ArrowLeft size={18} aria-hidden="true" />
+            {backLabel}
           </Button>
         }
       />
@@ -218,44 +214,45 @@ export function MonthDetailPage() {
   const editingIncome = incomeActions.editing;
 
   return (
-    <Stack spacing={3}>
+    <div className="money-page">
       <PageHeader
-        icon={<CalendarMonthOutlined />}
+        icon={<CalendarDays size={22} aria-hidden="true" />}
         title={month.label}
         subtitle={`${paidCount}/${month.expenses.length} despesas pagas · ${receivedCount}/${month.incomes.length} entradas recebidas`}
         actions={
-          <Stack direction="row" spacing={0.5} alignItems="center">
-            <Tooltip title="Voltar para a visão geral">
-              <IconButton onClick={() => navigate(ROUTES.DASHBOARD)}>
-                <ArrowBack />
-              </IconButton>
-            </Tooltip>
-            <Tooltip title="Mês anterior">
-              <span>
-                <IconButton
-                  disabled={!prevMonthId}
-                  onClick={() => prevMonthId && navigate(monthDetailPath(prevMonthId))}
-                >
-                  <ArrowBackIosNew fontSize="small" />
-                </IconButton>
-              </span>
-            </Tooltip>
-            <Tooltip title="Próximo mês">
-              <span>
-                <IconButton
-                  disabled={!nextMonthId}
-                  onClick={() => nextMonthId && navigate(monthDetailPath(nextMonthId))}
-                >
-                  <ArrowForwardIos fontSize="small" />
-                </IconButton>
-              </span>
-            </Tooltip>
+          <div className="money-row-actions">
+            <Button
+              variant="ghost"
+              aria-label={backLabel}
+              title={backLabel}
+              onClick={() => navigate(backPath)}
+            >
+              <ArrowLeft size={18} aria-hidden="true" />
+            </Button>
+            <Button
+              variant="ghost"
+              aria-label="Mês anterior"
+              title="Mês anterior"
+              disabled={!prevMonthId}
+              onClick={() => prevMonthId && navigate(monthDetailPath(prevMonthId))}
+            >
+              <ChevronLeft size={18} aria-hidden="true" />
+            </Button>
+            <Button
+              variant="ghost"
+              aria-label="Próximo mês"
+              title="Próximo mês"
+              disabled={!nextMonthId}
+              onClick={() => nextMonthId && navigate(monthDetailPath(nextMonthId))}
+            >
+              <ChevronRight size={18} aria-hidden="true" />
+            </Button>
             <ActionsMenu
               ariaLabel="Mais ações do mês"
               deleteLabel="Excluir mês"
               onDelete={() => setDeleteMonthOpen(true)}
             />
-          </Stack>
+          </div>
         }
       />
 
@@ -274,7 +271,7 @@ export function MonthDetailPage() {
           label={`${BALANCE_LABELS.realized} no mês`}
           value={formatCurrency(balance.realized)}
           sub={`${BALANCE_LABELS.projected}: ${formatCurrency(balance.projected)}`}
-          icon={SavingsOutlined}
+          icon={PiggyBank}
           accent="info"
           tone={balance.realized >= 0 ? 'positive' : 'alert'}
         />
@@ -287,7 +284,7 @@ export function MonthDetailPage() {
             'a receber',
             'tudo recebido',
           )}
-          icon={TrendingUpOutlined}
+          icon={TrendingUp}
           accent="success"
         />
         <StatCard
@@ -299,106 +296,100 @@ export function MonthDetailPage() {
             'a pagar',
             'tudo pago',
           )}
-          icon={TrendingDownOutlined}
+          icon={TrendingDown}
           accent="secondary"
         />
       </StatCardGrid>
 
-      {/* A ação mais frequente da tela fica aqui, ao lado das abas e sempre
-          visível — antes ela era um botão discreto no rodapé da lista. */}
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-        <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ flex: 1, minWidth: 0 }}>
-          <Tab value="expenses" label={`Despesas (${paidCount}/${month.expenses.length})`} />
-          <Tab value="incomes" label={`Entradas (${receivedCount}/${month.incomes.length})`} />
-        </Tabs>
-        <Button
-          variant="contained"
-          startIcon={<Add />}
-          onClick={tab === 'expenses' ? expenseActions.openAdd : incomeActions.openAdd}
-          sx={{ flexShrink: 0 }}
-        >
-          {tab === 'expenses' ? 'Adicionar Despesa' : 'Adicionar Entrada'}
-        </Button>
-      </Box>
-
-      {tab === 'expenses' ? (
-        <ItemsTab
-          filter={expenseFilter}
-          totalCount={month.expenses.length}
-          columns={expenseColumns(today)}
-          searchPlaceholder="Buscar despesa..."
-          emptyMessage="Nenhuma despesa cadastrada neste mês."
-          emptyIcon={<ReceiptLongOutlined sx={{ fontSize: 40 }} />}
-          noResultsMessage="Nenhuma despesa encontrada com esses filtros."
-          addLabel="Adicionar Despesa"
-          footerLabel="despesas"
-          statusOptions={EXPENSE_STATUS_OPTIONS}
-          extraFilter={
-            /* O campo cresce até caber o nome da categoria escolhida, o que na
-               janela mínima quebraria a barra de filtros em duas linhas. Ali ele
-               fica no orçamento de 150px e o nome reticencia (o `title` do
-               CategoryTag mostra o inteiro); com espaço de sobra, cresce à
-               vontade. */
-            <FormControl
-              size="small"
-              sx={{ minWidth: 150, maxWidth: 150, [contentQuery.wide]: { maxWidth: 'none' } }}
-            >
-              <InputLabel>Categoria</InputLabel>
-              <Select
-                value={expenseFilter.extra}
-                label="Categoria"
-                onChange={(e) => expenseFilter.setExtra(e.target.value)}
-              >
-                <MenuItem value="">Todas</MenuItem>
-                {categories.map((category) => (
-                  <MenuItem key={category.id} value={String(category.id)}>
-                    <CategoryTag name={category.name} color={category.color} />
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          }
-          getRowKey={(expense) => String(expense.id)}
-          getRowLabel={(expense) => `${expense.name} — ver detalhes`}
-          renderActions={(expense) =>
-            renderExpenseActions(expense, {
-              onPay: expenseActions.openSettle,
-              onUnpay: expenseActions.askUndo,
-              onViewDetail: expenseActions.openDetail,
-              onEdit: expenseActions.openEdit,
-              onDelete: expenseActions.askDelete,
-            })
-          }
-          onRowClick={expenseActions.openDetail}
-          onAdd={expenseActions.openAdd}
-        />
-      ) : (
-        <ItemsTab
-          filter={incomeFilter}
-          totalCount={month.incomes.length}
-          columns={incomeColumns()}
-          searchPlaceholder="Buscar entrada..."
-          emptyMessage="Nenhuma entrada cadastrada neste mês."
-          emptyIcon={<PaymentsOutlined sx={{ fontSize: 40 }} />}
-          noResultsMessage="Nenhuma entrada encontrada com esses filtros."
-          addLabel="Adicionar Entrada"
-          footerLabel="entradas"
-          statusOptions={INCOME_STATUS_OPTIONS}
-          getRowKey={(income) => String(income.id)}
-          getRowLabel={(income) => `${income.name} — ver detalhes`}
-          renderActions={(income) =>
-            renderIncomeActions(income, {
-              onReceive: incomeActions.openSettle,
-              onUnreceive: incomeActions.askUndo,
-              onViewDetail: incomeActions.openDetail,
-              onEdit: incomeActions.openEdit,
-              onDelete: incomeActions.askDelete,
-            })
-          }
-          onRowClick={incomeActions.openDetail}
-          onAdd={incomeActions.openAdd}
-        />
-      )}
+      {/* A ação mais frequente da tela fica ao lado das abas e sempre visível —
+          antes ela era um botão discreto no rodapé da lista. */}
+      <Tabs
+        label="Itens do mês"
+        value={tab}
+        onChange={setTab}
+        options={[
+          { value: 'expenses', label: `Despesas (${paidCount}/${month.expenses.length})` },
+          { value: 'incomes', label: `Entradas (${receivedCount}/${month.incomes.length})` },
+        ]}
+        actions={
+          <Button
+            variant="primary"
+            onClick={tab === 'expenses' ? expenseActions.openAdd : incomeActions.openAdd}
+          >
+            <Plus size={18} aria-hidden="true" />
+            {tab === 'expenses' ? 'Adicionar Despesa' : 'Adicionar Entrada'}
+          </Button>
+        }
+      >
+        {tab === 'expenses' ? (
+          <ItemsTab
+            filter={expenseFilter}
+            totalCount={month.expenses.length}
+            columns={expenseColumns(today)}
+            searchLabel="despesa"
+            emptyMessage="Nenhuma despesa cadastrada neste mês."
+            emptyIcon={<Receipt size={40} aria-hidden="true" />}
+            noResultsMessage="Nenhuma despesa encontrada com esses filtros."
+            addLabel="Adicionar Despesa"
+            footerLabel="despesas"
+            statusOptions={EXPENSE_STATUS_OPTIONS}
+            extraFilter={
+              <Field label="Categoria" narrow>
+                <SelectInput
+                  value={expenseFilter.extra}
+                  onChange={(event) => expenseFilter.setExtra(event.target.value)}
+                >
+                  <option value="">Todas</option>
+                  {categories.map((category) => (
+                    <option key={category.id} value={String(category.id)}>
+                      {category.name}
+                    </option>
+                  ))}
+                </SelectInput>
+              </Field>
+            }
+            getRowKey={(expense) => String(expense.id)}
+            getRowLabel={(expense) => `${expense.name} — ver detalhes`}
+            renderActions={(expense) =>
+              renderExpenseActions(expense, {
+                onPay: expenseActions.openSettle,
+                onUnpay: expenseActions.askUndo,
+                onViewDetail: expenseActions.openDetail,
+                onEdit: expenseActions.openEdit,
+                onDelete: expenseActions.askDelete,
+              })
+            }
+            onRowClick={expenseActions.openDetail}
+            onAdd={expenseActions.openAdd}
+          />
+        ) : (
+          <ItemsTab
+            filter={incomeFilter}
+            totalCount={month.incomes.length}
+            columns={incomeColumns()}
+            searchLabel="entrada"
+            emptyMessage="Nenhuma entrada cadastrada neste mês."
+            emptyIcon={<Wallet size={40} aria-hidden="true" />}
+            noResultsMessage="Nenhuma entrada encontrada com esses filtros."
+            addLabel="Adicionar Entrada"
+            footerLabel="entradas"
+            statusOptions={INCOME_STATUS_OPTIONS}
+            getRowKey={(income) => String(income.id)}
+            getRowLabel={(income) => `${income.name} — ver detalhes`}
+            renderActions={(income) =>
+              renderIncomeActions(income, {
+                onReceive: incomeActions.openSettle,
+                onUnreceive: incomeActions.askUndo,
+                onViewDetail: incomeActions.openDetail,
+                onEdit: incomeActions.openEdit,
+                onDelete: incomeActions.askDelete,
+              })
+            }
+            onRowClick={incomeActions.openDetail}
+            onAdd={incomeActions.openAdd}
+          />
+        )}
+      </Tabs>
 
       <PayDialog
         open={expenseActions.settleOpen}
@@ -406,10 +397,10 @@ export function MonthDetailPage() {
         bankAccounts={bankAccounts}
         onClose={expenseActions.closeSettle}
         onConfirm={async (file, notes, paidAt, bankAccountId) => {
-          if (!settlingExpense) return;
-          if (await pay(settlingExpense.id, file, notes, paidAt, bankAccountId)) {
-            expenseActions.closeSettle();
-          }
+          if (!settlingExpense) return false;
+          const saved = await pay(settlingExpense.id, file, notes, paidAt, bankAccountId);
+          if (saved) expenseActions.closeSettle();
+          return saved;
         }}
       />
 
@@ -435,7 +426,14 @@ export function MonthDetailPage() {
         onClose={expenseActions.closeDetail}
       />
 
-      <ItemActionDialogs actions={expenseActions} itemNoun="despesa" undoNoun="pagamento" />
+      <ItemActionDialogs
+        actions={expenseActions}
+        itemNoun="despesa"
+        undoNoun="pagamento"
+        undoConsequence={(expense) =>
+          expense.receipt ? 'O comprovante anexado será removido.' : null
+        }
+      />
 
       <ReceiveDialog
         open={incomeActions.settleOpen}
@@ -443,10 +441,10 @@ export function MonthDetailPage() {
         bankAccounts={bankAccounts}
         onClose={incomeActions.closeSettle}
         onConfirm={async (notes, receivedAt, bankAccountId) => {
-          if (!settlingIncome) return;
-          if (await receive(settlingIncome.id, notes, receivedAt, bankAccountId)) {
-            incomeActions.closeSettle();
-          }
+          if (!settlingIncome) return false;
+          const saved = await receive(settlingIncome.id, notes, receivedAt, bankAccountId);
+          if (saved) incomeActions.closeSettle();
+          return saved;
         }}
       />
 
@@ -482,7 +480,7 @@ export function MonthDetailPage() {
         message={
           <>
             Tem certeza que deseja excluir <strong>{month.label}</strong>? Todas as despesas e
-            pagamentos serão removidos.
+            entradas do mês serão removidas.
           </>
         }
         loadingLabel="Excluindo..."
@@ -490,6 +488,6 @@ export function MonthDetailPage() {
         onClose={() => setDeleteMonthOpen(false)}
         onConfirm={handleDeleteMonth}
       />
-    </Stack>
+    </div>
   );
 }

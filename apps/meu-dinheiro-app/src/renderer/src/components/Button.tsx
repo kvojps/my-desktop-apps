@@ -1,7 +1,13 @@
-import type { ButtonHTMLAttributes } from 'react';
+import type { ButtonHTMLAttributes, Ref } from 'react';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'ghost';
+  /**
+   * A ação destrutiva pinta o botão primário de `danger`. É condição, não
+   * identidade (§1.5): só quem apaga alguma coisa pede a cor.
+   */
+  'data-tone'?: 'danger' | 'neutral';
+  ref?: Ref<HTMLButtonElement>;
 }
 
 export function Button({

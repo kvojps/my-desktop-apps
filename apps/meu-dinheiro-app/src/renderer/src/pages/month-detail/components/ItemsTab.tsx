@@ -1,18 +1,10 @@
-import { FilterAltOffOutlined, Search } from '@mui/icons-material';
-import {
-  Button,
-  FormControl,
-  InputAdornment,
-  InputLabel,
-  MenuItem,
-  Select,
-  Stack,
-  TextField,
-} from '@mui/material';
+import { FilterX } from 'lucide-react';
 import { ReactNode } from 'react';
+import { Button } from '@/components/Button';
 import { DataTable } from '@/components/DataTable';
 import type { Column } from '@/components/DataTable';
 import { EmptyState } from '@/components/EmptyState';
+import { Field, SelectInput, TextInput } from '@/components/Field';
 import { ItemsFilter } from '@/hooks/useItemsFilter';
 
 interface Option<V extends string> {
@@ -25,7 +17,8 @@ interface ItemsTabProps<T, Status extends string, Sort extends string> {
   /** Quantos itens o mês tem antes de qualquer filtro. */
   totalCount: number;
   columns: Column<T>[];
-  searchPlaceholder: string;
+  /** Singular do que a busca procura, para o rótulo: "despesa", "entrada". */
+  searchLabel: string;
   /** Quando o mês não tem nenhum item. */
   emptyMessage: string;
   /** Ícone da aba, usado no estado vazio de mês sem itens. */
@@ -50,7 +43,7 @@ export function ItemsTab<T, Status extends string, Sort extends string>({
   filter,
   totalCount,
   columns,
-  searchPlaceholder,
+  searchLabel,
   emptyMessage,
   emptyIcon,
   noResultsMessage,
@@ -73,7 +66,7 @@ export function ItemsTab<T, Status extends string, Sort extends string>({
   // para quem tem doze e digitou errado.
   const empty = filter.isFiltered ? (
     <EmptyState
-      icon={<FilterAltOffOutlined sx={{ fontSize: 40 }} />}
+      icon={<FilterX size={40} aria-hidden="true" />}
       title={noResultsMessage}
       action={<Button onClick={filter.reset}>Limpar filtros</Button>}
     />
@@ -82,7 +75,7 @@ export function ItemsTab<T, Status extends string, Sort extends string>({
       icon={emptyIcon}
       title={emptyMessage}
       action={
-        <Button variant="contained" onClick={onAdd}>
+        <Button variant="primary" onClick={onAdd}>
           {addLabel}
         </Button>
       }
@@ -92,47 +85,38 @@ export function ItemsTab<T, Status extends string, Sort extends string>({
   return (
     <>
       {/* Controles, não conteúdo: a barra não tem superfície própria porque a
-          tabela logo abaixo já é um `Paper` com borda, e uma segunda caixa
-          encostada nela vira caixa dentro de caixa.
+          tabela logo abaixo já é um painel com borda, e uma segunda caixa
+          encostada nela vira caixa dentro de caixa (§4).
 
           A ordenação saiu daqui — ela agora é o cabeçalho da tabela, como na
-          Visão Geral —, e com ela saiu o alternador lista/grade. O que sobrou
-          são os três controles que de fato estreitam a lista, e eles cabem
-          numa linha com folga mesmo na janela mínima. */}
+          Visão Geral. O que sobrou são os três controles que de fato estreitam
+          a lista, e eles cabem numa linha com folga mesmo na janela mínima. */}
       {hasItems && (
-        <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap" useFlexGap>
-          <TextField
-            size="small"
-            placeholder={searchPlaceholder}
-            value={filter.search}
-            onChange={(e) => filter.setSearch(e.target.value)}
-            sx={{ width: 200 }}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Search fontSize="small" />
-                </InputAdornment>
-              ),
-            }}
-          />
+        <div className="money-filters">
+          <Field label={`Buscar ${searchLabel}`}>
+            <TextInput
+              type="search"
+              placeholder={`Nome da ${searchLabel}`}
+              value={filter.search}
+              onChange={(event) => filter.setSearch(event.target.value)}
+            />
+          </Field>
 
-          <FormControl size="small" sx={{ minWidth: 140 }}>
-            <InputLabel>Status</InputLabel>
-            <Select
+          <Field label="Status">
+            <SelectInput
               value={filter.status}
-              label="Status"
-              onChange={(e) => filter.setStatus(e.target.value as Status)}
+              onChange={(event) => filter.setStatus(event.target.value as Status)}
             >
               {statusOptions.map((option) => (
-                <MenuItem key={option.value} value={option.value}>
+                <option key={option.value} value={option.value}>
                   {option.label}
-                </MenuItem>
+                </option>
               ))}
-            </Select>
-          </FormControl>
+            </SelectInput>
+          </Field>
 
           {extraFilter}
-        </Stack>
+        </div>
       )}
 
       <DataTable

@@ -1,21 +1,30 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Box, Button, MenuItem, TextField, Typography } from '@mui/material';
+import { Paperclip } from 'lucide-react';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { BankAccount } from '@shared/types/bank-account';
 import { Expense } from '@shared/types/expense';
+import { BankAccountField } from '@/components/BankAccountField';
+import { Button } from '@/components/Button';
+import { Field, FieldGroup, TextArea, TextInput } from '@/components/Field';
 import { FileUploadButton } from '@/components/FileUploadButton';
 import { Modal } from '@/components/Modal';
 import { PayFormValues, payFormSchema } from '@/pages/month-detail/hooks/expenseSchema';
 import { formatDateOnly, todayDateString } from '@/utils/date';
-import { formatCurrency } from '@/utils/format';
+import { formatCurrencyOrFallback } from '@/utils/format';
 
 interface PayDialogProps {
   open: boolean;
   expense: Expense | null;
   bankAccounts: BankAccount[];
   onClose: () => void;
-  onConfirm: (file?: File, notes?: string, paidAt?: string, bankAccountId?: number) => void;
+  /** Devolve se o pagamento foi gravado: é o que decide limpar ou preservar. */
+  onConfirm: (
+    file?: File,
+    notes?: string,
+    paidAt?: string,
+    bankAccountId?: number,
+  ) => Promise<boolean>;
 }
 
 export function PayDialog({ open, expense, bankAccounts, onClose, onConfirm }: PayDialogProps) {
@@ -23,7 +32,13 @@ export function PayDialog({ open, expense, bankAccounts, onClose, onConfirm }: P
 
   const emptyValues: PayFormValues = { paidAt: todayDateString(), bankAccountId: '', notes: '' };
 
-  const { register, control, handleSubmit, reset } = useForm<PayFormValues>({
+  const {
+    register,
+    control,
+    handleSubmit,
+    reset,
+    formState: { isSubmitting },
+  } = useForm<PayFormValues>({
     resolver: zodResolver(payFormSchema),
     defaultValues: emptyValues,
   });
@@ -38,14 +53,18 @@ export function PayDialog({ open, expense, bankAccounts, onClose, onConfirm }: P
     onClose();
   }
 
-  const submit = handleSubmit((values) => {
-    onConfirm(
+  // O formulário só se limpa quando a operação foi gravada. Saldo insuficiente
+  // e comprovante acima do limite são recusas recuperáveis: quem as recebe
+  // corrige a conta ou troca o arquivo, e reencontrar o formulário em branco
+  // seria o app cobrando o preenchimento outra vez.
+  const submit = handleSubmit(async (values) => {
+    const saved = await onConfirm(
       file || undefined,
       values.notes || undefined,
       values.paidAt || undefined,
       values.bankAccountId ? Number(values.bankAccountId) : undefined,
     );
-    resetForm();
+    if (saved) resetForm();
   });
 
   if (!expense) return null;
@@ -58,67 +77,66 @@ export function PayDialog({ open, expense, bankAccounts, onClose, onConfirm }: P
       onSubmit={submit}
       footer={
         <>
-          <Button onClick={handleClose}>Cancelar</Button>
-          <Button variant="contained" color="success" type="submit">
-            Confirmar Pagamento
+          <Button onClick={handleClose} disabled={isSubmitting}>
+            Cancelar
+          </Button>
+          {/* Desligado enquanto a gravação corre: sem isto o segundo Enter
+              debitaria a conta duas vezes. */}
+          <Button variant="primary" type="submit" disabled={isSubmitting}>
+            {isSubmitting ? 'Confirmando...' : 'Confirmar Pagamento'}
           </Button>
         </>
       }
     >
-      <Typography variant="h6" gutterBottom>
-        {expense.name}
-      </Typography>
-      <Typography variant="body1" color="text.secondary" gutterBottom>
-        Valor: {formatCurrency(expense.amount)}
-      </Typography>
-      {expense.dueDate && (
-        <Typography variant="body2" color="text.secondary" gutterBottom>
-          Vencimento: {formatDateOnly(expense.dueDate)}
-        </Typography>
-      )}
+      <div className="money-form">
+        <div className="money-dialog-summary">
+          <strong>{expense.name}</strong>
+          <span>
+            Valor: {formatCurrencyOrFallback(expense.amount)}
+            {expense.dueDate && ` · Vencimento: ${formatDateOnly(expense.dueDate)}`}
+          </span>
+        </div>
 
-      <TextField
-        label="Data do pagamento"
-        type="date"
-        fullWidth
-        InputLabelProps={{ shrink: true }}
-        inputProps={{ max: todayDateString() }}
-        sx={{ mt: 2 }}
-        {...register('paidAt')}
-      />
+        {/* Hoje como padrão e como máximo: pagamento é registro do que já
+            aconteceu, e uma data futura descreveria o que ainda não foi feito. */}
+        <Field label="Data do pagamento">
+          <TextInput type="date" max={todayDateString()} {...register('paidAt')} />
+        </Field>
 
-      <Controller
-        name="bankAccountId"
-        control={control}
-        render={({ field }) => (
-          <TextField select label="Conta (opcional)" fullWidth sx={{ mt: 2 }} {...field}>
-            <MenuItem value="">
-              <em>Nenhuma</em>
-            </MenuItem>
-            {bankAccounts.map((account) => (
-              <MenuItem key={account.id} value={String(account.id)}>
-                {account.name} ({formatCurrency(account.balance)})
-              </MenuItem>
-            ))}
-          </TextField>
-        )}
-      />
-
-      <Box sx={{ mt: 3, mb: 2 }}>
-        <FileUploadButton
-          label={file ? file.name : 'Selecionar Comprovante'}
-          accept="image/*,application/pdf"
-          startIcon={<span>📎</span>}
-          onFileSelected={setFile}
+        <Controller
+          name="bankAccountId"
+          control={control}
+          render={({ field }) => <BankAccountField accounts={bankAccounts} {...field} />}
         />
-        {file && (
-          <Button size="small" color="error" onClick={() => setFile(null)} sx={{ ml: 1 }}>
-            Remover
-          </Button>
-        )}
-      </Box>
 
-      <TextField label="Observações" fullWidth multiline rows={3} {...register('notes')} />
+        {/* `FieldGroup`, e não `Field`: o anexo é um `<label>`, e um rótulo
+            dentro do outro faria o clique em "Comprovante" abrir o seletor de
+            arquivo. */}
+        <FieldGroup label="Comprovante" note="Imagem ou PDF, até 10 MB.">
+          <span className="money-upload">
+            <FileUploadButton
+              label={file ? 'Trocar comprovante' : 'Selecionar comprovante'}
+              accept="image/*,application/pdf"
+              icon={<Paperclip size={18} aria-hidden="true" />}
+              onFileSelected={setFile}
+            />
+            {file && (
+              <>
+                <span className="money-file-name" title={file.name}>
+                  {file.name}
+                </span>
+                <Button variant="ghost" onClick={() => setFile(null)}>
+                  Remover
+                </Button>
+              </>
+            )}
+          </span>
+        </FieldGroup>
+
+        <Field label="Observações">
+          <TextArea {...register('notes')} />
+        </Field>
+      </div>
     </Modal>
   );
 }

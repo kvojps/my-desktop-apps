@@ -1,20 +1,23 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Button, MenuItem, TextField, Typography } from '@mui/material';
 import { useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { BankAccount } from '@shared/types/bank-account';
 import { Income } from '@shared/types/income';
+import { BankAccountField } from '@/components/BankAccountField';
+import { Button } from '@/components/Button';
+import { Field, TextArea, TextInput } from '@/components/Field';
 import { Modal } from '@/components/Modal';
 import { ReceiveFormValues, receiveFormSchema } from '@/pages/month-detail/hooks/incomeSchema';
 import { formatDateOnly, todayDateString } from '@/utils/date';
-import { formatCurrency } from '@/utils/format';
+import { formatCurrencyOrFallback } from '@/utils/format';
 
 interface ReceiveDialogProps {
   open: boolean;
   income: Income | null;
   bankAccounts: BankAccount[];
   onClose: () => void;
-  onConfirm: (notes?: string, receivedAt?: string, bankAccountId?: number) => void;
+  /** Devolve se o recebimento foi gravado: é o que decide limpar ou preservar. */
+  onConfirm: (notes?: string, receivedAt?: string, bankAccountId?: number) => Promise<boolean>;
 }
 
 export function ReceiveDialog({
@@ -24,11 +27,19 @@ export function ReceiveDialog({
   onClose,
   onConfirm,
 }: ReceiveDialogProps) {
-  const { register, control, handleSubmit, reset } = useForm<ReceiveFormValues>({
+  const {
+    register,
+    control,
+    handleSubmit,
+    reset,
+    formState: { isSubmitting },
+  } = useForm<ReceiveFormValues>({
     resolver: zodResolver(receiveFormSchema),
     defaultValues: { receivedAt: todayDateString(), bankAccountId: '', notes: '' },
   });
 
+  // A conta prevista da entrada chega sugerida: quem cadastrou "salário na
+  // conta corrente" não precisa dizer de novo onde ele caiu.
   useEffect(() => {
     if (open) {
       reset({
@@ -45,13 +56,17 @@ export function ReceiveDialog({
     onClose();
   }
 
-  const submit = handleSubmit((values) => {
-    onConfirm(
+  // Só limpa quando gravou — uma recusa recuperável devolve o formulário como
+  // ele estava, e não em branco.
+  const submit = handleSubmit(async (values) => {
+    const saved = await onConfirm(
       values.notes || undefined,
       values.receivedAt || undefined,
       values.bankAccountId ? Number(values.bankAccountId) : undefined,
     );
-    reset({ receivedAt: todayDateString(), bankAccountId: '', notes: '' });
+    if (saved) {
+      reset({ receivedAt: todayDateString(), bankAccountId: '', notes: '' });
+    }
   });
 
   if (!income) return null;
@@ -64,60 +79,38 @@ export function ReceiveDialog({
       onSubmit={submit}
       footer={
         <>
-          <Button onClick={handleClose}>Cancelar</Button>
-          <Button variant="contained" color="success" type="submit">
-            Confirmar Recebimento
+          <Button onClick={handleClose} disabled={isSubmitting}>
+            Cancelar
+          </Button>
+          <Button variant="primary" type="submit" disabled={isSubmitting}>
+            {isSubmitting ? 'Confirmando...' : 'Confirmar Recebimento'}
           </Button>
         </>
       }
     >
-      <Typography variant="h6" gutterBottom>
-        {income.name}
-      </Typography>
-      <Typography variant="body1" color="text.secondary" gutterBottom>
-        Valor: {formatCurrency(income.amount)}
-      </Typography>
-      {income.expectedDate && (
-        <Typography variant="body2" color="text.secondary" gutterBottom>
-          Previsto: {formatDateOnly(income.expectedDate)}
-        </Typography>
-      )}
+      <div className="money-form">
+        <div className="money-dialog-summary">
+          <strong>{income.name}</strong>
+          <span>
+            Valor: {formatCurrencyOrFallback(income.amount)}
+            {income.expectedDate && ` · Previsto: ${formatDateOnly(income.expectedDate)}`}
+          </span>
+        </div>
 
-      <TextField
-        label="Data do recebimento"
-        type="date"
-        fullWidth
-        InputLabelProps={{ shrink: true }}
-        inputProps={{ max: todayDateString() }}
-        sx={{ mt: 2 }}
-        {...register('receivedAt')}
-      />
+        <Field label="Data do recebimento">
+          <TextInput type="date" max={todayDateString()} {...register('receivedAt')} />
+        </Field>
 
-      <Controller
-        name="bankAccountId"
-        control={control}
-        render={({ field }) => (
-          <TextField select label="Conta (opcional)" fullWidth sx={{ mt: 2 }} {...field}>
-            <MenuItem value="">
-              <em>Nenhuma</em>
-            </MenuItem>
-            {bankAccounts.map((account) => (
-              <MenuItem key={account.id} value={String(account.id)}>
-                {account.name} ({formatCurrency(account.balance)})
-              </MenuItem>
-            ))}
-          </TextField>
-        )}
-      />
+        <Controller
+          name="bankAccountId"
+          control={control}
+          render={({ field }) => <BankAccountField accounts={bankAccounts} {...field} />}
+        />
 
-      <TextField
-        label="Observações"
-        fullWidth
-        multiline
-        rows={3}
-        sx={{ mt: 2 }}
-        {...register('notes')}
-      />
+        <Field label="Observações">
+          <TextArea {...register('notes')} />
+        </Field>
+      </div>
     </Modal>
   );
 }

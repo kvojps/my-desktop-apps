@@ -1,34 +1,44 @@
-import { Button } from '@mui/material';
-import { ReactNode } from 'react';
+import type { ReactNode } from 'react';
 
 interface FileUploadButtonProps {
   label: ReactNode;
   accept?: string;
   disabled?: boolean;
-  startIcon?: ReactNode;
+  icon?: ReactNode;
   onFileSelected: (file: File) => void;
 }
 
+/**
+ * Anexo: um `<label>` com a cara de botão em volta de um `input[type=file]`.
+ *
+ * O input continua no DOM e alcançável pelo teclado — escondê-lo com `hidden`
+ * o tiraria da ordem de tabulação, e o botão deixaria de existir para quem não
+ * usa ponteiro. Ele fica visualmente oculto, e o rótulo o veste.
+ */
 export function FileUploadButton({
   label,
   accept,
   disabled,
-  startIcon,
+  icon,
   onFileSelected,
 }: FileUploadButtonProps) {
   return (
-    <Button variant="outlined" component="label" disabled={disabled} startIcon={startIcon}>
+    <label className="money-button money-button-secondary" data-disabled={!!disabled}>
+      {icon}
       {label}
       <input
         type="file"
-        hidden
+        className="money-visually-hidden"
         accept={accept}
-        onChange={(e) => {
-          const file = e.target.files?.[0];
+        disabled={disabled}
+        onChange={(event) => {
+          const file = event.target.files?.[0];
           if (file) onFileSelected(file);
-          e.target.value = '';
+          // Escolher o mesmo arquivo duas vezes seguidas não dispara `change`
+          // se o valor continuar lá.
+          event.target.value = '';
         }}
       />
-    </Button>
+    </label>
   );
 }

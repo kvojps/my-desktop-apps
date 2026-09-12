@@ -1,0 +1,21 @@
+[
+  {
+    "base de teste": {
+      "meses": 21,
+      "anos": [2025, 2026],
+      "despesas": 138,
+      "entradas": 74,
+      "categorias": 9,
+      "semCategoria": "uma por mês",
+      "contas": 2,
+      "mesCorrente": {
+        "label": "Setembro 2026",
+        "despesas": 18,
+        "entradas": 14,
+        "valorVariavel": 1,
+        "comComprovante": 1
+      }
+    },
+    "observacao": "perfil isolado, banco semeado antes de cada bateria"
+  }
+]

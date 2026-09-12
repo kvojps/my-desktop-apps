@@ -1,47 +1,29 @@
-import { Box, Stack, Typography } from '@mui/material';
-import type { SxProps, Theme } from '@mui/material';
-
 interface CategoryTagProps {
   name?: string | null;
   color?: string | null;
   /** Exibido quando a despesa não tem categoria. */
   fallback?: string;
-  sx?: SxProps<Theme>;
 }
 
 /**
- * Categoria como ponto colorido + texto normal. A cor saturada do app fica
- * reservada para status (paga / pendente / vencida), então a cor da categoria
- * nunca disputa significado com ela dentro do mesmo card.
+ * Categoria como ponto colorido + texto normal. A cor de estado do app fica
+ * reservada para paga / pendente / vencida, então a cor da categoria nunca
+ * disputa significado com ela dentro da mesma linha.
+ *
+ * O ponto é `aria-hidden` porque ele não nomeia nada — quem nomeia é o texto
+ * ao lado, e a cor é escolha do usuário, não um estado a anunciar.
  */
-export function CategoryTag({ name, color, fallback = '—', sx }: CategoryTagProps) {
-  if (!name) {
-    return <Typography variant="body2">{fallback}</Typography>;
-  }
+export function CategoryTag({ name, color, fallback = '—' }: CategoryTagProps) {
+  if (!name) return <span className="money-muted-text">{fallback}</span>;
 
   return (
-    // `minWidth: 0` nos dois níveis: sem isso o item flex se recusa a encolher
-    // abaixo do texto, o `noWrap` nunca chega a reticenciar e nomes longos
-    // ("Transporte e Combustível") vazam para fora do card, que os corta.
-    <Stack
-      direction="row"
-      spacing={0.75}
-      alignItems="center"
-      sx={[{ minWidth: 0 }, ...(Array.isArray(sx) ? sx : [sx])]}
-    >
-      <Box
-        aria-hidden
-        sx={{
-          width: 8,
-          height: 8,
-          borderRadius: '50%',
-          flexShrink: 0,
-          bgcolor: color ?? 'text.disabled',
-        }}
+    <span className="money-category">
+      <span
+        className="money-category-dot"
+        aria-hidden="true"
+        style={color ? { background: color } : undefined}
       />
-      <Typography variant="body2" noWrap title={name} sx={{ minWidth: 0 }}>
-        {name}
-      </Typography>
-    </Stack>
+      <span title={name}>{name}</span>
+    </span>
   );
 }

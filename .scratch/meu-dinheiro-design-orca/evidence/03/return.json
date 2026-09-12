@@ -1,0 +1,94 @@
+[
+  {
+    "volta da Visão Geral, inclusive depois de trocar de Mês": {
+      "beforeDashboard": {
+        "marcado": ["Tudo"],
+        "rodape": "Mostrando 13–21 de 21 meses",
+        "ordenacao": "Entradas",
+        "rolagem": 25,
+        "lateral": "Visão Geral"
+      },
+      "inMonth": {
+        "url": "#/months/9",
+        "titulo": "Setembro 2025",
+        "voltar": "Voltar para a Visão Geral",
+        "lateral": "Visão Geral"
+      },
+      "afterPrev": {
+        "url": "#/months/8",
+        "titulo": "Agosto 2025",
+        "voltar": "Voltar para a Visão Geral",
+        "lateral": "Visão Geral"
+      },
+      "afterReturn": {
+        "marcado": ["Tudo"],
+        "rodape": "Mostrando 13–21 de 21 meses",
+        "ordenacao": "Entradas",
+        "rolagem": 25,
+        "lateral": "Visão Geral"
+      }
+    }
+  },
+  {
+    "chegar pela lateral não é voltar": {
+      "marcado": ["Este ano"],
+      "rodape": "Mostrando 1–9 de 9 meses",
+      "ordenacao": "Mês",
+      "rolagem": 0,
+      "lateral": "Visão Geral"
+    }
+  },
+  {
+    "volta do Histórico com ano e aba": {
+      "historyDefault": {
+        "ano": "9 meses em 2026 · maior gasto em Sem categoria",
+        "aba": "Comparativo",
+        "lateral": "Histórico"
+      },
+      "onCategories": {
+        "ano": "12 meses em 2025 · maior gasto em Sem categoria",
+        "aba": "Categorias",
+        "lateral": "Histórico"
+      },
+      "beforeHistory": {
+        "ano": "12 meses em 2025 · maior gasto em Sem categoria",
+        "aba": "Comparativo",
+        "lateral": "Histórico"
+      },
+      "pontosClicaveis": 12,
+      "monthFromHistory": {
+        "url": "#/months/6",
+        "titulo": "Junho 2025",
+        "voltar": "Voltar para o Histórico",
+        "lateral": "Histórico"
+      },
+      "afterHistoryReturn": {
+        "ano": "12 meses em 2025 · maior gasto em Sem categoria",
+        "aba": "Comparativo",
+        "lateral": "Histórico"
+      }
+    }
+  },
+  {
+    "chegar ao Histórico pela lateral responde o ano padrão": {
+      "ano": "9 meses em 2026 · maior gasto em Sem categoria",
+      "aba": "Comparativo",
+      "lateral": "Histórico"
+    }
+  },
+  {
+    "sem origem conhecida e Mês inexistente": {
+      "noOrigin": {
+        "titulo": "Março 2025",
+        "voltar": "Voltar para a Visão Geral",
+        "lateral": "Visão Geral"
+      },
+      "missing": {
+        "titulo": "Mês não encontrado",
+        "saida": "Voltar para a Visão Geral",
+        "lateral": "Visão Geral"
+      },
+      "afterMissing": "#/dashboard"
+    }
+  }
+]

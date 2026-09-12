@@ -7,6 +7,12 @@ interface ItemActionDialogsProps<T extends { id: number; name: string }> {
   itemNoun: string;
   /** "pagamento" / "recebimento" */
   undoNoun: string;
+  /**
+   * O que desfazer leva junto, quando leva: o comprovante do pagamento é
+   * apagado com ele. A confirmação declara a consequência que se aplica
+   * àquele item, e `null` quando não há nenhuma.
+   */
+  undoConsequence?: (item: T) => string | null;
 }
 
 /** As duas confirmações que despesas e entradas compartilham: excluir e desmarcar. */
@@ -14,7 +20,10 @@ export function ItemActionDialogs<T extends { id: number; name: string }>({
   actions,
   itemNoun,
   undoNoun,
+  undoConsequence,
 }: ItemActionDialogsProps<T>) {
+  const consequence = actions.undoTarget && undoConsequence?.(actions.undoTarget);
+
   return (
     <>
       <ConfirmDialog
@@ -26,6 +35,7 @@ export function ItemActionDialogs<T extends { id: number; name: string }>({
             não pode ser desfeita.
           </>
         }
+        loadingLabel="Excluindo..."
         loading={actions.deleting}
         onClose={actions.cancelDelete}
         onConfirm={actions.confirmDelete}
@@ -37,11 +47,14 @@ export function ItemActionDialogs<T extends { id: number; name: string }>({
         message={
           <>
             Tem certeza que deseja desmarcar o {undoNoun} de{' '}
-            <strong>{actions.undoTarget?.name}</strong>?
+            <strong>{actions.undoTarget?.name}</strong>?{consequence ? ` ${consequence}` : ''}
           </>
         }
         confirmLabel="Desmarcar"
-        confirmColor="warning"
+        // Neutro, e não vermelho: desmarcar devolve o item ao estado anterior
+        // e o registro continua lá — a cor de alarme fica com quem apaga (§1.5).
+        confirmTone="neutral"
+        loadingLabel="Desmarcando..."
         loading={actions.undoing}
         onClose={actions.cancelUndo}
         onConfirm={actions.confirmUndo}

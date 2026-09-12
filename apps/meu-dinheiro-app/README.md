@@ -57,6 +57,16 @@ O cálculo aceita as duas formas de dado sem que a tela precise saber qual receb
 
 ### 1.5 Despesas e entradas do mês
 
+O mês pertence à tela que o abriu. **Voltar leva de volta a ela** — Visão Geral
+ou Histórico —, com o mesmo recorte, a mesma ordenação, a mesma página e a
+mesma posição de rolagem; a lateral destaca essa origem enquanto o mês está
+aberto, e as setas de mês anterior e próximo não a trocam. Se o recorte tiver
+encolhido enquanto você estava no mês, o que volta é a **pergunta**, não a
+resposta: a página que deixou de existir é ajustada, e um ano sem competência
+nenhuma cai no mais recente. Um mês aberto direto pela rota, sem origem
+conhecida, volta para a Visão Geral — e o mesmo vale para um mês que já não
+existe.
+
 A tela do mês tem duas abas — **Despesas** e **Entradas** —, cada uma mostrando quantas já foram quitadas (`5/12`). As duas funcionam igual: buscar por nome, filtrar por status, ordenar, paginar de 12 em 12. As despesas ganham um filtro a mais, por **categoria**.
 
 Cada despesa ou entrada tem um status, que é o que define a cor do chip e o ícone:

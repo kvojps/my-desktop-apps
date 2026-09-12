@@ -1,17 +1,11 @@
-import {
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-} from '@mui/material';
-import { ReactNode } from 'react';
+import { type ReactNode, useEffect, useId, useRef } from 'react';
+import { Button } from '@/components/Button';
 
 /**
- * `Dialog` cru de propósito, e não `Modal`: a §3 lista os dois como primitivas
- * separadas. Uma confirmação não quer o X de fechar nem os `dividers` do Modal —
- * ela tem duas saídas, e as duas são botões do rodapé.
+ * Confirmação destrutiva. É a exceção deliberada ao `Modal` (§3.1): ela não
+ * tem X de fechar nem formulário — tem duas saídas, as duas no rodapé — e
+ * precisa **bloquear o fechamento** enquanto a ação corre, inclusive o Escape
+ * e o clique fora.
  */
 interface ConfirmDialogProps {
   open: boolean;
@@ -19,7 +13,7 @@ interface ConfirmDialogProps {
   message: ReactNode;
   confirmLabel?: string;
   loadingLabel?: string;
-  confirmColor?: 'error' | 'warning' | 'primary';
+  confirmTone?: 'danger' | 'neutral';
   loading?: boolean;
   onClose: () => void;
   onConfirm: () => void;
@@ -31,25 +25,61 @@ export function ConfirmDialog({
   message,
   confirmLabel = 'Excluir',
   loadingLabel,
-  confirmColor = 'error',
+  confirmTone = 'danger',
   loading = false,
   onClose,
   onConfirm,
 }: ConfirmDialogProps) {
+  const dialog = useRef<HTMLDialogElement>(null);
+  const cancel = useRef<HTMLButtonElement>(null);
+  // Ids por instância: a tela do Mês monta cinco confirmações ao mesmo tempo, e
+  // com id literal o nome acessível de todas elas resolveria para a primeira do
+  // documento — qualquer confirmação se anunciaria como "Excluir mês".
+  const titleId = useId();
+  const messageId = useId();
+
+  useEffect(() => {
+    const element = dialog.current;
+    if (!element) return;
+
+    if (open && !element.open) {
+      element.showModal();
+      // Numa confirmação destrutiva o primeiro foco é a saída, não a ação.
+      cancel.current?.focus();
+    }
+    if (!open && element.open) element.close();
+  }, [open]);
+
   return (
-    <Dialog open={open} onClose={() => !loading && onClose()}>
-      <DialogTitle>{title}</DialogTitle>
-      <DialogContent>
-        <DialogContentText>{message}</DialogContentText>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose} disabled={loading}>
+    <dialog
+      ref={dialog}
+      className="money-dialog"
+      aria-labelledby={titleId}
+      aria-describedby={messageId}
+      onCancel={(event) => {
+        event.preventDefault();
+        if (!loading) onClose();
+      }}
+      onClick={(event) => {
+        if (!loading && event.target === event.currentTarget) onClose();
+      }}
+    >
+      <div className="money-dialog-header">
+        <h2 id={titleId}>{title}</h2>
+      </div>
+      <div className="money-dialog-body">
+        <p id={messageId} className="money-dialog-message">
+          {message}
+        </p>
+      </div>
+      <div className="money-dialog-footer">
+        <Button ref={cancel} onClick={onClose} disabled={loading}>
           Cancelar
         </Button>
-        <Button onClick={onConfirm} color={confirmColor} variant="contained" disabled={loading}>
+        <Button variant="primary" data-tone={confirmTone} onClick={onConfirm} disabled={loading}>
           {loading ? (loadingLabel ?? `${confirmLabel}...`) : confirmLabel}
         </Button>
-      </DialogActions>
-    </Dialog>
+      </div>
+    </dialog>
   );
 }

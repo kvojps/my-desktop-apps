@@ -1,0 +1,328 @@
+[
+  {
+    "desfazer pagamento apaga o comprovante e credita a conta": {
+      "antes": {
+        "contas": [
+          {
+            "name": "Conta Corrente",
+            "balance": 4200.5
+          },
+          {
+            "name": "Poupança",
+            "balance": 35
+          }
+        ]
+      },
+      "linhaFiltrada": {
+        "linhas": 1,
+        "rodape": "Mostrando 1–1 de 1 despesas",
+        "primeira": "AluguelPossui observaçãoPossui comprovanteMoradia01/09/2026Paga, pago em 02/09/2026R$ 120,00Desmarcar"
+      },
+      "confirmacao": {
+        "titulo": "Desmarcar pagamento?",
+        "mensagem": "Tem certeza que deseja desmarcar o pagamento de Aluguel? O comprovante anexado será removido.",
+        "campos": [],
+        "botoes": [
+          {
+            "rotulo": "Cancelar",
+            "desligado": false
+          },
+          {
+            "rotulo": "Desmarcar",
+            "desligado": false
+          }
+        ],
+        "focoDentro": true
+      },
+      "depois": {
+        "despesa": {
+          "name": "Aluguel",
+          "amount": 120,
+          "is_paid": 0,
+          "paid_at": null,
+          "receipt": null,
+          "notes": "Observação registrada no pagamento desta despesa.",
+          "bank_account_id": null
+        },
+        "contas": [
+          {
+            "name": "Conta Corrente",
+            "balance": 4320.5
+          },
+          {
+            "name": "Poupança",
+            "balance": 35
+          }
+        ]
+      },
+      "aviso": "Sucesso: Pagamento desmarcado",
+      "arquivoNoDisco": false
+    }
+  },
+  {
+    "saldo insuficiente recusa e preserva o que foi digitado": {
+      "dialogo": {
+        "titulo": "Pagar Despesa",
+        "campos": [
+          {
+            "rotulo": "Data do pagamento",
+            "valor": "2026-09-12",
+            "max": "2026-09-12"
+          },
+          {
+            "rotulo": "Conta (opcional)",
+            "valor": ""
+          },
+          {
+            "rotulo": "Comprovante",
+            "valor": ""
+          },
+          {
+            "rotulo": "Observações",
+            "valor": ""
+          }
+        ],
+        "botoes": [
+          {
+            "rotulo": "Cancelar",
+            "desligado": false
+          },
+          {
+            "rotulo": "Confirmar Pagamento",
+            "desligado": false
+          }
+        ],
+        "focoDentro": true
+      },
+      "aviso": "Erro: Saldo insuficiente na conta selecionada",
+      "depoisDaRecusa": {
+        "titulo": "Pagar Despesa",
+        "campos": [
+          {
+            "rotulo": "Data do pagamento",
+            "valor": "2026-09-12",
+            "max": "2026-09-12"
+          },
+          {
+            "rotulo": "Conta (opcional)",
+            "valor": "2"
+          },
+          {
+            "rotulo": "Comprovante",
+            "valor": ""
+          },
+          {
+            "rotulo": "Observações",
+            "valor": "Pago com o cartão do banco"
+          }
+        ],
+        "botoes": [
+          {
+            "rotulo": "Cancelar",
+            "desligado": false
+          },
+          {
+            "rotulo": "Confirmar Pagamento",
+            "desligado": false
+          }
+        ],
+        "focoDentro": false
+      },
+      "despesa": {
+        "name": "Manutenção",
+        "amount": 2048.5,
+        "is_paid": 0,
+        "paid_at": null,
+        "receipt": null,
+        "notes": null,
+        "bank_account_id": null
+      }
+    }
+  },
+  {
+    "pagamento debita a conta escolhida": {
+      "despesa": {
+        "name": "Manutenção",
+        "amount": 2048.5,
+        "is_paid": 1,
+        "paid_at": "2026-09-12",
+        "receipt": null,
+        "notes": "Pago com o cartão do banco",
+        "bank_account_id": 1
+      },
+      "contas": [
+        {
+          "name": "Conta Corrente",
+          "balance": 2272
+        },
+        {
+          "name": "Poupança",
+          "balance": 35
+        }
+      ],
+      "aviso": "Erro: Saldo insuficiente na conta selecionada",
+      "dialogoAberto": null,
+      "linha": "ManutençãoPossui observaçãoLazer02/09/2026Paga, pago em 12/09/2026R$ 2.048,50Desmarcar"
+    }
+  },
+  {
+    "dois cliques no confirmar pagam uma vez só": {
+      "antes": [
+        {
+          "name": "Conta Corrente",
+          "balance": 2272
+        },
+        {
+          "name": "Poupança",
+          "balance": 35
+        }
+      ],
+      "depois": [
+        {
+          "name": "Conta Corrente",
+          "balance": 1876.5
+        },
+        {
+          "name": "Poupança",
+          "balance": 35
+        }
+      ],
+      "despesa": {
+        "name": "Energia",
+        "amount": 395.5,
+        "is_paid": 1,
+        "paid_at": "2026-09-12",
+        "receipt": null,
+        "notes": null,
+        "bank_account_id": 1
+      },
+      "debitoEsperado": 395.5
+    }
+  },
+  {
+    "desfazer recebimento preserva a conta; receber sugere e credita": {
+      "confirmacao": {
+        "titulo": "Desmarcar recebimento?",
+        "mensagem": "Tem certeza que deseja desmarcar o recebimento de Salário?",
+        "campos": [],
+        "botoes": [
+          {
+            "rotulo": "Cancelar",
+            "desligado": false
+          },
+          {
+            "rotulo": "Desmarcar",
+            "desligado": false
+          }
+        ],
+        "focoDentro": true
+      },
+      "depoisDesfazer": {
+        "entrada": {
+          "name": "Salário",
+          "amount": 800,
+          "is_received": 0,
+          "received_at": null,
+          "notes": null,
+          "bank_account_id": 1
+        },
+        "contas": [
+          {
+            "name": "Conta Corrente",
+            "balance": 1076.5
+          },
+          {
+            "name": "Poupança",
+            "balance": 35
+          }
+        ]
+      },
+      "dialogoDeRecebimento": {
+        "titulo": "Receber Entrada",
+        "campos": [
+          {
+            "rotulo": "Data do recebimento",
+            "valor": "2026-09-12",
+            "max": "2026-09-12"
+          },
+          {
+            "rotulo": "Conta (opcional)",
+            "valor": "1"
+          },
+          {
+            "rotulo": "Observações",
+            "valor": ""
+          }
+        ],
+        "botoes": [
+          {
+            "rotulo": "Cancelar",
+            "desligado": false
+          },
+          {
+            "rotulo": "Confirmar Recebimento",
+            "desligado": false
+          }
+        ],
+        "focoDentro": true
+      },
+      "entrada": {
+        "name": "Salário",
+        "amount": 800,
+        "is_received": 1,
+        "received_at": "2026-09-12",
+        "notes": null,
+        "bank_account_id": 1
+      },
+      "contas": [
+        {
+          "name": "Conta Corrente",
+          "balance": 1876.5
+        },
+        {
+          "name": "Poupança",
+          "balance": 35
+        }
+      ],
+      "aviso": "Sucesso: Despesa marcada como paga!",
+      "linha": "SalárioConta Corrente01/09/2026Recebida, recebido em 12/09/2026R$ 800,00Desmarcar"
+    }
+  },
+  {
+    "excluir despesa pelo menu de ações": {
+      "antes": {
+        "linhas": 1,
+        "rodape": "Mostrando 1–1 de 1 despesas",
+        "primeira": "DoaçãoImpostos06/09/2026VencidaR$ 2.324,00Pagar"
+      },
+      "menu": {
+        "itens": ["Ver detalhes", "Editar", "Excluir"],
+        "foco": "Ver detalhes",
+        "dentroDaTabela": false
+      },
+      "confirmacao": {
+        "titulo": "Excluir despesa?",
+        "mensagem": "Tem certeza que deseja excluir Doação? Essa ação não pode ser desfeita.",
+        "campos": [],
+        "botoes": [
+          {
+            "rotulo": "Cancelar",
+            "desligado": false
+          },
+          {
+            "rotulo": "Excluir",
+            "desligado": false
+          }
+        ],
+        "focoDentro": true
+      },
+      "restamNoMes": 17,
+      "depois": {
+        "linhas": 1,
+        "rodape": "Mostrando 0 de 0 despesas",
+        "primeira": "Nenhuma despesa encontrada com esses filtros.Limpar filtros"
+      },
+      "aviso": "Sucesso: Recebimento desmarcado"
+    }
+  }
+]

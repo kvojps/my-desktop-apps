@@ -1,7 +1,8 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Button, MenuItem, TextField } from '@mui/material';
 import { Controller, useForm } from 'react-hook-form';
 import { Expense } from '@shared/types/expense';
+import { Button } from '@/components/Button';
+import { Field, SelectInput, TextArea, TextInput } from '@/components/Field';
 import { Modal } from '@/components/Modal';
 import { useCategories } from '@/hooks/categories/useCategories';
 import { ExpenseFormValues, expenseFormSchema } from '@/pages/month-detail/hooks/expenseSchema';
@@ -57,58 +58,53 @@ export function EditExpenseDialog({ open, expense, onClose, onSubmit }: EditExpe
       footer={
         <>
           <Button onClick={onClose}>Cancelar</Button>
-          <Button variant="contained" type="submit" disabled={isSubmitting}>
-            Salvar
+          <Button variant="primary" type="submit" disabled={isSubmitting}>
+            {isSubmitting ? 'Salvando...' : 'Salvar'}
           </Button>
         </>
       }
     >
-      <TextField
-        autoFocus
-        label="Nome"
-        fullWidth
-        error={!!errors.name}
-        helperText={errors.name?.message}
-        sx={{ mt: 1, mb: 2 }}
-        {...register('name')}
-      />
-      {/* `type="number"` assume `step=1`: sem o step em centavos, um valor
-          quebrado vira stepMismatch e o <form> do Modal nem chega a submeter. */}
-      <TextField
-        label="Valor (R$)"
-        type="number"
-        fullWidth
-        error={!!errors.amount}
-        helperText={errors.amount?.message ?? 'Deixe em branco para valor variável.'}
-        slotProps={{ htmlInput: { step: '0.01' } }}
-        sx={{ mb: 2 }}
-        {...register('amount')}
-      />
-      <TextField
-        label="Data de vencimento"
-        type="date"
-        fullWidth
-        InputLabelProps={{ shrink: true }}
-        sx={{ mb: 2 }}
-        {...register('dueDate')}
-      />
-      <Controller
-        name="categoryId"
-        control={control}
-        render={({ field }) => (
-          <TextField select label="Categoria" fullWidth sx={{ mb: 2 }} {...field}>
-            <MenuItem value="">
-              <em>Sem categoria</em>
-            </MenuItem>
-            {categories.map((category) => (
-              <MenuItem key={category.id} value={String(category.id)}>
-                {category.name}
-              </MenuItem>
-            ))}
-          </TextField>
-        )}
-      />
-      <TextField label="Observação" fullWidth multiline rows={2} {...register('notes')} />
+      <div className="money-form">
+        <Field label="Nome" note={errors.name?.message} invalid={!!errors.name}>
+          <TextInput aria-invalid={!!errors.name} {...register('name')} />
+        </Field>
+        {/* `type="number"` assume `step=1`: sem o step em centavos, um valor
+            quebrado vira stepMismatch e o <form> do Modal nem chega a submeter. */}
+        <Field
+          label="Valor (R$)"
+          note={errors.amount?.message ?? 'Deixe em branco para valor variável.'}
+          invalid={!!errors.amount}
+        >
+          <TextInput
+            type="number"
+            step="0.01"
+            aria-invalid={!!errors.amount}
+            {...register('amount')}
+          />
+        </Field>
+        <Field label="Data de vencimento">
+          <TextInput type="date" {...register('dueDate')} />
+        </Field>
+        <Controller
+          name="categoryId"
+          control={control}
+          render={({ field }) => (
+            <Field label="Categoria">
+              <SelectInput {...field}>
+                <option value="">Sem categoria</option>
+                {categories.map((category) => (
+                  <option key={category.id} value={String(category.id)}>
+                    {category.name}
+                  </option>
+                ))}
+              </SelectInput>
+            </Field>
+          )}
+        />
+        <Field label="Observação">
+          <TextArea rows={2} {...register('notes')} />
+        </Field>
+      </div>
     </Modal>
   );
 }
