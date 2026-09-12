@@ -1,4 +1,4 @@
-import type { CategoryEntity } from '../domain/category';
+import type { Category } from '@shared/types/category';
 import type { Repositories } from '../infra/database';
 import { AppError } from '../utils/errors/AppError';
 
@@ -9,15 +9,15 @@ import { AppError } from '../utils/errors/AppError';
  */
 export function makeCategoriesService(repos: Repositories) {
   return {
-    list(): CategoryEntity[] {
+    list(): Category[] {
       return repos.categories.list();
     },
 
-    create(data: { name: string; color: string }): CategoryEntity {
+    create(data: { name: string; color: string }): Category {
       return repos.categories.create(data);
     },
 
-    update(id: number, data: { name?: string; color?: string }): CategoryEntity {
+    update(id: number, data: { name?: string; color?: string }): Category {
       const updated = repos.categories.update(id, data);
       if (!updated) throw new AppError(404, 'Categoria não encontrada');
       return updated;

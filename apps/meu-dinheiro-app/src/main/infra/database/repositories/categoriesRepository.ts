@@ -1,5 +1,5 @@
 import Database from 'better-sqlite3';
-import type { CategoryEntity, CategoryTotalEntity } from '../../../domain/category';
+import type { Category, CategoryTotal } from '@shared/types/category';
 
 /** Colunas cruas da tabela; o banco continua em snake_case. */
 export interface CategoryRow {
@@ -9,7 +9,7 @@ export interface CategoryRow {
   created_at: string;
 }
 
-export function rowToCategory(row: CategoryRow): CategoryEntity {
+export function rowToCategory(row: CategoryRow): Category {
   return {
     id: row.id,
     name: row.name,
@@ -26,7 +26,7 @@ interface CategoryTotalRow {
   count: number;
 }
 
-function rowToCategoryTotal(row: CategoryTotalRow): CategoryTotalEntity {
+function rowToCategoryTotal(row: CategoryTotalRow): CategoryTotal {
   return {
     categoryId: row.category_id,
     name: row.name,
@@ -41,20 +41,20 @@ function selectCategoryRow(db: Database.Database, id: number): CategoryRow | und
 }
 
 export function makeCategoriesRepository(db: Database.Database) {
-  function findById(id: number): CategoryEntity | null {
+  function findById(id: number): Category | null {
     const row = selectCategoryRow(db, id);
     return row ? rowToCategory(row) : null;
   }
 
   return {
-    list(): CategoryEntity[] {
+    list(): Category[] {
       const rows = db.prepare('SELECT * FROM categories ORDER BY name').all() as CategoryRow[];
       return rows.map(rowToCategory);
     },
 
     findById,
 
-    create(data: { name: string; color: string }): CategoryEntity {
+    create(data: { name: string; color: string }): Category {
       const result = db
         .prepare('INSERT INTO categories (name, color) VALUES (?, ?)')
         .run(data.name, data.color);
@@ -63,7 +63,7 @@ export function makeCategoriesRepository(db: Database.Database) {
       return created;
     },
 
-    update(id: number, data: { name?: string; color?: string }): CategoryEntity | null {
+    update(id: number, data: { name?: string; color?: string }): Category | null {
       const existing = selectCategoryRow(db, id);
       if (!existing) return null;
 
@@ -83,7 +83,7 @@ export function makeCategoriesRepository(db: Database.Database) {
      * dentro de `repos.transaction`; spec desta pasta, decisão 7). Devolve a
      * Categoria que existia, ou `null` — sem decidir 404.
      */
-    delete(id: number): CategoryEntity | null {
+    delete(id: number): Category | null {
       const existing = selectCategoryRow(db, id);
       if (!existing) return null;
 
@@ -92,7 +92,7 @@ export function makeCategoriesRepository(db: Database.Database) {
     },
 
     /** O SQL `GROUP BY categoria` do relatório de Histórico (`../spec.md`, decisão 9). */
-    totalsForYear(year: number): CategoryTotalEntity[] {
+    totalsForYear(year: number): CategoryTotal[] {
       const rows = db
         .prepare(
           `SELECT c.id as category_id, c.name as name, c.color as color,

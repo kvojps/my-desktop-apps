@@ -1,4 +1,4 @@
-import type { CategoryTotalEntity } from '../domain/category';
+import type { CategoryTotal } from '@shared/types/category';
 import type { Repositories } from '../infra/database';
 
 /**
@@ -7,7 +7,7 @@ import type { Repositories } from '../infra/database';
  */
 export function makeReportsService(repos: Repositories) {
   return {
-    categoryTotalsForYear(year: number): CategoryTotalEntity[] {
+    categoryTotalsForYear(year: number): CategoryTotal[] {
       return repos.categories.totalsForYear(year);
     },
   };
