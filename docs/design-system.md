@@ -11,11 +11,35 @@ Ainda falta a validação visual manual final no Electron; até ela ocorrer, est
 seção registra a direção implementada, não uma aprovação para migrar outros apps.
 
 Esta transição não cria um pacote compartilhado nem migra implicitamente os
-demais apps. Meu Dinheiro,
-Meu Negócio e Meu Móvel Planejado seguem as regras MUI e Material Icons deste
-documento até receberem uma migração planejada. Cada migração deve registrar seus
+demais apps. Meu Negócio e Meu Móvel Planejado seguem as regras MUI e Material
+Icons deste documento até receberem uma migração planejada. Meu Dinheiro tem
+uma migração própria aprovada, descrita abaixo. Cada migração deve registrar seus
 valores locais antes de mudar código; a independência de código entre apps
 permanece vigente.
+
+## Transição aprovada, ainda não implementada: Meu Dinheiro
+
+A [spec aprovada](../.scratch/meu-dinheiro-design-orca/spec.md) e o
+[ADR local](../apps/meu-dinheiro-app/docs/adr/0001-migracao-visual-orca.md)
+autorizam uma migração incremental do Meu Dinheiro para Tailwind sem Preflight,
+componentes locais, Geist e Lucide, com claro e escuro em cada etapa. A aprovação
+é específica deste app; não declara validado o piloto Git Dlog.
+
+Nas superfícies migradas, essa direção substitui as prescrições de MUI/Emotion,
+Inter, Material Icons, paleta, raios, espaçamentos e rail fixo das seções abaixo.
+A lateral terá nomes e ícones e será recolhível; Configurações terá navegação
+interna de seis seções, uma visível por vez, com seletor em espaço reduzido,
+substituindo os acordeões da §4.1. O tema ficará no rodapé da navegação, com
+identificação acessível do modo, sem exigir a duplicação da §4.1.
+
+Os valores concretos devem ser documentados em
+`apps/meu-dinheiro-app/docs/orca-theme.md` **antes da primeira alteração de UI**,
+conforme a issue 01. Até sua migração, cada superfície segue a norma MUI vigente.
+Coexistência é temporária e exige proteção contra interferência de estilos.
+Permanecem obrigatórias as regras de contraste medido nas superfícies reais,
+alinhamento de tabelas, segundo canal além da cor, teclado/foco, movimento reduzido,
+carregamento, erro/vazio e tema persistido no banco e aplicado à janela.
+Valores medidos no tema antigo não comprovam contraste no novo.
 
 Este documento descreve o padrão visual comum aos apps do monorepo. Ele existe porque os
 apps deliberadamente **não compartilham código** (ver README, §2): sem um pacote
