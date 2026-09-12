@@ -74,7 +74,12 @@ src/main/
   Entidade é anêmica — `type` mais funções puras, sem classe —, tem sufixo
   `Entity` e nome no singular. `domain/` não fica acima nem abaixo de ninguém:
   não é camada de fluxo, e por isso é a única pasta que qualquer camada pode
-  importar.
+  importar. Uma entidade só precisa de arquivo aqui quando carrega campo que
+  não deve atravessar o IPC (o caso de `stockApplied` em `OrderItemEntity`, no
+  Meu Negócio) ou função pura de domínio; puro contêiner de dados idêntico ao
+  contrato mora só em `shared/types/`, sem par em `domain/` nem mapper de
+  resposta. Ver
+  [ADR-0005](docs/adr/0005-colapso-domain-shared-quando-identico.md).
 - **`controllers/`** — a borda do IPC. `registerIpc.ts` compõe as camadas e
   registra os canais; `handle.ts` embrulha o `ipcMain.handle` e só aceita canal
   que esteja em `IPC_CHANNELS`. Nenhum handler usa `ipcMain.handle` direto, e é
@@ -278,13 +283,18 @@ há **duas travessias**, cada uma com o seu mapeamento explícito:
 - **`row → entity`, no repositório.** A função `rowToX` traduz snake_case para
   camelCase e o 0/1 do SQLite para booleano. Nenhum objeto que sai de um
   repositório carrega chave snake_case.
-- **`entity → response`, no controller.** A função `xToResponse` monta o tipo de
-  `shared/types/` que o renderer vai receber, e vive em `controllers/responses/`
-  — irmã de `schemas/`, uma pasta para cada sentido da fronteira. Nenhuma
-  entidade atravessa o IPC inteira só porque já estava pronta. Há um mapper por
-  nó que é **objeto**: união de literais atravessa por atribuição direta, porque
-  aí o `tsc` já quebra sozinho quando uma variante nova aparece de um lado só —
-  com objeto ele não quebra, e o mapper é a única trava.
+- **`entity → response`, no controller — só quando há campo a filtrar.** A
+  função `xToResponse` monta o tipo de `shared/types/` que o renderer vai
+  receber, e vive em `controllers/responses/` — irmã de `schemas/`, uma pasta
+  para cada sentido da fronteira. Nenhuma entidade atravessa o IPC inteira só
+  porque já estava pronta. Há um mapper por nó que é **objeto**: união de
+  literais atravessa por atribuição direta, porque aí o `tsc` já quebra
+  sozinho quando uma variante nova aparece de um lado só — com objeto ele não
+  quebra, e o mapper é a única trava. Essa travessia só existe quando `Entity`
+  e o tipo de `shared/types/` divergem; quando são hoje idênticos e não há
+  campo a esconder, a entidade não existe — o repositório devolve o tipo de
+  `shared/types/` direto, e o controller não mapeia nada
+  ([ADR-0005](docs/adr/0005-colapso-domain-shared-quando-identico.md)).
 
 O segundo mapeamento não existe por legibilidade — mapper trivial não se lê.
 Existe para que nada chegue ao renderer sem alguém ter decidido que chega. O
