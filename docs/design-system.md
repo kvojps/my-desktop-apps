@@ -32,7 +32,20 @@ interna de seis seções, uma visível por vez, com seletor em espaço reduzido,
 substituindo os acordeões da §4.1. O tema ficará no rodapé da navegação, com
 identificação acessível do modo, sem exigir a duplicação da §4.1.
 
-A issue 01 implementou a lateral recolhível e os estados transversais.
+A issue 01 implementou a lateral recolhível e os estados transversais, e a
+issue 02 migrou a Visão Geral com os componentes que ela compartilha —
+`PageHeader`, `StatCard`/`StatCardGrid`/`StatCardSkeleton`, `IconTile`,
+`DataTable`, `Pagination`, `StatusChip` e um `Tooltip` local. Esses componentes
+aparecem também no Histórico, no Mês e em Configurações, que continuam MUI no
+resto até suas issues. Neles, a §3.1 vale pelo comportamento e não pela
+biblioteca: `IconTile` continua quadrado, `StatusChip` continua carregando
+ícone, `DataTable` continua trazendo a própria superfície e a própria
+paginação, e a coluna de ações continua sendo do componente. Uma troca é
+deliberada: na base migrada a separação entre linhas é uma régua de 1px, não a
+zebra da §2 — a zebra depende do azul e da tinta do tema antigo, e a superfície
+neutra separa por borda. A fileira de indicadores passou a decidir colunas por
+largura de conteúdo (§2.2) em vez de breakpoint de janela, e a dica passou a
+aparecer no foco além do hover.
 Os valores concretos foram registrados nos
 [tokens locais](../apps/meu-dinheiro-app/docs/orca-theme.md) **antes da primeira
 alteração de UI**. As limitações de validação estão documentadas ali. Até sua migração, cada superfície segue a norma MUI vigente.
@@ -474,8 +487,11 @@ ela é do próprio `DataTable`, não configurável: o que a regra impõe, o comp
 impõe junto.
 
 Um medidor dentro de uma coluna vai por último, depois do seu rótulo, com largura
-fixa e o `Stack` em `alignItems="flex-start"` — assim todas as barras da coluna
-começam no mesmo ponto.
+fixa e a linha em `justify-content: flex-start` — é o eixo principal que faz
+todas as barras da coluna começarem no mesmo ponto, e não o cruzado, onde o
+medidor continua centrado com o rótulo. (Até 2026-09-12 esta linha pedia
+`alignItems="flex-start"`, que é o eixo errado: alinharia os topos e deixaria a
+barra de 4px colada no alto da célula. Nenhum app chegou a fazer isso.)
 
 Se o rótulo dividir a linha com o medidor, é o **rótulo** que precisa de largura
 reservada: à esquerda quem empurra a barra é ele, e `7/8` e `104/117` não têm a

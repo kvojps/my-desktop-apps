@@ -1,0 +1,164 @@
+[
+  {
+    "modo aplicado": "light"
+  },
+  {
+    "light 1280 aberta": {
+      "modo": "light",
+      "viewport": [
+        1280,
+        800
+      ],
+      "lateral": 224,
+      "recolhida": false,
+      "overflowPagina": false,
+      "overflowConteudo": false,
+      "tabelaRola": false,
+      "celulasCortadas": 0,
+      "cabecalhosCortados": 0,
+      "cards": 4,
+      "colunasDaFileira": 4,
+      "linhas": 10
+    }
+  },
+  {
+    "light 1280 recolhida": {
+      "modo": "light",
+      "viewport": [
+        1280,
+        800
+      ],
+      "lateral": 64,
+      "recolhida": true,
+      "overflowPagina": false,
+      "overflowConteudo": false,
+      "tabelaRola": false,
+      "celulasCortadas": 0,
+      "cabecalhosCortados": 0,
+      "cards": 4,
+      "colunasDaFileira": 4,
+      "linhas": 10
+    }
+  },
+  {
+    "light 960 aberta": {
+      "modo": "light",
+      "viewport": [
+        960,
+        640
+      ],
+      "lateral": 224,
+      "recolhida": false,
+      "overflowPagina": false,
+      "overflowConteudo": false,
+      "tabelaRola": false,
+      "celulasCortadas": 0,
+      "cabecalhosCortados": 0,
+      "cards": 4,
+      "colunasDaFileira": 2,
+      "linhas": 10
+    }
+  },
+  {
+    "light 960 recolhida": {
+      "modo": "light",
+      "viewport": [
+        960,
+        640
+      ],
+      "lateral": 64,
+      "recolhida": true,
+      "overflowPagina": false,
+      "overflowConteudo": false,
+      "tabelaRola": false,
+      "celulasCortadas": 0,
+      "cabecalhosCortados": 0,
+      "cards": 4,
+      "colunasDaFileira": 2,
+      "linhas": 10
+    }
+  },
+  "captura light-960-aberta-dashboard",
+  "captura light-1280-recolhida-dashboard",
+  {
+    "modo aplicado": "dark"
+  },
+  {
+    "dark 1280 aberta": {
+      "modo": "dark",
+      "viewport": [
+        1280,
+        800
+      ],
+      "lateral": 224,
+      "recolhida": false,
+      "overflowPagina": false,
+      "overflowConteudo": false,
+      "tabelaRola": false,
+      "celulasCortadas": 0,
+      "cabecalhosCortados": 0,
+      "cards": 4,
+      "colunasDaFileira": 4,
+      "linhas": 10
+    }
+  },
+  {
+    "dark 1280 recolhida": {
+      "modo": "dark",
+      "viewport": [
+        1280,
+        800
+      ],
+      "lateral": 64,
+      "recolhida": true,
+      "overflowPagina": false,
+      "overflowConteudo": false,
+      "tabelaRola": false,
+      "celulasCortadas": 0,
+      "cabecalhosCortados": 0,
+      "cards": 4,
+      "colunasDaFileira": 4,
+      "linhas": 10
+    }
+  },
+  {
+    "dark 960 aberta": {
+      "modo": "dark",
+      "viewport": [
+        960,
+        640
+      ],
+      "lateral": 224,
+      "recolhida": false,
+      "overflowPagina": false,
+      "overflowConteudo": false,
+      "tabelaRola": false,
+      "celulasCortadas": 0,
+      "cabecalhosCortados": 0,
+      "cards": 4,
+      "colunasDaFileira": 2,
+      "linhas": 10
+    }
+  },
+  {
+    "dark 960 recolhida": {
+      "modo": "dark",
+      "viewport": [
+        960,
+        640
+      ],
+      "lateral": 64,
+      "recolhida": true,
+      "overflowPagina": false,
+      "overflowConteudo": false,
+      "tabelaRola": false,
+      "celulasCortadas": 0,
+      "cabecalhosCortados": 0,
+      "cards": 4,
+      "colunasDaFileira": 2,
+      "linhas": 10
+    }
+  },
+  "captura dark-960-aberta-dashboard",
+  "captura dark-1280-recolhida-dashboard"
+]

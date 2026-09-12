@@ -11,6 +11,7 @@ import { type ReactNode, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import logo from '@/assets/logo.png';
 import { Button } from '@/components/Button';
+import { useNavigationMemory } from '@/contexts/NavigationContext';
 import { useThemeMode } from '@/hooks/useThemeMode';
 import { ROUTES } from '@/routes';
 
@@ -24,9 +25,16 @@ export function Layout({ children }: { children: ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
   const { mode, toggleMode } = useThemeMode();
+  const { attachScroll, origin } = useNavigationMemory();
   const themeLabel = `Tema ${mode === 'dark' ? 'escuro' : 'claro'}. Ativar tema ${mode === 'dark' ? 'claro' : 'escuro'}`;
-  // A restauração da origem do detalhe será migrada junto das consultas nas issues 02–04.
-  const activePath = location.pathname.startsWith('/months/') ? ROUTES.HISTORY : location.pathname;
+  // O detalhe de Mês pertence à origem da navegação, e é ela que a lateral
+  // marca. Sem origem conhecida — uma rota de Mês aberta direto —, a origem é
+  // a Visão Geral, como o retorno.
+  const activePath = location.pathname.startsWith('/months/')
+    ? origin === 'history'
+      ? ROUTES.HISTORY
+      : ROUTES.DASHBOARD
+    : location.pathname;
 
   return (
     <div className="money-layout ui:flex ui:h-screen">
@@ -81,7 +89,9 @@ export function Layout({ children }: { children: ReactNode }) {
           </Button>
         </div>
       </nav>
-      <main className="money-content ui:min-w-0 ui:flex-1 ui:overflow-y-auto">
+      {/* A faixa de conteúdo é quem rola, e por isso é ela que a sessão de
+          navegação precisa conhecer para devolver a posição ao voltar. */}
+      <main className="money-content ui:min-w-0 ui:flex-1 ui:overflow-y-auto" ref={attachScroll}>
         <div className="money-content-container">{children}</div>
       </main>
     </div>

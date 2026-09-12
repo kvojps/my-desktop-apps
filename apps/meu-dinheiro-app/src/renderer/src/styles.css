@@ -135,6 +135,7 @@ body {
 }
 .money-sidebar :focus-visible,
 .money-surface :focus-visible,
+.money-page :focus-visible,
 .money-button:focus-visible {
   outline: 2px solid var(--money-focus);
   outline-offset: 2px;
@@ -245,4 +246,549 @@ body {
 }
 .money-skeleton-text {
   min-height: 20px;
+}
+
+/* ---------------------------------------------------------------------------
+   Superfícies de conteúdo migradas na issue 02 (Visão Geral).
+   Valores em apps/meu-dinheiro-app/docs/orca-theme.md.
+   --------------------------------------------------------------------------- */
+
+.money-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  font-family: var(--money-font);
+  font-size: 14px;
+  line-height: 20px;
+  font-variant-numeric: tabular-nums;
+  color: var(--money-foreground);
+}
+
+/* O cabeçalho não tem margem própria: o vão é sempre do `.money-page` (§3.1). */
+.money-page-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.money-page-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.money-page-heading svg {
+  flex-shrink: 0;
+  color: var(--money-muted);
+}
+.money-page-header h1 {
+  margin: 0;
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.money-page-header p {
+  margin: 2px 0 0;
+  color: var(--money-muted);
+}
+
+.money-panel {
+  background: var(--money-paper);
+  border: 1px solid var(--money-border);
+  border-radius: 10px;
+  box-sizing: border-box;
+  font-family: var(--money-font);
+  font-size: 14px;
+  line-height: 20px;
+  font-variant-numeric: tabular-nums;
+  color: var(--money-foreground);
+}
+
+/* Ladrilho de identidade: quadrado, preenchido, rótulo medido por `labelOn`. */
+.money-tile {
+  flex-shrink: 0;
+  width: var(--money-tile-size);
+  height: var(--money-tile-size);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--money-accent);
+  color: var(--money-muted);
+}
+.money-tile svg {
+  width: 20px;
+  height: 20px;
+  font-size: 20px;
+}
+
+/* Indicadores ------------------------------------------------------------- */
+
+/*
+  Colunas por largura de conteúdo, não por janela (§2.2): com a lateral
+  expandida a janela mede ~224px a mais que a faixa. Os limiares saem de um
+  piso de 230px por card — abaixo disso o valor em reais e o ladrilho disputam
+  a mesma linha. Quatro cards pulam de 2 para 4 sem passar por 3: três colunas
+  deixariam o quarto card sozinho embaixo.
+*/
+.money-stat-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 1fr;
+}
+.money-stat-grid > * {
+  min-width: 0;
+}
+@container content (min-width: 480px) {
+  .money-stat-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@container content (min-width: 728px) {
+  .money-stat-grid[data-count='3'] {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+@container content (min-width: 976px) {
+  .money-stat-grid[data-count='4'] {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.money-stat {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.money-stat-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+.money-stat-heading {
+  min-width: 0;
+}
+.money-stat-label {
+  margin: 0;
+  color: var(--money-muted);
+}
+.money-stat-value {
+  margin: 2px 0 0;
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+/* Um mapeamento só de condição para cor, para o valor do card e para o da
+   célula: duas tabelas do mesmo par divergem na primeira mudança. */
+.money-tone[data-tone='positive'] {
+  color: var(--money-positive);
+}
+.money-tone[data-tone='alert'] {
+  color: var(--money-danger);
+}
+.money-amount {
+  font-weight: 600;
+}
+.money-stat-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--money-muted);
+}
+.money-trend {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-weight: 600;
+}
+.money-trend[data-good='true'] {
+  color: var(--money-positive);
+}
+.money-trend[data-good='false'] {
+  color: var(--money-danger);
+}
+.money-trend svg {
+  width: 14px;
+  height: 14px;
+}
+.money-stat-forecast {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--money-muted);
+}
+.money-stat-forecast svg {
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+}
+.money-stat-forecast span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.money-spark {
+  margin-top: 4px;
+}
+
+/* Dica ------------------------------------------------------------------- */
+
+/*
+  Aparece no ponteiro e no teclado: sem `:focus-within` ela seria uma
+  informação que só o mouse alcança. Fica acima do gatilho e centralizada,
+  com `translate` limitado pela borda do card — por isso `max-width` em vez
+  de largura fixa.
+*/
+.money-tip {
+  position: relative;
+  display: inline-flex;
+  max-width: 100%;
+}
+.money-tip > [role='tooltip'] {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  width: max-content;
+  max-width: 260px;
+  padding: 8px 10px;
+  /* Invertida: sobre um card da mesma cor, uma dica com o fundo do papel
+     depende só da sombra para existir, e no escuro a sombra não aparece. */
+  border: 1px solid var(--money-primary);
+  border-radius: 6px;
+  background: var(--money-primary);
+  color: var(--money-on-primary);
+  font-size: 12px;
+  line-height: 18px;
+  text-align: left;
+  white-space: normal;
+  opacity: 0;
+  visibility: hidden;
+}
+.money-tip:hover > [role='tooltip'],
+.money-tip:focus-within > [role='tooltip'] {
+  opacity: 1;
+  visibility: visible;
+}
+.money-tip[data-help='true'] {
+  cursor: help;
+  border-radius: 6px;
+}
+
+/* Tabela ------------------------------------------------------------------ */
+
+.money-table-panel {
+  overflow: hidden;
+}
+/* Sem superfície própria, mas com a mesma base de texto da tabela em painel. */
+.money-table-flush {
+  font-family: var(--money-font);
+  font-size: 14px;
+  line-height: 20px;
+  font-variant-numeric: tabular-nums;
+  color: var(--money-foreground);
+}
+.money-table-flush .money-table-footer {
+  padding-left: 0;
+  padding-right: 0;
+}
+.money-table-scroll {
+  overflow-x: auto;
+}
+.money-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+/* §2.1: cabeçalho, rótulo e valor à esquerda; só a coluna de ações vai à direita. */
+.money-table th,
+.money-table td {
+  text-align: left;
+  padding: 8px 12px;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--money-border);
+}
+.money-table thead th {
+  background: var(--money-accent);
+  color: var(--money-muted);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.money-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+.money-table .money-cell-actions {
+  text-align: right;
+  white-space: nowrap;
+}
+.money-table tbody tr[role='button'] {
+  cursor: pointer;
+}
+.money-table tbody tr:hover {
+  background: var(--money-accent);
+}
+.money-table tbody tr:focus-visible {
+  outline: 2px solid var(--money-focus);
+  outline-offset: -2px;
+}
+.money-table .money-cell-empty {
+  border-bottom: 0;
+  padding: 0;
+}
+.money-sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+.money-sort svg {
+  width: 14px;
+  height: 14px;
+  opacity: 0;
+}
+.money-sort:hover svg,
+.money-sort[data-active='true'] svg {
+  opacity: 1;
+}
+.money-sort[data-active='true'] {
+  color: var(--money-foreground);
+}
+.money-table-footer {
+  padding: 12px 16px;
+  border-top: 1px solid var(--money-border);
+  color: var(--money-muted);
+}
+.money-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--money-border);
+}
+.money-pagination .money-button {
+  min-width: 36px;
+  padding: 8px 10px;
+}
+.money-pagination .money-button[aria-current='page'] {
+  background: var(--money-primary);
+  color: var(--money-on-primary);
+  border-color: var(--money-primary);
+}
+.money-pagination-gap {
+  color: var(--money-muted);
+  padding: 0 4px;
+}
+
+/* Marcadores -------------------------------------------------------------- */
+
+.money-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.money-chip svg {
+  width: 14px;
+  height: 14px;
+  font-size: 14px;
+}
+.money-chip[data-variant='outline'] {
+  border-color: var(--money-border);
+  color: var(--money-muted);
+}
+
+.money-progress {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+}
+.money-progress-fraction {
+  flex-shrink: 0;
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--money-muted);
+}
+.money-progress-track {
+  flex-shrink: 0;
+  width: 110px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--money-accent);
+  overflow: hidden;
+}
+.money-progress-bar {
+  display: block;
+  height: 100%;
+  border-radius: 2px;
+  background: var(--money-foreground);
+}
+.money-progress-bar[data-complete='true'] {
+  background: var(--money-positive);
+}
+
+/* Controles compostos ----------------------------------------------------- */
+
+.money-segmented {
+  display: inline-flex;
+  border: 1px solid var(--money-border);
+  border-radius: 6px;
+  background: var(--money-paper);
+  overflow: hidden;
+}
+.money-segmented > button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 6px 12px;
+  border: 0;
+  border-left: 1px solid var(--money-border);
+  background: transparent;
+  font: inherit;
+  font-family: var(--money-font);
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--money-muted);
+  cursor: pointer;
+}
+.money-segmented > button:first-child {
+  border-left: 0;
+}
+.money-segmented > button:hover:not(:disabled) {
+  background: var(--money-accent);
+}
+.money-segmented > button[aria-pressed='true'],
+.money-segmented > button[aria-expanded='true'] {
+  background: var(--money-accent);
+  color: var(--money-foreground);
+  font-weight: 600;
+}
+.money-segmented > button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.money-segmented > button:focus-visible {
+  outline: 2px solid var(--money-focus);
+  outline-offset: -2px;
+}
+
+.money-anchored {
+  position: relative;
+  display: inline-flex;
+}
+.money-popover {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 30;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 16px;
+  border: 1px solid var(--money-border);
+  box-shadow: 0 4px 16px rgb(0 0 0 / 18%);
+}
+.money-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--money-muted);
+}
+.money-select {
+  min-width: 160px;
+  min-height: 36px;
+  padding: 6px 8px;
+  border: 1px solid var(--money-border);
+  border-radius: 6px;
+  background: var(--money-paper);
+  color: var(--money-foreground);
+  font-family: var(--money-font);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+/* Orientação inicial ------------------------------------------------------ */
+
+.money-guide {
+  max-width: 620px;
+  margin: 48px auto 0;
+  padding: 24px;
+}
+.money-guide h2 {
+  margin: 0 0 4px;
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 600;
+}
+.money-guide > p {
+  margin: 0;
+  color: var(--money-muted);
+}
+.money-guide ol {
+  list-style: none;
+  margin: 24px 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.money-guide li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.money-guide li strong {
+  display: block;
+  font-weight: 600;
+}
+.money-guide li p {
+  margin: 2px 0 0;
+  color: var(--money-muted);
+}
+.money-guide-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.money-muted-text {
+  color: var(--money-muted);
+}
+
+/* A coluna do Mês junta rótulo e marcadores; nomes longos quebram em vez de
+   empurrarem a coluna seguinte. */
+.money-month-cell {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
 }

@@ -1,15 +1,15 @@
 import {
-  AccountBalanceOutlined,
-  DashboardOutlined,
-  FilterAltOffOutlined,
-  ReportProblemOutlined,
-  SavingsOutlined,
-  TrendingDownOutlined,
-  TrendingUpOutlined,
-} from '@mui/icons-material';
-import { Box, Button, Chip, Stack, Tooltip } from '@mui/material';
-import { useMemo, useState } from 'react';
+  FilterX,
+  Landmark,
+  LayoutDashboard,
+  PiggyBank,
+  TrendingDown,
+  TrendingUp,
+  TriangleAlert,
+} from 'lucide-react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/Button';
 import { DataTable } from '@/components/DataTable';
 import type { Column } from '@/components/DataTable';
 import { EmptyState } from '@/components/EmptyState';
@@ -18,75 +18,57 @@ import { PageHeader } from '@/components/PageHeader';
 import { Skeleton } from '@/components/Skeleton';
 import { StatCard, StatCardGrid, StatCardSkeleton } from '@/components/StatCard';
 import { StatusChip } from '@/components/StatusChip';
+import { useNavigationMemory } from '@/contexts/NavigationContext';
 import { useBankAccounts } from '@/hooks/bank-accounts/useBankAccounts';
-import {
-  BALANCE_LABELS,
-  computeMonthBalance,
-  pendingSubtitle,
-  useMonthsBalance,
-} from '@/hooks/months/useMonthBalance';
+import { BALANCE_LABELS, pendingSubtitle, useMonthsBalance } from '@/hooks/months/useMonthBalance';
 import { useMonths } from '@/hooks/months/useMonths';
 import { ROUTES, monthDetailPath } from '@/routes';
 import { formatCurrency } from '@/utils/format';
+import { useMonthRows } from './hooks/useMonthRows';
 import { useYearForecast } from './hooks/useYearForecast';
 import { FirstRunGuide } from './components/FirstRunGuide';
 import { PaidProgress, paidFractionWidth } from './components/PaidProgress';
 import { PeriodRangeControl, resolvePresets } from './components/PeriodRangeControl';
-
-const PAGE_SIZE = 12;
-
-/** Uma linha da tabela de meses, já com os agregados achatados. */
-interface MonthRow {
-  id: number;
-  label: string;
-  /** "AAAA-MM": ordena cronologicamente, o que o rótulo em português não faz. */
-  sortKey: string;
-  isCurrent: boolean;
-  overdue: number;
-  overdueAmount: number;
-  totalIncome: number;
-  totalExpense: number;
-  realized: number;
-  paidCount: number;
-  expenseCount: number;
-}
-
-interface SortState {
-  key: string;
-  direction: 'asc' | 'desc';
-}
-
-function monthKey(year: number, month: number) {
-  return `${year}-${String(month).padStart(2, '0')}`;
-}
+import { restoreDashboardQuery } from './utils/dashboardQuery';
+import {
+  type MonthRow,
+  type SortState,
+  isInRange,
+  monthKey,
+  pageOf,
+  sortMonthRows,
+} from './utils/monthRows';
 
 function pluralMonths(count: number) {
   return `${count} ${count === 1 ? 'mês' : 'meses'}`;
 }
 
-/** Quanto da coluna "Pagas" já foi pago, de 0 a 1. Mês sem despesa fica por último. */
-function paidRatio(row: MonthRow) {
-  return row.expenseCount === 0 ? -1 : row.paidCount / row.expenseCount;
-}
-
-const COMPARATORS: Record<string, (a: MonthRow, b: MonthRow) => number> = {
-  label: (a, b) => a.sortKey.localeCompare(b.sortKey),
-  income: (a, b) => a.totalIncome - b.totalIncome,
-  expense: (a, b) => a.totalExpense - b.totalExpense,
-  realized: (a, b) => a.realized - b.realized,
-  paid: (a, b) => paidRatio(a) - paidRatio(b),
-};
-
 export function DashboardPage() {
-  // `null` é "ainda não escolheu", e não um intervalo vazio: é o que deixa o
-  // padrão ser derivado em vez de aplicado por efeito. Antes a tela renderizava
-  // "Tudo" por um quadro e só então saltava para "Este ano".
-  const [range, setRange] = useState<{ from: string; to: string } | null>(null);
-  const [sort, setSort] = useState<SortState>({ key: 'label', direction: 'desc' });
-  const [page, setPage] = useState(1);
   const navigate = useNavigate();
   const { months, loading, error, retry: handleRetry } = useMonths();
   const { bankAccounts, loading: accountsLoading } = useBankAccounts();
+  const { recallDashboard, rememberDashboard, restoreScroll, enterMonth } = useNavigationMemory();
+
+  // A consulta que a sessão guardou ao sair para um Mês, já confinada aos meses
+  // que existem agora. Lida uma vez: depois disso quem manda é o estado da tela.
+  const [restored] = useState(() => restoreDashboardQuery(recallDashboard(), months));
+
+  // `null` é "ainda não escolheu", e não um intervalo vazio: é o que deixa o
+  // padrão ser derivado em vez de aplicado por efeito. Antes a tela renderizava
+  // "Tudo" por um quadro e só então saltava para "Este ano".
+  const [range, setRange] = useState<{ from: string; to: string } | null>(
+    restored ? { from: restored.from, to: restored.to } : null,
+  );
+  const [sort, setSort] = useState<SortState>(
+    restored
+      ? { key: restored.sortKey, direction: restored.sortDirection }
+      : {
+          key: 'label',
+          direction: 'desc',
+        },
+  );
+  const [page, setPage] = useState(restored?.page ?? 1);
+
   const totalBankBalance = useMemo(
     () => bankAccounts.reduce((sum, a) => sum + a.balance, 0),
     [bankAccounts],
@@ -124,12 +106,10 @@ export function DashboardPage() {
     setPage(1);
   }
 
-  const filteredMonths = useMemo(() => {
-    return months.filter((m) => {
-      const key = monthKey(m.year, m.month);
-      return key >= fromValue && key <= toValue;
-    });
-  }, [months, fromValue, toValue]);
+  const filteredMonths = useMemo(
+    () => months.filter((month) => isInRange(month, fromValue, toValue)),
+    [months, fromValue, toValue],
+  );
 
   const summary = useMonthsBalance(filteredMonths);
   const forecast = useYearForecast(months, totalBankBalance);
@@ -137,40 +117,44 @@ export function DashboardPage() {
   const now = new Date();
   const currentKey = monthKey(now.getFullYear(), now.getMonth() + 1);
 
-  const rows = useMemo<MonthRow[]>(() => {
-    const mapped = filteredMonths.map((month) => {
-      const balance = computeMonthBalance(month);
-      return {
-        id: month.id,
-        label: month.label,
-        sortKey: monthKey(month.year, month.month),
-        isCurrent: monthKey(month.year, month.month) === currentKey,
-        overdue: month.overdueExpenses ?? 0,
-        overdueAmount: month.overdueAmount ?? 0,
-        totalIncome: balance.totalIncome,
-        totalExpense: balance.totalExpense,
-        realized: balance.realized,
-        paidCount: month.paidExpenses ?? 0,
-        expenseCount: month.totalExpenses ?? 0,
-      };
-    });
-
-    const compare = COMPARATORS[sort.key] ?? COMPARATORS.label;
-    const direction = sort.direction === 'asc' ? 1 : -1;
-    return mapped.sort((a, b) => compare(a, b) * direction);
-  }, [filteredMonths, currentKey, sort]);
+  const unsortedRows = useMonthRows(filteredMonths, currentKey);
+  const rows = useMemo(() => sortMonthRows(unsortedRows, sort), [unsortedRows, sort]);
 
   // Medida sobre `rows`, e não sobre a página: a largura da fração é o que
   // decide onde cada barra da coluna "Pagas" começa, e medi-la por página faria
   // a coluna mudar de largura a cada navegação.
   const fractionWidth = useMemo(() => paidFractionWidth(rows), [rows]);
 
-  const totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
-  // O intervalo pode encolher com a página atual já fora dele - trocar "De" para
-  // um mês recente estando na página 3 deixava a tabela vazia sem estar vazia.
-  const currentPage = Math.min(page, totalPages);
-  const start = (currentPage - 1) * PAGE_SIZE;
-  const visibleRows = rows.slice(start, start + PAGE_SIZE);
+  const { currentPage, totalPages, start, visible: visibleRows } = pageOf(rows, page);
+
+  // A consulta é guardada enquanto ela é verdade, e não só ao sair: é assim
+  // que voltar de um Mês encontra a mesma tela. Um intervalo ainda vazio não
+  // se guarda — ele significa "os meses não chegaram", não "nenhum mês".
+  useEffect(() => {
+    if (!fromValue || !toValue) return;
+    rememberDashboard({
+      from: fromValue,
+      to: toValue,
+      sortKey: sort.key,
+      sortDirection: sort.direction,
+      page: currentPage,
+    });
+  }, [fromValue, toValue, sort, currentPage, rememberDashboard]);
+
+  // A rolagem volta junto da consulta, depois que as linhas existem — antes
+  // disso a faixa de conteúdo ainda não tem altura para rolar. Uma vez só: a
+  // posição guardada pertence àquela ida ao Mês, não às visitas seguintes.
+  const scrollRestored = useRef(false);
+  useLayoutEffect(() => {
+    if (scrollRestored.current || loading) return;
+    scrollRestored.current = true;
+    restoreScroll();
+  }, [loading, restoreScroll]);
+
+  function openMonth(row: MonthRow) {
+    enterMonth('dashboard');
+    navigate(monthDetailPath(row.id));
+  }
 
   const columns: Column<MonthRow>[] = [
     {
@@ -178,25 +162,28 @@ export function DashboardPage() {
       label: 'Mês',
       sortable: true,
       render: (row) => (
-        <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
-          <Box component="span" sx={{ fontWeight: row.isCurrent ? 700 : 400 }}>
-            {row.label}
-          </Box>
-          {row.isCurrent && <Chip label="Atual" color="primary" size="small" variant="outlined" />}
+        <span className="money-month-cell">
+          <span style={{ fontWeight: row.isCurrent ? 600 : 400 }}>{row.label}</span>
+          {row.isCurrent && <StatusChip label="Atual" color="default" />}
           {row.overdue > 0 && (
             // O valor vencido já vinha do SQL e ficava sem uso: a contagem diz
             // quantas contas atrasaram, mas não se é uma fatura ou um cafezinho.
-            <Tooltip title={`${formatCurrency(row.overdueAmount)} em atraso`}>
-              <Box component="span" sx={{ display: 'inline-flex' }}>
-                <StatusChip
-                  label={`${row.overdue} vencida${row.overdue > 1 ? 's' : ''}`}
-                  color="error"
-                  icon={<ReportProblemOutlined fontSize="small" />}
-                />
-              </Box>
-            </Tooltip>
+            // A dica é o `title` nativo porque a rolagem da tabela recortaria
+            // uma dica desenhada na página.
+            <span
+              title={`${formatCurrency(row.overdueAmount)} em atraso`}
+              aria-label={`${row.overdue} vencida${row.overdue > 1 ? 's' : ''}, ${formatCurrency(
+                row.overdueAmount,
+              )} em atraso`}
+            >
+              <StatusChip
+                label={`${row.overdue} vencida${row.overdue > 1 ? 's' : ''}`}
+                color="error"
+                icon={<TriangleAlert aria-hidden="true" />}
+              />
+            </span>
           )}
-        </Stack>
+        </span>
       ),
     },
     {
@@ -215,16 +202,13 @@ export function DashboardPage() {
       key: 'realized',
       label: BALANCE_LABELS.realized,
       sortable: true,
-      // Só o negativo é pintado. Verde em todo mês positivo saturava a coluna
-      // inteira - no escuro o `success` é `#0ca30c` puro - e, pela §1.5, cor
-      // sinaliza condição: fechar no azul é o estado normal, não um aviso.
+      // Só o negativo é pintado. Verde em todo mês positivo saturaria a coluna
+      // inteira e, pela §1.5, cor sinaliza condição: fechar no azul é o estado
+      // normal, não um aviso.
       render: (row) => (
-        <Box
-          component="span"
-          sx={{ fontWeight: 600, color: row.realized < 0 ? 'error.main' : 'text.primary' }}
-        >
+        <span className="money-amount money-tone" data-tone={row.realized < 0 ? 'alert' : 'neutral'}>
           {formatCurrency(row.realized)}
-        </Box>
+        </span>
       ),
     },
     {
@@ -251,7 +235,7 @@ export function DashboardPage() {
     // contas depois de desenhar três reflui a fileira inteira.
     const skeletonCount = hasAccounts || accountsLoading ? 4 : 3;
     return (
-      <Stack spacing={3}>
+      <div className="money-page">
         <Skeleton variant="text" width={240} height={48} />
         <StatCardGrid count={skeletonCount}>
           {Array.from({ length: skeletonCount }, (_, i) => (
@@ -259,7 +243,7 @@ export function DashboardPage() {
           ))}
         </StatCardGrid>
         <Skeleton variant="rounded" height={420} />
-      </Stack>
+      </div>
     );
   }
 
@@ -309,12 +293,12 @@ export function DashboardPage() {
   }
 
   return (
-    <Stack spacing={3}>
+    <div className="money-page">
       {/* O recorte de meses vive aqui, e não numa faixa própria: era um card de
           largura inteira com quase a altura da fileira de indicadores, para um
           controle. O `Histórico` já põe o seletor de período neste mesmo lugar. */}
       <PageHeader
-        icon={<DashboardOutlined />}
+        icon={<LayoutDashboard size={22} aria-hidden="true" />}
         title="Visão Geral"
         subtitle={rangeSummary}
         actions={
@@ -343,7 +327,7 @@ export function DashboardPage() {
             label="Saldo em contas"
             value={formatCurrency(totalBankBalance)}
             sub="soma das contas bancárias"
-            icon={AccountBalanceOutlined}
+            icon={Landmark}
             accent="primary"
             tone={totalBankBalance < 0 ? 'alert' : 'neutral'}
             forecast={yearForecast(
@@ -358,7 +342,7 @@ export function DashboardPage() {
           label={`${BALANCE_LABELS.realized} no período`}
           value={formatCurrency(summary.realized)}
           sub={`${BALANCE_LABELS.projected}: ${formatCurrency(summary.projected)}`}
-          icon={SavingsOutlined}
+          icon={PiggyBank}
           accent="info"
           tone={summary.realized >= 0 ? 'positive' : 'alert'}
           forecast={yearForecast(
@@ -377,7 +361,7 @@ export function DashboardPage() {
             'a receber',
             'tudo recebido',
           )}
-          icon={TrendingUpOutlined}
+          icon={TrendingUp}
           accent="success"
           forecast={yearForecast(
             `Total de ${forecast.year}:`,
@@ -395,7 +379,7 @@ export function DashboardPage() {
             'a pagar',
             'tudo pago',
           )}
-          icon={TrendingDownOutlined}
+          icon={TrendingDown}
           accent="secondary"
           forecast={yearForecast(
             `Total de ${forecast.year}:`,
@@ -414,11 +398,12 @@ export function DashboardPage() {
         sort={sort}
         onToggleSort={handleToggleSort}
         getRowKey={(row) => String(row.id)}
+        getRowLabel={(row) => `Abrir ${row.label}`}
         footerLabel="meses"
-        onRowClick={(row) => navigate(monthDetailPath(row.id))}
+        onRowClick={openMonth}
         empty={
           <EmptyState
-            icon={<FilterAltOffOutlined sx={{ fontSize: 40 }} />}
+            icon={<FilterX size={40} aria-hidden="true" />}
             title="Nenhum mês no intervalo selecionado."
             description="O período escolhido no cabeçalho não alcança nenhum mês cadastrado."
             action={<Button onClick={handleShowAll}>Mostrar todos os meses</Button>}
@@ -426,6 +411,6 @@ export function DashboardPage() {
         }
         pagination={{ currentPage, totalPages, onPageChange: setPage }}
       />
-    </Stack>
+    </div>
   );
 }

@@ -1,17 +1,12 @@
-import { LinearProgress, Stack, Typography } from '@mui/material';
-
-const BAR_WIDTH = 110;
-
-/** Largura de um dígito no `caption` de 12px, com o `tabular-nums` do `body`. */
-const LABEL_CHAR_WIDTH = 7;
+/** Largura de um dígito tabular da Geist em 12px, com folga de arredondamento. */
+const LABEL_CHAR_WIDTH = 7.5;
 
 /**
  * A largura que a fração precisa reservar para que todas as barras da coluna
  * comecem no mesmo ponto.
  *
  * Uma constante não resolve: `7/8` são três caracteres e `104/117` são sete, e
- * numa coluna à esquerda é o rótulo que empurra a barra. Medir é o que o
- * `CategoryBreakdownChart` já faz pelo mesmo motivo — contar caracteres e
+ * numa coluna à esquerda é o rótulo que empurra a barra. Contar caracteres e
  * multiplicar pela largura do dígito tabular superestima de leve, porque a
  * barra é mais estreita que um dígito, e superestimar é o lado certo de errar.
  *
@@ -47,37 +42,36 @@ interface PaidProgressProps {
  * por uma quantidade de dígitos diferente, e uma coluna de barras desalinhadas
  * é justamente o que a barra veio evitar.
  *
- * A barra não fica vermelha quando o mês tem vencidas. Esse aviso já é do chip
- * na coluna do mês, e dois sinais para a mesma condição competem em vez de
- * somar — é o que o `StockBadge` do app de referência registra.
+ * A barra não fica vermelha quando o mês tem vencidas. Esse aviso já é do
+ * marcador na coluna do mês, e dois sinais para a mesma condição competem em
+ * vez de somar.
  */
 export function PaidProgress({ paidCount, expenseCount, labelWidth }: PaidProgressProps) {
   if (expenseCount === 0) {
-    return (
-      <Typography variant="body2" color="text.secondary">
-        —
-      </Typography>
-    );
+    return <span className="money-muted-text">—</span>;
   }
 
   const pct = Math.round((paidCount / expenseCount) * 100);
 
   return (
-    <Stack direction="row" spacing={1} alignItems="center" justifyContent="flex-start">
-      <Typography
-        variant="caption"
-        color="text.secondary"
-        sx={{ minWidth: labelWidth, flexShrink: 0 }}
-      >
+    <span className="money-progress">
+      <span className="money-progress-fraction" style={{ minWidth: labelWidth }}>
         {paidCount}/{expenseCount}
-      </Typography>
-      <LinearProgress
-        variant="determinate"
-        value={pct}
-        color={pct === 100 ? 'success' : 'primary'}
+      </span>
+      <span
+        className="money-progress-track"
+        role="meter"
+        aria-valuenow={pct}
+        aria-valuemin={0}
+        aria-valuemax={100}
         aria-label={`${pct}% pago`}
-        sx={{ width: BAR_WIDTH, height: 4, borderRadius: 2, flexShrink: 0 }}
-      />
-    </Stack>
+      >
+        <span
+          className="money-progress-bar"
+          data-complete={pct === 100}
+          style={{ width: `${pct}%` }}
+        />
+      </span>
+    </span>
   );
 }

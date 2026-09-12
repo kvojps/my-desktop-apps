@@ -1,0 +1,28 @@
+[
+  {
+    "contraste complementar light": {
+      "valor positivo sobre painel": 6.06,
+      "valor positivo sobre hover": 5.56,
+      "barra completa sobre a trilha": 5.56,
+      "texto da dica sobre a dica": 19.8,
+      "borda da dica sobre painel": 1.26
+    }
+  },
+  {
+    "contraste complementar dark": {
+      "valor positivo sobre painel": 7.77,
+      "valor positivo sobre hover": 6.56,
+      "barra completa sobre a trilha": 6.56,
+      "texto da dica sobre a dica": 17.18,
+      "borda da dica sobre painel": 1.2
+    }
+  },
+  {
+    "texto do vazio filtrado": {
+      "presente": true,
+      "contraste": 6.94,
+      "descricao": 6.94
+    }
+  },
+  "captura vazio-filtrado"
+]

@@ -1,0 +1,20 @@
+[
+  {
+    "dica light": {
+      "visivel": "visible",
+      "texto da dica sobre a dica": 18.97,
+      "dica sobre o painel": 19.8,
+      "foco": "2px"
+    }
+  },
+  "captura dica-light",
+  {
+    "dica dark": {
+      "visivel": "visible",
+      "texto da dica sobre a dica": 18.97,
+      "dica sobre o painel": 17.18,
+      "foco": "2px"
+    }
+  },
+  "captura dica-dark"
+]

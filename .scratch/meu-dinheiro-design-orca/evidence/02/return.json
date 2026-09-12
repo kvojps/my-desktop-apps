@@ -1,0 +1,62 @@
+[
+  {
+    "volta de um Mês restaura a consulta": {
+      "antes": {
+        "marcado": [
+          "Tudo"
+        ],
+        "rodape": "Mostrando 13–15 de 15 meses",
+        "rolagem": 0
+      },
+      "depois": {
+        "marcado": [
+          "Tudo"
+        ],
+        "rodape": "Mostrando 13–15 de 15 meses",
+        "rolagem": 0
+      }
+    }
+  },
+  {
+    "chegar pela lateral não é voltar": {
+      "antes": {
+        "marcado": [
+          "Tudo"
+        ],
+        "rodape": "Mostrando 13–15 de 15 meses",
+        "rolagem": 0
+      },
+      "depois": {
+        "marcado": [
+          "Este ano"
+        ],
+        "rodape": "Mostrando 1–10 de 10 meses",
+        "rolagem": 0
+      }
+    }
+  },
+  {
+    "o retorno é consumido uma vez só": {
+      "naVolta": {
+        "marcado": [
+          "Tudo"
+        ],
+        "rodape": "Mostrando 1–12 de 15 meses",
+        "rolagem": 104
+      },
+      "depois": {
+        "marcado": [
+          "Este ano"
+        ],
+        "rodape": "Mostrando 1–10 de 10 meses",
+        "rolagem": 0
+      }
+    }
+  },
+  {
+    "hover realça qualquer linha": {
+      "clicavel": null,
+      "regra": true
+    }
+  }
+]

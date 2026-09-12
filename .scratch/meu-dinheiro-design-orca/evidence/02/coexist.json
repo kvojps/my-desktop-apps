@@ -1,0 +1,71 @@
+[
+  {
+    "#/history em 1280": {
+      "overflowPagina": false,
+      "overflowConteudo": false,
+      "tabelasNovas": 0,
+      "cardsNovos": 4,
+      "cabecalho": true,
+      "muiPapers": 1,
+      "ativo": "Histórico"
+    }
+  },
+  {
+    "#/settings em 1280": {
+      "overflowPagina": false,
+      "overflowConteudo": false,
+      "tabelasNovas": 4,
+      "cardsNovos": 0,
+      "cabecalho": true,
+      "muiPapers": 6,
+      "ativo": "Configurações"
+    }
+  },
+  {
+    "#/months/15 em 1280": {
+      "overflowPagina": false,
+      "overflowConteudo": false,
+      "tabelasNovas": 1,
+      "cardsNovos": 3,
+      "cabecalho": true,
+      "muiPapers": 0,
+      "ativo": "Visão Geral"
+    }
+  },
+  {
+    "#/history em 960": {
+      "overflowPagina": false,
+      "overflowConteudo": false,
+      "tabelasNovas": 0,
+      "cardsNovos": 4,
+      "cabecalho": true,
+      "muiPapers": 1,
+      "ativo": "Histórico"
+    }
+  },
+  {
+    "#/settings em 960": {
+      "overflowPagina": false,
+      "overflowConteudo": false,
+      "tabelasNovas": 4,
+      "cardsNovos": 0,
+      "cabecalho": true,
+      "muiPapers": 6,
+      "ativo": "Configurações"
+    }
+  },
+  {
+    "#/months/15 em 960": {
+      "overflowPagina": false,
+      "overflowConteudo": false,
+      "tabelasNovas": 1,
+      "cardsNovos": 3,
+      "cabecalho": true,
+      "muiPapers": 0,
+      "ativo": "Visão Geral"
+    }
+  },
+  "captura coexistencia---history",
+  "captura coexistencia---settings",
+  "captura coexistencia---months-15"
+]

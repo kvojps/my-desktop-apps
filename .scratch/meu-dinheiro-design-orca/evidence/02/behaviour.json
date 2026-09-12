@@ -1,0 +1,110 @@
+[
+  {
+    "padrão do intervalo": {
+      "marcado": [
+        "Este ano"
+      ],
+      "subtitulo": "Janeiro/2026 – Dezembro/2026 · 12 meses",
+      "rodape": "Mostrando 1–12 de 12 meses",
+      "linhas": 12
+    }
+  },
+  {
+    "ordem inicial decrescente": [
+      "Dezembro/2026",
+      "Novembro/2026",
+      "Outubro/2026"
+    ]
+  },
+  {
+    "atalho Tudo pagina em doze": {
+      "primeira": {
+        "linhas": 12,
+        "rodape": "Mostrando 1–12 de 17 meses"
+      },
+      "paginas": [
+        "",
+        "1",
+        "2"
+      ],
+      "segunda": {
+        "linhas": 5,
+        "rodape": "Mostrando 13–17 de 17 meses"
+      }
+    }
+  },
+  {
+    "ordenação por coluna mantém a página 1": {
+      "ordenado": "descending",
+      "topo": "R$ 123.456,78",
+      "rodape": "Mostrando 1–12 de 17 meses"
+    }
+  },
+  {
+    "ida ao Mês pela página 2": {
+      "antes": {
+        "rodape": "Mostrando 13–17 de 17 meses",
+        "marcado": [
+          "Tudo"
+        ],
+        "rolagem": 0,
+        "ordem": "ascending",
+        "primeira": "Agosto/2026"
+      },
+      "noMes": {
+        "rota": "#/months/14",
+        "lateralAtiva": "Visão Geral"
+      }
+    }
+  },
+  {
+    "volta restaura a consulta": {
+      "rota": "#/dashboard",
+      "rodape": "Mostrando 13–17 de 17 meses",
+      "marcado": [
+        "Tudo"
+      ],
+      "rolagem": 0,
+      "primeira": "Agosto/2026"
+    }
+  },
+  {
+    "painel abre pelo teclado": {
+      "aberto": true,
+      "foco": "De",
+      "expandido": "true"
+    }
+  },
+  {
+    "De além de Até arrasta o extremo": {
+      "de": "2026-12",
+      "ate": "2026-12",
+      "subtitulo": "Dezembro/2026 · 1 mês",
+      "rodape": "Mostrando 1–1 de 1 meses"
+    }
+  },
+  {
+    "Escape fecha e devolve o foco": {
+      "aberto": false,
+      "foco": "Período personalizado"
+    }
+  },
+  "captura intervalo-personalizado",
+  {
+    "intervalo sem resultados oferece saída": {
+      "antes": {
+        "vazio": true,
+        "texto": "Nenhum mês no intervalo selecionado.O período escolhido no cabeçalho não alcança nenhum mês cadastrado.Mostrar todos os meses",
+        "rodape": "Mostrando 0 de 0 meses"
+      },
+      "depois": {
+        "marcado": [
+          "Tudo"
+        ],
+        "rodape": "Mostrando 1–12 de 16 meses",
+        "linhas": 12
+      }
+    }
+  },
+  "captura apos-saida-do-vazio"
+]

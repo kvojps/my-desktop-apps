@@ -14,6 +14,7 @@ import { ErrorState } from '@/components/ErrorState';
 import { PageHeader } from '@/components/PageHeader';
 import { Skeleton } from '@/components/Skeleton';
 import { StatCard, StatCardGrid, StatCardSkeleton } from '@/components/StatCard';
+import { useNavigationMemory } from '@/contexts/NavigationContext';
 import { useCategoryTotals } from '@/hooks/categories/useCategoryTotals';
 import { BALANCE_LABELS, sumMonthBalances } from '@/hooks/months/useMonthBalance';
 import { useMonths } from '@/hooks/months/useMonths';
@@ -34,6 +35,7 @@ export function HistoryPage() {
   const [tab, setTab] = useState<TabValue>('comparativo');
   const { months: data, loading, error, retry } = useMonths();
   const navigate = useNavigate();
+  const { enterMonth } = useNavigationMemory();
 
   const years = useMemo(() => {
     const set = new Set(data.map((m) => m.year));
@@ -128,7 +130,12 @@ export function HistoryPage() {
       return (
         <MonthComparisonChart
           months={yearMonths}
-          onSelectMonth={(id) => navigate(monthDetailPath(id))}
+          onSelectMonth={(id) => {
+            // A origem acompanha o Mês aberto: é ela que a lateral marca e,
+            // na issue 04, o que o retorno do Histórico vai restaurar.
+            enterMonth('history');
+            navigate(monthDetailPath(id));
+          }}
         />
       );
     }

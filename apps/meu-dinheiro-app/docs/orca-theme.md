@@ -10,35 +10,87 @@ As superfícies neutras e Geist vêm dessa referência; foco azul e ajustes de
 contraste são decisões locais. Não se copia marca, catálogo ou CSS global.
 
 Documento registrado antes da alteração de UI da issue 01, sob a exceção em
-`docs/design-system.md` e README §2.4. Nesta etapa ele rege lateral, estados
-transversais e fundo da janela. Telas, tabelas, gráficos e diálogos ainda MUI
-mantêm seu tema normativo (inclusive Inter, raios 12/8 e cores). Cada superfície
-migrada declara sua fonte e cores; Tailwind v4 usa prefixo `ui`, sem Preflight.
-Não há imports entre apps. O CssBaseline MUI permanece durante a coexistência.
+`docs/design-system.md` e README §2.4. Ele regia lateral, estados transversais e
+fundo da janela; a issue 02 acrescentou a Visão Geral e os componentes que ela
+compartilha — cabeçalho de tela, indicadores, tabela, paginação, marcadores,
+ladrilho e dica. Telas, gráficos e diálogos ainda MUI mantêm seu tema normativo
+(inclusive Inter, raios 12/8 e cores), e passam a exibir esses componentes
+migrados. Cada superfície migrada declara sua fonte e cores; Tailwind v4 usa
+prefixo `ui`, sem Preflight. Não há imports entre apps. O CssBaseline MUI
+permanece durante a coexistência, assim como o fundo MUI da faixa de conteúdo —
+trocá-lo enquanto Histórico, Mês e Configurações são MUI deixaria essas telas
+sem o fundo que suas superfícies assumem. A troca fica para a issue 06.
 
 ## Tokens locais
 
 Variáveis `--money-*` publicadas pelo provider a partir de `theme/orca.ts`:
 
-| Token                           | Claro     | Escuro    |
-| ------------------------------- | --------- | --------- |
-| background                      | `#ffffff` | `#0a0a0a` |
-| paper                           | `#ffffff` | `#171717` |
-| sidebar                         | `#fafafa` | `#171717` |
-| foreground                      | `#0a0a0a` | `#fafafa` |
-| muted                           | `#666666` | `#a1a1a1` |
-| accent (hover/seleção/skeleton) | `#f5f5f5` | `#262626` |
-| border (decorativa)             | `#e5e5e5` | `#272727` |
-| focus                           | `#2771ca` | `#3987e5` |
-| primary (botão)                 | `#0a0a0a` | `#fafafa` |
-| on-primary                      | `#fafafa` | `#0a0a0a` |
-| danger (ícone de erro)          | `#b42318` | `#ff8a80` |
+| Token                                   | Claro     | Escuro    |
+| --------------------------------------- | --------- | --------- |
+| background                              | `#ffffff` | `#0a0a0a` |
+| paper                                   | `#ffffff` | `#171717` |
+| sidebar                                 | `#fafafa` | `#171717` |
+| foreground                              | `#0a0a0a` | `#fafafa` |
+| muted                                   | `#666666` | `#a1a1a1` |
+| accent (hover/seleção/skeleton)         | `#f5f5f5` | `#262626` |
+| border (decorativa)                     | `#e5e5e5` | `#272727` |
+| focus                                   | `#2771ca` | `#3987e5` |
+| primary (botão)                         | `#0a0a0a` | `#fafafa` |
+| on-primary                              | `#fafafa` | `#0a0a0a` |
+| danger (ícone de erro, valor em alerta) | `#b42318` | `#ff8a80` |
+| positive (valor em bom estado)          | `#067306` | `#35c435` |
 
 Notificações usam texto neutro, ícone e nome de severidade; nenhum rótulo herda
 âmbar ou texto desabilitado. Botões primários são neutros, hover por sublinhado;
 botões secundários e links de navegação usam accent. A seleção tem peso 600,
 barra de 3 × 20px e `aria-current`. Foco de 2px, offset 2px; os controles MUI
 continuam com seu anel. Nenhuma animação nova é necessária.
+
+### Identidade de indicador — issue 02
+
+O preenchimento do ladrilho é a cor de **identidade** do indicador e vem da base
+anterior, preservada para o mesmo indicador continuar reconhecível entre telas.
+O rótulo por cima é **declarado** com o preenchimento, e não medido em runtime:
+cor de estado do tema já tem par por modo e contraste conhecido, e recalculá-la
+acrescentaria uma segunda fonte da verdade (§1.8). `labelOn` continua valendo
+para o preenchimento que o app não escolheu — a cor de categoria. Como é
+preenchimento, âmbar é legítimo aqui; o que ele nunca é, em lugar nenhum, é
+texto (§1.4).
+
+| accent    | Claro     | Escuro    | Rótulo claro/escuro | Contraste do rótulo |
+| --------- | --------- | --------- | ------------------- | ------------------- |
+| primary   | `#2771ca` | `#3987e5` | branco / preto 87%  | 4,88:1 / 5,19:1     |
+| secondary | `#4a3aa7` | `#9085e9` | branco / preto 87%  | 8,56:1 / 5,95:1     |
+| success   | `#0a7d0a` | `#0ca30c` | branco / preto 87%  | 5,32:1 / 5,63:1     |
+| info      | `#0f7c91` | `#1190a9` | branco / preto 87%  | 4,87:1 / 5,05:1     |
+| warning   | `#fab219` | `#fab219` | preto 87%           | 9,63:1              |
+| error     | `#cf3939` | `#d85b5b` | branco / preto 87%  | 4,89:1 / 5,03:1     |
+
+`positive` e `danger` não são essas cores: são os pares **de texto** do valor,
+medidos sobre papel e sobre a linha em hover. A linha do ano do card herda a cor
+do ladrilho por `currentColor`, porque o traço do Recharts é atributo de
+apresentação e não resolve `var()`.
+
+### Dimensões de conteúdo — issue 02
+
+Cabeçalho de tela: título 20px/28px peso 600, subtítulo 14px/20px em `muted`,
+ícone em `muted`, sem margem própria. Superfície de conteúdo: painel de 10px com
+borda de 1px; ladrilho de 38px (`--money-tile-size`, lido também pelo esqueleto
+que reserva o lugar dele); card de indicador com padding 16px; tabela com célula de 8px × 12px, cabeçalho sobre `accent` e régua
+de 1px entre linhas. Marcador 6px de raio, 12px/18px, peso 600. Barra de pagas
+com 110px × 4px sobre trilha `accent`; a fração reserva 7,5px por caractere.
+Dica de 12px/18px, até 260px, invertida (`primary` com `on-primary`), acima do
+gatilho e visível no hover e no foco — a dica que carrega número entra na ordem
+de tabulação. Controle segmentado com altura mínima de
+32px; seletor de 36px. Painel de intervalo ancorado à direita do controle, com sombra
+`0 4px 16px rgb(0 0 0 / 18%)` — a única sombra da base, e ela existe porque o
+painel flutua sobre a tabela em vez de ocupar lugar nela.
+
+A fileira de indicadores muda de colunas por **largura de conteúdo**, não por
+janela: 1 coluna, 2 a partir de 480px, 3 a partir de 728px (só com três cards) e
+4 a partir de 976px (só com quatro). O piso é 230px por card — abaixo disso o
+valor em reais e o ladrilho disputam a mesma linha. Quatro cards pulam de 2 para
+4 sem passar por 3, para o quarto não ficar sozinho embaixo.
 
 Geist local empacotada em 400/500/600/700, fallback `system-ui, sans-serif`.
 Texto 14px/20px; título de estado 24px/32px (denso 20px/28px); descrição 12px/18px.
@@ -99,8 +151,35 @@ referência. Borda escura opaca `#272727` evita composição dependente do fundo
 O CSS de referência consultado tem SHA-256
 `7f0dd14a02721f5fc37504e6c9644589ad74da721821f800cffda548f6d49125`.
 
+### Medições da issue 02 (superfícies reais, Electron)
+
+| Par                                        | Claro             | Escuro            |
+| ------------------------------------------ | ----------------- | ----------------- |
+| Rótulo, legenda e previsão sobre o card    | 5,74:1            | 6,94:1            |
+| Valor neutro sobre o card                  | 19,80:1           | 17,18:1           |
+| Valor em alerta sobre o card               | 6,57:1            | 7,85:1            |
+| Valor positivo sobre o card / sobre hover  | 6,06:1 / 5,56:1   | 7,77:1 / 6,56:1   |
+| Cabeçalho da tabela sobre a faixa          | 5,27:1            | 5,86:1            |
+| Célula sobre papel / sobre hover           | 19,80:1 / 18,16:1 | 17,18:1 / 14,50:1 |
+| Realizado negativo sobre papel / hover     | 6,57:1 / 6,03:1   | 7,85:1 / 6,63:1   |
+| Rodapé, fração e marcador neutro           | 5,74:1            | 6,94:1            |
+| Rótulo de "vencidas" sobre o preenchimento | 4,89:1            | 5,57:1            |
+| Ícone do ladrilho sobre o preenchimento    | 4,88:1            | 5,77:1            |
+| Barra de pagas sobre a trilha              | 18,16:1           | 14,50:1           |
+| Barra completa (positive) sobre a trilha   | 5,56:1            | 6,56:1            |
+| Foco sobre papel / sobre accent            | 4,88:1 / 4,48:1   | 4,93:1 / 4,16:1   |
+| Texto da dica sobre a dica                 | 18,97:1           | 18,97:1           |
+| Dica sobre o card                          | 19,80:1           | 17,18:1           |
+| Página atual sobre o botão de paginação    | 18,97:1           | 18,97:1           |
+| Texto do estado vazio sobre a tabela       | 6,94:1            | 6,94:1            |
+
+Medido no app em execução, lendo as cores computadas dos elementos e a cor de
+fundo efetiva de cada um. Relatórios em
+[evidence/02](../../../.scratch/meu-dinheiro-design-orca/evidence/02/).
+
 Validação Electron e capturas em
-[Comments da issue 01](../../../.scratch/meu-dinheiro-design-orca/issues/01-tema-e-navegacao.md).
+[Comments da issue 01](../../../.scratch/meu-dinheiro-design-orca/issues/01-tema-e-navegacao.md)
+e [da issue 02](../../../.scratch/meu-dinheiro-design-orca/issues/02-visao-geral.md).
 A matriz cobriu cinco rotas, dois modos, duas larguras e lateral aberta/recolhida
 (40 combinações), sem overflow horizontal. Os controles foram exercitados com
 Tab, Shift+Tab, Enter e Espaço, com anel de foco de 2px nos dois modos.

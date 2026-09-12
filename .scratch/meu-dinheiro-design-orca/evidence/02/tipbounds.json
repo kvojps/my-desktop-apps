@@ -1,0 +1,22 @@
+[
+  {
+    "dicas dentro da janela em 1280": {
+      "dicas": 4,
+      "limites": [
+        224,
+        1280
+      ],
+      "fora": []
+    }
+  },
+  {
+    "dicas dentro da janela em 960": {
+      "dicas": 4,
+      "limites": [
+        224,
+        960
+      ],
+      "fora": []
+    }
+  }
+]

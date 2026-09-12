@@ -1,0 +1,52 @@
+[
+  {
+    "rolagem antes de abrir o Mês": {
+      "rolagem": 104,
+      "altura": 904,
+      "visivel": 800
+    }
+  },
+  {
+    "linha recebe foco": {
+      "papel": "button",
+      "rotulo": "Abrir Julho/2026",
+      "anel": "2px"
+    }
+  },
+  "captura foco-na-linha",
+  {
+    "Enter abre o Mês": {
+      "rota": "#/months/13",
+      "lateral": "Visão Geral"
+    }
+  },
+  {
+    "voltar restaura consulta e rolagem": {
+      "rota": "#/dashboard",
+      "rodape": "Mostrando 1–12 de 15 meses",
+      "rolagem": 104
+    }
+  },
+  "captura volta-do-mes",
+  {
+    "ordem de tabulação a partir da marca": [
+      "Visão Geral",
+      "Histórico",
+      "Configurações",
+      "Tema escuro. Ativar tema claro",
+      "Recolher navegação",
+      "BUTTON:3 meses",
+      "BUTTON:Este ano",
+      "BUTTON:Tudo",
+      "Período personalizado"
+    ]
+  },
+  {
+    "dica de vencidas e de previsão": {
+      "tituloNativo": "R$ 2.744,10 em atraso",
+      "dicaNaOrdemDeTabulacao": true,
+      "dicaDescreve": true,
+      "textoDaDica": "Em dezembro de 2026: ≈ -R$ 60.960,82. Saldo de hoje mais tud"
+    }
+  }
+]

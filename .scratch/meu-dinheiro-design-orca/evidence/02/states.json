@@ -1,0 +1,66 @@
+[
+  "base com 16 meses",
+  {
+    "carregamento reserva a forma da tela": {
+      "esqueletos": 26,
+      "cardsReservados": 4,
+      "tabela": false,
+      "vazio": false,
+      "erro": false
+    }
+  },
+  "captura carregando",
+  {
+    "dados chegam no lugar do esqueleto": {
+      "linhas": 11,
+      "esqueletos": 0,
+      "rodape": "Mostrando 1–11 de 11 meses"
+    }
+  },
+  {
+    "falha de leitura, não vazio": {
+      "erro": true,
+      "vazio": false,
+      "papel": "alert",
+      "titulo": "Não foi possível carregar os meses",
+      "acoes": [
+        "Tentar novamente",
+        "Restaurar backup",
+        "Abrir pasta de dados"
+      ],
+      "navegacao": [
+        "Visão Geral",
+        "Histórico",
+        "Configurações"
+      ]
+    }
+  },
+  "captura erro-recuperavel",
+  {
+    "tentar novamente recupera a tela": {
+      "erro": false,
+      "linhas": 11,
+      "rodape": "Mostrando 1–11 de 11 meses"
+    }
+  },
+  {
+    "ausência inicial orienta": {
+      "guia": true,
+      "titulo": "Nenhum mês cadastrado",
+      "passos": [
+        "1. Cadastre suas contas",
+        "2. Ajuste as categorias",
+        "3. Cadastre as despesas e entradas fixas"
+      ],
+      "saida": "Ir para Configurações",
+      "tabela": false
+    }
+  },
+  "captura orientacao-inicial",
+  {
+    "a saída leva a Configurações": {
+      "rota": "#/settings",
+      "ativo": "Configurações"
+    }
+  }
+]

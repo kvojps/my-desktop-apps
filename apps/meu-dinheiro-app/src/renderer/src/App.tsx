@@ -3,6 +3,7 @@ import { ROUTES } from './routes';
 import { BankAccountsProvider } from './contexts/BankAccountsContext';
 import { CategoriesProvider } from './contexts/CategoriesContext';
 import { MonthsProvider } from './contexts/MonthsContext';
+import { NavigationProvider } from './contexts/NavigationContext';
 import { SnackbarProvider } from './contexts/SnackbarContext';
 import { Layout } from './components/Layout';
 import { DashboardPage } from './pages/dashboard/DashboardPage';
@@ -17,16 +18,18 @@ export function App() {
       <MonthsProvider>
         <CategoriesProvider>
           <BankAccountsProvider>
-            <Layout>
-              <Routes>
-                <Route path="/" element={<Navigate replace to={ROUTES.DASHBOARD} />} />
-                <Route path={ROUTES.DASHBOARD} element={<DashboardPage />} />
-                <Route path={ROUTES.HISTORY} element={<HistoryPage />} />
-                <Route path={ROUTES.MONTH_DETAIL} element={<MonthDetailPage />} />
-                <Route path={ROUTES.SETTINGS} element={<SettingsPage />} />
-                <Route path="*" element={<NotFoundPage />} />
-              </Routes>
-            </Layout>
+            <NavigationProvider>
+              <Layout>
+                <Routes>
+                  <Route path="/" element={<Navigate replace to={ROUTES.DASHBOARD} />} />
+                  <Route path={ROUTES.DASHBOARD} element={<DashboardPage />} />
+                  <Route path={ROUTES.HISTORY} element={<HistoryPage />} />
+                  <Route path={ROUTES.MONTH_DETAIL} element={<MonthDetailPage />} />
+                  <Route path={ROUTES.SETTINGS} element={<SettingsPage />} />
+                  <Route path="*" element={<NotFoundPage />} />
+                </Routes>
+              </Layout>
+            </NavigationProvider>
           </BankAccountsProvider>
         </CategoriesProvider>
       </MonthsProvider>

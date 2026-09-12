@@ -1,16 +1,5 @@
-import { DateRangeOutlined } from '@mui/icons-material';
-import {
-  FormControl,
-  InputLabel,
-  MenuItem,
-  Popover,
-  Select,
-  Stack,
-  ToggleButton,
-  ToggleButtonGroup,
-  Tooltip,
-} from '@mui/material';
-import { useMemo, useState } from 'react';
+import { CalendarRange } from 'lucide-react';
+import { type FocusEvent, useEffect, useId, useMemo, useRef, useState } from 'react';
 
 export interface MonthOption {
   label: string;
@@ -51,20 +40,20 @@ export function resolvePresets(options: MonthOption[]) {
 }
 
 /**
- * O recorte de meses da tela, no `PageHeader` e não numa faixa própria.
+ * O recorte de meses da tela, nas ações do cabeçalho e não numa faixa própria
+ * (§4): ele governa tudo que está abaixo, e ali custa zero de altura.
  *
- * Ele era um `Card` de largura inteira logo abaixo do título, com os dois campos
- * de data sempre abertos — quase a mesma altura da fileira de indicadores, para
- * um controle que na prática se usa nos três atalhos. Aqui ele custa zero de
- * altura, e o `Histórico` já põe o seletor de ano exatamente neste lugar.
- *
- * Os atalhos viraram `ToggleButtonGroup`: são exclusivos e mutuamente
- * excludentes, que é o que um grupo de toggle diz e um `Chip` clicável não.
- * "De/Até" só aparece no popover, para quem precisa de um recorte que os
- * atalhos não dão.
+ * Os atalhos são exclusivos entre si, e é isso que `aria-pressed` diz. "De/Até"
+ * só aparece no painel, para quem precisa de um recorte que os atalhos não dão;
+ * sem atalho correspondente, quem fica marcado é o botão do painel — ele é a
+ * representação de "personalizado" dentro do grupo.
  */
 export function PeriodRangeControl({ options, from, to, onChange }: PeriodRangeControlProps) {
-  const [anchor, setAnchor] = useState<HTMLElement | null>(null);
+  const [open, setOpen] = useState(false);
+  const anchor = useRef<HTMLDivElement>(null);
+  const trigger = useRef<HTMLButtonElement>(null);
+  const firstField = useRef<HTMLSelectElement>(null);
+  const panelId = useId();
 
   const presets = useMemo(() => resolvePresets(options), [options]);
 
@@ -72,6 +61,37 @@ export function PeriodRangeControl({ options, from, to, onChange }: PeriodRangeC
     (Object.keys(presets) as Preset[]).find(
       (key) => presets[key]?.from === from && presets[key]?.to === to,
     ) ?? null;
+
+  // O painel é aberto pelo teclado tanto quanto pelo ponteiro: sem devolver o
+  // foco ao botão ao fechar, o Tab recomeçaria do topo da página (§5.5).
+  useEffect(() => {
+    if (!open) return;
+
+    firstField.current?.focus();
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key !== 'Escape' || event.defaultPrevented) return;
+      event.preventDefault();
+      setOpen(false);
+      trigger.current?.focus();
+    }
+
+    function handlePointerDown(event: PointerEvent) {
+      if (!anchor.current?.contains(event.target as Node)) setOpen(false);
+    }
+
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('pointerdown', handlePointerDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('pointerdown', handlePointerDown);
+    };
+  }, [open]);
+
+  /** Sair do painel pelo Tab o fecha — ele não é modal e não prende o foco. */
+  function handleBlur(event: FocusEvent<HTMLDivElement>) {
+    if (!event.relatedTarget || !anchor.current?.contains(event.relatedTarget)) setOpen(false);
+  }
 
   function applyPreset(preset: Preset) {
     const range = presets[preset];
@@ -89,68 +109,79 @@ export function PeriodRangeControl({ options, from, to, onChange }: PeriodRangeC
   }
 
   return (
-    <>
-      <ToggleButtonGroup
-        size="small"
-        exclusive
-        // Sem atalho correspondente, quem fica marcado é o botão do popover —
-        // ele é a representação de "personalizado" dentro do grupo.
-        value={active ?? 'custom'}
-        onChange={(_, next: Preset | 'custom' | null) => {
-          if (next && next !== 'custom') applyPreset(next);
-        }}
-        aria-label="Período exibido"
-      >
-        <ToggleButton value="last3" disabled={!presets.last3}>
-          3 meses
-        </ToggleButton>
-        <ToggleButton value="year" disabled={!presets.year}>
-          Este ano
-        </ToggleButton>
-        <ToggleButton value="all" disabled={!presets.all}>
-          Tudo
-        </ToggleButton>
-        <ToggleButton
-          value="custom"
-          aria-label="Período personalizado"
-          onClick={(e) => setAnchor(e.currentTarget)}
+    <div className="money-anchored" ref={anchor} onBlur={handleBlur}>
+      <div className="money-segmented" role="group" aria-label="Período exibido">
+        <button
+          type="button"
+          aria-pressed={active === 'last3'}
+          disabled={!presets.last3}
+          onClick={() => applyPreset('last3')}
         >
-          <Tooltip title="Período personalizado">
-            <DateRangeOutlined fontSize="small" />
-          </Tooltip>
-        </ToggleButton>
-      </ToggleButtonGroup>
+          3 meses
+        </button>
+        <button
+          type="button"
+          aria-pressed={active === 'year'}
+          disabled={!presets.year}
+          onClick={() => applyPreset('year')}
+        >
+          Este ano
+        </button>
+        <button
+          type="button"
+          aria-pressed={active === 'all'}
+          disabled={!presets.all}
+          onClick={() => applyPreset('all')}
+        >
+          Tudo
+        </button>
+        <button
+          type="button"
+          ref={trigger}
+          aria-label="Período personalizado"
+          title="Período personalizado"
+          aria-expanded={open}
+          aria-controls={open ? panelId : undefined}
+          aria-pressed={active === null}
+          onClick={() => setOpen((current) => !current)}
+        >
+          <CalendarRange size={18} aria-hidden="true" />
+        </button>
+      </div>
 
-      <Popover
-        open={!!anchor}
-        anchorEl={anchor}
-        onClose={() => setAnchor(null)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-      >
-        <Stack direction="row" spacing={2} sx={{ p: 2 }}>
-          <FormControl size="small" sx={{ minWidth: 180 }}>
-            <InputLabel>De</InputLabel>
-            <Select value={from} label="De" onChange={(e) => handleFromChange(e.target.value)}>
+      {open && (
+        <div className="money-popover money-panel" id={panelId}>
+          <label className="money-field">
+            De
+            <select
+              ref={firstField}
+              className="money-select"
+              value={from}
+              onChange={(event) => handleFromChange(event.target.value)}
+            >
               {options.map((opt) => (
-                <MenuItem key={opt.value} value={opt.value}>
+                <option key={opt.value} value={opt.value}>
                   {opt.label}
-                </MenuItem>
+                </option>
               ))}
-            </Select>
-          </FormControl>
-          <FormControl size="small" sx={{ minWidth: 180 }}>
-            <InputLabel>Até</InputLabel>
-            <Select value={to} label="Até" onChange={(e) => handleToChange(e.target.value)}>
+            </select>
+          </label>
+          <label className="money-field">
+            Até
+            <select
+              className="money-select"
+              value={to}
+              onChange={(event) => handleToChange(event.target.value)}
+            >
               {options.map((opt) => (
-                <MenuItem key={opt.value} value={opt.value}>
+                <option key={opt.value} value={opt.value}>
                   {opt.label}
-                </MenuItem>
+                </option>
               ))}
-            </Select>
-          </FormControl>
-        </Stack>
-      </Popover>
-    </>
+            </select>
+          </label>
+        </div>
+      )}
+    </div>
   );
 }

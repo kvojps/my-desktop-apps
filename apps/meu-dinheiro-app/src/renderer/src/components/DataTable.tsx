@@ -1,18 +1,7 @@
-import {
-  Box,
-  Paper,
-  Skeleton,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TableSortLabel,
-  Typography,
-} from '@mui/material';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import { KeyboardEvent, ReactNode } from 'react';
 import { Pagination } from '@/components/Pagination';
+import { Skeleton } from '@/components/Skeleton';
 
 /**
  * Sem `align`: cabeçalho, rótulo e valor vão todos à esquerda (§2.1). A única
@@ -42,8 +31,8 @@ interface DataTableProps<T> {
   onRowClick?: (item: T) => void;
   /**
    * Sem a superfície própria, para quando a tabela já mora dentro de uma —
-   * o `AccordionDetails` das Configurações. Um `Paper` com borda dentro de
-   * outro vira caixa dentro de caixa.
+   * uma seção das Configurações. Uma superfície com borda dentro de outra
+   * vira caixa dentro de caixa.
    */
   flush?: boolean;
   /** Estado vazio completo — ícone, frase e a ação que resolve. */
@@ -93,96 +82,105 @@ export function DataTable<T>({
     // piscar um "nenhum registro" que ainda não é verdade.
     if (isLoading) {
       return Array.from({ length: SKELETON_ROWS }, (_, row) => (
-        <TableRow key={`skeleton-${row}`}>
+        <tr key={`skeleton-${row}`}>
           {Array.from({ length: colSpan }, (_, col) => (
-            <TableCell key={col}>
+            <td key={col}>
               <Skeleton variant="text" width={col === 0 ? '60%' : '40%'} />
-            </TableCell>
+            </td>
           ))}
-        </TableRow>
+        </tr>
       ));
     }
 
     if (totalCount === 0) {
       return (
-        <TableRow>
-          <TableCell colSpan={colSpan} sx={{ borderBottom: 0 }}>
+        <tr>
+          <td colSpan={colSpan} className="money-cell-empty">
             {empty}
-          </TableCell>
-        </TableRow>
+          </td>
+        </tr>
       );
     }
 
     return items.map((item) => (
-      <TableRow
+      <tr
         key={getRowKey(item)}
-        hover
         role={onRowClick ? 'button' : undefined}
         tabIndex={onRowClick ? 0 : undefined}
         aria-label={onRowClick ? getRowLabel?.(item) : undefined}
         onClick={onRowClick ? () => onRowClick(item) : undefined}
         onKeyDown={onRowClick ? (event) => handleRowKeyDown(event, item) : undefined}
-        sx={onRowClick ? { cursor: 'pointer' } : undefined}
       >
         {columns.map((col) => (
-          <TableCell key={col.key}>{col.render(item)}</TableCell>
+          <td key={col.key}>{col.render(item)}</td>
         ))}
         {renderActions && (
           // A ação da linha não pode disparar o clique da linha: "Pagar" abriria
           // o diálogo de pagamento e o de detalhes ao mesmo tempo.
-          <TableCell align="right" onClick={(event) => event.stopPropagation()}>
+          <td className="money-cell-actions" onClick={(event) => event.stopPropagation()}>
             {renderActions(item)}
-          </TableCell>
+          </td>
         )}
-      </TableRow>
+      </tr>
     ));
   }
 
-  // O miolo é o mesmo nos dois modos; só o invólucro muda. Sem a borda do
-  // `Paper`, quem abre e fecha a tabela são a faixa tonal do cabeçalho e a
-  // régua superior do rodapé.
-  const body = (
-    <>
-      <TableContainer>
-        <Table size="small">
-          <TableHead>
-            <TableRow>
-              {columns.map((col) => (
-                <TableCell
-                  key={col.key}
-                  sortDirection={col.sortable && sort?.key === col.key ? sort.direction : false}
-                >
-                  {col.sortable ? (
-                    <TableSortLabel
-                      active={sort?.key === col.key}
-                      direction={sort?.key === col.key ? sort.direction : 'asc'}
-                      onClick={() => onToggleSort?.(col.key)}
-                    >
-                      {col.label}
-                    </TableSortLabel>
-                  ) : (
-                    col.label
-                  )}
-                </TableCell>
-              ))}
-              {renderActions && <TableCell align="right">Ações</TableCell>}
-            </TableRow>
-          </TableHead>
-          <TableBody>{renderBody()}</TableBody>
-        </Table>
-      </TableContainer>
+  return (
+    <div className={flush ? 'money-table-flush' : 'money-panel money-table-panel'}>
+      <div className="money-table-scroll">
+        <table className="money-table">
+          <thead>
+            <tr>
+              {columns.map((col) => {
+                const active = sort?.key === col.key;
+                return (
+                  <th
+                    key={col.key}
+                    scope="col"
+                    aria-sort={
+                      active ? (sort?.direction === 'asc' ? 'ascending' : 'descending') : undefined
+                    }
+                  >
+                    {col.sortable ? (
+                      <button
+                        type="button"
+                        className="money-sort"
+                        data-active={active}
+                        onClick={() => onToggleSort?.(col.key)}
+                      >
+                        {col.label}
+                        {active && sort?.direction === 'asc' ? (
+                          <ChevronUp aria-hidden="true" />
+                        ) : (
+                          <ChevronDown aria-hidden="true" />
+                        )}
+                      </button>
+                    ) : (
+                      col.label
+                    )}
+                  </th>
+                );
+              })}
+              {renderActions && (
+                <th scope="col" className="money-cell-actions">
+                  Ações
+                </th>
+              )}
+            </tr>
+          </thead>
+          <tbody>{renderBody()}</tbody>
+        </table>
+      </div>
 
-      <Box sx={{ px: 2, py: 1.5, borderTop: 1, borderColor: 'divider' }}>
-        <Typography variant="body2" color="text.secondary">
-          {isLoading ? (
-            <Skeleton variant="text" width={180} />
-          ) : totalCount > 0 ? (
-            `Mostrando ${start + 1}–${start + items.length} de ${totalCount} ${footerLabel}`
-          ) : (
-            `Mostrando 0 de 0 ${footerLabel}`
-          )}
-        </Typography>
-      </Box>
+      <div className="money-table-footer">
+        {isLoading ? (
+          <Skeleton variant="text" width={180} />
+        ) : totalCount > 0 ? (
+          `Mostrando ${start + 1}–${start + items.length} de ${totalCount} ${footerLabel}`
+        ) : (
+          `Mostrando 0 de 0 ${footerLabel}`
+        )}
+      </div>
 
       {!isLoading && pagination && (
         <Pagination
@@ -191,8 +189,6 @@ export function DataTable<T>({
           onPageChange={pagination.onPageChange}
         />
       )}
-    </>
+    </div>
   );
-
-  return flush ? <Box>{body}</Box> : <Paper variant="outlined">{body}</Paper>;
 }

@@ -1,7 +1,7 @@
 import { Box, Chip, Skeleton, Stack, Typography } from '@mui/material';
 import type { ComponentType, ReactNode } from 'react';
 import { IconTile } from '@/components/IconTile';
-import type { TileAccent } from '@/components/IconTile';
+import type { TileAccent } from '@/theme/orca';
 
 interface SectionHeaderProps {
   icon: ComponentType<{ sx?: object }>;

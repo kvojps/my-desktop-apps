@@ -54,10 +54,16 @@ Etapa 01 resolvida em 2026-09-12: base local Tailwind/Geist/Lucide, lateral
 recolhível, estados transversais e pintura de janela, preservando as telas MUI.
 [Evidências e limites](issues/01-tema-e-navegacao.md); issue 02 desbloqueada.
 
+Etapa 02 resolvida em 2026-09-12: Visão Geral migrada com cabeçalho,
+indicadores, tabela, paginação, marcadores, ladrilho e dica, mais a memória da
+sessão que arma o retorno ao abrir um Mês. A marcação da lateral por origem
+entrou junto, antes da issue 03, porque a origem passa a existir aqui.
+[Evidências e limites](issues/02-visao-geral.md); issue 03 desbloqueada.
+
 ## Plano de execução
 
-A [spec](spec.md) consolida o escopo aprovado. Issue 01 resolvida; issues 02–06
-permanecem `ready-for-agent`, respeitando a ordem de bloqueio.
+A [spec](spec.md) consolida o escopo aprovado. Issues 01 e 02 resolvidas;
+issues 03–06 permanecem `ready-for-agent`, respeitando a ordem de bloqueio.
 
 | Issue                                | Escopo                                              | Bloqueada por |
 | ------------------------------------ | --------------------------------------------------- | ------------- |
@@ -72,8 +78,9 @@ permanecem `ready-for-agent`, respeitando a ordem de bloqueio.
 
 Nenhuma decisão de produto pendente. Tokens e medições da base estão em
 `apps/meu-dinheiro-app/docs/orca-theme.md`. As validações das telas consumidoras
-continuam nas issues 02–06; a limitação da janela externa mínima e da moldura
-Windows está registrada na issue 01.
+continuam nas issues 03–06; a limitação da janela externa mínima e da moldura
+Windows está registrada na issue 01. A dica de linha em portal, que a tabela
+recorta hoje, ficou anotada para a issue 03, onde as dicas de linha se repetem.
 
 ## Inventário inicial
 
