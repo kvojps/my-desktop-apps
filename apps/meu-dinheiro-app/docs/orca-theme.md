@@ -170,6 +170,25 @@ Nome de item e nome de categoria reticenciam em 220px e 160px: sem teto, um nome
 longo empurra a coluna de ações para fora da faixa e faz a tabela inteira rolar
 por causa de uma linha. O texto completo continua no `title`.
 
+O `StatusChip` na coluna de status (`money-status-cell`) reserva 96px, e o botão
+de ação principal da linha (`money-action-primary`) reserva 100px — o suficiente
+para "Pendente"/"Recebida" com ícone e para "Desmarcar" sem ele, os mais largos
+de cada conjunto. Sem a reserva, cada marcador e cada botão encolhem pro próprio
+rótulo, e a coluna anda em degrau a cada troca de tipo entre as linhas. O mesmo
+`StatusChip` inline no rótulo do mês, na Visão Geral, não leva a classe: ali ele
+não é coluna, e esticá-lo abriria um vão sem sentido ao lado do texto.
+
+Na própria coluna "Mês" da Visão Geral, "Atual" e "N vencidas" seguem o rótulo
+do mês, e um caractere de "Setembro" não pesa o mesmo que um de "Maio" — nem o
+mês corrente, em peso 600, pesa o mesmo que os outros no mesmo texto. Uma
+contagem de caracteres (o truque do `paidFractionWidth`, que serve pro dígito
+tabular da fração de pagas) erraria aqui, então `useMonthLabelWidth` mede o
+rótulo mais largo da coluna **no DOM**, num nó oculto que declara a Geist e
+14px — a mesma técnica do `useTextMeasure` do `meu-negocio-app`, refeita neste
+app porque eles não compartilham código. A remedição espera `document.fonts.ready`:
+a Geist chega depois do primeiro paint, e medir só na fallback do sistema erra
+para menos.
+
 Confirmação destrutiva pinta o botão primário de `danger` com `on-danger` por
 cima (6,62:1 no claro, 7,98:1 no escuro). Desmarcar pagamento ou recebimento
 **não** é destrutivo — o registro continua lá —, e por isso o botão dele é o

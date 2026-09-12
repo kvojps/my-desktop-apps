@@ -87,7 +87,11 @@ export function expenseColumns(today: string): Column<Expense>[] {
     {
       key: 'status',
       label: 'Status',
-      render: (expense) => <ExpenseStatus expense={expense} today={today} />,
+      render: (expense) => (
+        <span className="money-status-cell">
+          <ExpenseStatus expense={expense} today={today} />
+        </span>
+      ),
     },
     {
       key: 'amount',
@@ -113,11 +117,16 @@ export function renderExpenseActions(expense: Expense, actions: ExpenseActions) 
   return (
     <span className="money-row-actions">
       {expense.isPaid ? (
-        <Button onClick={() => actions.onUnpay(expense)} aria-label={`Desmarcar ${expense.name}`}>
+        <Button
+          className="money-action-primary"
+          onClick={() => actions.onUnpay(expense)}
+          aria-label={`Desmarcar ${expense.name}`}
+        >
           Desmarcar
         </Button>
       ) : (
         <Button
+          className="money-action-primary"
           variant="primary"
           onClick={() => actions.onPay(expense)}
           aria-label={`Pagar ${expense.name}`}

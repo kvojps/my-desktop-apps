@@ -25,6 +25,7 @@ import { BALANCE_LABELS, pendingSubtitle, useMonthsBalance } from '@/hooks/month
 import { useMonths } from '@/hooks/months/useMonths';
 import { ROUTES, monthDetailPath } from '@/routes';
 import { formatCurrency } from '@/utils/format';
+import { useMonthLabelWidth } from './hooks/useMonthLabelWidth';
 import { useMonthRows } from './hooks/useMonthRows';
 import { useYearForecast } from './hooks/useYearForecast';
 import { FirstRunGuide } from './components/FirstRunGuide';
@@ -125,6 +126,7 @@ export function DashboardPage() {
   // decide onde cada barra da coluna "Pagas" começa, e medi-la por página faria
   // a coluna mudar de largura a cada navegação.
   const fractionWidth = useMemo(() => paidFractionWidth(rows), [rows]);
+  const labelWidth = useMonthLabelWidth(rows);
 
   const { currentPage, totalPages, start, visible: visibleRows } = pageOf(rows, page);
 
@@ -164,14 +166,24 @@ export function DashboardPage() {
       sortable: true,
       render: (row) => (
         <span className="money-month-cell">
-          <span style={{ fontWeight: row.isCurrent ? 600 : 400 }}>{row.label}</span>
-          {row.isCurrent && <StatusChip label="Atual" color="default" />}
+          <span
+            className="money-month-label"
+            style={{ fontWeight: row.isCurrent ? 600 : 400, minWidth: labelWidth }}
+          >
+            {row.label}
+          </span>
           {row.overdue > 0 && (
             // O valor vencido já vinha do SQL e ficava sem uso: a contagem diz
             // quantas contas atrasaram, mas não se é uma fatura ou um cafezinho.
             // A dica é a desta base desde a issue 03 — ela é desenhada em
             // portal, e a faixa de rolagem da tabela não a recorta mais. O
             // valor vai junto no texto do marcador, e por isso ela é redundante.
+            //
+            // Vem antes de "Atual": os dois só coexistem no mês corrente, e se
+            // "Atual" viesse primeiro só essa linha teria "vencida" empurrada
+            // pra depois dele — desalinhada das outras linhas com vencida, que
+            // não têm "Atual" no caminho. Logo após o rótulo, de largura
+            // reservada, "vencida" cai sempre no mesmo ponto.
             <Tooltip title={`${formatCurrency(row.overdueAmount)} em atraso`} redundant>
               <StatusChip
                 label={`${row.overdue} vencida${row.overdue > 1 ? 's' : ''}`}
@@ -181,6 +193,7 @@ export function DashboardPage() {
               />
             </Tooltip>
           )}
+          {row.isCurrent && <StatusChip label="Atual" color="default" />}
         </span>
       ),
     },

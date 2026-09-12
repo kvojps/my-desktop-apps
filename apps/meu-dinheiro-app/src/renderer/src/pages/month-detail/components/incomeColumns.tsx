@@ -59,7 +59,11 @@ export function incomeColumns(): Column<Income>[] {
     {
       key: 'status',
       label: 'Status',
-      render: (income) => <IncomeStatus income={income} />,
+      render: (income) => (
+        <span className="money-status-cell">
+          <IncomeStatus income={income} />
+        </span>
+      ),
     },
     {
       key: 'amount',
@@ -85,11 +89,16 @@ export function renderIncomeActions(income: Income, actions: IncomeActions) {
   return (
     <span className="money-row-actions">
       {income.isReceived ? (
-        <Button onClick={() => actions.onUnreceive(income)} aria-label={`Desmarcar ${income.name}`}>
+        <Button
+          className="money-action-primary"
+          onClick={() => actions.onUnreceive(income)}
+          aria-label={`Desmarcar ${income.name}`}
+        >
           Desmarcar
         </Button>
       ) : (
         <Button
+          className="money-action-primary"
           variant="primary"
           onClick={() => actions.onReceive(income)}
           aria-label={`Receber ${income.name}`}

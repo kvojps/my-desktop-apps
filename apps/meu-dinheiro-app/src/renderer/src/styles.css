@@ -598,6 +598,19 @@ body {
   border-color: var(--money-border);
   color: var(--money-muted);
 }
+/*
+  A coluna de status empilha "Paga"/"Vencida"/"Pendente"/"Recebida" — cada uma
+  larga o suficiente pro próprio rótulo, e nenhuma pro rótulo mais largo da
+  coluna. Sem reserva, os marcadores desalinham em degrau a cada troca de tipo.
+  96px cobre "Pendente"/"Recebida" com ícone, o mais largo dos quatro; os
+  demais centralizam a sobra. Só o `.money-status-cell` recebe isto — o mesmo
+  chip, inline junto do rótulo do mês na Visão Geral, não é coluna e não deve
+  esticar.
+*/
+.money-status-cell .money-chip {
+  min-width: 96px;
+  justify-content: center;
+}
 
 .money-progress {
   display: flex;
@@ -768,6 +781,18 @@ body {
   align-items: center;
   flex-wrap: wrap;
   gap: 8px;
+}
+/*
+  Sem largura reservada, o rótulo do mês encolhe pro próprio texto e "Atual" /
+  "N vencidas" nascem logo depois dele — em pontos diferentes a cada mês,
+  porque "Setembro" e "Maio" não pesam o mesmo, e o mês corrente nem tem o
+  mesmo peso de fonte dos outros. `labelWidth` (useMonthLabelWidth) mede o
+  rótulo mais largo da coluna e vira `minWidth` inline; o `flex-shrink: 0` aqui
+  é o que impede a linha de comprimir essa reserva de volta quando a faixa
+  aperta — ela só quebra para a linha de baixo (§2.1).
+*/
+.money-month-label {
+  flex-shrink: 0;
 }
 
 /* ---------------------------------------------------------------------------
@@ -1059,6 +1084,16 @@ body {
 .money-row-actions .money-button {
   min-height: 32px;
   padding: 6px 10px;
+}
+/*
+  A ação principal da linha troca de rótulo por tipo — "Pagar"/"Receber" contra
+  "Desmarcar" — e sem largura própria cada botão encolhe pro seu texto, o que
+  faz a coluna de ações andar em zigue-zague a cada troca de estado. 100px cobre
+  "Desmarcar", o mais largo dos três; o menu de três pontos ao lado é ícone puro
+  e fica de fora desta classe de propósito, senão ele também esticaria.
+*/
+.money-action-primary {
+  min-width: 100px;
 }
 
 /* O anexo é um rótulo com cara de botão; o anel de foco precisa vir do input
