@@ -28,6 +28,13 @@
 }
 
 @layer components {
+  /* Substitui a base antes fornecida pelo CssBaseline: largura inclui padding e borda. */
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
   html,
   body,
   #root {
@@ -88,16 +95,11 @@
     flex-shrink: 0;
   }
 
-  .orca-sidebar[data-collapsed='true'] .orca-button {
-    justify-content: center;
-    padding-inline: 0;
-  }
-
   .orca-sidebar .orca-button[aria-current='page']::before {
     content: '';
     position: absolute;
     top: 50%;
-    left: -12px;
+    left: 0;
     width: 3px;
     height: 16px;
     border-radius: 6px;
@@ -244,5 +246,13 @@
     50% {
       opacity: 0.5;
     }
+  }
+}
+
+/* Na mesma camada das classes Tailwind, a especificidade preserva o modo recolhido. */
+@layer utilities {
+  .orca-sidebar[data-collapsed='true'] .orca-button {
+    justify-content: center;
+    padding-inline: 0;
   }
 }
