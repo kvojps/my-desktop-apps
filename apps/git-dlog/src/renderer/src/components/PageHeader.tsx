@@ -1,5 +1,4 @@
-import { Stack, Typography } from '@mui/material';
-import { ReactNode } from 'react';
+import type { ReactNode } from 'react';
 
 interface PageHeaderProps {
   icon: ReactNode;
@@ -14,19 +13,19 @@ interface PageHeaderProps {
  */
 export function PageHeader({ icon, title, subtitle, actions }: PageHeaderProps) {
   return (
-    <Stack direction="row" alignItems="flex-start" justifyContent="space-between" spacing={2}>
-      <Stack direction="row" spacing={1.5} alignItems="center">
+    <header className="orca:flex orca:flex-wrap orca:items-start orca:justify-between orca:gap-3">
+      <div className="orca:flex orca:items-center orca:gap-3">
         {icon}
-        <Stack spacing={0.25}>
-          <Typography variant="h5">{title}</Typography>
+        <div>
+          <h1 className="orca:m-0 orca:text-xl orca:font-bold orca:text-foreground">{title}</h1>
           {subtitle && (
-            <Typography variant="body2" color="text.secondary">
+            <p className="orca:mt-1 orca:mb-0 orca:text-sm orca:text-muted-foreground">
               {subtitle}
-            </Typography>
+            </p>
           )}
-        </Stack>
-      </Stack>
+        </div>
+      </div>
       {actions}
-    </Stack>
+    </header>
   );
 }

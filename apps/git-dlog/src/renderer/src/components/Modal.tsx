@@ -27,7 +27,16 @@ export function Modal({ open, title, children, actions, onClose, onSubmit }: Mod
   );
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
+    <Dialog
+      open={open}
+      onClose={onClose}
+      fullWidth
+      maxWidth="sm"
+      PaperProps={{
+        className:
+          'orca:m-4 orca:w-full orca:max-w-md orca:rounded-lg orca:border orca:border-border orca:bg-paper orca:shadow-lg',
+      }}
+    >
       {onSubmit ? (
         <form
           onSubmit={(event) => {
