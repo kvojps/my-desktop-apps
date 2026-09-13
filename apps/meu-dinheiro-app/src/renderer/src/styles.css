@@ -1028,6 +1028,28 @@ body {
   gap: 16px;
 }
 
+/* Gráficos ---------------------------------------------------------------- */
+
+/*
+  A caixa do gráfico é superfície como a da tabela: sem ela, o conteúdo mudava
+  de "caixa" ao alternar entre gráfico e tabela na mesma aba (§4).
+
+  A rolagem é da caixa e só dela. Gráfico não tem coluna para esconder — abaixo
+  de um piso de largura ele continua desenhado e simplesmente para de ser
+  legível —, então quando a faixa aperta quem anda é o desenho, enquanto as
+  abas, o seletor de modo e os indicadores ficam parados. A altura e o piso de
+  largura são medidas nomeadas em `theme/chartTheme.ts`, porque é a mesma altura
+  que o esqueleto reserva (§5.3).
+*/
+.money-chart-scroll {
+  overflow-x: auto;
+  padding: 16px;
+}
+/* `.money-chart`, a caixa de dentro, não aparece aqui de propósito: a altura e
+   o piso de largura dela são as medidas nomeadas de `theme/chartTheme.ts`,
+   aplicadas inline. O esqueleto lê a mesma altura de lá, e repeti-la no CSS
+   criaria uma segunda fonte da verdade para o que a §5.3 exige que seja uma. */
+
 /* Linha de item ----------------------------------------------------------- */
 
 .money-item-cell {

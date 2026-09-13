@@ -1,0 +1,28 @@
+{
+  "modoPorAba": {
+    "comparativo": "Tabela",
+    "categoriasAoTrocar": "Gráfico",
+    "comparativoAoVoltar": "Tabela"
+  },
+  "retorno": {
+    "aba": "Comparativo",
+    "modo": "Tabela",
+    "tabela": true
+  },
+  "erroAntes": true,
+  "duranteORetry": {
+    "esqueletoNoPainel": false,
+    "erroNoPainel": true,
+    "indicadorEmEsqueleto": false
+  },
+  "depoisDoRetry": {
+    "erro": false,
+    "grafico": true,
+    "tabela": false
+  },
+  "neutro": {
+    "barraOutras": "rgb(117, 117, 117)",
+    "pontoSemCategoria": "rgb(117, 117, 117)",
+    "iguais": true
+  }
+}

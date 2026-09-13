@@ -1,31 +1,9 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { CategoryTotal } from '@shared/types/category';
 import { api } from '@/api/client';
 import { useSnackbar } from '@/contexts/SnackbarContext';
 import { useDataChanged } from '@/hooks/useDataChanged';
-
-export const NEUTRAL_CATEGORY_COLOR = '#9AA0A6';
-const MAX_CHART_CATEGORIES = 7;
-
-export interface CategoryTotalRow {
-  key: string;
-  name: string;
-  color: string;
-  total: number;
-  count: number;
-  percent: number;
-}
-
-function toRow(item: CategoryTotal, total: number): CategoryTotalRow {
-  return {
-    key: item.categoryId ? String(item.categoryId) : 'uncategorized',
-    name: item.name ?? 'Sem categoria',
-    color: item.color ?? NEUTRAL_CATEGORY_COLOR,
-    total: item.total,
-    count: item.count,
-    percent: total > 0 ? (item.total / total) * 100 : 0,
-  };
-}
+import { categoryBreakdown } from './categoryRows';
 
 export function useCategoryTotals(year: number) {
   const { showError } = useSnackbar();
@@ -76,25 +54,10 @@ export function useCategoryTotals(year: number) {
 
   useDataChanged(() => load(true));
 
-  const grandTotal = rows.reduce((sum, r) => sum + r.total, 0);
-  const tableRows = rows.map((r) => toRow(r, grandTotal)).sort((a, b) => b.total - a.total);
+  // O agrupamento é puro e mora em `categoryRows`: o que o hook faz é a leitura
+  // do banco e os três estados dela. Manter as duas coisas juntas era o que
+  // deixava a regra de "sete mais Outras" sem teste.
+  const breakdown = useMemo(() => categoryBreakdown(rows), [rows]);
 
-  const chartRows = tableRows.slice(0, MAX_CHART_CATEGORIES);
-  const rest = tableRows.slice(MAX_CHART_CATEGORIES);
-  if (rest.length > 0) {
-    const restTotal = rest.reduce((sum, r) => sum + r.total, 0);
-    const restCount = rest.reduce((sum, r) => sum + r.count, 0);
-    chartRows.push({
-      key: 'other',
-      name: 'Outras categorias',
-      color: NEUTRAL_CATEGORY_COLOR,
-      total: restTotal,
-      count: restCount,
-      percent: grandTotal > 0 ? (restTotal / grandTotal) * 100 : 0,
-    });
-  }
-
-  const topCategory = tableRows[0] ?? null;
-
-  return { tableRows, chartRows, topCategory, grandTotal, loading, error, retry };
+  return { ...breakdown, loading, error, retry };
 }

@@ -124,14 +124,26 @@ Excluir um padrão só afeta o futuro: os meses já criados continuam intactos.
 
 ### 1.10 Histórico
 
-O Histórico trabalha sobre **um ano por vez**, escolhido no seletor com setas no topo. Três indicadores resumem o ano: **Previsto do ano**, **Total de entradas** e **Total de despesas** — os dois últimos com a **variação percentual contra o ano anterior**, sinalizada conforme o sentido de cada um (gastar mais é ruim, receber mais é bom).
+O Histórico trabalha sobre **um ano por vez**, escolhido no cabeçalho: os três anos mais recentes ficam como atalho e o resto sai numa lista. Quatro indicadores resumem o ano:
 
-Duas abas, cada uma alternável entre **gráfico** e **tabela**:
+| Indicador             | O que é                                                                    |
+| --------------------- | -------------------------------------------------------------------------- |
+| **Previsto do ano**   | entradas − despesas do ano inteiro. O Histórico lê Previsto, não Realizado |
+| **Total de entradas** | com a **variação percentual contra o ano anterior**                        |
+| **Total de despesas** | com a mesma variação, sinalizada ao contrário — gastar mais é ruim         |
+| **Maior categoria**   | quanto foi para ela e o quanto isso pesa nas despesas do ano               |
 
-- **Comparativo** — a linha do saldo previsto mês a mês, com o mês atual destacado por uma faixa de fundo. Cada ponto é verde ou vermelho conforme o sinal do saldo, e clicar nele (ou na linha da tabela) abre aquele mês.
-- **Categorias** — barras horizontais com o total gasto por categoria no ano, da maior para a menor, cada uma na sua cor. O gráfico mostra as **sete maiores** e agrupa o resto em "Outras categorias", porque uma barra de 1% não informa nada e ainda achata as demais; a tabela mostra todas, com valor, percentual e quantidade de despesas.
+A variação só aparece quando há ano anterior com movimento. **Maior categoria** continua no lugar mesmo sem despesa categorizada, com "—" e a razão na legenda: um card que some faria a fileira inteira mudar de forma ao trocar de ano.
 
-Despesas sem categoria não somem: aparecem como "Sem categoria", em cinza neutro.
+Duas abas, cada uma alternável entre **gráfico** e **tabela** pelo botão à
+direita — a escolha vale para a aba visível e cada uma guarda a sua:
+
+- **Comparativo** — entradas e despesas de cada mês em barras, o **Previsto** em linha por cima, com o mês atual marcado por uma linha tracejada escrita "Atual". Só o Previsto negativo é pintado de vermelho; fechar no azul é o estado normal. Clicar num ponto da linha, ou numa linha da tabela, abre aquele mês. A tabela é também o caminho de teclado: o gráfico responde ao ponteiro, ela responde ao Tab e ao Enter.
+- **Categorias** — barras horizontais com o total gasto por categoria no ano, da maior para a menor, cada uma na sua cor. O gráfico mostra as **sete maiores** e agrupa o resto em "Outras categorias", porque uma barra de 1% não informa nada e ainda achata as demais; a tabela mostra todas, com valor, participação e quantidade de despesas.
+
+Despesas sem categoria não somem: aparecem como "Sem categoria", em cinza neutro — o mesmo de "Outras categorias".
+
+Abrir um mês daqui volta para cá: o ano, a aba, o modo e a posição da rolagem são restaurados ao voltar (§1.5).
 
 ### 1.11 Backup: exportar e importar
 

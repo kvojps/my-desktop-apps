@@ -1,0 +1,53 @@
+{
+  "anoPositivo": {
+    "cards": [
+      {
+        "rotulo": "Previsto do ano",
+        "valor": "R$ 8.750,00",
+        "tom": "positive",
+        "legenda": "Positivo"
+      },
+      {
+        "rotulo": "Total de entradas",
+        "valor": "R$ 8.750,00",
+        "tom": "neutral"
+      },
+      {
+        "rotulo": "Total de despesas",
+        "valor": "R$ 0,00",
+        "tom": "neutral"
+      },
+      {
+        "rotulo": "Maior categoria",
+        "valor": "—",
+        "tom": "neutral",
+        "legenda": "sem despesas categorizadas"
+      }
+    ],
+    "contrastePositivo": 7.77
+  },
+  "marcadorAtual": {
+    "em2024": false,
+    "em2026": {
+      "presente": true,
+      "contraste": 4.93
+    }
+  },
+  "legendaDoGrafico": [
+    {
+      "texto": "Despesas",
+      "cor": "rgb(144, 133, 233)",
+      "contraste": 5.73
+    },
+    {
+      "texto": "Entradas",
+      "cor": "rgb(12, 163, 12)",
+      "contraste": 5.34
+    },
+    {
+      "texto": "Previsto",
+      "cor": "rgb(57, 135, 229)",
+      "contraste": 4.93
+    }
+  ]
+}

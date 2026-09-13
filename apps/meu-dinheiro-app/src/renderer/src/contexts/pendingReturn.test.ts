@@ -3,7 +3,7 @@ import { type PendingReturn, returnFor } from './pendingReturn';
 
 const pending: PendingReturn = {
   view: 'history',
-  query: { year: 2025, tab: 'categories' },
+  query: { year: 2025, tab: 'categories', mode: 'chart' },
   scroll: 120,
 };
 

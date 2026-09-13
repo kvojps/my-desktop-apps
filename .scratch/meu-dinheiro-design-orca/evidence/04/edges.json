@@ -1,0 +1,37 @@
+{
+  "seletorDeAno": {
+    "atalhos": ["2024", "2025", "2026", "Outro ano"],
+    "temPainel": true
+  },
+  "painelDeAno": {
+    "aberto": true,
+    "foco": "SELECT",
+    "opcoes": ["2026", "2025", "2024", "2023"]
+  },
+  "anoSemDados": {
+    "subtitulo": "1 mês em 2023",
+    "indicadores": [
+      "R$ 0,00 | Positivo",
+      "R$ 0,00 | ",
+      "R$ 0,00 | ",
+      "— | sem despesas categorizadas"
+    ],
+    "variacoes": 0,
+    "painelFechado": true,
+    "anoMarcado": "true"
+  },
+  "anoSemDadosTabela": {
+    "linhas": [["Dezembro 2023", "R$ 0,00", "R$ 0,00", "R$ 0,00"]],
+    "rodape": "Mostrando 1–1 de 1 meses"
+  },
+  "categoriasVazias": {
+    "vazio": "Nenhuma despesa categorizada em 2023.",
+    "descricao": "Despesas ganham categoria no cadastro, e é ela que alimenta esta aba.",
+    "temTabela": false,
+    "temGrafico": false
+  },
+  "comparativo2024": {
+    "barras": 0,
+    "marcadorAtual": false
+  }
+}

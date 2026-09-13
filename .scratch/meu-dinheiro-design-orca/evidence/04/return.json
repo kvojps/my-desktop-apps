@@ -1,0 +1,43 @@
+{
+  "antesDeSair": {
+    "rota": "#/history",
+    "ano": "2025",
+    "aba": "Categorias",
+    "modo": "Tabela",
+    "rolagem": 49,
+    "lateral": "Histórico"
+  },
+  "consulta": {
+    "rota": "#/history",
+    "ano": "2025",
+    "aba": "Comparativo",
+    "modo": "Tabela",
+    "rolagem": 37,
+    "lateral": "Histórico"
+  },
+  "noMes": {
+    "rota": "#/months/4",
+    "titulo": "Março 2025",
+    "lateral": "Histórico"
+  },
+  "mesAnterior": {
+    "titulo": "Fevereiro 2025",
+    "lateral": "Histórico"
+  },
+  "aoVoltar": {
+    "rota": "#/history",
+    "ano": "2025",
+    "aba": "Comparativo",
+    "modo": "Tabela",
+    "rolagem": 37,
+    "lateral": "Histórico"
+  },
+  "pelaLateral": {
+    "rota": "#/history",
+    "ano": "2026",
+    "aba": "Comparativo",
+    "modo": "Gráfico",
+    "rolagem": 0,
+    "lateral": "Histórico"
+  }
+}

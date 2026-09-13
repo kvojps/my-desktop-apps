@@ -1,0 +1,60 @@
+{
+  "comparativoTabela": {
+    "colunas": ["Mês", "Entradas", "Despesas", "Previsto"],
+    "linhas": 9,
+    "primeira": ["Janeiro 2026", "R$ 5.240,00", "R$ 6.388,40", "-R$ 1.148,40"],
+    "atual": ["Setembro 2026Atual"],
+    "rodape": "Mostrando 1–9 de 9 meses",
+    "clicavel": "button",
+    "rotuloLinha": "Abrir Janeiro 2026"
+  },
+  "comparativoGrafico": {
+    "barras": 16,
+    "pontos": 0,
+    "eixoX": [],
+    "legenda": ["Despesas", "Entradas", "Previsto"],
+    "atual": true
+  },
+  "categoriasGrafico": {
+    "barras": 8,
+    "nomes": [],
+    "rotulos": [
+      "R$ 26.401,99",
+      "R$ 7.091,00",
+      "R$ 6.531,00",
+      "R$ 5.971,00",
+      "R$ 5.411,00",
+      "R$ 4.851,00",
+      "R$ 4.291,00",
+      "R$ 13.303,20"
+    ]
+  },
+  "categoriasTabela": {
+    "colunas": ["Categoria", "Total", "Participação", "Despesas"],
+    "linhas": 12,
+    "todas": [
+      "Moradia",
+      "Alimentação",
+      "Transporte",
+      "Saúde",
+      "Educação",
+      "Lazer",
+      "Assinaturas",
+      "Compras",
+      "Contas e Serviços",
+      "Outros",
+      "Manutenção predial e condomínio do apartamento",
+      "Sem categoria"
+    ],
+    "somaPercentual": "100.1",
+    "rodape": "Mostrando 1–12 de 12 categorias",
+    "clicavel": null
+  },
+  "anoMaisAntigo": {
+    "ano": "2 meses em 2024",
+    "variacoes": 0,
+    "aba": "Categorias",
+    "modo": "Tabela",
+    "linhas": 0
+  }
+}

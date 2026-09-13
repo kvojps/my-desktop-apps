@@ -1,0 +1,28 @@
+{
+  "falhaDeCategorias": {
+    "papelDoBloco": "alert",
+    "titulo": "Não foi possível carregar as categorias",
+    "acoes": ["Tentar novamente", "Restaurar backup", "Abrir pasta de dados"],
+    "indicadoresVivos": [
+      "Previsto do ano = -R$ 32.243,35",
+      "Total de entradas = R$ 56.387,60",
+      "Total de despesas = R$ 88.630,95",
+      "Maior categoria = —"
+    ],
+    "legendaDaMaiorCategoria": "não foi possível ler as categorias",
+    "subtitulo": "12 meses em 2025",
+    "abasAlcancaveis": ["Comparativo", "Categorias"],
+    "lateralAlcancavel": 3
+  },
+  "comparativoDurantAFalha": {
+    "grafico": true,
+    "barras": 24,
+    "erro": true
+  },
+  "recuperado": {
+    "erro": false,
+    "grafico": true,
+    "barras": 8,
+    "maiorCategoria": "Moradia · 31.9% das despesas"
+  }
+}

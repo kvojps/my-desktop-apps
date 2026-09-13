@@ -1,0 +1,31 @@
+{
+  "carregamento": {
+    "carregando": {
+      "esqueletos": 19,
+      "altura": 676,
+      "cards": 4
+    },
+    "prontaAntes": {
+      "altura": 676,
+      "cards": 4
+    },
+    "prontaDepois": {
+      "altura": 676
+    },
+    "saltoEmPx": 0
+  },
+  "pisoDeLargura": {
+    "larguraDaCaixa": 471,
+    "larguraDoGrafico": 560,
+    "rolaHorizontal": true,
+    "paginaRola": false,
+    "controlesVisiveis": true,
+    "alturaDoGrafico": 380
+  },
+  "rolagem": {
+    "antes": 212,
+    "noMes": "#/months/18",
+    "depois": 212,
+    "modo": "Tabela"
+  }
+}

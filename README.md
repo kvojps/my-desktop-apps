@@ -170,8 +170,9 @@ Preflight, componentes locais, Geist e Lucide, conforme os
 [tokens locais](apps/git-dlog/docs/orca-theme.md); ele não usa MUI ou Emotion.
 O Meu Dinheiro tem uma [migração incremental aprovada](.scratch/meu-dinheiro-design-orca/spec.md)
 para Tailwind sem Preflight, componentes locais, Geist e Lucide. A base de
-navegação, os estados transversais, a Visão Geral e o detalhe de Mês — com a
-camada de diálogos, campos e menus que ele trouxe — estão implementados, com
+navegação, os estados transversais, a Visão Geral, o detalhe de Mês — com a
+camada de diálogos, campos e menus que ele trouxe — e o Histórico, com o módulo
+de tema de gráfico, estão implementados, com
 valores nos [tokens locais](apps/meu-dinheiro-app/docs/orca-theme.md).
 Nele, MUI/Material Icons permanecem nas superfícies não migradas;
 as prescrições de biblioteca, ícones e tema abaixo admitem a substituição local

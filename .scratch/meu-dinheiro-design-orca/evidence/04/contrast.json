@@ -1,0 +1,174 @@
+{
+  "#ffffff": {
+    "comparativo": {
+      "tick do eixo": 5.74,
+      "rótulo da legenda (cor da série)": 8.56,
+      "rótulo \"Atual\"": 4.88,
+      "barra de Entradas": 5.32,
+      "barra de Despesas": 5.32,
+      "linha de Previsto": 4.88,
+      "ponto de Previsto": 4.89,
+      "linha do mês corrente": 4.88,
+      "grade sobre o papel": 1.26,
+      "rótulo do tooltip": 19.8,
+      "item do tooltip": 19.8,
+      "borda do tooltip": 1.26
+    },
+    "tabelaComparativo": {
+      "cabeçalho da tabela": 5.27,
+      "valor na célula": 19.8,
+      "Previsto negativo": 6.57,
+      "marcador Atual": 5.74,
+      "rodapé da tabela": 5.74
+    },
+    "categorias": {
+      "nome no eixo": 5.74,
+      "valor ao lado da barra": 5.74,
+      "barras": [
+        {
+          "categoria": "Moradia",
+          "cor": "rgb(92, 107, 192)",
+          "contraste": 4.86
+        },
+        {
+          "categoria": "Alimentação",
+          "cor": "rgb(251, 140, 0)",
+          "contraste": 2.37
+        },
+        {
+          "categoria": "Transporte",
+          "cor": "rgb(30, 136, 229)",
+          "contraste": 3.68
+        },
+        {
+          "categoria": "Saúde",
+          "cor": "rgb(229, 57, 53)",
+          "contraste": 4.23
+        },
+        {
+          "categoria": "Educação",
+          "cor": "rgb(123, 31, 162)",
+          "contraste": 8.2
+        },
+        {
+          "categoria": "Lazer",
+          "cor": "rgb(67, 160, 71)",
+          "contraste": 3.3
+        },
+        {
+          "categoria": "Assinaturas",
+          "cor": "rgb(0, 172, 193)",
+          "contraste": 2.74
+        },
+        {
+          "categoria": "Outras categorias",
+          "cor": "rgb(117, 117, 117)",
+          "contraste": 4.61
+        }
+      ]
+    },
+    "tabelaCategorias": {
+      "nome da categoria": 19.8,
+      "ponto da categoria (marca)": 4.86,
+      "ponto de Sem categoria (marca)": 4.61,
+      "participação": 19.8,
+      "quantidade": 19.8
+    },
+    "controles": {
+      "modo selecionado": 18.16,
+      "modo não selecionado": 5.74,
+      "ano selecionado": 18.16,
+      "ano não selecionado": 5.74,
+      "legenda do indicador": 5.74,
+      "variação do indicador": 6.57,
+      "valor em alerta do indicador": 6.57,
+      "valor positivo do indicador": null
+    }
+  },
+  "#171717": {
+    "comparativo": {
+      "tick do eixo": null,
+      "rótulo da legenda (cor da série)": null,
+      "rótulo \"Atual\"": null,
+      "barra de Entradas": null,
+      "barra de Despesas": null,
+      "linha de Previsto": null,
+      "ponto de Previsto": null,
+      "linha do mês corrente": null,
+      "grade sobre o papel": null,
+      "rótulo do tooltip": null,
+      "item do tooltip": null,
+      "borda do tooltip": null
+    },
+    "tabelaComparativo": {
+      "cabeçalho da tabela": 5.86,
+      "valor na célula": 17.18,
+      "Previsto negativo": 7.85,
+      "marcador Atual": 6.94,
+      "rodapé da tabela": 6.94
+    },
+    "categorias": {
+      "nome no eixo": 6.94,
+      "valor ao lado da barra": 6.94,
+      "barras": [
+        {
+          "categoria": "Moradia",
+          "cor": "rgb(92, 107, 192)",
+          "contraste": 3.69
+        },
+        {
+          "categoria": "Alimentação",
+          "cor": "rgb(251, 140, 0)",
+          "contraste": 7.56
+        },
+        {
+          "categoria": "Transporte",
+          "cor": "rgb(30, 136, 229)",
+          "contraste": 4.87
+        },
+        {
+          "categoria": "Saúde",
+          "cor": "rgb(229, 57, 53)",
+          "contraste": 4.24
+        },
+        {
+          "categoria": "Educação",
+          "cor": "rgb(123, 31, 162)",
+          "contraste": 2.19
+        },
+        {
+          "categoria": "Lazer",
+          "cor": "rgb(67, 160, 71)",
+          "contraste": 5.43
+        },
+        {
+          "categoria": "Assinaturas",
+          "cor": "rgb(0, 172, 193)",
+          "contraste": 6.55
+        },
+        {
+          "categoria": "Outras categorias",
+          "cor": "rgb(117, 117, 117)",
+          "contraste": 3.89
+        }
+      ]
+    },
+    "tabelaCategorias": {
+      "nome da categoria": 17.18,
+      "ponto da categoria (marca)": 3.69,
+      "ponto de Sem categoria (marca)": 3.89,
+      "participação": 17.18,
+      "quantidade": 17.18
+    },
+    "controles": {
+      "modo selecionado": 14.5,
+      "modo não selecionado": 6.94,
+      "ano selecionado": 14.5,
+      "ano não selecionado": 6.94,
+      "legenda do indicador": 6.94,
+      "variação do indicador": 7.85,
+      "valor em alerta do indicador": 7.85,
+      "valor positivo do indicador": null
+    }
+  }
+}

@@ -14,12 +14,14 @@ Documento registrado antes da alteração de UI da issue 01, sob a exceção em
 fundo da janela; a issue 02 acrescentou a Visão Geral e os componentes que ela
 compartilha — cabeçalho de tela, indicadores, tabela, paginação, marcadores,
 ladrilho e dica. A issue 03 acrescentou o detalhe de Mês e a camada de
-diálogos, campos de formulário, menu de ações e abas. Telas, gráficos e diálogos ainda MUI mantêm seu tema normativo
+diálogos, campos de formulário, menu de ações e abas, e a issue 04 o Histórico
+com o tema de gráfico, a caixa de gráfico e as duas tabelas de leitura do ano.
+Telas e diálogos ainda MUI mantêm seu tema normativo
 (inclusive Inter, raios 12/8 e cores), e passam a exibir esses componentes
 migrados. Cada superfície migrada declara sua fonte e cores; Tailwind v4 usa
 prefixo `ui`, sem Preflight. Não há imports entre apps. O CssBaseline MUI
 permanece durante a coexistência, assim como o fundo MUI da faixa de conteúdo —
-trocá-lo enquanto Histórico, Mês e Configurações são MUI deixaria essas telas
+trocá-lo enquanto Configurações é MUI deixaria essa tela
 sem o fundo que suas superfícies assumem. A troca fica para a issue 06.
 
 ## Tokens locais
@@ -110,7 +112,7 @@ Conteúdo com padding 24px e teto 1440px, rolagem independente, container `conte
 A 960px, sobram aproximadamente 688px expandida e 848px recolhida (antes da
 barra de rolagem); a 1280px, 1008px e 1168px. Mantêm-se consultas de conteúdo
 640/1000px das telas existentes; não trocar por breakpoints de viewport.
-As dimensões de gráficos e skeletons existentes permanecem na issue consumidora.
+As dimensões de gráfico e do esqueleto dele estão na seção de gráficos, abaixo.
 Estado vazio: padding 48px vertical/16px horizontal, gap 12px, descrição até 420px.
 Erro: largura até 560px, margem superior 64px na página/zero na seção.
 Notificação: fixa a 24px do rodapé, largura até 560px ou viewport menos 48px,
@@ -202,13 +204,89 @@ preload injeta o modo antes do primeiro render. Tokens CSS são aplicados em
 layout effect antes da pintura. O fundo de conteúdo MUI continua com a paleta
 antiga durante esta etapa, isolado do fundo nativo e da navegação.
 
-## Gráficos — reserva para issue 04
+## Gráficos — issue 04
 
-Não aplicar paleta nova a gráficos nesta etapa. Na migração: eixos `muted`,
-tooltip `foreground` sobre `paper`, grade `border`; medir marcas em 3:1 e textos
-em 4,5:1 nas superfícies reais. Preservar cores de categorias do usuário, as
-identidades dos indicadores e o segundo canal (rótulo/forma/posição). Cores
-semânticas e categóricas serão medidas novamente ao migrar as séries.
+Tudo que o Recharts desenha sai de `theme/chartTheme.ts`, e nada dele é CSS: o
+tooltip é DOM próprio com cores inline, e eixo, grade, legenda e série recebem
+cor por prop. Por isso a paleta desce **resolvida** (`tileFill(accent, mode)`) e
+não como `var()` — traço e preenchimento do Recharts são atributos de
+apresentação, e atributo de apresentação não resolve variável.
+
+| Objeto                       | Token                         | Claro     | Escuro    |
+| ---------------------------- | ----------------------------- | --------- | --------- |
+| Eixo, tick e rótulo de valor | `muted`                       | `#666666` | `#a1a1a1` |
+| Grade e linha do zero        | `border`                      | `#e5e5e5` | `#272727` |
+| Faixa sob o cursor           | `accent`                      | `#f5f5f5` | `#262626` |
+| Tooltip: fundo/borda/texto   | `paper`/`border`/`foreground` | —         | —         |
+| Série "Entradas"             | ladrilho `success`            | `#0a7d0a` | `#0ca30c` |
+| Série "Despesas"             | ladrilho `secondary`          | `#4a3aa7` | `#9085e9` |
+| Série "Previsto" e "Atual"   | ladrilho `primary`            | `#2771ca` | `#3987e5` |
+| Ponto de Previsto negativo   | ladrilho `error`              | `#cf3939` | `#d85b5b` |
+| "Sem categoria"/"Outras"     | `CATEGORY_NEUTRAL`            | `#757575` | `#757575` |
+
+Cada série herda o `accent` do indicador que ela resume: as barras saem nas
+cores dos `StatCard` logo acima delas, e a linha do Previsto na do card de
+Previsto. `primary` encosta em `secondary`, o par que a §1.7 manda separar — o
+que os separa aqui é **forma** antes de cor: barra contra linha, mais a legenda.
+
+Três decisões que a §1.7 cobra e que ficam medidas abaixo:
+
+- **O rótulo da legenda sai na cor da série**, porque é o Recharts que o escreve
+  inline e porque é o que a §1.7 espera ("a cor da série identifica a série na
+  legenda"). Isso faz da legenda um medidor: ali a cor da série é texto pequeno
+  e cobra 4,5:1. As três passam nos dois modos — e é por isso que âmbar não pode
+  ser série, não só por ser preenchimento.
+- **O texto do tooltip é `foreground`**, mesmo com série colorida: dentro dele a
+  cor viraria texto sobre papel, onde as séries que passam em 3:1 não passam.
+  Os três objetos de estilo (`contentStyle`, `labelStyle`, `itemStyle`) vêm
+  juntos porque o Recharts escreve `color: entry.color || '#000'` em cada linha.
+- **O valor da barra de categoria fica ao lado dela, nunca dentro.** Dentro, ele
+  seria rótulo sobre um preenchimento que o app não escolheu, e passaria a
+  depender de medir cada cor de categoria (§1.8); fora, é texto sobre o papel,
+  com par por modo conhecido. Quem identifica a barra é o nome no eixo.
+
+`CATEGORY_NEUTRAL` mudou de `#9AA0A6` para `#757575`. O antigo é um dos quatro
+que a §1.7 lista como falha — 2,64:1 contra o papel claro —, e essas duas linhas
+são as únicas cuja cor o **app** escolhe: não há usuário a quem atribuir a
+falha, então vale a lista estreita, que passa nos dois modos (4,61:1 e 3,89:1).
+
+### Dimensões de gráfico
+
+`CHART_HEIGHT` de 380px, constante e nomeada porque é ela que o esqueleto
+reserva (§5.3); derivá-la do número de barras faria a página saltar ao trocar de
+ano. A caixa tem 16px de padding sobre a superfície `money-panel`, e o esqueleto
+reserva **a caixa**, não a altura do desenho — com 380 onde entram 412 a página
+dava um passo de 4px ao chegarem os dados; com a caixa inteira o passo é zero.
+As alturas soltas do esqueleto de carregamento (50px de cabeçalho, 34px da
+fileira de abas) são as medidas reais desta tela, pela mesma razão.
+
+`CHART_MIN_WIDTH` de 560px é o piso de largura: abaixo dele quem rola é a caixa
+do gráfico, na horizontal, e só ela. Gráfico não tem coluna para esconder —
+espremido ele continua desenhado e para de ser legível. A 960 × 640 com a
+lateral aberta a caixa mede 639px, então o piso não chega a valer ali; a 760px
+de janela ele engaja, o desenho mantém 560px e as abas, o seletor de modo e os
+indicadores ficam parados.
+
+`GRID_DASH` (3 3) é a grade; `CURRENT_DASH` (4 4), mais longo, é o marcador de
+"hoje", para não se confundir com ela; `FORECAST_DASH` (3 3) é a previsão do
+`spark` do `StatCard`, o segundo canal que separa previsto de realizado.
+
+### Movimento e teclado no gráfico
+
+**O Recharts não anima em CSS.** Ele interpola em JavaScript, quadro a quadro,
+fora do alcance do bloco `prefers-reduced-motion` que desliga transição e
+animação no tema. Quem respeita a preferência é cada série, por
+`isAnimationActive`, e a resposta mora no tema (`chart.animate`) em vez de em
+cada gráfico — ela é lida por assinatura, porque muda no sistema com a tela
+aberta.
+
+**Os dois gráficos desligam a camada de acessibilidade do Recharts**
+(`accessibilityLayer={false}`). Ela põe `tabindex="0"` no `<svg>` e entrega ao
+leitor de tela o texto inteiro dos eixos numa tirada só, dentro de uma caixa que
+já é `role="img"` com nome próprio — um focável dentro de uma subárvore
+apresentacional. O caminho de teclado para os mesmos números é a alternativa em
+tabela, onde cada linha é um controle de verdade: é ela que encerra a pendência
+da issue 03, o Histórico sem jeito de abrir um Mês sem ponteiro.
 
 ## Evidências
 
@@ -285,6 +363,42 @@ marca 3,19:1 (a borda do campo de busca sobre o fundo da faixa de conteúdo). O
 ponto de categoria é cor escolhida pelo usuário entre os dez swatches do design
 system (§1.7); o medido acima é o primeiro deles. Relatórios em
 [evidence/03](../../../.scratch/meu-dinheiro-design-orca/evidence/03/).
+
+### Medições da issue 04 (superfícies reais, Electron)
+
+| Par                                          | Claro            | Escuro           |
+| -------------------------------------------- | ---------------- | ---------------- |
+| Tick e rótulo de valor sobre o gráfico       | 5,74:1           | 6,94:1           |
+| Rótulo da legenda (cor da série, como texto) | 4,88–8,56:1      | 4,93–5,73:1      |
+| Rótulo "Atual" sobre o gráfico               | 4,88:1           | 4,93:1           |
+| Barra de Entradas / de Despesas (marca)      | 5,32:1           | 5,34:1           |
+| Linha e marcador do mês corrente (marca)     | 4,88:1           | 4,93:1           |
+| Ponto de Previsto negativo (marca)           | 4,89:1           | 4,75:1           |
+| Rótulo e itens do tooltip                    | 19,80:1          | 17,18:1          |
+| Cabeçalho / célula da tabela                 | 5,27:1 / 19,80:1 | 5,86:1 / 17,18:1 |
+| Previsto negativo na tabela                  | 6,57:1           | 7,85:1           |
+| Marcador "Atual" na tabela                   | 5,74:1           | 6,94:1           |
+| Nome, participação e quantidade de categoria | 19,80:1          | 17,18:1          |
+| Ponto de "Sem categoria" (marca)             | 4,61:1           | 3,89:1           |
+| Modo e ano selecionados / não selecionados   | 18,16:1 / 5,74:1 | 14,50:1 / 6,94:1 |
+| Valor positivo / em alerta do indicador      | 6,06:1 / 6,57:1  | 7,77:1 / 7,85:1  |
+
+Menor par de texto 4,88:1 (o rótulo "Previsto" na legenda, no claro); menor
+marca 3,89:1 (o ponto de "Sem categoria", no escuro). A grade fica em 1,26:1 e
+1,20:1 por ser decorativa, como toda borda desta base.
+
+**Limitação registrada: três das dez categorias que o app semeia falham o 3:1
+de marca em um dos modos** — `Alimentação` `#FB8C00` (2,37:1 no claro),
+`Assinaturas` `#00ACC1` (2,74:1 no claro) e `Educação` `#7B1FA2` (2,19:1 no
+escuro). São os swatches que a §1.7 já lista como falha, e eles chegam ao banco
+pela migração `categories`, que não pode ser editada nem reescrita — os bancos
+instalados já têm essas cores, e a issue preserva cor cadastrada sem reescrever
+dado. A cor não é o canal de identidade aqui: o nome de cada barra está no eixo,
+o valor ao lado dela, e a tabela repete os dois. A paleta oferecida no cadastro
+é assunto da issue 05.
+
+Relatórios em
+[evidence/04](../../../.scratch/meu-dinheiro-design-orca/evidence/04/).
 
 Validação Electron e capturas em
 [Comments da issue 01](../../../.scratch/meu-dinheiro-design-orca/issues/01-tema-e-navegacao.md)

@@ -7,8 +7,9 @@ import type { HistoryQuery } from '@/contexts/pendingReturn';
  * O ano é a parte que pode não sobreviver — excluir a última competência de
  * 2025 leva o ano inteiro embora —, e pedir um ano que não existe mais deixaria
  * a tela sem indicador nenhum sem dizer por quê. Nesse caso responde o ano mais
- * recente, que é o mesmo padrão de quem chega à tela. A aba atravessa: ela é
- * escolha de leitura, não recorte de dado.
+ * recente, que é o mesmo padrão de quem chega à tela. A aba e o modo
+ * atravessam: os dois são escolha de leitura, não recorte de dado — nenhum
+ * deles pode deixar de existir porque um mês foi excluído.
  *
  * `years` vem em ordem decrescente, como a tela os lista.
  * Devolve `null` quando não há retorno pendente — a tela então deriva o padrão.

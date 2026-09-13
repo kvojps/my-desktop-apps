@@ -9,10 +9,15 @@ export interface DashboardQuery {
   page: number;
 }
 
-/** O mesmo para o Histórico: o ano consultado e a aba em que ele foi lido. */
+/**
+ * O mesmo para o Histórico: o ano consultado, a aba em que ele foi lido e se
+ * **essa aba** estava em gráfico ou em tabela. A escolha de leitura é de cada
+ * aba, e o que o retorno precisa restaurar é a da aba que fica visível.
+ */
 export interface HistoryQuery {
   year: number;
   tab: string;
+  mode: string;
 }
 
 /** A consulta que cada origem guarda. O `view` escolhe o formato. */

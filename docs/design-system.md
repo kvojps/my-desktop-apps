@@ -39,8 +39,7 @@ issue 02 migrou a Visão Geral com os componentes que ela compartilha —
 o detalhe de Mês e, com ele, a camada de diálogos: `Modal`, `ConfirmDialog`,
 `ActionsMenu`, `CategoryTag`, `FileUploadButton`, `Tabs` e um conjunto de campos
 (`Field`/`FieldGroup`, `TextInput`, `TextArea`, `SelectInput`, `BankAccountField`). Esses componentes
-aparecem também no Histórico, no Mês e em Configurações, que continuam MUI no
-resto até suas issues. Neles, a §3.1 vale pelo comportamento e não pela
+aparecem também em Configurações, que continua MUI no resto até a sua issue. Neles, a §3.1 vale pelo comportamento e não pela
 biblioteca: `IconTile` continua quadrado, `StatusChip` continua carregando
 ícone, `DataTable` continua trazendo a própria superfície e a própria
 paginação, e a coluna de ações continua sendo do componente. Uma troca é
@@ -49,6 +48,35 @@ zebra da §2 — a zebra depende do azul e da tinta do tema antigo, e a superfí
 neutra separa por borda. A fileira de indicadores passou a decidir colunas por
 largura de conteúdo (§2.2) em vez de breakpoint de janela, e a dica passou a
 aparecer no foco além do hover.
+
+A issue 04 migrou o Histórico e, com ele, o **módulo de tema de gráfico** que a
+§1.7 exige — eixo, grade, legenda, tooltip, séries e as medidas nomeadas de
+altura e piso de largura do gráfico. Junto vieram `ChartFrame`/`ChartSkeleton`,
+o seletor Gráfico/Tabela e as duas tabelas de leitura do ano; o `Tabs` da issue
+03 subiu para `components/` ao ganhar a segunda tela. Dela saem três decisões
+que valem para qualquer gráfico da base migrada:
+
+- **Gráfico do Recharts não respeita `prefers-reduced-motion` sozinho.** O bloco
+  da §5.2 desliga animação e transição de CSS, e o Recharts interpola em
+  JavaScript, fora do alcance dele. Quem respeita a preferência é cada série,
+  por `isAnimationActive`, e a resposta vem do módulo de tema — assinada, não
+  lida uma vez na montagem.
+- **O gráfico é uma imagem com nome acessível, e a tabela é o caminho de
+  teclado.** A camada de acessibilidade do Recharts põe `tabindex="0"` no `<svg>`
+  e lê o texto inteiro dos eixos numa tirada só; desligá-la e nomear a caixa com
+  `role="img"` diz o que o desenho mostra, enquanto a alternativa em tabela dá
+  linhas que são controles de verdade. Um gráfico cuja única interação é o
+  ponteiro **precisa** dessa alternativa (§5.5).
+- **O esqueleto reserva a caixa do gráfico, não a altura do desenho.** A
+  superfície tem padding, e reservar só os 380px onde entram 412 é o mesmo salto
+  de layout que a §5.3 existe para evitar, adiado em um quadro.
+
+E uma correção de valor: o cinza de "Sem categoria"/"Outras categorias" era
+`#9AA0A6`, um dos quatro que a §1.7 lista como falha (2,64:1 no claro). Essas
+duas linhas são as únicas cuja cor o **app** escolhe, então valem a lista
+estreita da §1.7 e passaram a `#757575`. As cores cadastradas das categorias
+continuam intactas — inclusive três das dez semeadas pela migração, que falham
+o 3:1 em um dos modos e estão registradas como limitação nos tokens locais.
 
 Da issue 03 saem quatro decisões que valem enquanto a base migrada existir, e
 que estão medidas nos [tokens locais](../apps/meu-dinheiro-app/docs/orca-theme.md):
@@ -602,8 +630,11 @@ vence** — ele existe justamente para carregar a regra.
 
 - **`IconTile` é quadrado.** `Avatar` é redondo, e 50% de raio não existe em lugar
   nenhum do app. Ícone dentro de bloco vai em ladrilho, com `CONTROL_RADIUS`.
-- **`StatusChip` sempre carrega ícone.** É o segundo canal que a §1.7 exige; um
-  `Chip` cru colorido por estado perde exatamente isso.
+- **`StatusChip` sempre carrega ícone** — enquanto ele colore. É o segundo canal
+  que a §1.7 exige; um `Chip` cru colorido por estado perde exatamente isso. A
+  variante `default` é a exceção que a própria razão da regra abre: ela não tem
+  cor de estado, é contorno e texto neutro, e não há primeiro canal para o ícone
+  duplicar. É o "Atual" do mês corrente, na Visão Geral e no Histórico.
 - **`Modal` no lugar de `Dialog` cru** para formulário e detalhe. `ConfirmDialog` é
   a exceção deliberada: ele é cru porque precisa bloquear o fechamento durante a
   ação.

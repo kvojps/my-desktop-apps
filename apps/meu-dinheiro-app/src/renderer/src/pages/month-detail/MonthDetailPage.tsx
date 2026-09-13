@@ -24,6 +24,7 @@ import { Field, SelectInput } from '@/components/Field';
 import { PageHeader } from '@/components/PageHeader';
 import { Skeleton } from '@/components/Skeleton';
 import { StatCard, StatCardGrid, StatCardSkeleton } from '@/components/StatCard';
+import { Tabs } from '@/components/Tabs';
 import { useNavigationMemory } from '@/contexts/NavigationContext';
 import { useBankAccounts } from '@/hooks/bank-accounts/useBankAccounts';
 import { useCategories } from '@/hooks/categories/useCategories';
@@ -48,7 +49,6 @@ import { ItemActionDialogs } from './components/ItemActionDialogs';
 import { ItemsTab } from './components/ItemsTab';
 import { PayDialog } from './components/PayDialog';
 import { ReceiveDialog } from './components/ReceiveDialog';
-import { Tabs } from './components/Tabs';
 import {
   expenseColumns,
   isExpenseOverdue,

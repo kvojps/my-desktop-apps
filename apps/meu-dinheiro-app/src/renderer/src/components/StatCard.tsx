@@ -4,6 +4,7 @@ import { Line, LineChart, ResponsiveContainer, YAxis } from 'recharts';
 import { IconTile } from '@/components/IconTile';
 import { Skeleton } from '@/components/Skeleton';
 import { Tooltip } from '@/components/Tooltip';
+import { FORECAST_DASH } from '@/theme/chartTheme';
 import { type TileAccent, tileColors } from '@/theme/orca';
 
 /**
@@ -130,7 +131,7 @@ function Sparkline({ points, forecastFrom, accent }: StatSpark & { accent?: Tile
             dataKey="forecast"
             stroke="currentColor"
             strokeWidth={2}
-            strokeDasharray="3 3"
+            strokeDasharray={FORECAST_DASH}
             strokeOpacity={0.7}
             dot={false}
             isAnimationActive={false}

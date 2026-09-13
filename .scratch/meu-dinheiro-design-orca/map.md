@@ -60,6 +60,16 @@ sessão que arma o retorno ao abrir um Mês. A marcação da lateral por origem
 entrou junto, antes da issue 03, porque a origem passa a existir aqui.
 [Evidências e limites](issues/02-visao-geral.md); issue 03 desbloqueada.
 
+Etapa 04 resolvida em 2026-09-12: Histórico migrado com os quatro indicadores,
+as duas abas e as duas leituras de cada uma — gráfico e tabela —, sobre um tema
+de gráfico centralizado e uma caixa de gráfico com altura e piso de largura
+nomeados. A alternativa em tabela encerra a pendência anotada abaixo: o Mês
+passou a ser alcançável pelo teclado a partir do Histórico. Três correções
+saíram daqui: o Recharts animava com movimento reduzido ligado, o `<svg>` dele
+entrava na ordem de tabulação lendo os eixos num bloco só, e o cinza de "Sem
+categoria" falhava o contraste de marca no claro.
+[Evidências e limites](issues/04-historico.md); issue 05 desbloqueada.
+
 Etapa 03 resolvida em 2026-09-12: detalhe de Mês migrado com abas, filtros,
 tabela e os seis diálogos, sobre uma camada nova de `<dialog>` nativo, campos,
 menu em portal e dica em portal. O retorno à origem passou a valer nas duas
@@ -70,8 +80,8 @@ sob o cursor, e pagar/receber limpava o formulário antes de saber se gravou.
 
 ## Plano de execução
 
-A [spec](spec.md) consolida o escopo aprovado. Issues 01, 02 e 03 resolvidas;
-issues 04–06 permanecem `ready-for-agent`, respeitando a ordem de bloqueio.
+A [spec](spec.md) consolida o escopo aprovado. Issues 01–04 resolvidas; issues
+05 e 06 permanecem `ready-for-agent`, respeitando a ordem de bloqueio.
 
 | Issue                                | Escopo                                              | Bloqueada por |
 | ------------------------------------ | --------------------------------------------------- | ------------- |
@@ -86,11 +96,13 @@ issues 04–06 permanecem `ready-for-agent`, respeitando a ordem de bloqueio.
 
 Nenhuma decisão de produto pendente. Tokens e medições da base estão em
 `apps/meu-dinheiro-app/docs/orca-theme.md`. As validações das telas consumidoras
-continuam nas issues 04–06; a limitação da janela externa mínima e da moldura
+continuam nas issues 05 e 06; a limitação da janela externa mínima e da moldura
 Windows está registrada na issue 01. A dica de linha em portal foi resolvida na
-issue 03, e com ela saiu o `title` nativo da Visão Geral. Segue aberto para a
-issue 04: o Histórico não tem caminho de teclado para abrir um Mês pelo gráfico,
-e é a alternativa em tabela que deve trazê-lo.
+issue 03, e o caminho de teclado do Histórico na issue 04, com a leitura em
+tabela. Segue aberto para as issues 05 e 06: Configurações ainda é MUI, e com
+ela continua o fundo MUI da faixa de conteúdo; três das dez categorias semeadas
+pela migração falham o 3:1 de marca em um dos modos, e a paleta oferecida no
+cadastro é assunto da issue 05.
 
 ## Inventário inicial
 

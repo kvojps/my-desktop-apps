@@ -1,0 +1,40 @@
+{
+  "claro": {
+    "texto": "Junho 2026Despesas : R$ 6.993,40Entradas : R$ 2.250,90Previsto : -R$ 4.742,50",
+    "rótulo do tooltip": 19.8,
+    "itens do tooltip": [
+      {
+        "texto": "Despesas : R$ 6.993,40",
+        "contraste": 19.8
+      },
+      {
+        "texto": "Entradas : R$ 2.250,90",
+        "contraste": 19.8
+      },
+      {
+        "texto": "Previsto : -R$ 4.742,50",
+        "contraste": 19.8
+      }
+    ],
+    "borda do tooltip": 1.26
+  },
+  "escuro": {
+    "texto": "Junho 2026Despesas : R$ 6.993,40Entradas : R$ 2.250,90Previsto : -R$ 4.742,50",
+    "rótulo do tooltip": 17.18,
+    "itens do tooltip": [
+      {
+        "texto": "Despesas : R$ 6.993,40",
+        "contraste": 17.18
+      },
+      {
+        "texto": "Entradas : R$ 2.250,90",
+        "contraste": 17.18
+      },
+      {
+        "texto": "Previsto : -R$ 4.742,50",
+        "contraste": 17.18
+      }
+    ],
+    "borda do tooltip": 1.2
+  }
+}

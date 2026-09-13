@@ -1,0 +1,20 @@
+{
+  "antes": {
+    "erro": true,
+    "esqueleto": false
+  },
+  "duranteORetry": {
+    "houveEsqueletoNoPainel": true,
+    "houveEsqueletoNoCard": true,
+    "painelEcardConcordam": true,
+    "final": {
+      "esqueleto": false,
+      "erro": true,
+      "cardEsqueleto": false
+    }
+  },
+  "recuperado": {
+    "erro": false,
+    "grafico": false
+  }
+}
