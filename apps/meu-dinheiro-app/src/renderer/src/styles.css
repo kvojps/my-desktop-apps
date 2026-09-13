@@ -1394,6 +1394,18 @@ body {
 
 /* Intervalo de meses ------------------------------------------------------ */
 
+/* O cartão que envolve o intervalo: mesma base de `.money-panel` que a
+   tabela usa, para que a aba ocupe a largura toda como as demais — sem ele o
+   conteúdo fica do tamanho dos campos, bem mais estreito que o painel. */
+.money-months {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px;
+}
+.money-months p {
+  margin: 0;
+}
 .money-range {
   display: flex;
   align-items: flex-end;
@@ -1432,19 +1444,16 @@ body {
   margin: 0;
   color: var(--money-muted);
 }
-/* A legenda do intervalo é irmã da fileira no painel, e o vão entre as duas é
-   o do painel — um parágrafo com a margem do navegador abriria um segundo. */
-.money-settings-panel > p {
-  margin: 0;
-}
-
 /* Backup ------------------------------------------------------------------ */
 
+/* O mesmo cartão de `.money-months`, pelo mesmo motivo: sem ele a aba fica do
+   tamanho dos dois botões, não da largura do painel. */
 .money-backup {
   display: flex;
   flex-direction: column;
   gap: 12px;
   align-items: flex-start;
+  padding: 20px;
 }
 .money-backup-actions {
   display: flex;

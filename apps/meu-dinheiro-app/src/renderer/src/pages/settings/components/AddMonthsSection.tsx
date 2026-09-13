@@ -41,37 +41,39 @@ export function AddMonthsSection({ titleId, creator, emptyDefaultsNote }: AddMon
 
       {emptyDefaultsNote}
 
-      <div className="money-range">
-        <MonthYearPicker
-          label="De"
-          month={range.fromMonth}
-          year={range.fromYear}
-          onMonthChange={(month) => setRange((previous) => ({ ...previous, fromMonth: month }))}
-          onYearChange={(year) => setRange((previous) => ({ ...previous, fromYear: year }))}
-        />
-        <MonthYearPicker
-          label="Até"
-          month={range.toMonth}
-          year={range.toYear}
-          onMonthChange={(month) => setRange((previous) => ({ ...previous, toMonth: month }))}
-          onYearChange={(year) => setRange((previous) => ({ ...previous, toYear: year }))}
-        />
-        {/* Botão desabilitado não diz por quê; a legenda abaixo diz, e o
-            `aria-describedby` é o que a entrega junto com ele (§5.5). */}
-        <Button
-          variant="primary"
-          onClick={createRange}
-          disabled={creating || !rangeValid}
-          aria-describedby={hintId}
-        >
-          <ListPlus size={18} aria-hidden="true" />
-          {creating ? 'Criando...' : 'Adicionar Meses'}
-        </Button>
-      </div>
+      <div className="money-panel money-months">
+        <div className="money-range">
+          <MonthYearPicker
+            label="De"
+            month={range.fromMonth}
+            year={range.fromYear}
+            onMonthChange={(month) => setRange((previous) => ({ ...previous, fromMonth: month }))}
+            onYearChange={(year) => setRange((previous) => ({ ...previous, fromYear: year }))}
+          />
+          <MonthYearPicker
+            label="Até"
+            month={range.toMonth}
+            year={range.toYear}
+            onMonthChange={(month) => setRange((previous) => ({ ...previous, toMonth: month }))}
+            onYearChange={(year) => setRange((previous) => ({ ...previous, toYear: year }))}
+          />
+          {/* Botão desabilitado não diz por quê; a legenda abaixo diz, e o
+              `aria-describedby` é o que a entrega junto com ele (§5.5). */}
+          <Button
+            variant="primary"
+            onClick={createRange}
+            disabled={creating || !rangeValid}
+            aria-describedby={hintId}
+          >
+            <ListPlus size={18} aria-hidden="true" />
+            {creating ? 'Criando...' : 'Adicionar Meses'}
+          </Button>
+        </div>
 
-      <p id={hintId} className="money-field-note" data-invalid={!rangeValid}>
-        {rangeHint(monthsCount)}
-      </p>
+        <p id={hintId} className="money-field-note" data-invalid={!rangeValid}>
+          {rangeHint(monthsCount)}
+        </p>
+      </div>
     </>
   );
 }

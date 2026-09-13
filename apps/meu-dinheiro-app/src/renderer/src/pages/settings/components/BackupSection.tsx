@@ -34,7 +34,7 @@ export function BackupSection({
         titleId={titleId}
       />
 
-      <div className="money-backup">
+      <div className="money-panel money-backup">
         <div className="money-backup-actions">
           <Button variant="primary" onClick={onExport} disabled={exporting}>
             <Download size={18} aria-hidden="true" />
