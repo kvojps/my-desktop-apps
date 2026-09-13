@@ -1,0 +1,32 @@
+{
+  "light": {
+    "faixa": "rgb(250, 250, 250)",
+    "subtítulo da tela (texto)": 5.5,
+    "título da tela (texto)": 18.97,
+    "ícone do cabeçalho (marca)": 5.5,
+    "painel sobre a faixa": 1.04,
+    "borda do painel sobre a faixa (marca)": 1.21,
+    "rótulo de filtro (texto)": 5.5,
+    "borda do campo sobre a faixa (marca)": 3.31,
+    "seção não selecionada (texto)": 5.5,
+    "descrição da seção (texto)": 5.5,
+    "borda do seletor compacto (marca)": 3.31,
+    "esqueleto sobre a faixa": 1.04,
+    "cor": "rgb(245, 245, 245)"
+  },
+  "dark": {
+    "faixa": "rgb(10, 10, 10)",
+    "subtítulo da tela (texto)": 7.66,
+    "título da tela (texto)": 18.97,
+    "ícone do cabeçalho (marca)": 7.66,
+    "painel sobre a faixa": 1.1,
+    "borda do painel sobre a faixa (marca)": 1.33,
+    "rótulo de filtro (texto)": 7.66,
+    "borda do campo sobre a faixa (marca)": 3.72,
+    "seção não selecionada (texto)": 7.66,
+    "descrição da seção (texto)": 7.66,
+    "borda do seletor compacto (marca)": 3.72,
+    "esqueleto sobre a faixa": 1.31,
+    "cor": "rgb(38, 38, 38)"
+  }
+}

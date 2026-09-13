@@ -94,8 +94,11 @@ MUI, Emotion, Material Icons nem Inter. Os cinco consumidores que sobravam eram
 todos do módulo de tema, e o que saiu com o `CssBaseline` — caixa herdada, fonte
 do corpo, anel de foco **do documento** e o desligamento de movimento — passou a
 ser dito em `styles.css`; o anel de documento é o que alcança menu e dica em
-portal. O fundo da faixa de conteúdo virou token desta base **com a cor que já
-tinha**, o que preserva a tabela de contraste das issues 03–05. A retirada foi
+portal. O fundo da faixa de conteúdo virou token desta base, primeiro com a cor
+herdada — para não misturar troca de base com troca de cor — e depois
+neutralizado para `#fafafa` / `#0a0a0a`, já com a medição da retirada fechada.
+Era a única superfície com matiz do app; todas as razões medidas contra ela
+subiram. A retirada foi
 medida contra o build anterior: dos 6300 nós de 24 telas, os 48 que mudaram são
 valores herdados nos dois contêineres da faixa, que nenhum descendente usa.
 Junto saiu o "Nenhum mês cadastrado em 0" anotado abaixo. A revisão em dois

@@ -68,13 +68,27 @@ de verdade. O que passou para `styles.css`, com o mesmo efeito:
   não tem `animation` nem `transition`; fica como piso, e está dito assim no
   comentário. O Recharts continua respondendo pelo `chartTheme`.
 
-**O fundo da faixa de conteúdo virou token, com a cor que já tinha.** Ele era
-publicado pelo provider MUI como `--mui-content-background` e é a superfície
-contra a qual as issues 03–05 mediram rótulo, legenda e borda de campo. Trocar a
-cor invalidaria a tabela de contraste inteira sem que ninguém tivesse pedido cor
-nova, então ele virou `--money-content` em `theme/orca.ts` com os mesmos
-`#f4f6fb` / `#10131c`. O polegar da barra de rolagem foi junto, pela mesma razão
-(`--money-scrollbar`).
+**O fundo da faixa de conteúdo virou token e foi neutralizado.** Ele era
+publicado pelo provider MUI como `--mui-content-background`, no azulado
+`#f4f6fb` / `#10131c`, e virou `--money-content` em `theme/orca.ts`.
+
+A retirada o moveu **com a cor que ele tinha**, para não mexer numa superfície
+medida: é contra ela que as issues 03–05 mediram rótulo, legenda e borda de
+campo. O usuário perguntou por que a faixa continuava azul numa base neutra, e a
+pergunta é justa — aquele azulado era herança da paleta anterior e a única cor
+com matiz do app. Agora ele é `#fafafa` / `#0a0a0a`: no escuro a faixa é preta,
+igual à janela; no claro fica um degrau abaixo do papel, que é o que dá contorno
+aos painéis.
+
+No claro a faixa **não** pode ser `accent` (`#f5f5f5`): o esqueleto é preenchido
+com ele e desenha direto sobre a faixa, no Histórico e no Mês, e as duas iguais o
+apagariam. `#fafafa` o deixa mais visível do que o azulado deixava (1,04:1 contra
+1,00:1). As medições contra a faixa foram refeitas e **todas subiram** — os dois
+neutros estão mais longe das cores de texto do que o azulado estava.
+
+O polegar da barra de rolagem foi junto: ele era `#3a3f4d`, azulado como a faixa
+que rolava, e sobre a faixa preta seria a última cor com matiz do app. Passou a
+`#404040`.
 
 **A retirada foi medida, não observada.** O estilo computado e a caixa de cada
 nó visível **dentro de `.money-layout`** foram fotografados nas mesmas 24 telas
@@ -119,11 +133,14 @@ corrente entre pagas, pendentes, vencidas e sem categoria.
 - **Capturas por tela e tema**: Visão Geral, Histórico, Mês, Configurações,
   Backup e rota inexistente, em claro e escuro, a 960 com a lateral aberta e a
   1280 com ela recolhida — 24 arquivos em [evidence/06](../evidence/06/).
-- **Contraste remedido nas superfícies reais**, nos dois modos: menor par de
-  texto 5,27:1 (cabeçalho de tabela, no claro) e menor marca 3,19:1 (a borda de
-  campo sobre a faixa de conteúdo) — os mesmos limites das issues anteriores,
-  como tinha de ser, já que a faixa conservou a cor.
-  [transversais.json](../evidence/06/transversais.json).
+- **Contraste remedido nas superfícies reais**, nos dois modos, primeiro com a
+  faixa herdada e depois com a neutra. Com a neutra: menor par de texto 5,27:1
+  (cabeçalho de tabela, sobre `accent`, que não depende da faixa) e menor marca
+  3,31:1 (a borda de campo sobre a faixa, contra 3,19:1 no azulado). Toda linha
+  medida contra a faixa subiu — 5,31 → 5,50 e 7,18 → 7,66 no texto em `muted`,
+  3,19 → 3,31 e 3,48 → 3,72 na borda de campo.
+  [transversais.json](../evidence/06/transversais.json),
+  [faixa-neutra.json](../evidence/06/faixa-neutra.json).
 - **Teclado e foco, por evento real de teclado** — e isto importa: o
   `:focus-visible` não responde a foco programático, então medi-lo com
   `.focus()` diria "sem anel" mesmo com a regra certa no lugar. Tab até o menu
@@ -139,7 +156,7 @@ corrente entre pagas, pendentes, vencidas e sem categoria.
   [transversais.json](../evidence/06/transversais.json).
 - **Início da janela e redimensionamento**, nos dois modos: reabrindo com a
   preferência gravada, o modo chega pelo argumento do preload, o corpo já nasce
-  em `#ffffff`/`#0a0a0a` e a faixa assume `#f4f6fb`/`#10131c` ao montar.
+  em `#ffffff`/`#0a0a0a` e a faixa assume a cor dela ao montar.
   1280 → 960 → 1440 → 960 sem rolagem horizontal e sem faixa de outra cor.
   [estados.json](../evidence/06/estados.json).
 - **Retorno à origem** exercitado nas duas telas, com o estado lido antes e
@@ -180,12 +197,13 @@ aqui em vez de marcado lá:
 
 Decisões que saíram do caminho óbvio e ficam registradas:
 
-- **A faixa de conteúdo não foi retonalizada.** Ela é a única superfície com
-  matiz desta base, herdada da anterior, e seria tentador aproximá-la do
-  `background` neutro agora que o MUI saiu. Mas ela é o que dá contorno aos
-  painéis — papel e janela são o mesmo branco — e é a superfície das medições de
-  três issues. Mudar a cor é uma decisão de design que ninguém pediu; a issue
-  pedia tirar dependência.
+- **A faixa de conteúdo foi retonalizada, mas só depois de a retirada fechar.**
+  Na retirada ela ficou com a cor herdada de propósito: mudar superfície medida
+  no mesmo passo em que se troca a base misturaria duas coisas, e qualquer
+  diferença de pixel viraria discussão sobre qual das duas a causou. Com a
+  medição fechada — 48 nós, todos valor herdado —, a troca de cor ficou isolada
+  e verificável sozinha, e foi o que o usuário pediu em seguida. A ordem é a
+  decisão; a cor herdada nunca foi o destino.
 - **O anel de foco subiu para o documento.** Poderia ter virado mais uma regra
   escopada, uma por camada em portal. Mas o que a §5.5 cobra é do app inteiro, e
   uma lista de exceções envelhece: a próxima camada em portal nasceria sem anel
@@ -273,7 +291,9 @@ Migração encerrada: o Meu Dinheiro não declara mais MUI, Emotion, Material Ic
 nem Inter, e o que o `CssBaseline` sustentava sem aparecer — caixa herdada,
 fonte do corpo, anel de foco do documento e o desligamento de movimento — passou
 a ser dito na folha do app. O fundo da faixa de conteúdo virou token desta base
-com a cor que já tinha, preservando a tabela de contraste de três issues. A
+— herdada durante a retirada, para não misturar troca de base com troca de
+cor, e neutralizada logo depois para `#fafafa` / `#0a0a0a`, com todas as
+medições contra ela subindo. A
 retirada foi medida contra o build anterior: dos 6300 nós de 24 telas, os únicos
 48 que mudaram são valores herdados que nenhum descendente usa. Junto saiu o
 "Nenhum mês cadastrado em 0" que a issue 05 anotou. Documentação do app, do

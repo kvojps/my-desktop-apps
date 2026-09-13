@@ -132,14 +132,21 @@ export function orcaColors(mode: ThemeMode) {
 
   return {
     background: light ? '#ffffff' : '#0a0a0a',
-    // A faixa de conteúdo é a única superfície com matiz desta base, e é de
-    // propósito: papel e janela são o mesmo branco (e o mesmo quase-preto), e
-    // sem ela cada card perderia a borda de que é feito de luz. Ela chegou com
-    // a base anterior e **não** foi retonalizada ao sair dela: é a superfície
-    // contra a qual as issues 03–05 mediram o contraste de rótulos, legendas e
-    // bordas de campo, e trocar a cor invalidaria a tabela inteira sem que
-    // ninguém tivesse pedido uma cor nova.
-    content: light ? '#f4f6fb' : '#10131c',
+    // A faixa de conteúdo é a superfície recuada sobre a qual os painéis
+    // flutuam — eles são do mesmo branco (e do mesmo quase-preto) da janela, e
+    // sem ela o contorno de cada card ficaria só na borda.
+    //
+    // Ela é neutra como todo o resto desta base. O azulado `#f4f6fb`/`#10131c`
+    // que ela teve até aqui era herança da paleta anterior, preservado na
+    // retirada do MUI para não mexer em superfície medida; era a única cor com
+    // matiz do app, e destoava. Nenhum par perdeu contraste na troca — os dois
+    // neutros são mais claros/mais escuros que os antigos, então toda razão
+    // contra a faixa subiu.
+    //
+    // No claro não pode ser `accent`: o esqueleto é preenchido com ele e
+    // desenha direto sobre a faixa (Histórico e Mês), e as duas cores iguais o
+    // apagariam. `#fafafa` o deixa mais visível do que o azulado deixava.
+    content: light ? '#fafafa' : '#0a0a0a',
     paper: light ? '#ffffff' : '#171717',
     sidebar: light ? '#fafafa' : '#171717',
     foreground: light ? '#0a0a0a' : '#fafafa',
@@ -156,7 +163,10 @@ export function orcaColors(mode: ThemeMode) {
     // O polegar da barra de rolagem, declarado porque a barra é do Chromium e
     // não tem classe onde pendurar cor. É decorativo — separa o polegar da
     // trilha, não carrega informação —, e vale a mesma régua das bordas.
-    scrollbar: light ? '#c1c1c1' : '#3a3f4d',
+    //
+    // O do escuro era `#3a3f4d`, azulado como a faixa que ele rolava; com a
+    // faixa neutra ele ficaria sendo a última cor com matiz do app.
+    scrollbar: light ? '#c1c1c1' : '#404040',
     focus: light ? '#2771ca' : '#3987e5',
     primary: light ? '#0a0a0a' : '#fafafa',
     onPrimary: light ? '#fafafa' : '#0a0a0a',

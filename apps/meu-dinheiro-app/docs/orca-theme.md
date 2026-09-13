@@ -23,7 +23,9 @@ prefixo `ui`, sem Preflight. Não há imports entre apps. A issue 06 encerrou a
 migração: o app não declara mais MUI, Emotion, Material Icons nem Inter, o tema
 antigo (`theme/index.ts`) deixou de existir e o `ThemeModeProvider` publica
 variáveis CSS e `color-scheme`, sem `ThemeProvider` nem `CssBaseline`. O fundo
-da faixa de conteúdo virou token desta base, com o mesmo valor de antes.
+da faixa de conteúdo virou token desta base e foi **neutralizado**: o azulado
+`#f4f6fb`/`#10131c` era herança da paleta anterior e a única cor com matiz do
+app.
 
 ## Tokens locais
 
@@ -32,7 +34,7 @@ Variáveis `--money-*` publicadas pelo provider a partir de `theme/orca.ts`:
 | Token                                   | Claro     | Escuro    |
 | --------------------------------------- | --------- | --------- |
 | background                              | `#ffffff` | `#0a0a0a` |
-| content (faixa de conteúdo)             | `#f4f6fb` | `#10131c` |
+| content (faixa de conteúdo)             | `#fafafa` | `#0a0a0a` |
 | paper                                   | `#ffffff` | `#171717` |
 | sidebar                                 | `#fafafa` | `#171717` |
 | foreground                              | `#0a0a0a` | `#fafafa` |
@@ -46,7 +48,7 @@ Variáveis `--money-*` publicadas pelo provider a partir de `theme/orca.ts`:
 | on-danger (rótulo sobre o destrutivo)   | `#ffffff` | preto 87% |
 | positive (valor em bom estado)          | `#067306` | `#35c435` |
 | field-border (borda de campo)           | `#8a8a8a` | `#6b6b6b` |
-| scrollbar (polegar da barra)            | `#c1c1c1` | `#3a3f4d` |
+| scrollbar (polegar da barra)            | `#c1c1c1` | `#404040` |
 
 Notificações usam texto neutro, ícone e nome de severidade; nenhum rótulo herda
 âmbar ou texto desabilitado. Botões primários são neutros, hover por sublinhado;
@@ -533,22 +535,39 @@ Relatórios em
 
 ### Medições da issue 06 (superfícies reais, Electron, sem MUI)
 
-Remedidas depois da retirada, nas mesmas superfícies das issues 03–05 — a faixa
-de conteúdo conservou a cor, então os pares conservaram o valor:
+**A faixa de conteúdo mudou de cor nesta issue**, e com ela toda linha das
+issues 03–05 que foi medida contra a faixa. As tabelas daquelas issues ficam
+como registro do que cada uma mediu na superfície do seu dia; o que vale para o
+app de hoje é a tabela abaixo. Os dois neutros estão mais longe das cores de
+texto do que o azulado estava, então **nenhuma razão caiu** — todas subiram:
 
 | Par                                        | Claro            | Escuro           |
 | ------------------------------------------ | ---------------- | ---------------- |
-| Título / subtítulo da tela                 | 18,31:1 / 5,31:1 | 17,77:1 / 7,18:1 |
+| Título / subtítulo da tela                 | 18,97:1 / 5,50:1 | 18,97:1 / 7,66:1 |
+| Ícone do cabeçalho (marca)                 | 5,50:1           | 7,66:1           |
 | Rótulo do indicador                        | 5,74:1           | 6,94:1           |
 | Cabeçalho / célula da tabela               | 5,27:1 / 19,80:1 | 5,86:1 / 17,18:1 |
-| Rótulo de filtro                           | 5,31:1           | 7,18:1           |
-| Borda do campo sobre a faixa (marca)       | 3,19:1           | 3,48:1           |
+| Rótulo de filtro                           | 5,50:1           | 7,66:1           |
+| Borda do campo sobre a faixa (marca)       | 3,31:1           | 3,72:1           |
 | Tick do gráfico / rótulo da legenda        | 19,80:1 / 8,56:1 | 17,18:1 / 5,73:1 |
 | Modo não selecionado                       | 5,74:1           | 6,94:1           |
-| Seção não selecionada / descrição da seção | 5,31:1           | 7,18:1           |
+| Seção não selecionada / descrição da seção | 5,50:1           | 7,66:1           |
+| Borda do seletor compacto (marca)          | 3,31:1           | 3,72:1           |
 
-Menor par de texto 5,27:1 e menor marca 3,19:1 — os mesmos limites das issues
-anteriores. O anel de foco foi conferido **por evento de teclado real** (o
+Menor par de texto 5,27:1 (o cabeçalho da tabela, sobre `accent` — não depende
+da faixa); menor marca 3,31:1, a borda de campo, que era 3,19:1 quando a faixa
+era azulada.
+
+Duas separações que a faixa **não** cobra 3:1, porque nenhuma das duas carrega
+informação: o painel sobre a faixa (1,04:1 no claro, 1,10:1 no escuro, com a
+borda dele em 1,21:1 e 1,33:1, que é onde o contorno mora de verdade) e o
+esqueleto sobre a faixa (1,04:1 e 1,31:1). O esqueleto é preenchido com
+`accent`, e é por isso que a faixa clara é `#fafafa` e não `#f5f5f5`: as duas
+iguais o apagariam. Com o azulado ele media 1,00:1 no claro — ou seja, a troca o
+tornou visível, não menos.
+[faixa-neutra.json](../../../.scratch/meu-dinheiro-design-orca/evidence/06/faixa-neutra.json).
+
+O anel de foco foi conferido **por evento de teclado real** (o
 `:focus-visible` não responde a foco programático), inclusive no item do menu
 desenhado em portal, que é o caso que só a regra de documento alcança:
 2px `#3987e5` com offset 2px, e Escape devolvendo o foco ao gatilho.
@@ -568,7 +587,9 @@ O recorte deixa três coisas de fora, medidas à parte: os ancestrais (`html`,
 mais o **fundo do corpo** — `#f4f6fb` → `#ffffff` no claro e `#10131c` →
 `#0a0a0a` no escuro. Ele não aparece, porque `.money-layout` cobre a janela
 inteira com esse mesmo fundo; a troca o põe de acordo com a cor que o processo
-main já pinta na janela. E o `<option>`, que tem caixa zero: ali ficam os dez
+main já pinta na janela. A medição é anterior à neutralização da faixa, que
+acrescenta a esses mesmos dois contêineres o fundo deles — a única diferença
+**intencional** desta issue. E o `<option>`, que tem caixa zero: ali ficam os dez
 botões de amostra do cadastro de categoria, que computam a fonte padrão do
 navegador por não declararem família — idênticos antes e depois, e sem texto.
 [regressao-visual.json](../../../.scratch/meu-dinheiro-design-orca/evidence/06/regressao-visual.json),
