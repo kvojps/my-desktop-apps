@@ -10,6 +10,7 @@ import {
 import { type ReactNode, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import logo from '@/assets/logo.png';
+import logoLight from '@/assets/logo-light.png';
 import { Button } from '@/components/Button';
 import { useNavigationMemory } from '@/contexts/NavigationContext';
 import { useThemeMode } from '@/hooks/useThemeMode';
@@ -45,7 +46,7 @@ export function Layout({ children }: { children: ReactNode }) {
           aria-label="Meu Dinheiro — Visão Geral"
           title="Meu Dinheiro"
         >
-          <img src={logo} alt="" width={28} height={28} />
+          <img src={mode === 'light' ? logoLight : logo} alt="" width={28} height={28} />
           {!collapsed && <span>Meu Dinheiro</span>}
         </Link>
         <div id="main-navigation" className="ui:flex ui:flex-col ui:gap-1">

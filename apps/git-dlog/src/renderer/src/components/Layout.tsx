@@ -10,6 +10,7 @@ import {
 import { type ReactNode, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import logo32x32 from '@/assets/logo-32x32.png';
+import logoLight from '@/assets/logo-light.png';
 import { useThemeMode } from '@/hooks/useThemeMode';
 import { ROUTES } from '@/routes';
 import { Button } from './Button';
@@ -34,7 +35,7 @@ export function Layout({ children }: { children: ReactNode }) {
         className="ui-sidebar ui:flex ui:shrink-0 ui:flex-col ui:gap-1 ui:bg-sidebar ui:p-3"
       >
         <div className="ui:mb-4 ui:flex ui:h-9 ui:items-center ui:gap-3 ui:px-1">
-          <img src={logo32x32} alt="" width={28} height={28} />
+          <img src={mode === 'light' ? logoLight : logo32x32} alt="" width={28} height={28} />
           {!collapsed && <span className="ui:text-sm ui:font-semibold">Git Dlog</span>}
         </div>
         <Button
