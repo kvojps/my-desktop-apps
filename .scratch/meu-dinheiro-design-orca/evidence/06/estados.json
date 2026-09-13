@@ -1,0 +1,91 @@
+{
+  "mesesApagados": 0,
+  "historicoSemMeses": {
+    "subtitulo": "O acompanhamento por ano começa com o primeiro mês.",
+    "titulo": "Nenhum mês cadastrado.",
+    "textoDaTela": "Histórico | O acompanhamento por ano começa com o primeiro mês. | Nenhum mês cadastrado. | Crie os meses em Configurações e a evolução do ano aparece aqui. | Ir para Adicionar Meses",
+    "seletorDeAno": false,
+    "indicadores": 0,
+    "citaAnoZero": false,
+    "acao": "Ir para Adicionar Meses"
+  },
+  "saidaDoHistoricoVazio": "#/settings?section=months",
+  "janela-light": {
+    "aoAbrir": {
+      "react": true,
+      "fundoDoCorpo": "rgb(255, 255, 255)",
+      "esquema": "light",
+      "argumento": "light"
+    },
+    "depoisDeMontar": {
+      "esquema": "light",
+      "faixa": "rgb(244, 246, 251)",
+      "corpo": "rgb(255, 255, 255)"
+    },
+    "redimensionamento": [
+      {
+        "viewport": "1280x800",
+        "paginaRola": false,
+        "faixa": "rgb(244, 246, 251)",
+        "lateral": 224
+      },
+      {
+        "viewport": "960x640",
+        "paginaRola": false,
+        "faixa": "rgb(244, 246, 251)",
+        "lateral": 224
+      },
+      {
+        "viewport": "1440x900",
+        "paginaRola": false,
+        "faixa": "rgb(244, 246, 251)",
+        "lateral": 224
+      },
+      {
+        "viewport": "960x640",
+        "paginaRola": false,
+        "faixa": "rgb(244, 246, 251)",
+        "lateral": 224
+      }
+    ]
+  },
+  "janela-dark": {
+    "aoAbrir": {
+      "react": true,
+      "fundoDoCorpo": "rgb(10, 10, 10)",
+      "esquema": "dark",
+      "argumento": "dark"
+    },
+    "depoisDeMontar": {
+      "esquema": "dark",
+      "faixa": "rgb(16, 19, 28)",
+      "corpo": "rgb(10, 10, 10)"
+    },
+    "redimensionamento": [
+      {
+        "viewport": "1280x800",
+        "paginaRola": false,
+        "faixa": "rgb(16, 19, 28)",
+        "lateral": 224
+      },
+      {
+        "viewport": "960x640",
+        "paginaRola": false,
+        "faixa": "rgb(16, 19, 28)",
+        "lateral": 224
+      },
+      {
+        "viewport": "1440x900",
+        "paginaRola": false,
+        "faixa": "rgb(16, 19, 28)",
+        "lateral": 224
+      },
+      {
+        "viewport": "960x640",
+        "paginaRola": false,
+        "faixa": "rgb(16, 19, 28)",
+        "lateral": 224
+      }
+    ]
+  }
+}

@@ -22,7 +22,7 @@ import { MonthComparisonChart } from './components/MonthComparisonChart';
 import { MonthComparisonTable } from './components/MonthComparisonTable';
 import { type ViewMode, ViewModeControl, toViewMode } from './components/ViewModeControl';
 import { YearControl } from './components/YearControl';
-import { restoreHistoryQuery } from './utils/historyQuery';
+import { restoreHistoryQuery, selectHistoryYear } from './utils/historyQuery';
 
 type TabValue = 'comparativo' | 'categories';
 
@@ -73,14 +73,17 @@ export function HistoryPage() {
     setModes((current) => ({ ...current, [tab]: next }));
   }
   const [yearOverride, setYearOverride] = useState<number | null>(restored?.year ?? null);
-  const selectedYear =
-    yearOverride !== null && years.includes(yearOverride) ? yearOverride : (years[0] ?? 0);
+  // `null` aqui é "não há competência nenhuma", e não "ano zero": é o que
+  // separa um histórico vazio de um ano vazio, e a tela responde diferente a
+  // cada um.
+  const selectedYear = selectHistoryYear(years, yearOverride);
 
   // A consulta é guardada enquanto ela é verdade, e não só ao sair: é assim que
-  // voltar de um Mês encontra a mesma tela. Ano zero não se guarda — ele
-  // significa "os meses não chegaram", não um ano sem competência.
+  // voltar de um Mês encontra a mesma tela. Sem ano não há consulta a guardar —
+  // e a ausência de ano pode ser "os meses ainda não chegaram", que não é uma
+  // resposta a lembrar.
   useEffect(() => {
-    if (!selectedYear) return;
+    if (selectedYear === null) return;
     rememberQuery('history', { year: selectedYear, tab, mode });
   }, [selectedYear, tab, mode, rememberQuery]);
 
@@ -106,6 +109,7 @@ export function HistoryPage() {
   const balance = totals.projected;
 
   const previousYearMonths = useMemo(() => {
+    if (selectedYear === null) return [];
     return data.filter((m) => m.year === selectedYear - 1);
   }, [data, selectedYear]);
 
@@ -119,6 +123,9 @@ export function HistoryPage() {
   const expenseDeltaPercent = yoyPercent(totals.totalExpense, previousYearTotals.totalExpense);
   const incomeDeltaPercent = yoyPercent(totals.totalIncome, previousYearTotals.totalIncome);
 
+  // A ausência de recorte desce como ausência, e não como zero: o hook a recebe
+  // e não consulta nada, o que mantém a chamada incondicional enquanto a tela
+  // ainda não sabe o ano.
   const {
     tableRows: categoryTableRows,
     chartRows: categoryChartRows,
@@ -168,6 +175,33 @@ export function HistoryPage() {
     );
   }
 
+  // Sem competência nenhuma o Histórico não tem recorte: não há ano para o
+  // seletor listar, nem ano anterior com que comparar, e quatro indicadores
+  // zerados afirmariam que o ano foi lido e não deu nada. A ausência é do banco
+  // inteiro, e é ela que a tela conta — sem citar ano, que é o que a frase
+  // fazia ao cair no `?? 0` ("Nenhum mês cadastrado em 0").
+  if (selectedYear === null) {
+    return (
+      <div className="money-page">
+        <PageHeader
+          icon={<BarChart3 size={22} aria-hidden="true" />}
+          title="Histórico"
+          subtitle="O acompanhamento por ano começa com o primeiro mês."
+        />
+        <EmptyState
+          icon={<CalendarDays size={48} aria-hidden="true" />}
+          title="Nenhum mês cadastrado."
+          description="Crie os meses em Configurações e a evolução do ano aparece aqui."
+          action={
+            <Button variant="primary" onClick={() => navigate(settingsPath('months'))}>
+              Ir para Adicionar Meses
+            </Button>
+          }
+        />
+      </div>
+    );
+  }
+
   const monthsLabel = `${pluralMonths(yearMonths.length)} em ${selectedYear}`;
   // A legenda só cita a maior categoria quando ela é um fato: enquanto os
   // totais estão vindo, ou quando a leitura deles falhou, ela não existe.
@@ -180,8 +214,12 @@ export function HistoryPage() {
    * carregando não é vazio e falha não é vazio (§5.4) — era exatamente isso que
    * a aba de categorias errava, anunciando "nenhuma despesa categorizada"
    * enquanto os totais ainda estavam vindo do banco.
+   *
+   * O ano entra por parâmetro, e não pelo fechamento: a guarda acima já provou
+   * que ele existe, mas uma declaração de função é içada e o `tsc` não carrega
+   * o estreitamento para dentro dela.
    */
-  function renderTab() {
+  function renderTab(year: number) {
     if (yearMonths.length === 0) {
       // A saída aponta para a **seção** que cria meses, e não para a tela:
       // desde a issue 05 a seção tem endereço, e parar uma porta antes faria o
@@ -189,7 +227,7 @@ export function HistoryPage() {
       return (
         <EmptyState
           icon={<CalendarDays size={40} aria-hidden="true" />}
-          title={`Nenhum mês cadastrado em ${selectedYear}.`}
+          title={`Nenhum mês cadastrado em ${year}.`}
           description="Crie os meses do ano em Configurações para acompanhar a evolução aqui."
           action={
             <Button variant="primary" onClick={() => navigate(settingsPath('months'))}>
@@ -202,7 +240,7 @@ export function HistoryPage() {
 
     if (tab === 'comparativo') {
       return mode === 'chart' ? (
-        <MonthComparisonChart rows={rows} year={selectedYear} onSelectMonth={openMonth} />
+        <MonthComparisonChart rows={rows} year={year} onSelectMonth={openMonth} />
       ) : (
         <MonthComparisonTable rows={rows} onSelectMonth={openMonth} />
       );
@@ -239,14 +277,14 @@ export function HistoryPage() {
       return (
         <EmptyState
           icon={<Tag size={40} aria-hidden="true" />}
-          title={`Nenhuma despesa categorizada em ${selectedYear}.`}
+          title={`Nenhuma despesa categorizada em ${year}.`}
           description="Despesas ganham categoria no cadastro, e é ela que alimenta esta aba."
         />
       );
     }
 
     return mode === 'chart' ? (
-      <CategoryBreakdownChart rows={categoryChartRows} year={selectedYear} />
+      <CategoryBreakdownChart rows={categoryChartRows} year={year} />
     ) : (
       <CategoryBreakdownTable rows={categoryTableRows} />
     );
@@ -338,7 +376,7 @@ export function HistoryPage() {
         onChange={setTab}
         actions={<ViewModeControl value={mode} onChange={setMode} />}
       >
-        {renderTab()}
+        {renderTab(selectedYear)}
       </Tabs>
     </div>
   );

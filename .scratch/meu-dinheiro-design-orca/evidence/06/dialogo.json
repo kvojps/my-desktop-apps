@@ -1,0 +1,73 @@
+{
+  "gatilho": "Adicionar Despesa",
+  "dialogoAberto": true,
+  "focoInicial": {
+    "no": "INPUT.money-input",
+    "nome": "",
+    "noDialogo": true,
+    "focoVisivel": true,
+    "contorno": "solid 2px rgb(57, 135, 229)"
+  },
+  "ciclo": [
+    {
+      "nome": "INPUT.money-input",
+      "noDialogo": true,
+      "focoVisivel": true
+    },
+    {
+      "nome": "INPUT.money-input",
+      "noDialogo": true,
+      "focoVisivel": true
+    },
+    {
+      "nome": "INPUT.money-input",
+      "noDialogo": true,
+      "focoVisivel": true
+    },
+    {
+      "nome": "INPUT.money-input",
+      "noDialogo": true,
+      "focoVisivel": true
+    },
+    {
+      "nome": "INPUT.money-input",
+      "noDialogo": true,
+      "focoVisivel": false
+    },
+    {
+      "nome": "Sem categoriaAlimentaçãoAlim",
+      "noDialogo": true,
+      "focoVisivel": true
+    },
+    {
+      "nome": "Cancelar",
+      "noDialogo": true,
+      "focoVisivel": true
+    },
+    {
+      "nome": "Adicionar",
+      "noDialogo": true,
+      "focoVisivel": true
+    },
+    {
+      "nome": "Fechar",
+      "noDialogo": true,
+      "focoVisivel": true
+    },
+    {
+      "nome": "INPUT.money-input",
+      "noDialogo": true,
+      "focoVisivel": true
+    }
+  ],
+  "saiuDoDialogo": false,
+  "anelDentroDoDialogo": 9,
+  "depoisDoEscape": {
+    "no": "BUTTON.money-button.money-button-primary",
+    "nome": "Adicionar Despesa",
+    "noDialogo": false,
+    "focoVisivel": true,
+    "contorno": "solid 2px rgb(57, 135, 229)"
+  },
+  "dialogoFechado": true
+}

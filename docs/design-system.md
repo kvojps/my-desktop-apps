@@ -12,20 +12,29 @@ seção registra a direção implementada, não uma aprovação para migrar outr
 
 Esta transição não cria um pacote compartilhado nem migra implicitamente os
 demais apps. Meu Negócio e Meu Móvel Planejado seguem as regras MUI e Material
-Icons deste documento até receberem uma migração planejada. Meu Dinheiro tem
-uma migração própria aprovada, descrita abaixo. Cada migração deve registrar seus
-valores locais antes de mudar código; a independência de código entre apps
+Icons deste documento até receberem uma migração planejada. Meu Dinheiro fez a
+sua, descrita abaixo — dois apps migrados não somam uma norma nova, e nenhum dos
+dois é o app canônico: a norma é este documento. Cada migração deve registrar
+seus valores locais antes de mudar código; a independência de código entre apps
 permanece vigente.
 
-## Transição incremental: Meu Dinheiro
+## Transição implementada: Meu Dinheiro
 
 A [spec aprovada](../.scratch/meu-dinheiro-design-orca/spec.md) e o
 [ADR local](../apps/meu-dinheiro-app/docs/adr/0001-migracao-visual-orca.md)
-autorizam uma migração incremental do Meu Dinheiro para Tailwind sem Preflight,
+autorizaram uma migração incremental do Meu Dinheiro para Tailwind sem Preflight,
 componentes locais, Geist e Lucide, com claro e escuro em cada etapa. A aprovação
 é específica deste app; não declara validado o piloto Git Dlog.
 
-Nas superfícies migradas, essa direção substitui as prescrições de MUI/Emotion,
+As seis etapas estão implementadas, e desde a issue 06 o app **não declara mais**
+MUI, Emotion, Material Icons nem Inter: as telas, os diálogos, os gráficos, os
+estados transversais e a base do documento — caixa herdada, fonte, foco e o
+desligamento de movimento — saem de `styles.css` e de `theme/orca.ts`.
+Implementado não é validado: cada issue registra o que foi exercitado no
+Electron e o que não foi, com as limitações do ambiente, e a issue 06 traz a
+comparação do estilo computado das telas antes e depois da retirada.
+
+Nessas superfícies, essa direção substitui as prescrições de MUI/Emotion,
 Inter, Material Icons, paleta, raios, espaçamentos e rail fixo das seções abaixo.
 A lateral terá nomes e ícones e será recolhível; Configurações terá navegação
 interna de seis seções, uma visível por vez, com seletor em espaço reduzido,
@@ -39,7 +48,7 @@ issue 02 migrou a Visão Geral com os componentes que ela compartilha —
 o detalhe de Mês e, com ele, a camada de diálogos: `Modal`, `ConfirmDialog`,
 `ActionsMenu`, `CategoryTag`, `FileUploadButton`, `Tabs` e um conjunto de campos
 (`Field`/`FieldGroup`, `TextInput`, `TextArea`, `SelectInput`, `BankAccountField`). Esses componentes
-aparecem também em Configurações, que continua MUI no resto até a sua issue. Neles, a §3.1 vale pelo comportamento e não pela
+aparecem também em Configurações. Neles, a §3.1 vale pelo comportamento e não pela
 biblioteca: `IconTile` continua quadrado, `StatusChip` continua carregando
 ícone, `DataTable` continua trazendo a própria superfície e a própria
 paginação, e a coluna de ações continua sendo do componente. Uma troca é
@@ -146,11 +155,16 @@ que estão medidas nos [tokens locais](../apps/meu-dinheiro-app/docs/orca-theme.
 
 Os valores concretos foram registrados nos
 [tokens locais](../apps/meu-dinheiro-app/docs/orca-theme.md) **antes da primeira
-alteração de UI**. As limitações de validação estão documentadas ali. Até sua migração, cada superfície segue a norma MUI vigente.
-Coexistência é temporária e exige proteção contra interferência de estilos.
-Desde a issue 05 nenhuma tela ou diálogo do Meu Dinheiro usa componente MUI; o
-que resta é o provider de tema e o fundo da faixa de conteúdo que ele publica,
-e os dois saem juntos na issue 06.
+alteração de UI**, e as limitações de validação estão documentadas ali. A
+coexistência com o MUI durou da issue 01 à 05 e acabou: o provider de tema do
+app publica variáveis CSS e o `color-scheme`, e nada mais. O que a retirada
+custou, e que **neste app** passou a ser declarado em `styles.css`, está nos
+[tokens locais](../apps/meu-dinheiro-app/docs/orca-theme.md): `box-sizing`
+herdado, a fonte e a métrica do corpo, o anel de foco do documento — que é o que
+alcança camada em portal — e o bloco de movimento reduzido. Nada disso era do
+tema antigo; ele só era quem estava dizendo, e Tailwind entra sem Preflight.
+Isto descreve o que foi feito aqui; não é plano nem autorização para os apps que
+seguem em MUI.
 Permanecem obrigatórias as regras de contraste medido nas superfícies reais,
 alinhamento de tabelas, segundo canal além da cor, teclado/foco, movimento reduzido,
 carregamento, erro/vazio e tema persistido no banco e aplicado à janela.
@@ -479,9 +493,8 @@ O `meu-movel-planejado` é a primeira implementação da regra, em
 paleta que ela mede.
 
 O `meu-dinheiro-app` é a segunda, em
-`apps/meu-dinheiro-app/src/renderer/src/theme/labelOn.ts`, reexportada de
-`theme/index.ts` e consumida pelo check sobre a amostra de cor da categoria em
-`CategoryForm.tsx`. Antes disso a tela decidia o check por um limiar fixo de `0.4`
+`apps/meu-dinheiro-app/src/renderer/src/theme/labelOn.ts`, consumida pelo check
+sobre a amostra de cor da categoria em `CategoryForm.tsx`. Antes disso a tela decidia o check por um limiar fixo de `0.4`
 sobre a luminância, que devolvia branco para os dez swatches — inclusive `#FB8C00`
 (2.37:1) e `#00ACC1` (2.74:1), que não passam nem no 3:1 exigido do check. Como as
 dez cores são oferecidas ao usuário (§1.7), não há paleta a encolher: `labelOn`
@@ -502,6 +515,12 @@ e os componentes de controle são rebaixados um a um.
 
 Ao lado dos raios, o módulo de tema **exporta** o `contentQuery` da §2.2 — quem
 consulta a largura de conteúdo são os componentes, então ele precisa sair de lá.
+Isto vale enquanto o layout é escrito em JS. Na base migrada do Meu Dinheiro as
+consultas de conteúdo são escritas na própria folha de estilo, com os limiares
+nomeados nos [tokens locais](../apps/meu-dinheiro-app/docs/orca-theme.md) — um
+`contentQuery` em TypeScript ali não teria consumidor. O que a §2.2 continua
+cobrando dos dois é a **medida**: consulta de contêiner, nunca breakpoint de
+janela.
 
 As tintas da §1.6 ficam **dentro** do módulo, como helpers nomeados e não como
 literais espalhados pelos overrides. Elas dependem do modo, que só existe ali

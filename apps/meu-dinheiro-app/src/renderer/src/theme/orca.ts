@@ -1,4 +1,4 @@
-import type { PaletteMode } from '@mui/material';
+import type { ThemeMode } from '@shared/types/theme';
 
 /**
  * Cor de identidade de um bloco — o preenchimento do `IconTile`, do
@@ -63,7 +63,7 @@ export function tileColors(accent: TileAccent) {
  * `currentColor`; lá há um elemento pai onde pendurar a cor, num eixo ou numa
  * barra não há.
  */
-export function tileFill(accent: TileAccent, mode: PaletteMode): string {
+export function tileFill(accent: TileAccent, mode: ThemeMode): string {
   return TILE_FILL[accent][mode];
 }
 
@@ -94,7 +94,7 @@ export const CATEGORY_NEUTRAL = '#757575';
  * da §1.7 é o oráculo, e um segundo lugar onde ela é copiada é um lugar onde
  * ela envelhece sozinha.
  */
-export const CATEGORY_SWATCHES: readonly { color: string; lowContrast: PaletteMode | null }[] = [
+export const CATEGORY_SWATCHES: readonly { color: string; lowContrast: ThemeMode | null }[] = [
   { color: '#5C6BC0', lowContrast: null },
   { color: '#FB8C00', lowContrast: 'light' },
   { color: '#1E88E5', lowContrast: null },
@@ -127,11 +127,19 @@ export function categoryColor(color: string | null): string {
  * tema de gráfico precisa dos mesmos valores **resolvidos** (ver `tileFill`), e
  * lê-los daqui é o que impede a paleta de ter duas fontes da verdade.
  */
-export function orcaColors(mode: PaletteMode) {
+export function orcaColors(mode: ThemeMode) {
   const light = mode === 'light';
 
   return {
     background: light ? '#ffffff' : '#0a0a0a',
+    // A faixa de conteúdo é a única superfície com matiz desta base, e é de
+    // propósito: papel e janela são o mesmo branco (e o mesmo quase-preto), e
+    // sem ela cada card perderia a borda de que é feito de luz. Ela chegou com
+    // a base anterior e **não** foi retonalizada ao sair dela: é a superfície
+    // contra a qual as issues 03–05 mediram o contraste de rótulos, legendas e
+    // bordas de campo, e trocar a cor invalidaria a tabela inteira sem que
+    // ninguém tivesse pedido uma cor nova.
+    content: light ? '#f4f6fb' : '#10131c',
     paper: light ? '#ffffff' : '#171717',
     sidebar: light ? '#fafafa' : '#171717',
     foreground: light ? '#0a0a0a' : '#fafafa',
@@ -145,6 +153,10 @@ export function orcaColors(mode: PaletteMode) {
     // conteúdo no claro, 3,36:1 sobre o papel no escuro —, e não o cinza de
     // contorno de card.
     fieldBorder: light ? '#8a8a8a' : '#6b6b6b',
+    // O polegar da barra de rolagem, declarado porque a barra é do Chromium e
+    // não tem classe onde pendurar cor. É decorativo — separa o polegar da
+    // trilha, não carrega informação —, e vale a mesma régua das bordas.
+    scrollbar: light ? '#c1c1c1' : '#3a3f4d',
     focus: light ? '#2771ca' : '#3987e5',
     primary: light ? '#0a0a0a' : '#fafafa',
     onPrimary: light ? '#fafafa' : '#0a0a0a',
@@ -158,8 +170,8 @@ export function orcaColors(mode: PaletteMode) {
   };
 }
 
-/** Tokens das superfícies migradas; MUI mantém sua paleta até a migração da tela. */
-export function getOrcaVariables(mode: PaletteMode): Record<string, string> {
+/** Os tokens do modo como variáveis CSS, publicadas em `<html>` pelo provider. */
+export function getOrcaVariables(mode: ThemeMode): Record<string, string> {
   const light = mode === 'light';
   const color = orcaColors(mode);
 
@@ -173,6 +185,7 @@ export function getOrcaVariables(mode: PaletteMode): Record<string, string> {
 
   return {
     '--money-background': color.background,
+    '--money-content': color.content,
     '--money-paper': color.paper,
     '--money-sidebar': color.sidebar,
     '--money-foreground': color.foreground,
@@ -180,6 +193,7 @@ export function getOrcaVariables(mode: PaletteMode): Record<string, string> {
     '--money-accent': color.accent,
     '--money-border': color.border,
     '--money-field-border': color.fieldBorder,
+    '--money-scrollbar': color.scrollbar,
     '--money-focus': color.focus,
     '--money-primary': color.primary,
     '--money-on-primary': color.onPrimary,

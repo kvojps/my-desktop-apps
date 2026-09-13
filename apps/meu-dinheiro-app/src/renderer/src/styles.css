@@ -3,6 +3,20 @@
 @import 'tailwindcss/utilities.css' layer(utilities) prefix(ui);
 @source './';
 
+/* A base do documento. Tailwind entra sem Preflight (§2.4 do README), então o
+   que um reset costuma dar precisa ser dito aqui: sem `box-sizing` herdado,
+   toda caixa com padding e largura declarados no mesmo lugar passa a medir a
+   soma das duas. */
+html {
+  box-sizing: border-box;
+  -webkit-text-size-adjust: 100%;
+}
+*,
+*::before,
+*::after {
+  box-sizing: inherit;
+}
+
 html,
 body,
 #root {
@@ -12,7 +26,44 @@ body,
 }
 body {
   min-height: 100vh;
+  background: var(--money-background);
+  color: var(--money-foreground);
+  font-family: var(--money-font);
+  font-size: 14px;
+  line-height: 20px;
+  /* O app é quase todo número: saldos, valores e datas empilhados em colunas.
+     Dígitos de largura fixa alinham sozinhos, sem tabular nada. */
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* O polegar acompanha o modo; a trilha é a faixa de conteúdo, que é a
+     superfície que rola. */
+  scrollbar-color: var(--money-scrollbar) var(--money-content);
 }
+/* O anel de foco vale para o documento, e não só para as superfícies nomeadas:
+   menu e dica saem em portal, fora da árvore da página, e uma regra escopada
+   os deixaria sem anel (§5.5). Só sobrevive abaixo o que **discorda** desta —
+   linha de tabela e controle segmentado, que trazem o anel para dentro com
+   offset negativo. */
+:focus-visible {
+  outline: 2px solid var(--money-focus);
+  outline-offset: 2px;
+}
+
+/* O interruptor geral de movimento do app. Hoje ele não desliga nada — esta
+   folha não tem `animation` nem `transition` —, e é justamente por isso que
+   ele fica: é o piso que qualquer animação futura herda sem precisar lembrar
+   da preferência. O que ele não alcança é o Recharts, que interpola em
+   JavaScript; aquele respeita a preferência por `chartTheme`. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 .money-layout {
   background: var(--money-background);
 }
@@ -138,15 +189,8 @@ body {
   opacity: 0.5;
   cursor: default;
 }
-.money-sidebar :focus-visible,
-.money-surface :focus-visible,
-.money-page :focus-visible,
-.money-button:focus-visible {
-  outline: 2px solid var(--money-focus);
-  outline-offset: 2px;
-}
 .money-content {
-  background: var(--mui-content-background);
+  background: var(--money-content);
 }
 .money-content-container {
   padding: 24px;
@@ -834,10 +878,6 @@ body {
 }
 .money-dialog::backdrop {
   background: rgb(0 0 0 / 50%);
-}
-.money-dialog :focus-visible {
-  outline: 2px solid var(--money-focus);
-  outline-offset: 2px;
 }
 .money-dialog form {
   display: contents;

@@ -1,4 +1,4 @@
-Status: in-progress
+Status: resolved
 
 # Meu Dinheiro — adequação ao design inspirado no Orca
 
@@ -89,10 +89,27 @@ caixa inline e um nome longo alargava a tabela, a recusa do backup virava
 "Ocorreu um erro" em vez da mensagem do main, e exportar não travava o botão.
 [Evidências e limites](issues/05-configuracoes.md); issue 06 desbloqueada.
 
+Etapa 06 resolvida em 2026-09-13, encerrando a migração: o app não declara mais
+MUI, Emotion, Material Icons nem Inter. Os cinco consumidores que sobravam eram
+todos do módulo de tema, e o que saiu com o `CssBaseline` — caixa herdada, fonte
+do corpo, anel de foco **do documento** e o desligamento de movimento — passou a
+ser dito em `styles.css`; o anel de documento é o que alcança menu e dica em
+portal. O fundo da faixa de conteúdo virou token desta base **com a cor que já
+tinha**, o que preserva a tabela de contraste das issues 03–05. A retirada foi
+medida contra o build anterior: dos 6300 nós de 24 telas, os 48 que mudaram são
+valores herdados nos dois contêineres da faixa, que nenhum descendente usa.
+Junto saiu o "Nenhum mês cadastrado em 0" anotado abaixo. A revisão em dois
+agentes achou treze coisas, todas acatadas: cinco no código — ícone de estado
+vazio de página, o esquema de `theme/` no README, o `contentQuery` que não foi
+recriado, as cinco regras de foco que viraram cópias e os dois `?? 0` que
+reintroduziam o ano zero — e sete de **afirmação**, onde eu tinha relatado mais
+do que a medida dava. As correções foram remedidas: zero diferença de pixel
+contra a medição anterior a elas.
+[Evidências e limites](issues/06-concluir-migracao.md).
+
 ## Plano de execução
 
-A [spec](spec.md) consolida o escopo aprovado. Issues 01–05 resolvidas; a issue
-06 permanece `ready-for-agent`, respeitando a ordem de bloqueio.
+A [spec](spec.md) consolida o escopo aprovado. As seis issues estão resolvidas.
 
 | Issue                                | Escopo                                              | Bloqueada por |
 | ------------------------------------ | --------------------------------------------------- | ------------- |
@@ -105,19 +122,26 @@ A [spec](spec.md) consolida o escopo aprovado. Issues 01–05 resolvidas; a issu
 
 ## Fog
 
-Nenhuma decisão de produto pendente. Tokens e medições da base estão em
-`apps/meu-dinheiro-app/docs/orca-theme.md`. A limitação da janela externa mínima
-e da moldura Windows está registrada na issue 01. A dica de linha em portal foi
-resolvida na issue 03, o caminho de teclado do Histórico na issue 04 e a paleta
-oferecida no cadastro na issue 05, que a manteve com dez cores e passou a
-informar o contraste de cada uma. Segue aberto para a issue 06: nenhuma tela usa
-MUI, mas o provider de tema continua de pé e com ele o fundo da faixa de
-conteúdo; três das dez categorias semeadas pela migração falham o 3:1 de marca
-em um dos modos, e elas estão nos bancos instalados. O ciclo de backup foi
-validado com o seletor nativo substituído por um arquivo de controle — o
-diálogo GTK em si não tem automação neste ambiente. A revisão da issue 05
-deixou um achado para a 06: sem mês nenhum, o Histórico escreve "Nenhum mês
-cadastrado em 0".
+Nenhuma decisão de produto pendente e nenhuma etapa aberta. Tokens e medições da
+base estão em `apps/meu-dinheiro-app/docs/orca-theme.md`. A dica de linha em
+portal foi resolvida na issue 03, o caminho de teclado do Histórico na issue 04,
+a paleta oferecida no cadastro na issue 05 — que a manteve com dez cores e passou
+a informar o contraste de cada uma — e o "Nenhum mês cadastrado em 0" na issue 06.
+
+O que continua valendo como limite, e não como pendência de trabalho:
+
+- O viewport mínimo é aplicado por DevTools porque o gerenciador de janelas impõe
+  um mínimo maior, e a moldura nativa do Windows nunca foi validada (issue 01).
+- O diálogo GTK de arquivo não tem automação neste ambiente; o ciclo de backup
+  foi validado na issue 05 com o gateway `dialogs` devolvendo um arquivo de
+  controle, e o caminho do diálogo em si segue verificado só por leitura.
+- Três das dez categorias semeadas pela migração falham o 3:1 de marca em um dos
+  modos. Elas estão nos bancos instalados e a migração não pode ser reescrita; o
+  segundo canal é o nome, e a escolha no cadastro passou a ser informada.
+- A tabela do Mês rola na horizontal a 960 × 640 com a lateral aberta, dentro do
+  contêiner próprio de rolagem — são seis colunas (issue 03).
+- Fora do escopo desta migração: o `git-dlog` declara `@fontsource/inter` sem
+  importar a fonte. É outro workspace, e eles são independentes.
 
 ## Inventário inicial
 

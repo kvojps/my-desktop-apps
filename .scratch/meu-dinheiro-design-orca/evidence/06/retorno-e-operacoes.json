@@ -1,0 +1,69 @@
+{
+  "visaoGeral": {
+    "antes": {
+      "hash": "#/dashboard",
+      "recorte": "Outubro/2026 – Dezembro/2026 · 3 meses",
+      "ordem": "ascending",
+      "primeiraLinha": "Outubro/2026",
+      "rolagem": 0,
+      "lateralMarcada": "Visão Geral"
+    },
+    "noMes": {
+      "hash": "#/months/46",
+      "lateralMarcada": "Visão Geral"
+    },
+    "depois": {
+      "hash": "#/dashboard",
+      "recorte": "Outubro/2026 – Dezembro/2026 · 3 meses",
+      "ordem": "ascending",
+      "primeiraLinha": "Outubro/2026",
+      "rolagem": 0
+    }
+  },
+  "historico": {
+    "antes": {
+      "hash": "#/history",
+      "cabecalho": "12 meses em 2024 · maior gasto em Moradia",
+      "aba": "Comparativo",
+      "modo": [
+        "2024",
+        "Tabela"
+      ]
+    },
+    "noMes": {
+      "hash": "#/months/14",
+      "lateralMarcada": "Histórico"
+    },
+    "depois": {
+      "hash": "#/history",
+      "cabecalho": "12 meses em 2024 · maior gasto em Moradia",
+      "aba": "Comparativo",
+      "modo": [
+        "2024",
+        "Tabela"
+      ]
+    }
+  },
+  "operacoes": {
+    "pagar": {
+      "valor": 310.4,
+      "debitou": 310.4
+    },
+    "desfazerPagamento": {
+      "creditouDeVolta": 310.4,
+      "voltouAoInicio": true
+    },
+    "recusaPorSaldo": {
+      "mensagem": "Saldo insuficiente na conta selecionada",
+      "saldoDaContaNegativaIntacto": true
+    },
+    "receber": {
+      "valor": 200,
+      "creditou": 200
+    },
+    "desfazerRecebimento": {
+      "debitouDeVolta": 200,
+      "voltouAoInicio": true
+    }
+  }
+}

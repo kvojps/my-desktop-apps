@@ -1,11 +1,10 @@
-import { CssBaseline, PaletteMode, ThemeProvider } from '@mui/material';
-import { ReactNode, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { ReactNode, useLayoutEffect, useRef, useState } from 'react';
+import type { ThemeMode } from '@shared/types/theme';
 import { api } from '@/api/client';
 import { ThemeModeContext } from './themeModeContext';
-import { getAppTheme } from './index';
 import { getOrcaVariables } from './orca';
 
-function getInitialMode(): PaletteMode {
+function getInitialMode(): ThemeMode {
   return (
     api.initialThemeMode() ??
     (window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
@@ -13,7 +12,7 @@ function getInitialMode(): PaletteMode {
 }
 
 export function ThemeModeProvider({ children }: { children: ReactNode }) {
-  const [mode, setMode] = useState<PaletteMode>(getInitialMode);
+  const [mode, setMode] = useState<ThemeMode>(getInitialMode);
 
   const currentMode = useRef(mode);
   const toggleMode = () => {
@@ -23,25 +22,19 @@ export function ThemeModeProvider({ children }: { children: ReactNode }) {
     api.setThemeMode(next).catch((err) => console.error('[theme] falha ao persistir', err));
   };
 
-  const theme = useMemo(() => getAppTheme(mode), [mode]);
-
+  // O provider publica o modo de duas formas, porque ele tem dois consumidores
+  // de natureza diferente: as variáveis `--money-*`, que a folha de estilo lê,
+  // e o `color-scheme`, que é o que faz o próprio Chromium pintar barra de
+  // rolagem, campo nativo e `<option>` no modo certo — nenhuma regra CSS nossa
+  // alcança essas superfícies.
   useLayoutEffect(() => {
     for (const [key, value] of Object.entries(getOrcaVariables(mode))) {
       document.documentElement.style.setProperty(key, value);
     }
     document.documentElement.style.colorScheme = mode;
-    document.documentElement.style.setProperty(
-      '--mui-content-background',
-      theme.palette.background.default,
-    );
-  }, [mode, theme]);
+  }, [mode]);
 
   return (
-    <ThemeModeContext.Provider value={{ mode, toggleMode }}>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        {children}
-      </ThemeProvider>
-    </ThemeModeContext.Provider>
+    <ThemeModeContext.Provider value={{ mode, toggleMode }}>{children}</ThemeModeContext.Provider>
   );
 }

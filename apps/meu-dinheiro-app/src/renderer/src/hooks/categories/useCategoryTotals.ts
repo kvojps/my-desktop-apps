@@ -5,7 +5,15 @@ import { useSnackbar } from '@/contexts/SnackbarContext';
 import { useDataChanged } from '@/hooks/useDataChanged';
 import { categoryBreakdown } from './categoryRows';
 
-export function useCategoryTotals(year: number) {
+/**
+ * Os totais por categoria de um ano.
+ *
+ * `year` aceita `null` porque a tela pode ainda não ter recorte — um Histórico
+ * sem competência nenhuma não tem ano —, e um hook não pode ser chamado
+ * condicionalmente. Receber a ausência é o que evita um zero fazendo o papel
+ * dela do lado de fora.
+ */
+export function useCategoryTotals(year: number | null) {
   const { showError } = useSnackbar();
   const [rows, setRows] = useState<CategoryTotal[]>([]);
   const [loading, setLoading] = useState(true);
@@ -20,7 +28,7 @@ export function useCategoryTotals(year: number) {
 
   const load = useCallback(
     async (silent = false) => {
-      if (!Number.isInteger(year) || year <= 0) {
+      if (year === null) {
         setRows([]);
         setError(null);
         setLoading(false);

@@ -168,18 +168,18 @@ foco da janela é o exemplo. Ver
 tema em `theme/`. O Git Dlog concluiu sua exceção local com Tailwind sem
 Preflight, componentes locais, Geist e Lucide, conforme os
 [tokens locais](apps/git-dlog/docs/orca-theme.md); ele não usa MUI ou Emotion.
-O Meu Dinheiro tem uma [migração incremental aprovada](.scratch/meu-dinheiro-design-orca/spec.md)
-para Tailwind sem Preflight, componentes locais, Geist e Lucide. A base de
-navegação, os estados transversais, a Visão Geral, o detalhe de Mês — com a
-camada de diálogos, campos e menus que ele trouxe —, o Histórico, com o módulo
-de tema de gráfico, e Configurações, com a navegação interna de seções, estão
-implementados, com
-valores nos [tokens locais](apps/meu-dinheiro-app/docs/orca-theme.md).
-Nele, nenhuma tela usa mais componente MUI; o que resta é o provider de tema,
-que sai na última etapa da migração. As prescrições de biblioteca, ícones e
-tema abaixo admitem a substituição local
+O Meu Dinheiro **concluiu** a sua
+[migração incremental aprovada](.scratch/meu-dinheiro-design-orca/spec.md) para a
+mesma direção: as telas, os diálogos, os gráficos e os estados transversais
+estão implementados, com valores nos
+[tokens locais](apps/meu-dinheiro-app/docs/orca-theme.md), e o app não declara
+mais MUI, Emotion, Material Icons nem Inter. Implementado não é o mesmo que
+validado: o que foi exercitado no Electron, e o que não foi, está registrado
+etapa por etapa nas issues da migração, com as limitações do ambiente.
+As prescrições de biblioteca, ícones e tema abaixo admitem a substituição local
 conforme a [exceção normativa](docs/design-system.md). Meu Negócio e Meu Móvel
-Planejado mantêm MUI e Material Icons. Não há compartilhamento de código.
+Planejado mantêm MUI e Material Icons — a migração de um app não vale para os
+outros, e nenhum deles é canônico. Não há compartilhamento de código.
 
 A organização é **horizontal no topo e vertical dentro de `pages/<tela>/`**: as
 pastas do topo são as camadas do renderer, e dentro da tela valem as mesmas —
@@ -229,9 +229,11 @@ src/renderer/src/
 - **`assets/`** — o logo do app, e só. Ícone é `@mui/icons-material` (Lucide no
   Git Dlog e no Meu Dinheiro); imagem que
   a tela gera não mora aqui.
-- **`theme/`** — o tema MUI e o provider do modo claro/escuro; no Git Dlog, as
-  variáveis CSS locais e o provider do modo; no Meu Dinheiro, os dois juntos
-  enquanto a migração não termina. Cor que se calcula
+- **`theme/`** — o tema MUI e o provider do modo claro/escuro; no Git Dlog e no
+  Meu Dinheiro, as variáveis CSS locais e o provider do modo. O Meu Dinheiro não
+  tem o `index.ts` do esquema acima: sem tema de biblioteca a montar, os tokens
+  ficam em `orca.ts`, o estilo de gráfico em `chartTheme.ts` e a conta de rótulo
+  em `labelOn.ts`, cada um importado de onde mora. Cor que se calcula
   em vez de se escolher mora aqui também, e não na tela que precisou dela
   primeiro — é o caso da paleta categórica de gráfico (design system, §1.7).
 - **`contexts/`** — domínio consumido por **duas ou mais telas** vira context
@@ -419,9 +421,13 @@ Por baixo, cada script `notices` chama o gerador da raiz com o nome do workspace
 
 ### 4.2 Orca
 
-A direção visual do `git-dlog` é inspirada no
+A direção visual do `git-dlog` e a do `meu-dinheiro-app` são inspiradas no
 [Orca](https://github.com/stablyai/orca) (MIT), da Stably. O que veio de lá foram
 decisões de design — paleta, medidas, composição da navegação — extraídas do
-commit fixado nos [tokens do piloto](apps/git-dlog/docs/orca-theme.md), com os
-valores adaptados às regras de contraste deste repositório. Nenhum código do Orca
-foi copiado, e os projetos não têm vínculo.
+commit fixado em cada conjunto de tokens locais
+([Git Dlog](apps/git-dlog/docs/orca-theme.md),
+[Meu Dinheiro](apps/meu-dinheiro-app/docs/orca-theme.md)), com os valores
+adaptados às regras de contraste deste repositório. Cada app extraiu os seus:
+nenhum deles é a norma do outro, e a norma continua sendo o
+[design system](docs/design-system.md). Nenhum código do Orca foi copiado, e os
+projetos não têm vínculo.

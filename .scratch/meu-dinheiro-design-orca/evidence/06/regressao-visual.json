@@ -1,0 +1,135 @@
+{
+  "metodo": "estilo computado e caixa de cada nó visível **dentro** de .money-layout, mesma base semeada, mesmas 24 telas (2 larguras x 2 temas x 6 rotas), build de produção antes (d141755, com MUI) e depois (sem MUI)",
+  "nosComparados": 6300,
+  "telas": 24,
+  "diferencas": 48,
+  "nosQueDiferem": {
+    "MAIN|money-content ui:min-w-0 ui:flex-1 ui:overflow-y-auto|": 24,
+    "DIV|money-content-container|": 24
+  },
+  "camposQueMudaram": [
+    "cor",
+    "corDaBorda",
+    "fonte",
+    "tamanho",
+    "entrelinha"
+  ],
+  "leitura": "Os únicos nós que mudaram são os dois contêineres da faixa de conteúdo, e neles mudou só o valor herdado — cor, família e métrica de fonte — que nenhum descendente usa: todos os 6252 nós restantes, incluindo cada nó de texto, têm caixa, cor, fonte e métrica idênticas.",
+  "amostra": [
+    {
+      "tela": "960x640/light/visao-geral",
+      "no": "MAIN|money-content ui:min-w-0 ui:flex-1 ui:overflow-y-auto|",
+      "mudou": {
+        "cor": {
+          "antes": "rgba(0, 0, 0, 0.87)",
+          "depois": "rgb(10, 10, 10)"
+        },
+        "corDaBorda": {
+          "antes": "rgba(0, 0, 0, 0.87)",
+          "depois": "rgb(10, 10, 10)"
+        },
+        "fonte": {
+          "antes": "Inter",
+          "depois": "Geist"
+        },
+        "tamanho": {
+          "antes": "16px",
+          "depois": "14px"
+        },
+        "entrelinha": {
+          "antes": "24px",
+          "depois": "20px"
+        }
+      }
+    },
+    {
+      "tela": "960x640/light/visao-geral",
+      "no": "DIV|money-content-container|",
+      "mudou": {
+        "cor": {
+          "antes": "rgba(0, 0, 0, 0.87)",
+          "depois": "rgb(10, 10, 10)"
+        },
+        "corDaBorda": {
+          "antes": "rgba(0, 0, 0, 0.87)",
+          "depois": "rgb(10, 10, 10)"
+        },
+        "fonte": {
+          "antes": "Inter",
+          "depois": "Geist"
+        },
+        "tamanho": {
+          "antes": "16px",
+          "depois": "14px"
+        },
+        "entrelinha": {
+          "antes": "24px",
+          "depois": "20px"
+        }
+      }
+    },
+    {
+      "tela": "960x640/light/historico",
+      "no": "MAIN|money-content ui:min-w-0 ui:flex-1 ui:overflow-y-auto|",
+      "mudou": {
+        "cor": {
+          "antes": "rgba(0, 0, 0, 0.87)",
+          "depois": "rgb(10, 10, 10)"
+        },
+        "corDaBorda": {
+          "antes": "rgba(0, 0, 0, 0.87)",
+          "depois": "rgb(10, 10, 10)"
+        },
+        "fonte": {
+          "antes": "Inter",
+          "depois": "Geist"
+        },
+        "tamanho": {
+          "antes": "16px",
+          "depois": "14px"
+        },
+        "entrelinha": {
+          "antes": "24px",
+          "depois": "20px"
+        }
+      }
+    },
+    {
+      "tela": "960x640/light/historico",
+      "no": "DIV|money-content-container|",
+      "mudou": {
+        "cor": {
+          "antes": "rgba(0, 0, 0, 0.87)",
+          "depois": "rgb(10, 10, 10)"
+        },
+        "corDaBorda": {
+          "antes": "rgba(0, 0, 0, 0.87)",
+          "depois": "rgb(10, 10, 10)"
+        },
+        "fonte": {
+          "antes": "Inter",
+          "depois": "Geist"
+        },
+        "tamanho": {
+          "antes": "16px",
+          "depois": "14px"
+        },
+        "entrelinha": {
+          "antes": "24px",
+          "depois": "20px"
+        }
+      }
+    }
+  ],
+  "foraDoAlcanceDaFotografia": {
+    "porque": "a coleta é querySelectorAll(\".money-layout *\"), que não alcança os quatro ancestrais, e descarta nó de caixa zero (o <option>)",
+    "ancestrais": {
+      "medidosSeparadamente": "anc-antes.json / anc-depois.json, nos dois modos",
+      "html": "sem mudança",
+      "body": "fundo #f4f6fb→#ffffff no claro e #10131c→#0a0a0a no escuro, mais cor/fonte/métrica herdadas. .money-layout cobre a janela inteira (1280x800 contra 1280x800) e tem esse mesmo fundo, então o corpo não aparece; a troca o põe de acordo com a cor que o main já pinta na janela.",
+      "#root": "só cor, fonte e métrica herdadas",
+      ".money-layout": "só cor, fonte e métrica herdadas; o fundo dele já era --money-background"
+    },
+    "option": "<option> tem caixa zero e fica fora da fotografia. Os dez botões .money-swatch do cadastro de categoria computam a fonte padrão do navegador (Arial) por não declararem família — 10 botões mais o svg do check, idênticos antes e depois (fontes-antes/depois). Eles não têm texto."
+  }
+}

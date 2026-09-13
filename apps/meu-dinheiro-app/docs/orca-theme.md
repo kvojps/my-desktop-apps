@@ -19,12 +19,11 @@ com o tema de gráfico, a caixa de gráfico e as duas tabelas de leitura do ano,
 e a issue 05 Configurações, com a navegação interna de seções, o cabeçalho de
 seção e a paleta de categoria.
 Cada superfície migrada declara sua fonte e cores; Tailwind v4 usa
-prefixo `ui`, sem Preflight. Não há imports entre apps. Desde a issue 05
-nenhuma tela ou diálogo usa componente MUI: o que resta é o provider de tema
-(`theme/index.ts`, `ThemeModeProvider`, o `CssBaseline`) e o fundo MUI da faixa
-de conteúdo, que continua sendo a paleta antiga porque ele é publicado por esse
-provider. Trocá-lo é a mesma mudança que remove o provider, e as duas ficam
-para a issue 06.
+prefixo `ui`, sem Preflight. Não há imports entre apps. A issue 06 encerrou a
+migração: o app não declara mais MUI, Emotion, Material Icons nem Inter, o tema
+antigo (`theme/index.ts`) deixou de existir e o `ThemeModeProvider` publica
+variáveis CSS e `color-scheme`, sem `ThemeProvider` nem `CssBaseline`. O fundo
+da faixa de conteúdo virou token desta base, com o mesmo valor de antes.
 
 ## Tokens locais
 
@@ -33,6 +32,7 @@ Variáveis `--money-*` publicadas pelo provider a partir de `theme/orca.ts`:
 | Token                                   | Claro     | Escuro    |
 | --------------------------------------- | --------- | --------- |
 | background                              | `#ffffff` | `#0a0a0a` |
+| content (faixa de conteúdo)             | `#f4f6fb` | `#10131c` |
 | paper                                   | `#ffffff` | `#171717` |
 | sidebar                                 | `#fafafa` | `#171717` |
 | foreground                              | `#0a0a0a` | `#fafafa` |
@@ -46,12 +46,16 @@ Variáveis `--money-*` publicadas pelo provider a partir de `theme/orca.ts`:
 | on-danger (rótulo sobre o destrutivo)   | `#ffffff` | preto 87% |
 | positive (valor em bom estado)          | `#067306` | `#35c435` |
 | field-border (borda de campo)           | `#8a8a8a` | `#6b6b6b` |
+| scrollbar (polegar da barra)            | `#c1c1c1` | `#3a3f4d` |
 
 Notificações usam texto neutro, ícone e nome de severidade; nenhum rótulo herda
 âmbar ou texto desabilitado. Botões primários são neutros, hover por sublinhado;
 botões secundários e links de navegação usam accent. A seleção tem peso 600,
-barra de 3 × 20px e `aria-current`. Foco de 2px, offset 2px; os controles MUI
-continuam com seu anel. Nenhuma animação nova é necessária.
+barra de 3 × 20px e `aria-current`. Foco de 2px, offset 2px, declarado para o
+**documento** e não para as superfícies nomeadas — menu e dica saem em portal,
+fora da árvore da página, e uma regra escopada os deixaria sem anel. Esta base
+não tem `animation` nem `transition` em CSS; o bloco de movimento reduzido fica
+como piso para quem vier, e o Recharts respeita a preferência por `chartTheme`.
 
 ### Identidade de indicador — issue 02
 
@@ -103,8 +107,7 @@ Geist local empacotada em 400/500/600/700, fallback `system-ui, sans-serif`.
 Texto 14px/20px; título de estado 24px/32px (denso 20px/28px); descrição 12px/18px.
 Erros técnicos usam `ui-monospace, SFMono-Regular, Menlo, Consolas, monospace`.
 Valores usam dígitos tabulares. Lucide 18px nos controles e 48px nos estados
-de página, 40px nos estados de seção. Ícones recebidos de telas MUI permanecem
-até a migração do consumidor.
+de página, 40px nos estados de seção.
 
 Superfície 10px, controle 6px; escala de espaçamento 4/8/12/16/24/32/48/64px.
 Lateral expandida por padrão: 224px; recolhida: 64px; padding 12px, gap 4px,
@@ -112,13 +115,26 @@ controles de pelo menos 36px, logo 28px. Rodapé contém tema e recolhimento.
 Nomes acessíveis e títulos nativos permanecem quando recolhida.
 Conteúdo com padding 24px e teto 1440px, rolagem independente, container `content`.
 A 960px, sobram aproximadamente 688px expandida e 848px recolhida (antes da
-barra de rolagem); a 1280px, 1008px e 1168px. Mantêm-se consultas de conteúdo
-640/1000px das telas existentes; não trocar por breakpoints de viewport.
+barra de rolagem); a 1280px, 1008px e 1168px.
+
+As consultas de largura desta base são de **contêiner**, nunca de viewport, e
+moram na folha de estilo — não há um `contentQuery` em TypeScript aqui, porque
+não há layout escrito em JS que o consuma. São estes os limiares, e eles são a
+lista completa:
+
+| Limiar de `content` | Quem muda                                             |
+| ------------------- | ----------------------------------------------------- |
+| 480px               | Fileira de indicadores: 1 → 2 colunas                 |
+| 728px               | Fileira de indicadores: → 3 colunas (só com três)     |
+| 900px               | Configurações: seletor compacto → coluna de navegação |
+| 976px               | Fileira de indicadores: → 4 colunas (só com quatro)   |
+| 1000px              | Filtros do Mês: campo estreito ganha largura própria  |
+
 As dimensões de gráfico e do esqueleto dele estão na seção de gráficos, abaixo.
 Estado vazio: padding 48px vertical/16px horizontal, gap 12px, descrição até 420px.
 Erro: largura até 560px, margem superior 64px na página/zero na seção.
 Notificação: fixa a 24px do rodapé, largura até 560px ou viewport menos 48px,
-padding 16px, gap 12px, acima dos diálogos MUI (z-index 1500). Fecha em 4s,
+padding 16px, gap 12px, acima da camada de diálogo (z-index 1500). Fecha em 4s,
 pausa sob foco/hover, permite Escape e botão de fechar, preservando a fila.
 
 ### Diálogos, campos e camadas flutuantes — issue 03
@@ -135,7 +151,7 @@ do diálogo aberto. Por isso a dica e o menu desta base procuram o diálogo que 
 contém antes de escolher onde se desenhar (`overlayRoot`), e por isso os dois
 `Select` do MUI que ainda viviam dentro de um `Modal` em Configurações passaram
 para o seletor local — a lista deles é desenhada no `body` e sumiria atrás do
-diálogo. O resto daqueles formulários continua MUI até a issue 05.
+diálogo. O resto daqueles formulários passou na issue 05.
 
 Diálogo: largura `min(560px, 100vw − 48px)`, altura até `100vh − 48px`, raio
 10px, borda de 1px, sombra `0 12px 32px rgb(0 0 0 / 24%)`, fundo `paper` e
@@ -250,13 +266,34 @@ aparece no resto do app, a escolhida ganha borda de 2px em `foreground` mais o
 `aria-pressed`, e o "certo" por cima sai de `labelOn` (§1.8). Nenhuma cor
 cadastrada é reescrita.
 
-## Janela e coexistência
+## Janela
 
 O gateway pinta `background` antes de abrir e em todas as janelas vivas ao
 alternar; `nativeTheme` pinta a moldura. Banco continua fonte da verdade e o
 preload injeta o modo antes do primeiro render. Tokens CSS são aplicados em
-layout effect antes da pintura. O fundo de conteúdo MUI continua com a paleta
-antiga durante esta etapa, isolado do fundo nativo e da navegação.
+layout effect antes da pintura. A faixa de conteúdo tem cor própria, mais escura
+que a janela no claro e mais clara no escuro: é o que dá contorno aos painéis,
+que são do mesmo branco (e do mesmo quase-preto) do fundo.
+
+## A base do documento — issue 06
+
+Tailwind entra sem Preflight, e até a issue 05 quem dizia o que um reset diz era
+o `CssBaseline` do MUI. Com ele fora, isso passou a ser declarado em
+`styles.css`, e é normativo para esta base:
+
+| O quê              | Valor                                                                            |
+| ------------------ | -------------------------------------------------------------------------------- |
+| Caixa              | `border-box` em `html`, herdado por `*`, `::before`, `::after`                   |
+| Corpo              | fonte `--money-font`, 14px/20px, `--money-foreground` sobre `--money-background` |
+| Números            | `tabular-nums` no corpo inteiro                                                  |
+| Suavização         | `antialiased` / `grayscale`                                                      |
+| Barra de rolagem   | polegar `--money-scrollbar` sobre a trilha `--money-content`                     |
+| Foco               | `:focus-visible` no documento: 2px `--money-focus`, offset 2px                   |
+| Movimento reduzido | `animation-duration`/`transition-duration` em `0.01ms`                           |
+
+O `color-scheme` do modo continua sendo publicado pelo provider: é o que faz o
+Chromium pintar campo nativo, `<option>` e barra de rolagem no modo certo, e
+nenhuma regra do app alcança essas superfícies.
 
 ## Gráficos — issue 04
 
@@ -493,6 +530,49 @@ campo. Cores já cadastradas não foram tocadas.
 
 Relatórios em
 [evidence/05](../../../.scratch/meu-dinheiro-design-orca/evidence/05/).
+
+### Medições da issue 06 (superfícies reais, Electron, sem MUI)
+
+Remedidas depois da retirada, nas mesmas superfícies das issues 03–05 — a faixa
+de conteúdo conservou a cor, então os pares conservaram o valor:
+
+| Par                                        | Claro            | Escuro           |
+| ------------------------------------------ | ---------------- | ---------------- |
+| Título / subtítulo da tela                 | 18,31:1 / 5,31:1 | 17,77:1 / 7,18:1 |
+| Rótulo do indicador                        | 5,74:1           | 6,94:1           |
+| Cabeçalho / célula da tabela               | 5,27:1 / 19,80:1 | 5,86:1 / 17,18:1 |
+| Rótulo de filtro                           | 5,31:1           | 7,18:1           |
+| Borda do campo sobre a faixa (marca)       | 3,19:1           | 3,48:1           |
+| Tick do gráfico / rótulo da legenda        | 19,80:1 / 8,56:1 | 17,18:1 / 5,73:1 |
+| Modo não selecionado                       | 5,74:1           | 6,94:1           |
+| Seção não selecionada / descrição da seção | 5,31:1           | 7,18:1           |
+
+Menor par de texto 5,27:1 e menor marca 3,19:1 — os mesmos limites das issues
+anteriores. O anel de foco foi conferido **por evento de teclado real** (o
+`:focus-visible` não responde a foco programático), inclusive no item do menu
+desenhado em portal, que é o caso que só a regra de documento alcança:
+2px `#3987e5` com offset 2px, e Escape devolvendo o foco ao gatilho.
+[transversais.json](../../../.scratch/meu-dinheiro-design-orca/evidence/06/transversais.json),
+[teclado.json](../../../.scratch/meu-dinheiro-design-orca/evidence/06/teclado.json).
+
+**A retirada foi medida, e não só observada.** O estilo computado e a caixa de
+cada nó visível **dentro de `.money-layout`** foram fotografados nas mesmas 24
+telas (2 larguras × 2 temas × 6 rotas) sobre a mesma base semeada, no build de
+produção antes e depois: dos 6300 nós, 48 diferem, e são os dois contêineres da
+faixa de conteúdo em cada tela, onde mudou só o valor **herdado** — cor, família
+e métrica de fonte — que nenhum descendente usa. Todos os nós de texto ficaram
+idênticos.
+
+O recorte deixa três coisas de fora, medidas à parte: os ancestrais (`html`,
+`body`, `#root` e a própria `.money-layout`), onde mudou o mesmo valor herdado,
+mais o **fundo do corpo** — `#f4f6fb` → `#ffffff` no claro e `#10131c` →
+`#0a0a0a` no escuro. Ele não aparece, porque `.money-layout` cobre a janela
+inteira com esse mesmo fundo; a troca o põe de acordo com a cor que o processo
+main já pinta na janela. E o `<option>`, que tem caixa zero: ali ficam os dez
+botões de amostra do cadastro de categoria, que computam a fonte padrão do
+navegador por não declararem família — idênticos antes e depois, e sem texto.
+[regressao-visual.json](../../../.scratch/meu-dinheiro-design-orca/evidence/06/regressao-visual.json),
+[ancestrais](../../../.scratch/meu-dinheiro-design-orca/evidence/06/ancestrais-depois.json).
 
 Validação Electron e capturas em
 [Comments da issue 01](../../../.scratch/meu-dinheiro-design-orca/issues/01-tema-e-navegacao.md)

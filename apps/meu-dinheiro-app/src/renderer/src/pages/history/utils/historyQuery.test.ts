@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { restoreHistoryQuery } from './historyQuery';
+import { restoreHistoryQuery, selectHistoryYear } from './historyQuery';
 
 const saved = { year: 2025, tab: 'categories', mode: 'table' } as const;
 
@@ -27,5 +27,24 @@ describe('restoreHistoryQuery', () => {
 
   it('preserva a consulta enquanto os anos ainda não chegaram', () => {
     expect(restoreHistoryQuery(saved, [])).toEqual(saved);
+  });
+});
+
+describe('selectHistoryYear', () => {
+  it('responde o ano mais recente quando não há escolha', () => {
+    expect(selectHistoryYear([2026, 2025], null)).toBe(2026);
+  });
+
+  it('responde o ano escolhido enquanto ele tem mês', () => {
+    expect(selectHistoryYear([2026, 2025], 2025)).toBe(2025);
+  });
+
+  it('cai no mais recente quando o ano escolhido deixou de ter mês', () => {
+    expect(selectHistoryYear([2026, 2025], 2024)).toBe(2026);
+  });
+
+  it('não inventa ano quando não há mês nenhum', () => {
+    expect(selectHistoryYear([], null)).toBeNull();
+    expect(selectHistoryYear([], 2026)).toBeNull();
   });
 });

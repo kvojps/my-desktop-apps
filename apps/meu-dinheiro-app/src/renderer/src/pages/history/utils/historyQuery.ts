@@ -26,3 +26,20 @@ export function restoreHistoryQuery(
 
   return { ...saved, year: years[0] };
 }
+
+/**
+ * O ano que a tela mostra: o escolhido enquanto ele tem mês, e o mais recente
+ * quando não tem mais.
+ *
+ * Devolve `null` — e não um ano qualquer — quando **nenhum** ano tem mês. Sem
+ * essa resposta o recorte caía num `?? 0` e a tela escrevia "Nenhum mês
+ * cadastrado em 0", ou seja, culpava um ano inexistente por uma ausência que é
+ * do banco inteiro. Um histórico sem competência nenhuma não tem ano a exibir,
+ * e quem chama precisa poder dizer isso.
+ *
+ * `years` vem em ordem decrescente, como a tela os lista.
+ */
+export function selectHistoryYear(years: number[], chosen: number | null): number | null {
+  if (chosen !== null && years.includes(chosen)) return chosen;
+  return years[0] ?? null;
+}

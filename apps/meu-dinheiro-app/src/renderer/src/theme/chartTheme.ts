@@ -1,5 +1,5 @@
-import type { PaletteMode } from '@mui/material';
 import { useMemo, useSyncExternalStore } from 'react';
+import type { ThemeMode } from '@shared/types/theme';
 import { useThemeMode } from '@/hooks/useThemeMode';
 import { orcaColors, tileFill } from './orca';
 
@@ -41,10 +41,9 @@ export const FORECAST_DASH = '3 3';
 export const CURRENT_DASH = '4 4';
 
 /**
- * O raio do tooltip, que é o da dica desta base e não o `CONTROL_RADIUS` do
- * tema MUI: o balão do Recharts é superfície flutuante da base migrada, e
- * herdar o raio do tema antigo o deixaria com um canto diferente do da dica
- * que aparece ao lado dele.
+ * O raio do tooltip: o mesmo da dica desta base, e não o do controle. O balão
+ * do Recharts é superfície flutuante, e um canto diferente do da dica que
+ * aparece ao lado dele faria as duas parecerem de bases diferentes.
  */
 const TOOLTIP_RADIUS = 6;
 
@@ -108,7 +107,7 @@ export interface ChartTheme {
  * vêm juntos porque o Recharts escreve `color: entry.color || '#000'` inline em
  * cada linha, e só o `contentStyle` deixaria o texto preto sobre papel escuro.
  */
-export function chartTheme(mode: PaletteMode, animate: boolean): ChartTheme {
+export function chartTheme(mode: ThemeMode, animate: boolean): ChartTheme {
   const color = orcaColors(mode);
 
   return {

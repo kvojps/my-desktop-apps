@@ -1,4 +1,4 @@
-Status: in-progress
+Status: resolved
 
 # Meu Dinheiro — migração incremental do design inspirado no Orca
 
@@ -138,8 +138,9 @@ compilado como evidência de aprovação visual.
 
 As decisões Q1–Q11 e o entendimento consolidado foram confirmados pelo usuário.
 A decomposição e o estado de execução ficam no [mapa](map.md). As seis issues
-têm execução acompanhada no mapa: a issue 01 está resolvida e as demais
-aguardam a sequência de implementação.
+estão resolvidas, na ordem aprovada; a issue 06 encerrou a coexistência de
+bibliotecas e a documentação. Implementado não é validado: o que foi exercitado
+no Electron, e o que não foi, está em Comments de cada issue.
 
 Referências: [Orca](https://www.onorca.dev/),
 [spec do precedente](../git-dlog-design-orca/spec.md),

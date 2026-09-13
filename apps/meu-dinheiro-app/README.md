@@ -147,6 +147,10 @@ Despesas sem categoria não somem: aparecem como "Sem categoria", em cinza neutr
 
 Abrir um mês daqui volta para cá: o ano, a aba, o modo e a posição da rolagem são restaurados ao voltar (§1.5).
 
+Enquanto não houver mês nenhum cadastrado, o Histórico não escolhe ano: ele diz
+que não há competência e leva direto para Adicionar Meses. Um ano **sem meses**
+é outra coisa — ali o ano existe no cabeçalho e a ausência é só dele.
+
 ### 1.11 Backup: exportar e importar
 
 **Exportar** gera um `.zip` (via diálogo nativo de salvar, com nome sugerido `export-meu-dinheiro-AAAA-MM-DD.zip`) contendo um `data.json` com todas as tabelas e a pasta `uploads` com os comprovantes. É o backup completo — não há nada do app fora dele.

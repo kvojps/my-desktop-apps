@@ -7,7 +7,7 @@ import { Button } from '@/components/Button';
 import { Field, TextInput } from '@/components/Field';
 import { Modal } from '@/components/Modal';
 import { CategoryFormValues, categoryFormSchema } from '@/hooks/categories/categorySchema';
-import { labelOn } from '@/theme';
+import { labelOn } from '@/theme/labelOn';
 import { CATEGORY_SWATCHES } from '@/theme/orca';
 
 interface CategoryFormProps {

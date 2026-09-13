@@ -1,0 +1,114 @@
+{
+  "tabAteOMenu": {
+    "paradas": 20,
+    "ultima": {
+      "no": "BUTTON.money-button.money-button-ghost",
+      "nome": "Mais ações para Mercado",
+      "papel": null,
+      "focoVisivel": true,
+      "contorno": "solid 2px rgb(57, 135, 229)",
+      "afastamento": "2px",
+      "emPortal": false
+    }
+  },
+  "menuAberto": {
+    "no": "BUTTON",
+    "nome": "Ver detalhes",
+    "papel": "menuitem",
+    "focoVisivel": true,
+    "contorno": "solid 2px rgb(57, 135, 229)",
+    "afastamento": "2px",
+    "emPortal": true
+  },
+  "itemDoMenu": {
+    "no": "BUTTON",
+    "nome": "Editar",
+    "papel": "menuitem",
+    "focoVisivel": true,
+    "contorno": "solid 2px rgb(57, 135, 229)",
+    "afastamento": "2px",
+    "emPortal": true
+  },
+  "escapeDevolveAoGatilho": {
+    "no": "BUTTON.money-button.money-button-ghost",
+    "nome": "Mais ações para Mercado",
+    "papel": null,
+    "focoVisivel": true,
+    "contorno": "solid 2px rgb(57, 135, 229)",
+    "afastamento": "2px",
+    "emPortal": false
+  },
+  "dicaPeloTeclado": {
+    "no": "SPAN.money-tip",
+    "nome": "Em dezembro de 2026: R$ 288.05",
+    "papel": null,
+    "focoVisivel": true,
+    "contorno": "solid 2px rgb(57, 135, 229)",
+    "afastamento": "2px",
+    "emPortal": false
+  },
+  "botoesDaTela": [
+    "Voltar para a Visão Geral",
+    "Mês anterior",
+    "Próximo mês",
+    "Mais ações do mês",
+    "Despesas (5/18)",
+    "Entradas (4/15)",
+    "Adicionar Despesa",
+    "Despesa",
+    "Vencimento",
+    "Valor",
+    "Desmarcar Mercado",
+    "Mais ações para Mercado",
+    "Pagar Farmácia",
+    "Mais ações para Farmácia"
+  ],
+  "dialogoAbreNoCampo": {
+    "no": "BUTTON",
+    "nome": "Despesas (5/18)",
+    "papel": "tab",
+    "focoVisivel": true,
+    "contorno": "solid 2px rgb(57, 135, 229)",
+    "afastamento": "-2px",
+    "emPortal": false
+  },
+  "focoPresoNoDialogo": {
+    "paradas": 24,
+    "ciclo": [
+      "Adicionar Despesa",
+      "INPUT.money-input",
+      "TodasPendentesPagasVencidas",
+      "TodasAlimentaçãoAlimentaçãoAss",
+      "Despesa",
+      "Vencimento",
+      "Valor",
+      "Mercado — ver detalhes",
+      "Desmarcar Mercado",
+      "Mais ações para Mercado",
+      "Farmácia — ver detalhes",
+      "Pagar Farmácia",
+      "Mais ações para Farmácia",
+      "Aluguel — ver detalhes",
+      "Pagar Aluguel",
+      "Mais ações para Aluguel",
+      "Combustível — ver detalhes",
+      "Pagar Combustível",
+      "Mais ações para Combustível",
+      "Escola — ver detalhes",
+      "Desmarcar Escola",
+      "Mais ações para Escola",
+      "Academia — ver detalhes",
+      "Pagar Academia"
+    ]
+  },
+  "foraDoDialogo": false,
+  "escapeDevolveAoGatilhoDoDialogo": {
+    "no": "BUTTON.money-button.money-button-primary.money-action-primary",
+    "nome": "Pagar Academia",
+    "papel": null,
+    "focoVisivel": true,
+    "contorno": "solid 2px rgb(57, 135, 229)",
+    "afastamento": "2px",
+    "emPortal": false
+  }
+}
