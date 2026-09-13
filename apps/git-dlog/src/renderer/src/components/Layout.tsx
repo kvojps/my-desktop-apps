@@ -38,18 +38,7 @@ export function Layout({ children }: { children: ReactNode }) {
           <img src={mode === 'light' ? logoLight : logo32x32} alt="" width={28} height={28} />
           {!collapsed && <span className="ui:text-sm ui:font-semibold">Git Dlog</span>}
         </div>
-        <Button
-          variant="nav"
-          onClick={() => setCollapsed((value) => !value)}
-          aria-label={collapseLabel}
-          aria-expanded={!collapsed}
-          aria-controls="primary-navigation"
-          title={collapseLabel}
-        >
-          {collapsed ? <PanelLeftOpen /> : <PanelLeftClose />}
-          {!collapsed && <span>Recolher lateral</span>}
-        </Button>
-        <div id="primary-navigation" className="ui:mt-3 ui:flex ui:flex-col ui:gap-1">
+        <div id="primary-navigation" className="ui:flex ui:flex-col ui:gap-1">
           {NAV_ITEMS.map(({ label, path, icon: Icon }) => (
             <Button key={path} asChild variant="nav">
               <NavLink to={path} aria-label={label} title={collapsed ? label : undefined}>
@@ -68,6 +57,17 @@ export function Layout({ children }: { children: ReactNode }) {
         >
           {mode === 'dark' ? <Sun /> : <Moon />}
           {!collapsed && <span>{mode === 'dark' ? 'Tema claro' : 'Tema escuro'}</span>}
+        </Button>
+        <Button
+          variant="nav"
+          onClick={() => setCollapsed((value) => !value)}
+          aria-label={collapseLabel}
+          aria-expanded={!collapsed}
+          aria-controls="primary-navigation"
+          title={collapseLabel}
+        >
+          {collapsed ? <PanelLeftOpen /> : <PanelLeftClose />}
+          {!collapsed && <span>Recolher lateral</span>}
         </Button>
       </nav>
       <main className="ui-content ui:min-w-0 ui:flex-1 ui:overflow-y-auto ui:p-6">
