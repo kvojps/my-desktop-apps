@@ -1,8 +1,8 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Button, TextField } from '@mui/material';
 import { Controller, useForm } from 'react-hook-form';
 import { DefaultExpense } from '@shared/types/expense';
-import { Field, SelectInput } from '@/components/Field';
+import { Button } from '@/components/Button';
+import { Field, SelectInput, TextInput } from '@/components/Field';
 import { Modal } from '@/components/Modal';
 import { useCategories } from '@/hooks/categories/useCategories';
 import {
@@ -58,63 +58,60 @@ export function DefaultExpenseForm({ open, onClose, onSave, initial }: DefaultEx
       footer={
         <>
           <Button onClick={onClose}>Cancelar</Button>
-          <Button variant="contained" type="submit" disabled={isSubmitting}>
-            Salvar
+          <Button variant="primary" type="submit" disabled={isSubmitting}>
+            {isSubmitting ? 'Salvando...' : 'Salvar'}
           </Button>
         </>
       }
     >
-      <TextField
-        autoFocus
-        label="Nome da despesa"
-        fullWidth
-        error={!!errors.name}
-        helperText={errors.name?.message}
-        sx={{ mt: 1, mb: 2 }}
-        {...register('name')}
-      />
-      {/* `type="number"` assume `step=1`: sem o step em centavos, um valor
-          quebrado vira stepMismatch e o <form> do Modal nem chega a submeter. */}
-      <TextField
-        label="Valor (R$)"
-        type="number"
-        fullWidth
-        error={!!errors.amount}
-        helperText={errors.amount?.message ?? 'Deixe em branco para despesas de valor variável.'}
-        slotProps={{ htmlInput: { step: '0.01' } }}
-        sx={{ mb: 2 }}
-        {...register('amount')}
-      />
-      <TextField
-        label="Dia de vencimento"
-        type="number"
-        fullWidth
-        error={!!errors.dueDay}
-        helperText={errors.dueDay?.message ?? 'Opcional. Dia do mês em que a despesa vence.'}
-        inputProps={{ min: 1, max: 31 }}
-        sx={{ mb: 2 }}
-        {...register('dueDay')}
-      />
-      {/* Seletor local, e não o do MUI: o `Modal` desta base é um `<dialog>`
-          nativo, que ocupa a camada de topo do navegador — a lista do `Select`
-          do MUI é desenhada em portal no `body` e ficaria atrás dele. O resto
-          deste formulário segue MUI até a issue 05. */}
-      <Controller
-        name="categoryId"
-        control={control}
-        render={({ field }) => (
-          <Field label="Categoria">
-            <SelectInput {...field}>
-              <option value="">Sem categoria</option>
-              {categories.map((category) => (
-                <option key={category.id} value={String(category.id)}>
-                  {category.name}
-                </option>
-              ))}
-            </SelectInput>
-          </Field>
-        )}
-      />
+      <div className="money-form">
+        <Field label="Nome da despesa" note={errors.name?.message} invalid={!!errors.name}>
+          <TextInput aria-invalid={!!errors.name} {...register('name')} />
+        </Field>
+        {/* `type="number"` assume `step=1`: sem o step em centavos, um valor
+            quebrado vira stepMismatch e o <form> do Modal nem chega a submeter. */}
+        <Field
+          label="Valor (R$)"
+          note={errors.amount?.message ?? 'Deixe em branco para despesas de valor variável.'}
+          invalid={!!errors.amount}
+        >
+          <TextInput
+            type="number"
+            step="0.01"
+            aria-invalid={!!errors.amount}
+            {...register('amount')}
+          />
+        </Field>
+        <Field
+          label="Dia de vencimento"
+          note={errors.dueDay?.message ?? 'Opcional. Dia do mês em que a despesa vence.'}
+          invalid={!!errors.dueDay}
+        >
+          <TextInput
+            type="number"
+            min={1}
+            max={31}
+            aria-invalid={!!errors.dueDay}
+            {...register('dueDay')}
+          />
+        </Field>
+        <Controller
+          name="categoryId"
+          control={control}
+          render={({ field }) => (
+            <Field label="Categoria">
+              <SelectInput {...field}>
+                <option value="">Sem categoria</option>
+                {categories.map((category) => (
+                  <option key={category.id} value={String(category.id)}>
+                    {category.name}
+                  </option>
+                ))}
+              </SelectInput>
+            </Field>
+          )}
+        />
+      </div>
     </Modal>
   );
 }

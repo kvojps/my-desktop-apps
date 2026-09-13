@@ -12,7 +12,7 @@ import { useNavigationMemory } from '@/contexts/NavigationContext';
 import { useCategoryTotals } from '@/hooks/categories/useCategoryTotals';
 import { BALANCE_LABELS, sumMonthBalances } from '@/hooks/months/useMonthBalance';
 import { useMonths } from '@/hooks/months/useMonths';
-import { ROUTES, monthDetailPath } from '@/routes';
+import { monthDetailPath, settingsPath } from '@/routes';
 import { formatCurrency } from '@/utils/format';
 import { useComparisonRows } from './hooks/useComparisonRows';
 import { CategoryBreakdownChart } from './components/CategoryBreakdownChart';
@@ -183,14 +183,17 @@ export function HistoryPage() {
    */
   function renderTab() {
     if (yearMonths.length === 0) {
+      // A saída aponta para a **seção** que cria meses, e não para a tela:
+      // desde a issue 05 a seção tem endereço, e parar uma porta antes faria o
+      // usuário procurar o que a frase acabou de nomear.
       return (
         <EmptyState
           icon={<CalendarDays size={40} aria-hidden="true" />}
           title={`Nenhum mês cadastrado em ${selectedYear}.`}
           description="Crie os meses do ano em Configurações para acompanhar a evolução aqui."
           action={
-            <Button variant="primary" onClick={() => navigate(ROUTES.SETTINGS)}>
-              Ir para Configurações
+            <Button variant="primary" onClick={() => navigate(settingsPath('months'))}>
+              Ir para Adicionar Meses
             </Button>
           }
         />

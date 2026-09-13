@@ -78,10 +78,21 @@ validação e foram corrigidos: o ponto do gráfico do Histórico não abria o M
 sob o cursor, e pagar/receber limpava o formulário antes de saber se gravou.
 [Evidências e limites](issues/03-detalhe-de-mes.md); issue 04 desbloqueada.
 
+Etapa 05 resolvida em 2026-09-12: Configurações migrada — os seis acordeões
+viraram navegação interna com uma seção por vez, a coluna troca por seletor
+compacto num limiar medido contra a tabela mais larga da tela, e os quatro
+cadastros, o lote de meses e o backup passaram inteiros. A falha de uma seção
+passou a se ver da navegação, a orientação inicial abre a seção de cada passo e
+a paleta de categoria informa o custo de contraste de cada cor — a pendência que
+a issue 04 deixou. Três correções saíram daqui: `.money-truncate` não alcançava
+caixa inline e um nome longo alargava a tabela, a recusa do backup virava
+"Ocorreu um erro" em vez da mensagem do main, e exportar não travava o botão.
+[Evidências e limites](issues/05-configuracoes.md); issue 06 desbloqueada.
+
 ## Plano de execução
 
-A [spec](spec.md) consolida o escopo aprovado. Issues 01–04 resolvidas; issues
-05 e 06 permanecem `ready-for-agent`, respeitando a ordem de bloqueio.
+A [spec](spec.md) consolida o escopo aprovado. Issues 01–05 resolvidas; a issue
+06 permanece `ready-for-agent`, respeitando a ordem de bloqueio.
 
 | Issue                                | Escopo                                              | Bloqueada por |
 | ------------------------------------ | --------------------------------------------------- | ------------- |
@@ -95,14 +106,18 @@ A [spec](spec.md) consolida o escopo aprovado. Issues 01–04 resolvidas; issues
 ## Fog
 
 Nenhuma decisão de produto pendente. Tokens e medições da base estão em
-`apps/meu-dinheiro-app/docs/orca-theme.md`. As validações das telas consumidoras
-continuam nas issues 05 e 06; a limitação da janela externa mínima e da moldura
-Windows está registrada na issue 01. A dica de linha em portal foi resolvida na
-issue 03, e o caminho de teclado do Histórico na issue 04, com a leitura em
-tabela. Segue aberto para as issues 05 e 06: Configurações ainda é MUI, e com
-ela continua o fundo MUI da faixa de conteúdo; três das dez categorias semeadas
-pela migração falham o 3:1 de marca em um dos modos, e a paleta oferecida no
-cadastro é assunto da issue 05.
+`apps/meu-dinheiro-app/docs/orca-theme.md`. A limitação da janela externa mínima
+e da moldura Windows está registrada na issue 01. A dica de linha em portal foi
+resolvida na issue 03, o caminho de teclado do Histórico na issue 04 e a paleta
+oferecida no cadastro na issue 05, que a manteve com dez cores e passou a
+informar o contraste de cada uma. Segue aberto para a issue 06: nenhuma tela usa
+MUI, mas o provider de tema continua de pé e com ele o fundo da faixa de
+conteúdo; três das dez categorias semeadas pela migração falham o 3:1 de marca
+em um dos modos, e elas estão nos bancos instalados. O ciclo de backup foi
+validado com o seletor nativo substituído por um arquivo de controle — o
+diálogo GTK em si não tem automação neste ambiente. A revisão da issue 05
+deixou um achado para a 06: sem mês nenhum, o Histórico escreve "Nenhum mês
+cadastrado em 0".
 
 ## Inventário inicial
 

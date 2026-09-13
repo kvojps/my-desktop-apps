@@ -23,7 +23,7 @@ import { useNavigationMemory } from '@/contexts/NavigationContext';
 import { useBankAccounts } from '@/hooks/bank-accounts/useBankAccounts';
 import { BALANCE_LABELS, pendingSubtitle, useMonthsBalance } from '@/hooks/months/useMonthBalance';
 import { useMonths } from '@/hooks/months/useMonths';
-import { ROUTES, monthDetailPath } from '@/routes';
+import { monthDetailPath, settingsPath } from '@/routes';
 import { formatCurrency } from '@/utils/format';
 import { useMonthLabelWidth } from './hooks/useMonthLabelWidth';
 import { useMonthRows } from './hooks/useMonthRows';
@@ -268,7 +268,7 @@ export function DashboardPage() {
   }
 
   if (months.length === 0) {
-    return <FirstRunGuide onGoToSettings={() => navigate(ROUTES.SETTINGS)} />;
+    return <FirstRunGuide onGoToSection={(section) => navigate(settingsPath(section))} />;
   }
 
   const fromLabel = monthOptions.find((o) => o.value === fromValue)?.label ?? '';

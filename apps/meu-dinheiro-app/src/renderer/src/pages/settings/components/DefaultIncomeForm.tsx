@@ -1,9 +1,9 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Button, TextField } from '@mui/material';
 import { Controller, useForm } from 'react-hook-form';
 import { BankAccount } from '@shared/types/bank-account';
 import { DefaultIncome } from '@shared/types/income';
-import { Field, SelectInput } from '@/components/Field';
+import { Button } from '@/components/Button';
+import { Field, SelectInput, TextInput } from '@/components/Field';
 import { Modal } from '@/components/Modal';
 import {
   DefaultIncomeFormValues,
@@ -65,65 +65,60 @@ export function DefaultIncomeForm({
       footer={
         <>
           <Button onClick={onClose}>Cancelar</Button>
-          <Button variant="contained" type="submit" disabled={isSubmitting}>
-            Salvar
+          <Button variant="primary" type="submit" disabled={isSubmitting}>
+            {isSubmitting ? 'Salvando...' : 'Salvar'}
           </Button>
         </>
       }
     >
-      <TextField
-        autoFocus
-        label="Nome da entrada"
-        fullWidth
-        error={!!errors.name}
-        helperText={errors.name?.message}
-        sx={{ mt: 1, mb: 2 }}
-        {...register('name')}
-      />
-      {/* `type="number"` assume `step=1`: sem o step em centavos, um valor
-          quebrado vira stepMismatch e o <form> do Modal nem chega a submeter. */}
-      <TextField
-        label="Valor (R$)"
-        type="number"
-        fullWidth
-        error={!!errors.amount}
-        helperText={errors.amount?.message ?? 'Deixe em branco para entradas de valor variável.'}
-        slotProps={{ htmlInput: { step: '0.01' } }}
-        sx={{ mb: 2 }}
-        {...register('amount')}
-      />
-      <TextField
-        label="Dia previsto"
-        type="number"
-        fullWidth
-        error={!!errors.expectedDay}
-        helperText={
-          errors.expectedDay?.message ?? 'Opcional. Dia do mês em que a entrada é esperada.'
-        }
-        inputProps={{ min: 1, max: 31 }}
-        sx={{ mb: 2 }}
-        {...register('expectedDay')}
-      />
-      {/* Seletor local, e não o do MUI: o `Modal` desta base é um `<dialog>`
-          nativo, que ocupa a camada de topo do navegador — a lista do `Select`
-          do MUI é desenhada em portal no `body` e ficaria atrás dele. O resto
-          deste formulário segue MUI até a issue 05. */}
-      <Controller
-        name="bankAccountId"
-        control={control}
-        render={({ field }) => (
-          <Field label="Conta (opcional)">
-            <SelectInput {...field}>
-              <option value="">Nenhuma</option>
-              {bankAccounts.map((account) => (
-                <option key={account.id} value={String(account.id)}>
-                  {account.name} ({formatCurrency(account.balance)})
-                </option>
-              ))}
-            </SelectInput>
-          </Field>
-        )}
-      />
+      <div className="money-form">
+        <Field label="Nome da entrada" note={errors.name?.message} invalid={!!errors.name}>
+          <TextInput aria-invalid={!!errors.name} {...register('name')} />
+        </Field>
+        {/* `type="number"` assume `step=1`: sem o step em centavos, um valor
+            quebrado vira stepMismatch e o <form> do Modal nem chega a submeter. */}
+        <Field
+          label="Valor (R$)"
+          note={errors.amount?.message ?? 'Deixe em branco para entradas de valor variável.'}
+          invalid={!!errors.amount}
+        >
+          <TextInput
+            type="number"
+            step="0.01"
+            aria-invalid={!!errors.amount}
+            {...register('amount')}
+          />
+        </Field>
+        <Field
+          label="Dia previsto"
+          note={errors.expectedDay?.message ?? 'Opcional. Dia do mês em que a entrada é esperada.'}
+          invalid={!!errors.expectedDay}
+        >
+          <TextInput
+            type="number"
+            min={1}
+            max={31}
+            aria-invalid={!!errors.expectedDay}
+            {...register('expectedDay')}
+          />
+        </Field>
+        <Controller
+          name="bankAccountId"
+          control={control}
+          render={({ field }) => (
+            <Field label="Conta (opcional)">
+              <SelectInput {...field}>
+                <option value="">Nenhuma</option>
+                {bankAccounts.map((account) => (
+                  <option key={account.id} value={String(account.id)}>
+                    {account.name} ({formatCurrency(account.balance)})
+                  </option>
+                ))}
+              </SelectInput>
+            </Field>
+          )}
+        />
+      </div>
     </Modal>
   );
 }

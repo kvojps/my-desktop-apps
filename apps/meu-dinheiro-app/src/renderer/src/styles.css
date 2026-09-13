@@ -1218,3 +1218,227 @@ body {
   overflow: hidden;
   white-space: nowrap;
 }
+
+/* ---------------------------------------------------------------------------
+   Configurações — issue 05.
+   Valores em apps/meu-dinheiro-app/docs/orca-theme.md.
+   --------------------------------------------------------------------------- */
+
+/*
+  Navegação interna à esquerda e uma seção por vez à direita. A troca para o
+  seletor compacto é por largura de **conteúdo** (§2.2), e o limiar não é
+  redondo por acaso: a coluna custa 200px mais o vão de 24px, e a lista mais
+  larga das seis — entradas padrão, com quatro colunas mais a de ações — mede
+  670px antes de rolar. Abaixo de 894px de conteúdo a coluna faria a tabela
+  rolar na horizontal, então ela só aparece a partir de 900px. Na janela
+  mínima (688px de conteúdo com a lateral aberta, 848px recolhida) quem
+  aparece é o seletor; na janela padrão (1008px e 1168px), a coluna.
+*/
+.money-settings {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  align-items: start;
+}
+.money-section-nav {
+  display: none;
+}
+@container content (min-width: 900px) {
+  .money-settings {
+    grid-template-columns: 200px minmax(0, 1fr);
+    gap: 24px;
+  }
+  .money-section-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    position: sticky;
+    top: 0;
+  }
+  .money-section-select {
+    display: none;
+  }
+}
+/* O item da navegação interna é o item da lateral um degrau adentro: mesma
+   altura, mesmo realce e a mesma barra de posição do selecionado. */
+.money-section-nav > button {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  font: inherit;
+  font-family: var(--money-font);
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--money-muted);
+  text-align: left;
+  cursor: pointer;
+}
+.money-section-nav > button:hover,
+.money-section-nav > button[aria-current='true'] {
+  background: var(--money-accent);
+  color: var(--money-foreground);
+}
+.money-section-nav > button[aria-current='true'] {
+  font-weight: 600;
+}
+.money-section-nav > button[aria-current='true']::before {
+  content: '';
+  position: absolute;
+  left: -8px;
+  top: calc(50% - 10px);
+  width: 3px;
+  height: 20px;
+  background: var(--money-focus);
+}
+.money-section-nav-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* A falha da seção oculta, no lugar onde ela é vista de qualquer seção. */
+.money-section-nav-failed {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  color: var(--money-danger);
+}
+.money-section-select .money-field {
+  max-width: 320px;
+}
+
+/* A seção aberta: cabeçalho, ação e lista, com o mesmo vão de 16px que separa
+   a barra de filtros da tabela no painel de abas. */
+.money-settings-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+.money-section-header {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.money-section-heading {
+  flex: 1;
+  min-width: 0;
+}
+.money-section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.money-section-header h2 {
+  margin: 0;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+}
+.money-section-header p {
+  margin: 2px 0 0;
+  color: var(--money-muted);
+}
+/* Só o total negativo é pintado; o positivo é o estado normal (§1.5). */
+.money-chip[data-tone='alert'] {
+  color: var(--money-danger);
+}
+
+/* Intervalo de meses ------------------------------------------------------ */
+
+.money-range {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.money-range-label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 500;
+  color: var(--money-muted);
+}
+.money-range-fields {
+  display: flex;
+  gap: 8px;
+}
+.money-range-fields .money-field:first-child {
+  width: 150px;
+}
+.money-range-fields .money-field:last-child {
+  width: 96px;
+}
+.money-range-fields .money-select {
+  min-width: 0;
+}
+.money-inline-note {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+}
+.money-inline-note .money-description,
+.money-backup p {
+  margin: 0;
+  color: var(--money-muted);
+}
+/* A legenda do intervalo é irmã da fileira no painel, e o vão entre as duas é
+   o do painel — um parágrafo com a margem do navegador abriria um segundo. */
+.money-settings-panel > p {
+  margin: 0;
+}
+
+/* Backup ------------------------------------------------------------------ */
+
+.money-backup {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: flex-start;
+}
+.money-backup-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.money-backup p {
+  max-width: 560px;
+}
+
+/* Paleta de categoria ----------------------------------------------------- */
+
+/*
+  A amostra é redonda porque é assim que a categoria aparece no resto do app —
+  o `CategoryTag` a desenha como ponto. A borda da escolhida é texto sobre
+  papel, e não a borda decorativa: ela é o que diz qual está selecionada, e o
+  `aria-pressed` é o mesmo canal para quem não a vê.
+*/
+.money-swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.money-swatch {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  cursor: pointer;
+}
+.money-swatch[aria-pressed='true'] {
+  border-color: var(--money-foreground);
+}

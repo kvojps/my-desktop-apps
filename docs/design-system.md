@@ -78,6 +78,39 @@ estreita da §1.7 e passaram a `#757575`. As cores cadastradas das categorias
 continuam intactas — inclusive três das dez semeadas pela migração, que falham
 o 3:1 em um dos modos e estão registradas como limitação nos tokens locais.
 
+A issue 05 migrou Configurações — a última tela — e com ela os quatro
+cadastros, a criação de meses em lote, o backup e os seis formulários. Ela
+substitui, **para este app**, o acordeão-como-estrutura-de-página da §4.1: são
+seis seções com uma visível por vez, escolhidas numa coluna de navegação
+interna que vira seletor compacto quando a faixa de conteúdo aperta. O que a
+§4.1 dizia sobre a seção que falha continua valendo, com outro mecanismo: como
+não há acordeão para abrir sozinho, **a falha aparece na navegação** — ícone em
+`danger` e motivo por extenso no nome acessível do item —, e o erro dentro da
+seção continua `ErrorState` `dense`. Três decisões dela valem além da tela:
+
+- **Limiar de layout é medido contra o conteúdo que ele espreme.** A coluna de
+  navegação só aparece quando o painel ao lado dela ainda cabe a lista mais
+  larga da tela sem rolar na horizontal; o número (900px de conteúdo, aqui)
+  sai dessa medida, não de um breakpoint bonito. Um limiar escolhido pelo
+  desenho da tela vazia troca uma navegação confortável por uma tabela que
+  rola.
+- **Quando as duas formas de um controle coexistem no DOM, quem escolhe é o
+  CSS.** A seção selecionada é estado da tela, e é isso que a faz sobreviver ao
+  redimensionamento sem nenhum código de medida; `display: none` tira a forma
+  oculta da árvore de acessibilidade, então não existem dois controles
+  concorrentes para o mesmo estado.
+- **Seção de tela que é destino de outra tela mora na rota.** A orientação
+  inicial manda para a seção que resolve cada passo, e um destino que não cabe
+  num endereço não é destino. Valor desconhecido na rota abre a primeira seção,
+  em vez de deixar a tela sem conteúdo.
+
+E uma emenda à §1.7, na parte que fala da paleta oferecida ao usuário: **os dez
+swatches continuam oferecidos, e a escolha passa a ser informada onde ela
+acontece.** A tabela de medições da §1.7 existe para isso; o cadastro de
+categoria diz, no nome acessível de cada amostra e na nota da amostra
+escolhida, em que modo aquela cor fica abaixo dos 3:1. Cor cadastrada nunca é
+reescrita para caber numa lista nova.
+
 Da issue 03 saem quatro decisões que valem enquanto a base migrada existir, e
 que estão medidas nos [tokens locais](../apps/meu-dinheiro-app/docs/orca-theme.md):
 
@@ -115,6 +148,9 @@ Os valores concretos foram registrados nos
 [tokens locais](../apps/meu-dinheiro-app/docs/orca-theme.md) **antes da primeira
 alteração de UI**. As limitações de validação estão documentadas ali. Até sua migração, cada superfície segue a norma MUI vigente.
 Coexistência é temporária e exige proteção contra interferência de estilos.
+Desde a issue 05 nenhuma tela ou diálogo do Meu Dinheiro usa componente MUI; o
+que resta é o provider de tema e o fundo da faixa de conteúdo que ele publica,
+e os dois saem juntos na issue 06.
 Permanecem obrigatórias as regras de contraste medido nas superfícies reais,
 alinhamento de tabelas, segundo canal além da cor, teclado/foco, movimento reduzido,
 carregamento, erro/vazio e tema persistido no banco e aplicado à janela.

@@ -1,0 +1,56 @@
+{
+  "navegacao": {
+    "ordem": [
+      "Contas bancárias",
+      "Categorias",
+      "Despesas padrão",
+      "Entradas padrão",
+      "Adicionar Meses",
+      "Backup"
+    ],
+    "contagens": ["3", "11", "3", "2", null, null],
+    "opcoes": [
+      "bank-accounts",
+      "categories",
+      "default-expenses",
+      "default-incomes",
+      "months",
+      "backup"
+    ]
+  },
+  "intervaloSobrevive": {
+    "escolhido": {
+      "de": "3/2031",
+      "ate": "7/2031"
+    },
+    "aoVoltar": {
+      "de": "3/2031",
+      "ate": "7/2031",
+      "legenda": "Isso vai criar até 5 meses (meses já existentes serão ignorados)."
+    },
+    "igual": false
+  },
+  "loteAtravessaTrocaDeSecao": {
+    "durante": "Adicionar Meses",
+    "depois": "Adicionar Meses",
+    "aviso": "Sucesso: 5 meses adicionados"
+  },
+  "vazioDoHistorico": {
+    "existeVazio": false,
+    "texto": null
+  },
+  "historico": {
+    "semMeses": {
+      "titulo": "Nenhum mês cadastrado em 0.",
+      "descricao": "Crie os meses do ano em Configurações para acompanhar a evolução aqui.",
+      "acao": "Ir para Adicionar Meses"
+    },
+    "destino": {
+      "rota": "#/settings?section=months",
+      "secao": "Adicionar Meses"
+    },
+    "restauracao": {
+      "meses": 40
+    }
+  }
+}

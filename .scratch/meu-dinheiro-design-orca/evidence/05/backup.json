@@ -1,0 +1,94 @@
+{
+  "secao": {
+    "titulo": "Backup",
+    "descricao": "Um arquivo ZIP com meses, despesas, entradas, cadastros e comprovantes.",
+    "botoes": ["Exportar", "Importar"],
+    "explicacao": "Exportar grava o arquivo onde você escolher. Importar aceita arquivos exportados por qualquer versão do app e substitui todos os dados atuais — um arquivo inválido é recusado inteiro, sem alterar nada."
+  },
+  "exportarCancelado": {
+    "aviso": null
+  },
+  "exportar": {
+    "rotulosDurante": ["Exportando...", "Exportar"],
+    "travadoDurante": true,
+    "aviso": "Sucesso: Arquivo exportado com sucesso",
+    "rotuloDepois": "Exportar"
+  },
+  "arquivoGerado": {
+    "bytes": 3414
+  },
+  "conteudoDoZip": ["data.json", "uploads/setembro_2026-aluguel-1.pdf"],
+  "confirmacaoAntesDoSeletor": {
+    "titulo": "Importar dados?",
+    "mensagem": "Você vai escolher um arquivo ZIP exportado anteriormente. A importação vai substituir todos os dados atuais (meses, despesas, entradas, cadastros e comprovantes). Essa ação não pode ser desfeita.",
+    "acaoPrincipal": ["Cancelar", "Escolher arquivo"],
+    "focoNaSaida": "Cancelar"
+  },
+  "importarCancelado": {
+    "antesDoClique": null,
+    "aviso": null,
+    "dialogoFechou": true,
+    "botaoLiberado": true,
+    "dadosIntactos": 40
+  },
+  "importarInvalido": {
+    "aviso": "Erro: Ocorreu um erro",
+    "antes": {
+      "contas": 3,
+      "meses": 40
+    },
+    "depois": {
+      "contas": 3,
+      "meses": 40
+    },
+    "nadaMudou": true
+  },
+  "cicloCompleto": {
+    "antes": {
+      "contas": [
+        "Cartão de crédito consignado com nome bem longo",
+        "Conta Corrente",
+        "Conta que não existia no backup",
+        "Poupança"
+      ],
+      "meses": 40
+    },
+    "criada": "Conta que não existia no backup"
+  },
+  "restauracao": {
+    "aviso": "Sucesso: Dados importados com sucesso!",
+    "contas": ["Cartão de crédito consignado com nome bem longo", "Conta Corrente", "Poupança"],
+    "meses": 40,
+    "comprovantes": 1,
+    "categorias": 11,
+    "exemploDeMes": "Dezembro/2029"
+  },
+  "backupAntigoMontado": ["months", "expenses", "default_expenses"],
+  "backupAntigo": {
+    "aviso": "Sucesso: Dados importados com sucesso!",
+    "meses": 3,
+    "contas": 0,
+    "categorias": 0,
+    "despesasDoPrimeiroMes": 4
+  },
+  "voltaAoBackupCompleto": {
+    "meses": 40,
+    "contas": 3
+  },
+  "zipInvalido": {
+    "aviso": "Erro: Não foi possível ler o arquivo de backup",
+    "meses": 40
+  },
+  "legadoMontado": {
+    "chaves": ["version", "exportDate", "months", "accounts", "default_accounts"],
+    "meses": 3,
+    "despesas": 11,
+    "padroes": 3
+  },
+  "restauracaoFinal": {
+    "aviso": "Sucesso: Dados importados com sucesso!",
+    "meses": 40,
+    "contas": 3,
+    "comprovantes": 1
+  }
+}

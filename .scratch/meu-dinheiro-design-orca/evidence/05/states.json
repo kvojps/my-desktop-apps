@@ -1,0 +1,160 @@
+{
+  "navegacaoComFalha": {
+    "coluna": [
+      {
+        "secao": "Contas bancárias",
+        "falhou": false,
+        "nomeAcessivel": "Contas bancárias3"
+      },
+      {
+        "secao": "Categorias",
+        "falhou": true,
+        "nomeAcessivel": "Categorias, não foi possível carregar"
+      },
+      {
+        "secao": "Despesas padrão",
+        "falhou": true,
+        "nomeAcessivel": "Despesas padrão, não foi possível carregar"
+      },
+      {
+        "secao": "Entradas padrão",
+        "falhou": false,
+        "nomeAcessivel": "Entradas padrão2"
+      },
+      {
+        "secao": "Adicionar Meses",
+        "falhou": false,
+        "nomeAcessivel": "Adicionar Meses"
+      },
+      {
+        "secao": "Backup",
+        "falhou": false,
+        "nomeAcessivel": "Backup"
+      }
+    ],
+    "seletorCompacto": [
+      "Contas bancárias (3)",
+      "Categorias — não foi possível carregar",
+      "Despesas padrão — não foi possível carregar",
+      "Entradas padrão (2)",
+      "Adicionar Meses",
+      "Backup"
+    ],
+    "secaoVisivelSegueViva": 3,
+    "lateralAlcancavel": true
+  },
+  "secaoComFalha": {
+    "ehAlerta": true,
+    "denso": "true",
+    "titulo": "Não foi possível carregar as categorias",
+    "descricao": "Falha ao ler os dados locais.",
+    "detalhe": "no such table: categories",
+    "saidas": ["Tentar novamente", "Restaurar backup", "Abrir pasta de dados"],
+    "semTabela": true,
+    "semBotaoAdicionar": true,
+    "contagemNoCabecalho": null
+  },
+  "outraSecaoComFalhaEmPe": {
+    "tituloVisivel": "Adicionar Meses",
+    "botaoHabilitado": true,
+    "marcaDeFalhaVisivel": true
+  },
+  "retry": {
+    "antes": true,
+    "durante": {
+      "esqueleto": false,
+      "erroAindaNaTela": false
+    },
+    "depois": {
+      "erro": false,
+      "linhas": 11,
+      "marcaNaNavegacao": true,
+      "contagem": "11"
+    }
+  },
+  "retryDespesasPadrao": {
+    "antes": {
+      "erro": true,
+      "marcas": ["Despesas padrão"]
+    },
+    "quadros": [
+      {
+        "t": 3,
+        "esqueleto": true,
+        "erro": false,
+        "linhas": 5
+      },
+      {
+        "t": 8,
+        "esqueleto": false,
+        "erro": false,
+        "linhas": 3
+      },
+      {
+        "t": 24,
+        "esqueleto": false,
+        "erro": false,
+        "linhas": 3
+      },
+      {
+        "t": 41,
+        "esqueleto": false,
+        "erro": false,
+        "linhas": 3
+      },
+      {
+        "t": 58,
+        "esqueleto": false,
+        "erro": false,
+        "linhas": 3
+      },
+      {
+        "t": 74,
+        "esqueleto": false,
+        "erro": false,
+        "linhas": 3
+      },
+      {
+        "t": 91,
+        "esqueleto": false,
+        "erro": false,
+        "linhas": 3
+      },
+      {
+        "t": 108,
+        "esqueleto": false,
+        "erro": false,
+        "linhas": 3
+      },
+      {
+        "t": 125,
+        "esqueleto": false,
+        "erro": false,
+        "linhas": 3
+      },
+      {
+        "t": 141,
+        "esqueleto": false,
+        "erro": false,
+        "linhas": 3
+      },
+      {
+        "t": 158,
+        "esqueleto": false,
+        "erro": false,
+        "linhas": 3
+      },
+      {
+        "t": 174,
+        "esqueleto": false,
+        "erro": false,
+        "linhas": 3
+      }
+    ],
+    "depois": {
+      "erro": false,
+      "linhas": 3,
+      "marcas": []
+    }
+  }
+}

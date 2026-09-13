@@ -14,15 +14,17 @@ Documento registrado antes da alteração de UI da issue 01, sob a exceção em
 fundo da janela; a issue 02 acrescentou a Visão Geral e os componentes que ela
 compartilha — cabeçalho de tela, indicadores, tabela, paginação, marcadores,
 ladrilho e dica. A issue 03 acrescentou o detalhe de Mês e a camada de
-diálogos, campos de formulário, menu de ações e abas, e a issue 04 o Histórico
-com o tema de gráfico, a caixa de gráfico e as duas tabelas de leitura do ano.
-Telas e diálogos ainda MUI mantêm seu tema normativo
-(inclusive Inter, raios 12/8 e cores), e passam a exibir esses componentes
-migrados. Cada superfície migrada declara sua fonte e cores; Tailwind v4 usa
-prefixo `ui`, sem Preflight. Não há imports entre apps. O CssBaseline MUI
-permanece durante a coexistência, assim como o fundo MUI da faixa de conteúdo —
-trocá-lo enquanto Configurações é MUI deixaria essa tela
-sem o fundo que suas superfícies assumem. A troca fica para a issue 06.
+diálogos, campos de formulário, menu de ações e abas, a issue 04 o Histórico
+com o tema de gráfico, a caixa de gráfico e as duas tabelas de leitura do ano,
+e a issue 05 Configurações, com a navegação interna de seções, o cabeçalho de
+seção e a paleta de categoria.
+Cada superfície migrada declara sua fonte e cores; Tailwind v4 usa
+prefixo `ui`, sem Preflight. Não há imports entre apps. Desde a issue 05
+nenhuma tela ou diálogo usa componente MUI: o que resta é o provider de tema
+(`theme/index.ts`, `ThemeModeProvider`, o `CssBaseline`) e o fundo MUI da faixa
+de conteúdo, que continua sendo a paleta antiga porque ele é publicado por esse
+provider. Trocá-lo é a mesma mudança que remove o provider, e as duas ficam
+para a issue 06.
 
 ## Tokens locais
 
@@ -195,6 +197,58 @@ Confirmação destrutiva pinta o botão primário de `danger` com `on-danger` po
 cima (6,62:1 no claro, 7,98:1 no escuro). Desmarcar pagamento ou recebimento
 **não** é destrutivo — o registro continua lá —, e por isso o botão dele é o
 primário neutro, no lugar do âmbar da base anterior.
+
+### Configurações — issue 05
+
+A tela deixou de ser uma pilha de acordeões e passou a ter **navegação interna
+de seis seções, uma visível por vez** (design system, §4.1, sob a exceção
+local). A coluna de navegação mede 200px, com vão de 24px até o painel; o item
+repete o desenho do item da lateral — 36px de altura, raio 6px, `accent` no
+hover e no selecionado, peso 600 e barra de posição de 3 × 20px no selecionado,
+mais `aria-current`. Cada item de cadastro leva a contagem num marcador de
+contorno, e a seção que falhou leva no lugar dela um ícone de 16px em `danger`,
+com o motivo por extenso no nome acessível.
+
+**O limiar de troca para o seletor compacto é medido, não redondo.** A coluna
+custa 224px com o vão, e a lista mais larga das seis — entradas padrão, com
+quatro colunas mais a de ações — mede 670px antes de rolar. Abaixo de 894px de
+conteúdo a coluna faria a tabela rolar na horizontal, então ela só aparece a
+partir de **900px de largura de conteúdo** (§2.2): na janela mínima (688px com
+a lateral aberta, 848px recolhida) quem aparece é o seletor nativo de 36px, com
+o rótulo "Seção"; na janela padrão (1008px e 1168px), a coluna. Os dois existem
+no DOM e quem escolhe é o CSS, o que faz a seção escolhida sobreviver ao
+redimensionamento sem código nenhum — e `display: none` tira o que não está
+visível da árvore de acessibilidade, então não há dois controles concorrentes.
+
+A seção aberta mora na **rota** (`/settings?section=<id>`), e não só no estado
+da tela: é o que permite a orientação inicial da Visão Geral abrir a seção de
+cada passo. Trocar de seção substitui a entrada do histórico — voltar é sair de
+Configurações, não desfazer a escolha de assunto —, e uma seção desconhecida na
+rota abre a primeira em vez de deixar a tela vazia.
+
+Cabeçalho de seção: ladrilho de 38px, título de 16px/24px peso 600 com a
+contagem ao lado, descrição de 14px/20px em `muted` e a ação da seção à
+direita. É o `PageHeader` um degrau abaixo — a página já declarou o seu
+assunto, e este declara o da seção. O painel separa cabeçalho, lista e legenda
+por 16px, o mesmo vão do painel de abas.
+
+Intervalo de meses: cada ponta é um `role="group"` nomeado ("De", "Até") com
+mês de 150px e ano de 96px; a legenda abaixo do botão é `aria-describedby` dele
+e troca para `danger` quando o intervalo é recusado. Backup: dois botões e uma
+explicação de 12px/18px com teto de 560px.
+
+**A paleta de categoria continua com os dez swatches da §1.7 e passa a dizer o
+que cada escolha custa.** Ela não encolhe para os sete que passam nos dois
+modos — quem escolhe aqui é o usuário, e a cor da categoria dele é dele (§1.7);
+a lista estreita vale para quando é o app que pinta sozinho. O que a issue 04
+deixou anotado como pendência é isto: `CATEGORY_SWATCHES`, no tema, carrega o
+modo em que cada swatch fica abaixo dos 3:1 de marca, o nome acessível da
+amostra diz "pouco contraste no tema claro/escuro" e a nota do campo repete o
+aviso **só para a cor escolhida** — dez avisos ao mesmo tempo não informariam
+escolha nenhuma. A amostra é redonda de 32px porque é assim que a categoria
+aparece no resto do app, a escolhida ganha borda de 2px em `foreground` mais o
+`aria-pressed`, e o "certo" por cima sai de `labelOn` (§1.8). Nenhuma cor
+cadastrada é reescrita.
 
 ## Janela e coexistência
 
@@ -399,6 +453,46 @@ o valor ao lado dela, e a tabela repete os dois. A paleta oferecida no cadastro
 
 Relatórios em
 [evidence/04](../../../.scratch/meu-dinheiro-design-orca/evidence/04/).
+
+### Medições da issue 05 (superfícies reais, Electron)
+
+| Par                                           | Claro                     | Escuro                    |
+| --------------------------------------------- | ------------------------- | ------------------------- |
+| Seção selecionada / não selecionada           | 18,16:1 / 5,31:1          | 14,50:1 / 7,18:1          |
+| Contagem na navegação e no cabeçalho          | 5,31:1                    | 7,18:1                    |
+| Barra do item selecionado (marca)             | 4,48:1                    | 4,16:1                    |
+| Ícone de falha na navegação (marca)           | 6,03:1                    | 6,63:1                    |
+| Título / descrição da seção                   | 18,31:1 / 5,31:1          | 17,77:1 / 7,18:1          |
+| Ícone do ladrilho sobre o preenchimento       | 4,88:1                    | 5,19:1                    |
+| Total das contas / saldo negativo na tabela   | 5,31:1 / 6,57:1           | 7,18:1 / 7,85:1           |
+| Rótulo "Seção" / texto do seletor compacto    | 5,31:1 / 19,80:1          | 7,18:1 / 17,18:1          |
+| Borda do seletor e dos campos (marca)         | 3,19:1                    | 3,48:1                    |
+| Rótulo De/Até e do campo / valor digitado     | 5,31:1 / 19,80:1          | 7,18:1 / 17,18:1          |
+| Legenda do intervalo / legenda recusando      | 5,31:1 / 6,08:1           | 7,18:1 / 8,13:1           |
+| Rótulo do botão primário / secundário         | 18,97:1 / 19,80:1         | 18,97:1 / 17,18:1         |
+| Explicação do backup                          | 5,31:1                    | 7,18:1                    |
+| Título / descrição / detalhe do erro da seção | 19,80:1 / 5,74:1 / 5,74:1 | 17,18:1 / 6,94:1 / 6,94:1 |
+| Ícone de erro da seção (marca)                | 6,57:1                    | 7,85:1                    |
+| Rótulo e texto do campo no diálogo            | 5,74:1 / 19,80:1          | 6,94:1 / 17,18:1          |
+| Aviso de contraste da amostra de cor          | 5,74:1                    | 6,94:1                    |
+| "Certo" sobre a amostra escolhida             | 4,86:1                    | 4,86:1                    |
+| Borda da amostra escolhida (marca)            | 19,80:1                   | 17,18:1                   |
+
+Menor par de texto 5,31:1 (rótulos e legendas sobre o fundo da faixa de
+conteúdo, no claro); menor marca 3,19:1 (a borda de campo sobre esse mesmo
+fundo, o valor que a issue 03 já media). O "certo" sobre a amostra de cor é
+medido pela regra da §1.8, não fixado: sobre a amostra de baixo contraste ele
+mede 7,69:1, com o rótulo preto que a conta escolheu.
+
+**A limitação registrada na issue 04 continua e agora está declarada na tela**:
+três dos dez swatches oferecidos falham o 3:1 de marca em um dos modos
+(`#FB8C00` e `#00ACC1` no claro, `#7B1FA2` no escuro). Eles seguem oferecidos
+porque a cor da categoria é escolha do usuário (§1.7); o que mudou é que a
+escolha passou a ser informada, no nome acessível da amostra e na nota do
+campo. Cores já cadastradas não foram tocadas.
+
+Relatórios em
+[evidence/05](../../../.scratch/meu-dinheiro-design-orca/evidence/05/).
 
 Validação Electron e capturas em
 [Comments da issue 01](../../../.scratch/meu-dinheiro-design-orca/issues/01-tema-e-navegacao.md)

@@ -1,5 +1,5 @@
-import { Box, MenuItem, Stack, TextField, Typography } from '@mui/material';
 import { useId } from 'react';
+import { Field, SelectInput, TextInput } from '@/components/Field';
 
 const MONTH_NAMES = [
   'Janeiro',
@@ -25,9 +25,12 @@ interface MonthYearPickerProps {
 }
 
 /**
- * "De:" e "Até:" nomeiam o par de campos, não um campo — daí o `role="group"`
- * com `aria-labelledby`. Sem isso o leitor de tela anuncia quatro campos
- * chamados "Mês" e "Ano", sem dizer qual ponta do intervalo é qual.
+ * Uma ponta do intervalo: mês e ano.
+ *
+ * "De" e "Até" nomeiam o **par** de campos, não um campo — daí o `role="group"`
+ * com `aria-labelledby`, e daí cada controle levar o seu próprio rótulo dentro.
+ * Sem isso o leitor de tela anuncia quatro campos chamados "Mês" e "Ano", sem
+ * dizer qual ponta do intervalo é qual.
  */
 export function MonthYearPicker({
   label,
@@ -39,42 +42,33 @@ export function MonthYearPicker({
   const labelId = useId();
 
   return (
-    <Box>
-      <Typography
-        id={labelId}
-        variant="caption"
-        color="text.secondary"
-        sx={{ mb: 0.5, display: 'block' }}
-      >
+    <div className="money-range-side">
+      <span id={labelId} className="money-range-label">
         {label}
-      </Typography>
-      <Stack direction="row" spacing={1} role="group" aria-labelledby={labelId}>
-        {/* `Select` do MUI e não `native`: o nativo era o único do app, e ele
-            não recebe nem o tema nem o `CONTROL_RADIUS` dos outros controles. */}
-        <TextField
-          select
-          label="Mês"
-          value={month}
-          onChange={(e) => onMonthChange(Number(e.target.value))}
-          sx={{ minWidth: 130 }}
-          size="small"
-        >
-          {MONTH_NAMES.map((name, i) => (
-            <MenuItem key={name} value={i + 1}>
-              {name}
-            </MenuItem>
-          ))}
-        </TextField>
-        <TextField
-          label="Ano"
-          type="number"
-          value={year}
-          onChange={(e) => onYearChange(Number(e.target.value))}
-          inputProps={{ min: 2000, max: 2100 }}
-          sx={{ width: 100 }}
-          size="small"
-        />
-      </Stack>
-    </Box>
+      </span>
+      <div className="money-range-fields" role="group" aria-labelledby={labelId}>
+        <Field label="Mês">
+          <SelectInput
+            value={month}
+            onChange={(event) => onMonthChange(Number(event.target.value))}
+          >
+            {MONTH_NAMES.map((name, index) => (
+              <option key={name} value={index + 1}>
+                {name}
+              </option>
+            ))}
+          </SelectInput>
+        </Field>
+        <Field label="Ano">
+          <TextInput
+            type="number"
+            min={2000}
+            max={2100}
+            value={year}
+            onChange={(event) => onYearChange(Number(event.target.value))}
+          />
+        </Field>
+      </div>
+    </div>
   );
 }

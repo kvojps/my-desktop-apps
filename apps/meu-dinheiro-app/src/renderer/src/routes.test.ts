@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { ROUTES, monthDetailPath, originPath, staysInMonthVisit } from './routes';
+import {
+  ROUTES,
+  monthDetailPath,
+  originPath,
+  resolveSettingsSection,
+  settingsPath,
+  staysInMonthVisit,
+} from './routes';
 
 describe('monthDetailPath', () => {
   it('monta a rota do Mês a partir do id', () => {
@@ -32,5 +39,29 @@ describe('staysInMonthVisit', () => {
     expect(staysInMonthVisit('history', ROUTES.DASHBOARD)).toBe(false);
     expect(staysInMonthVisit('history', ROUTES.SETTINGS)).toBe(false);
     expect(staysInMonthVisit('dashboard', ROUTES.HISTORY)).toBe(false);
+  });
+});
+
+describe('settingsPath', () => {
+  it('abre Configurações na seção pedida', () => {
+    expect(settingsPath('backup')).toBe('/settings?section=backup');
+  });
+
+  it('abre Configurações sem escolher seção quando nenhuma é pedida', () => {
+    expect(settingsPath()).toBe(ROUTES.SETTINGS);
+  });
+});
+
+describe('resolveSettingsSection', () => {
+  it('abre em contas bancárias quando a rota não pede seção', () => {
+    expect(resolveSettingsSection(null)).toBe('bank-accounts');
+  });
+
+  it('abre na seção que a rota pede', () => {
+    expect(resolveSettingsSection('default-incomes')).toBe('default-incomes');
+  });
+
+  it('ignora seção que não existe, em vez de mostrar a tela vazia', () => {
+    expect(resolveSettingsSection('appearance')).toBe('bank-accounts');
   });
 });

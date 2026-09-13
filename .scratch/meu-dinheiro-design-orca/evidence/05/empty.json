@@ -1,0 +1,95 @@
+{
+  "vazio_contas": {
+    "titulo": "Nenhuma conta cadastrada.",
+    "descricao": "Contas bancárias ligam uma conta a pagar ao dinheiro real.",
+    "acao": "Adicionar conta",
+    "icone": true,
+    "contagemNoCabecalho": "0",
+    "contagemNaNavegacao": "0",
+    "rodape": "Mostrando 0 de 0 contas",
+    "totalDeContas": ["0"]
+  },
+  "vazio_categorias": {
+    "titulo": "Nenhuma categoria cadastrada.",
+    "descricao": "Sem categorias, as despesas ficam todas em Sem categoria.",
+    "acao": "Adicionar categoria",
+    "icone": true,
+    "contagemNoCabecalho": "0",
+    "contagemNaNavegacao": "0",
+    "rodape": "Mostrando 0 de 0 categorias",
+    "totalDeContas": ["0"]
+  },
+  "vazio_entradasPadrao": {
+    "titulo": "Nenhuma entrada padrão cadastrada.",
+    "descricao": "Todo mês novo nasce com uma cópia das entradas padrão.",
+    "acao": "Adicionar entrada padrão",
+    "icone": true,
+    "contagemNoCabecalho": "0",
+    "contagemNaNavegacao": "0",
+    "rodape": "Mostrando 0 de 0 entradas padrão",
+    "totalDeContas": ["0"]
+  },
+  "padroesRemovidos": {
+    "despesasPadrao": 0,
+    "entradasPadrao": 0
+  },
+  "mesesSemPadroes": {
+    "avisoVisivel": true,
+    "texto": "Não há despesas nem entradas padrão cadastradas: os meses criados agora nascem vazios.",
+    "atalhos": ["Cadastrar despesas padrão", "Cadastrar entradas padrão"]
+  },
+  "atalhoDoAviso": {
+    "rota": "#/settings?section=default-expenses",
+    "secao": "Despesas padrão"
+  },
+  "mesesComPadroes": {
+    "despesasPadrao": 1,
+    "avisoVisivel": false
+  },
+  "orientacaoInicial": {
+    "titulo": "Nenhum mês cadastrado",
+    "passos": [
+      {
+        "passo": "1. Cadastre suas contas",
+        "acao": "Abrir — Cadastre suas contas"
+      },
+      {
+        "passo": "2. Ajuste as categorias",
+        "acao": "Abrir — Ajuste as categorias"
+      },
+      {
+        "passo": "3. Cadastre as despesas e entradas fixas",
+        "acao": "Abrir — Cadastre as despesas e entradas fixas"
+      }
+    ],
+    "acaoPrincipal": "Ir para Configurações"
+  },
+  "destinosDaOrientacao": [
+    {
+      "passo": "Cadastre suas contas",
+      "rota": "#/settings?section=bank-accounts",
+      "secao": "Contas bancárias",
+      "marcada": "Contas bancárias"
+    },
+    {
+      "passo": "Ajuste as categorias",
+      "rota": "#/settings?section=categories",
+      "secao": "Categorias",
+      "marcada": "Categorias"
+    },
+    {
+      "passo": "Cadastre as despesas",
+      "rota": "#/settings?section=default-expenses",
+      "secao": "Despesas padrão",
+      "marcada": "Despesas padrão"
+    }
+  ],
+  "acaoPrincipalDaOrientacao": {
+    "rota": "#/settings?section=bank-accounts",
+    "secao": "Contas bancárias"
+  },
+  "restauracao": {
+    "meses": 40,
+    "contas": 3
+  }
+}

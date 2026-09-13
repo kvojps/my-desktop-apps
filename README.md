@@ -171,11 +171,13 @@ Preflight, componentes locais, Geist e Lucide, conforme os
 O Meu Dinheiro tem uma [migração incremental aprovada](.scratch/meu-dinheiro-design-orca/spec.md)
 para Tailwind sem Preflight, componentes locais, Geist e Lucide. A base de
 navegação, os estados transversais, a Visão Geral, o detalhe de Mês — com a
-camada de diálogos, campos e menus que ele trouxe — e o Histórico, com o módulo
-de tema de gráfico, estão implementados, com
+camada de diálogos, campos e menus que ele trouxe —, o Histórico, com o módulo
+de tema de gráfico, e Configurações, com a navegação interna de seções, estão
+implementados, com
 valores nos [tokens locais](apps/meu-dinheiro-app/docs/orca-theme.md).
-Nele, MUI/Material Icons permanecem nas superfícies não migradas;
-as prescrições de biblioteca, ícones e tema abaixo admitem a substituição local
+Nele, nenhuma tela usa mais componente MUI; o que resta é o provider de tema,
+que sai na última etapa da migração. As prescrições de biblioteca, ícones e
+tema abaixo admitem a substituição local
 conforme a [exceção normativa](docs/design-system.md). Meu Negócio e Meu Móvel
 Planejado mantêm MUI e Material Icons. Não há compartilhamento de código.
 
@@ -224,9 +226,12 @@ src/renderer/src/
   `main` que não depende de `electron` entra no bundle sem erro e duplica o
   domínio em silêncio, e decidir o que atravessa o IPC é do `main`
   ([ADR-0003](docs/adr/0003-logica-de-dominio-no-main.md)).
-- **`assets/`** — o logo do app, e só. Ícone é `@mui/icons-material` (Lucide no Git Dlog); imagem que
+- **`assets/`** — o logo do app, e só. Ícone é `@mui/icons-material` (Lucide no
+  Git Dlog e no Meu Dinheiro); imagem que
   a tela gera não mora aqui.
-- **`theme/`** — o tema MUI e o provider do modo claro/escuro; no Git Dlog, as variáveis CSS locais e o provider do modo. Cor que se calcula
+- **`theme/`** — o tema MUI e o provider do modo claro/escuro; no Git Dlog, as
+  variáveis CSS locais e o provider do modo; no Meu Dinheiro, os dois juntos
+  enquanto a migração não termina. Cor que se calcula
   em vez de se escolher mora aqui também, e não na tela que precisou dela
   primeiro — é o caso da paleta categórica de gráfico (design system, §1.7).
 - **`contexts/`** — domínio consumido por **duas ou mais telas** vira context
@@ -264,7 +269,8 @@ src/renderer/src/
   `showError` para erro vindo do IPC, numa fila de uma mensagem por vez. Falha ao
   carregar uma tela usa `components/ErrorState`, que oferece tentar de novo e
   abrir a pasta de dados. O texto exibido sai sempre de `describeAppError`.
-- **Ícones** — `@mui/icons-material`; no Git Dlog, `lucide-react`. Não há conjunto de SVG próprio.
+- **Ícones** — `@mui/icons-material`; no Git Dlog e no Meu Dinheiro,
+  `lucide-react`. Não há conjunto de SVG próprio.
 
 Quatro regras valem em qualquer uma dessas pastas:
 

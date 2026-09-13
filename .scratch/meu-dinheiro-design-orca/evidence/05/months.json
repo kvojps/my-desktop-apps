@@ -1,0 +1,66 @@
+{
+  "padrao": {
+    "grupos": ["De", "Até"],
+    "gruposNomeados": ["group:true", "group:true"],
+    "campos": ["Mês", "Ano", "Mês", "Ano"],
+    "legenda": "Isso vai criar até 12 meses (meses já existentes serão ignorados).",
+    "descrito": true,
+    "habilitado": true
+  },
+  "intervaloInvertido": {
+    "de": "1/2026",
+    "ate": "3/2026",
+    "legenda": "Isso vai criar até 3 meses (meses já existentes serão ignorados)."
+  },
+  "acimaDoLimite": {
+    "legenda": "Isso vai criar até 84 meses (meses já existentes serão ignorados). O intervalo não pode ultrapassar 60 meses.",
+    "botaoDesabilitado": true,
+    "legendaEmRecusa": "true",
+    "corDaLegenda": "rgb(255, 138, 128)"
+  },
+  "criacaoComExistentes": {
+    "legendaAntes": "Isso vai criar até 4 meses (meses já existentes serão ignorados).",
+    "durante": "Adicionar Meses",
+    "aviso": "Atenção: 2 meses adicionados · 2 ignorados, que já existiam",
+    "antes": 2,
+    "depois": 4,
+    "criados": 2
+  },
+  "criacaoTodaIgnorada": {
+    "aviso": "Atenção: Nenhum mês adicionado · 4 ignorados, que já existiam",
+    "meses": 4
+  },
+  "pontasSeAjustam": {
+    "inicial": {
+      "de": "6/2026",
+      "ate": "9/2026",
+      "legenda": "Isso vai criar até 4 meses (meses já existentes serão ignorados).",
+      "botao": "habilitado"
+    },
+    "fimAntesDoInicio": {
+      "de": "2/2026",
+      "ate": "2/2026",
+      "legenda": "Isso vai criar até 1 mês (meses já existentes serão ignorados).",
+      "botao": "habilitado"
+    },
+    "inicioDepoisDoFim": {
+      "de": "11/2026",
+      "ate": "11/2026",
+      "legenda": "Isso vai criar até 1 mês (meses já existentes serão ignorados).",
+      "botao": "habilitado"
+    },
+    "anoRecuado": {
+      "de": "11/2020",
+      "ate": "11/2020",
+      "legenda": "Isso vai criar até 1 mês (meses já existentes serão ignorados).",
+      "botao": "habilitado"
+    }
+  },
+  "estadoCriando": {
+    "rotuloDurante": ["Criando...", "Adicionar Meses"],
+    "desabilitadoDurante": true,
+    "rotuloDepois": "Adicionar Meses",
+    "aviso": "Atenção: 11 meses adicionados · 25 ignorados, que já existiam",
+    "meses": 40
+  }
+}

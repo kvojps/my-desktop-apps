@@ -1,4 +1,3 @@
-import { Box, Typography } from '@mui/material';
 import { BankAccount } from '@shared/types/bank-account';
 import { Category } from '@shared/types/category';
 import { DefaultExpense } from '@shared/types/expense';
@@ -14,12 +13,18 @@ import { formatCurrency, formatCurrencyOrFallback } from '@/utils/format';
  * colunas curtas. Se algum crescer, separa.
  */
 
-/** O nome do registro, que é sempre a primeira coluna e o que identifica a linha. */
+/**
+ * O nome do registro, que é sempre a primeira coluna e o que identifica a
+ * linha. O `money-item-cell` em volta não é enfeite: `max-width` não alcança
+ * caixa inline, e sem ele o teto de reticência do nome não existe.
+ */
 function NameCell({ name }: { name: string }) {
   return (
-    <Typography variant="body2" noWrap title={name} sx={{ fontWeight: 600 }}>
-      {name}
-    </Typography>
+    <span className="money-item-cell">
+      <span className="money-item-name money-truncate" title={name}>
+        {name}
+      </span>
+    </span>
   );
 }
 
@@ -65,12 +70,12 @@ export const bankAccountColumns: Column<BankAccount>[] = [
     // Só o negativo é pintado, como a coluna de Realizado da Visão Geral:
     // saldo positivo é o estado normal, não um aviso (§1.5).
     render: (account) => (
-      <Box
-        component="span"
-        sx={{ fontWeight: 600, color: account.balance < 0 ? 'error.main' : 'text.primary' }}
+      <span
+        className="money-amount money-tone"
+        data-tone={account.balance < 0 ? 'alert' : 'neutral'}
       >
         {formatCurrency(account.balance)}
-      </Box>
+      </span>
     ),
   },
 ];
@@ -105,9 +110,7 @@ export const defaultExpenseColumns: Column<DefaultExpense>[] = [
     key: 'amount',
     label: 'Valor',
     render: (expense) => (
-      <Box component="span" sx={{ fontWeight: 600 }}>
-        {formatCurrencyOrFallback(expense.amount, 'Variável')}
-      </Box>
+      <span className="money-amount">{formatCurrencyOrFallback(expense.amount, 'Variável')}</span>
     ),
   },
 ];
@@ -121,11 +124,16 @@ export const defaultIncomeColumns: Column<DefaultIncome>[] = [
   {
     key: 'bankAccount',
     label: 'Conta',
-    render: (income) => (
-      <Typography variant="body2" noWrap title={income.bankAccountName ?? undefined}>
-        {income.bankAccountName ?? '—'}
-      </Typography>
-    ),
+    render: (income) =>
+      income.bankAccountName ? (
+        <span className="money-item-cell">
+          <span className="money-truncate" title={income.bankAccountName}>
+            {income.bankAccountName}
+          </span>
+        </span>
+      ) : (
+        <span className="money-muted-text">—</span>
+      ),
   },
   {
     key: 'expectedDay',
@@ -136,9 +144,7 @@ export const defaultIncomeColumns: Column<DefaultIncome>[] = [
     key: 'amount',
     label: 'Valor',
     render: (income) => (
-      <Box component="span" sx={{ fontWeight: 600 }}>
-        {formatCurrencyOrFallback(income.amount, 'Variável')}
-      </Box>
+      <span className="money-amount">{formatCurrencyOrFallback(income.amount, 'Variável')}</span>
     ),
   },
 ];

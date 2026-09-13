@@ -1,0 +1,91 @@
+{
+  "ordemNaColuna": [
+    "navegação interna: button “Contas bancárias3”",
+    "navegação interna: button “Categorias11”",
+    "navegação interna: button “Despesas padrão3”",
+    "navegação interna: button “Entradas padrão2”",
+    "navegação interna: button “Adicionar Meses”",
+    "navegação interna: button “Backup”",
+    "painel: button “Adicionar conta”",
+    "painel: button “Mais ações para Cartão de crédito consignado com nome bem longo”",
+    "painel: button “Mais ações para Conta Corrente”",
+    "painel: button “Mais ações para Poupança”"
+  ],
+  "voltaComShiftTab": [
+    "painel: button “Mais ações para Conta Corrente”",
+    "painel: button “Mais ações para Cartão de crédito consignado com nome bem longo”"
+  ],
+  "trocaPeloTeclado": {
+    "comEnter": {
+      "secao": "Categorias",
+      "rota": "#/settings?section=categories",
+      "marcada": "Categorias",
+      "focoFicou": "Categorias11",
+      "anelDeFoco": "rgb(57, 135, 229)"
+    },
+    "comEspaco": "Backup"
+  },
+  "dialogo": {
+    "gatilho": "painel: button “Adicionar categoria”",
+    "aoAbrir": "diálogo: input “INPUT”",
+    "focoSempreNoDialogo": true,
+    "paradas": [
+      "diálogo: button “Cor 1 de 10”",
+      "diálogo: button “Cor 2 de 10, pouco contraste no tema claro”",
+      "diálogo: button “Cor 3 de 10”",
+      "diálogo: button “Cor 4 de 10”",
+      "diálogo: button “Cor 5 de 10, pouco contraste no tema escuro”",
+      "diálogo: button “Cor 6 de 10”",
+      "diálogo: button “Cor 7 de 10, pouco contraste no tema claro”",
+      "diálogo: button “Cor 8 de 10”",
+      "diálogo: button “Cor 9 de 10”",
+      "diálogo: button “Cor 10 de 10”",
+      "diálogo: button “Cancelar”",
+      "diálogo: button “Salvar”",
+      "diálogo: button “Fechar”",
+      "diálogo: input “INPUT”"
+    ],
+    "aoFechar": {
+      "aberto": false,
+      "foco": "painel: button “Adicionar categoria”"
+    }
+  },
+  "confirmacao": {
+    "menu": "página: button “Editar”",
+    "segundoItem": "página: button “Excluir categoria”",
+    "aoAbrir": "diálogo: button “Cancelar”",
+    "aoCancelar": {
+      "aberto": false,
+      "foco": "painel: button “Mais ações para Alimentação”"
+    }
+  },
+  "seletorCompacto": {
+    "paradas": [
+      "seletor compacto: select “Contas bancárias (3)Categorias (11)Despe”",
+      "painel: button “Adicionar conta”",
+      "painel: button “Mais ações para Cartão de crédito consignado com nome bem longo”"
+    ],
+    "troca": {
+      "secao": "Backup",
+      "rota": "#/settings?section=backup",
+      "focoContinuaNoSeletor": true,
+      "colunaOculta": "none"
+    }
+  },
+  "redimensionamento": {
+    "antes": {
+      "secao": "Backup",
+      "navegacao": "seletor"
+    },
+    "largo": {
+      "secao": "Backup",
+      "navegacao": "coluna",
+      "marcada": "Backup"
+    },
+    "estreito": {
+      "secao": "Backup",
+      "navegacao": "seletor",
+      "selecionado": "backup"
+    }
+  }
+}

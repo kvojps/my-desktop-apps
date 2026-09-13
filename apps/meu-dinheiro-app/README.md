@@ -10,7 +10,7 @@ Tudo roda local: um banco SQLite e uma pasta de comprovantes na sua máquina, se
 
 ### 1.1 Manual de uso
 
-O app tem três telas: **Visão Geral** (a inicial, com os meses), **Histórico** (gráficos do ano) e **Configurações** (o que se repete todo mês e os dados do app).
+O app tem três telas: **Visão Geral** (a inicial, com os meses), **Histórico** (gráficos do ano) e **Configurações** (o que se repete todo mês e os dados do app). Configurações tem seis assuntos — contas bancárias, categorias, despesas padrão, entradas padrão, Adicionar Meses e backup —, escolhidos numa navegação à esquerda e exibidos **um por vez**; em janela estreita, a navegação vira um seletor acima do conteúdo.
 
 1. Na primeira abertura não há nada cadastrado, e a Visão Geral mostra os três passos a dar em **Configurações**: cadastrar as **contas bancárias**, ajustar as **categorias** (dez já vêm prontas) e cadastrar as **despesas e entradas padrão**.
 2. Ainda em Configurações, use **"Adicionar Meses"** para criar de uma vez o intervalo que você quer acompanhar — cada mês nasce já preenchido com os padrões.
@@ -118,9 +118,11 @@ Do detalhe da despesa, **"Abrir comprovante"** entrega o arquivo ao programa pad
 
 São os modelos do que se repete: nome, valor, dia de vencimento (ou dia previsto) e, conforme o caso, categoria ou conta bancária. **Todo mês novo nasce com uma cópia deles** — é o que faz o app valer a pena a partir do segundo mês.
 
+Cadastrar um padrão **também o lança nos meses que já existem**: quem cadastra o aluguel em março quer a conta de março, não só a de abril. Editar ou excluir depois é que não volta atrás — vale daí em diante.
+
 O valor pode ficar em branco quando muda todo mês (luz, água): a despesa é criada mesmo assim, aparece como **"Valor variável"** e você preenche na hora de pagar. É melhor do que não cadastrar e esquecer.
 
-Excluir um padrão só afeta o futuro: os meses já criados continuam intactos.
+Excluir um padrão só afeta o futuro: os meses já criados continuam intactos, e a confirmação diz isso antes.
 
 ### 1.10 Histórico
 

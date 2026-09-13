@@ -1,0 +1,104 @@
+{
+  "contas": {
+    "antes": {
+      "linhas": 3,
+      "total": "Total: R$ 13.289,45"
+    },
+    "dialogoAberto": "Nova Conta",
+    "focoInicial": "primeiro campo",
+    "recusaSemNome": "Nome é obrigatório",
+    "campoInvalido": true,
+    "dialogoFechouAoGravar": true,
+    "depoisDeCriar": {
+      "linhas": 4,
+      "total": "Total: R$ 13.440,20"
+    },
+    "aviso": "Sucesso: Conta adicionada"
+  },
+  "contasEdicao": {
+    "itensDoMenu": ["Editar", "Excluir conta"],
+    "tituloEdicao": "Editar Conta",
+    "nomeCarregado": "Conta de testes",
+    "saldoCarregado": "150.75",
+    "renomeou": true
+  },
+  "contasExclusao": {
+    "titulo": "Excluir conta?",
+    "consequencia": "Tem certeza que deseja excluir Conta de testes renomeada? Despesas já pagas com essa conta deixarão de referenciá-la, mas o pagamento em si não será desfeito.",
+    "focoNaSaida": "Cancelar",
+    "rotuloDoBotao": "Excluir",
+    "linhasDepois": 3,
+    "sumiu": true
+  },
+  "categorias": {
+    "amostras": 10,
+    "rotulos": [
+      "Cor 1 de 10",
+      "Cor 2 de 10, pouco contraste no tema claro",
+      "Cor 3 de 10",
+      "Cor 4 de 10",
+      "Cor 5 de 10, pouco contraste no tema escuro",
+      "Cor 6 de 10",
+      "Cor 7 de 10, pouco contraste no tema claro",
+      "Cor 8 de 10",
+      "Cor 9 de 10",
+      "Cor 10 de 10"
+    ],
+    "selecionadaInicial": 0,
+    "marcaDeSelecao": true,
+    "corDoCheck": "rgb(255, 255, 255)",
+    "notaInicial": [],
+    "notaAposEscolherFalha": [
+      "Essa cor tem pouco contraste no tema claro. O nome ao lado dela continua identificando a categoria."
+    ],
+    "corDoCheckNaFalha": "rgba(0, 0, 0, 0.87)",
+    "criou": true,
+    "corDoPonto": "rgb(229, 57, 53)"
+  },
+  "categoriasExclusao": {
+    "consequencia": "Tem certeza que deseja excluir Categoria de testes? Despesas que usam essa categoria ficarão sem categoria.",
+    "sumiu": true
+  },
+  "despesaPadrao": {
+    "mesAntes": {
+      "label": "Setembro/2026",
+      "despesas": ["Aluguel=2200", "Energia elétrica (valor variável todo mês)=0", "Internet=129.9"]
+    },
+    "campos": ["Nome da despesa", "Valor (R$)", "Dia de vencimento", "Categoria"],
+    "notaDeValorVariavel": [
+      "Deixe em branco para despesas de valor variável.",
+      "Opcional. Dia do mês em que a despesa vence."
+    ],
+    "criou": true,
+    "valorExibido": "Variável",
+    "mesDepois": {
+      "label": "Setembro/2026",
+      "despesas": [
+        "Aluguel=2200",
+        "Despesa padrão de testes=0",
+        "Energia elétrica (valor variável todo mês)=0",
+        "Internet=129.9"
+      ]
+    },
+    "mesIntacto": false
+  },
+  "despesaPadraoExclusao": {
+    "consequencia": "Tem certeza que deseja excluir Despesa padrão de testes? Ela deixará de ser criada automaticamente nos próximos meses; os meses já criados ficam como estão.",
+    "sumiuDoCadastro": true,
+    "mesIntacto": true
+  },
+  "entradaPadrao": {
+    "campos": ["Nome da entrada", "Valor (R$)", "Dia previsto", "Conta (opcional)"],
+    "contasNaLista": [
+      "Nenhuma",
+      "Cartão de crédito consignado com nome bem longo (-R$ 1.830,90)",
+      "Conta Corrente (R$ 2.620,35)",
+      "Poupança (R$ 12.500,00)"
+    ],
+    "criou": true,
+    "conta": "Cartão de crédito consignado com nome bem longo",
+    "valor": "R$ 300,00",
+    "consequencia": "Tem certeza que deseja excluir Entrada padrão de testes? Ela deixará de ser criada automaticamente nos próximos meses; os meses já criados ficam como estão.",
+    "sumiu": true
+  }
+}

@@ -1,0 +1,106 @@
+{
+  "claro": {
+    "navegacao": {
+      "seção selecionada": 18.16,
+      "seção não selecionada": 5.31,
+      "contagem na navegação": 5.31,
+      "barra do selecionado (marca)": 4.48
+    },
+    "cabecalhoDaSecao": {
+      "título da seção": 18.31,
+      "descrição da seção": 5.31,
+      "contagem no cabeçalho": 5.31,
+      "total das contas": 5.31,
+      "ícone do ladrilho": 4.88,
+      "saldo negativo na tabela": 6.57,
+      "nome da conta": 19.8
+    },
+    "seletorCompacto": {
+      "rótulo \"Seção\"": 5.31,
+      "texto do seletor": 19.8,
+      "borda do seletor (marca)": 3.19
+    },
+    "intervaloDeMeses": {
+      "rótulo De/Até": 5.31,
+      "rótulo do campo": 5.31,
+      "valor digitado": 19.8,
+      "borda do campo (marca)": 3.19,
+      "legenda do intervalo": 5.31,
+      "rótulo do botão primário": 18.97
+    },
+    "legendaEmRecusa": {
+      "legenda recusando o intervalo": 6.08
+    },
+    "backup": {
+      "explicação do backup": 5.31,
+      "rótulo do botão secundário": 19.8
+    },
+    "paletaDeCategoria": {
+      "check sobre a amostra escolhida": 4.86,
+      "check sobre a amostra de baixo contraste": 7.69,
+      "borda da amostra escolhida (marca)": 19.8,
+      "aviso de contraste da amostra": 5.74,
+      "rótulo do campo no diálogo": 5.74,
+      "texto digitado no diálogo": 19.8
+    },
+    "falhaDeSecao": {
+      "ícone de falha na navegação (marca)": 6.03,
+      "título do erro da seção": 19.8,
+      "descrição do erro": 5.74,
+      "ícone de erro da seção (marca)": 6.57,
+      "detalhe técnico": 5.74
+    }
+  },
+  "escuro": {
+    "navegacao": {
+      "seção selecionada": 14.5,
+      "seção não selecionada": 7.18,
+      "contagem na navegação": 7.18,
+      "barra do selecionado (marca)": 4.16
+    },
+    "cabecalhoDaSecao": {
+      "título da seção": 17.77,
+      "descrição da seção": 7.18,
+      "contagem no cabeçalho": 7.18,
+      "total das contas": 7.18,
+      "ícone do ladrilho": 5.19,
+      "saldo negativo na tabela": 7.85,
+      "nome da conta": 17.18
+    },
+    "seletorCompacto": {
+      "rótulo \"Seção\"": 7.18,
+      "texto do seletor": 17.18,
+      "borda do seletor (marca)": 3.48
+    },
+    "intervaloDeMeses": {
+      "rótulo De/Até": 7.18,
+      "rótulo do campo": 7.18,
+      "valor digitado": 17.18,
+      "borda do campo (marca)": 3.48,
+      "legenda do intervalo": 7.18,
+      "rótulo do botão primário": 18.97
+    },
+    "legendaEmRecusa": {
+      "legenda recusando o intervalo": 8.13
+    },
+    "backup": {
+      "explicação do backup": 7.18,
+      "rótulo do botão secundário": 17.18
+    },
+    "paletaDeCategoria": {
+      "check sobre a amostra escolhida": 4.86,
+      "check sobre a amostra de baixo contraste": 7.69,
+      "borda da amostra escolhida (marca)": 17.18,
+      "aviso de contraste da amostra": 6.94,
+      "rótulo do campo no diálogo": 6.94,
+      "texto digitado no diálogo": 17.18
+    },
+    "falhaDeSecao": {
+      "ícone de falha na navegação (marca)": 6.63,
+      "título do erro da seção": 17.18,
+      "descrição do erro": 6.94,
+      "ícone de erro da seção (marca)": 7.85,
+      "detalhe técnico": 6.94
+    }
+  }
+}

@@ -81,6 +81,33 @@ export function tileFill(accent: TileAccent, mode: PaletteMode): string {
 export const CATEGORY_NEUTRAL = '#757575';
 
 /**
+ * Os dez swatches oferecidos no cadastro de categoria — a paleta categórica da
+ * §1.7, na ordem em que ela é apresentada.
+ *
+ * Ela **não** encolhe para os sete que passam nos dois modos: quem escolhe
+ * aqui é o usuário, e a cor da categoria dele é dele. O que a §1.7 cobra é que
+ * a escolha seja informada, e é isso que `lowContrast` carrega — o modo em que
+ * aquele swatch fica abaixo dos 3:1 de marca contra o papel. A lista estreita
+ * vale para quando é o **app** que pinta sozinho, como em `CATEGORY_NEUTRAL`.
+ *
+ * Mora no tema, e não no formulário, porque é cor medida: a tabela de valores
+ * da §1.7 é o oráculo, e um segundo lugar onde ela é copiada é um lugar onde
+ * ela envelhece sozinha.
+ */
+export const CATEGORY_SWATCHES: readonly { color: string; lowContrast: PaletteMode | null }[] = [
+  { color: '#5C6BC0', lowContrast: null },
+  { color: '#FB8C00', lowContrast: 'light' },
+  { color: '#1E88E5', lowContrast: null },
+  { color: '#E53935', lowContrast: null },
+  { color: '#7B1FA2', lowContrast: 'dark' },
+  { color: '#43A047', lowContrast: null },
+  { color: '#00ACC1', lowContrast: 'light' },
+  { color: '#D81B60', lowContrast: null },
+  { color: '#B85C38', lowContrast: null },
+  { color: '#757575', lowContrast: null },
+];
+
+/**
  * A cor de uma linha de categoria: a que o usuário cadastrou, ou o neutro
  * quando quem nomeia a linha é o app.
  *
