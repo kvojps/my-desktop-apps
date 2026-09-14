@@ -1,7 +1,6 @@
 import { PIECE_DOES_NOT_FIT_MESSAGE, fitsAnySheet } from '@shared/nesting/fit';
-import type { PieceInput } from '@shared/types/piece';
+import type { Piece, PieceInput } from '@shared/types/piece';
 import type { Project } from '@shared/types/project';
-import type { PieceEntity } from '../domain/piece';
 import type { Repositories } from '../infra/database';
 import { AppError } from '../utils/errors/AppError';
 
@@ -36,11 +35,11 @@ export function makePiecesService(repos: Repositories) {
   }
 
   return {
-    list(projectId: string): PieceEntity[] {
+    list(projectId: string): Piece[] {
       return repos.pieces.listForProject(projectId);
     },
 
-    create(projectId: string, data: PieceInput): PieceEntity {
+    create(projectId: string, data: PieceInput): Piece {
       // O 404 sai de graça: este `findById` é o mesmo que a régua consome logo
       // abaixo. Hoje esse 404 vinha do `touchProject` dentro da transação.
       const project = repos.projects.findById(projectId);
@@ -52,7 +51,7 @@ export function makePiecesService(repos: Repositories) {
       });
     },
 
-    update(id: string, data: PieceInput): PieceEntity {
+    update(id: string, data: PieceInput): Piece {
       const current = repos.pieces.findById(id);
       if (!current) throw new AppError(404, PIECE_GONE);
       // A FK da peça garante o projeto; se ele sumiu, a régua só não roda —

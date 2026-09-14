@@ -1,7 +1,6 @@
 import type Database from 'better-sqlite3';
 import { randomUUID } from 'node:crypto';
-import type { PieceInput } from '@shared/types/piece';
-import type { PieceEntity } from '../../../domain/piece';
+import type { Piece, PieceInput } from '@shared/types/piece';
 
 interface PieceRow {
   id: string;
@@ -15,7 +14,7 @@ interface PieceRow {
 }
 
 /** A fronteira snake_case → camelCase. Nenhuma chave do banco sai daqui. */
-function rowToPiece(row: PieceRow): PieceEntity {
+function rowToPiece(row: PieceRow): Piece {
   return {
     id: row.id,
     projectId: row.project_id,
@@ -29,7 +28,7 @@ function rowToPiece(row: PieceRow): PieceEntity {
 }
 
 export function makePiecesRepository(db: Database.Database) {
-  function findById(id: string): PieceEntity | null {
+  function findById(id: string): Piece | null {
     const row = db.prepare('SELECT * FROM pieces WHERE id = ?').get(id) as PieceRow | undefined;
     return row ? rowToPiece(row) : null;
   }
@@ -45,7 +44,7 @@ export function makePiecesRepository(db: Database.Database) {
      * ordenar por ele embaralharia justamente o par que se quer ver junto. O
      * `rowid` é a ordem de inserção.
      */
-    listForProject(projectId: string): PieceEntity[] {
+    listForProject(projectId: string): Piece[] {
       const rows = db
         .prepare('SELECT * FROM pieces WHERE project_id = ? ORDER BY created_at, rowid')
         .all(projectId) as PieceRow[];
@@ -59,9 +58,9 @@ export function makePiecesRepository(db: Database.Database) {
      * que um carimbo antigo com peça nova nunca exista — é composição de quem
      * chama; a régua da rejeição (a peça grande demais) também.
      */
-    create(projectId: string, data: PieceInput): PieceEntity {
+    create(projectId: string, data: PieceInput): Piece {
       const now = new Date().toISOString();
-      const piece: PieceEntity = {
+      const piece: Piece = {
         id: randomUUID(),
         projectId,
         ...data,
@@ -80,7 +79,7 @@ export function makePiecesRepository(db: Database.Database) {
     },
 
     /** `null` quando a peça não existe mais; o 404 é de quem chama. */
-    update(id: string, data: PieceInput): PieceEntity | null {
+    update(id: string, data: PieceInput): Piece | null {
       const current = findById(id);
       if (!current) return null;
 
