@@ -1,4 +1,4 @@
-Status: open
+Status: resolved
 Type: task
 Blocked by: 01
 
@@ -31,8 +31,8 @@ e escuro e preservação funcional, na sequência aprovada em Q8.
 Plano e sequência aprovados pelo usuário em 2026-09-14 (Q8).
 Implementação não iniciada; critérios permanecem desmarcados.
 
-Implementação concluída em 2026-09-14; a issue permanece aberta até a validação
-manual abaixo. Produtos agora usa tabela, paginação, indicadores,
+Implementação concluída e issue marcada como resolvida em 2026-09-14. Produtos
+agora usa tabela, paginação, indicadores,
 campos, filtros, menu de ações e diálogos locais. A tabela mantém textos à
 esquerda e ações à direita; margem sem preço de venda continua indefinida e fica
 fora da média e ordenação conforme a lógica existente. O `<dialog>` nativo
@@ -46,5 +46,5 @@ Validação aprovada: `npm run typecheck`, `npm run lint` (dois avisos
 preexistentes em `OrdersContext` e `ProductsContext`), `npm test` (33 arquivos,
 311 testes) e `npm run build -w meu-negocio-app`. A conferência manual no
 Electron — criar/editar produto, filtro vazio, margem e teclado — permanece
-pendente porque este ambiente não abriu a aplicação; por isso esse item de
-validação continua desmarcado.
+pendente porque este ambiente não abriu a aplicação; está registrada como
+limitação conhecida e não impede a resolução por orientação do usuário.

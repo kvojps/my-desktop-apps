@@ -66,6 +66,9 @@ Issues e specs vivem como markdown em `.scratch/<feature>/` neste repo — não 
 fluxo de GitHub Issues. Ver [`docs/agents/issue-tracker.md`](docs/agents/issue-tracker.md).
 Ao resolver uma issue, atualize a linha `Status:` no arquivo correspondente antes
 de encerrar a tarefa e marque os itens do checklist que foram resolvidos.
+Ao implementar uma issue com a skill `implement`, marque seu `Status:` como
+`resolved` antes de encerrar, mesmo que uma validação manual permaneça registrada
+como limitação conhecida.
 
 ### Domain docs
 
