@@ -34,9 +34,16 @@ export function Layout({ children }: { children: ReactNode }) {
         data-collapsed={collapsed}
         className="ui-sidebar ui:flex ui:shrink-0 ui:flex-col ui:gap-1 ui:bg-sidebar ui:p-3"
       >
-        <div className="ui:mb-4 ui:flex ui:h-9 ui:items-center ui:gap-3 ui:px-1">
+        <div className="ui:mb-4 ui:flex ui:h-9 ui:items-center ui:gap-2 ui:px-1">
           <img src={mode === 'light' ? logoLight : logo32x32} alt="" width={28} height={28} />
-          {!collapsed && <span className="ui:text-sm ui:font-semibold">Git Dlog</span>}
+          {!collapsed && (
+            <>
+              <span className="ui:text-sm ui:font-semibold">Git Dlog</span>
+              <span className="ui:inline-flex ui:items-center ui:rounded-md ui:border ui:border-border ui:px-1.5 ui:py-0.5 ui:text-xs ui:font-semibold ui:text-muted-foreground">
+                v{__APP_VERSION__}
+              </span>
+            </>
+          )}
         </div>
         <div id="primary-navigation" className="ui:flex ui:flex-col ui:gap-1">
           {NAV_ITEMS.map(({ label, path, icon: Icon }) => (

@@ -1464,6 +1464,21 @@ body {
   max-width: 560px;
 }
 
+/* Sobre --------------------------------------------------------------------- */
+
+/* Mesma base de `.money-backup`: um cartão com as duas informações e a
+   finalidade do app embaixo, sem lista nem ação. */
+.money-about {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: flex-start;
+  padding: 20px;
+}
+.money-about p {
+  max-width: 560px;
+}
+
 /* Paleta de categoria ----------------------------------------------------- */
 
 /*

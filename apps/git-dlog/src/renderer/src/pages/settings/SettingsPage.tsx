@@ -18,7 +18,6 @@ import { Modal } from '@/components/Modal';
 import { PageHeader } from '@/components/PageHeader';
 import { useSnackbar } from '@/contexts/SnackbarContext';
 
-const APP_VERSION = '2.0.0';
 const TOKEN_DOCS_URL = 'https://github.com/settings/tokens';
 
 const PROVIDER_LABELS: Record<PrProviderKind, string> = {
@@ -344,7 +343,7 @@ export function SettingsPage() {
         <h2 className="ui:m-0 ui:text-base ui:font-semibold ui:text-foreground">Sobre</h2>
         <dl className="ui:mt-4 ui:mb-0 ui:space-y-3">
           <InfoRow label="Aplicativo" value="Git Dlog" />
-          <InfoRow label="Versão" value={APP_VERSION} />
+          <InfoRow label="Versão" value={__APP_VERSION__} />
           <InfoRow
             label="Finalidade"
             value="Mostra, para todos os seus repositórios de uma vez, o que está fora de sincronia, o que só existe localmente e quais PRs estão abertos"

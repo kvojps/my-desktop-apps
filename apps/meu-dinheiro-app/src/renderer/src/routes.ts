@@ -41,9 +41,10 @@ export function staysInMonthVisit(origin: OriginView, pathname: string): boolean
 }
 
 /**
- * As seis seções de Configurações, na ordem em que a navegação interna as
+ * As sete seções de Configurações, na ordem em que a navegação interna as
  * apresenta — que é a ordem em que elas se usam: os quatro cadastros preparam
- * os meses, a criação de meses os consome e o backup guarda tudo.
+ * os meses, a criação de meses os consome, o backup guarda tudo e "Sobre" é
+ * só informativa, por isso fica por último.
  *
  * A seção mora na rota, e não só no estado da tela, porque é destino: a
  * orientação inicial da Visão Geral manda o usuário para a seção que resolve
@@ -56,6 +57,7 @@ export const SETTINGS_SECTIONS = [
   'default-incomes',
   'months',
   'backup',
+  'about',
 ] as const;
 
 export type SettingsSection = (typeof SETTINGS_SECTIONS)[number];

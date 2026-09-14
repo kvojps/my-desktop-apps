@@ -47,7 +47,14 @@ export function Layout({ children }: { children: ReactNode }) {
           title="Meu Dinheiro"
         >
           <img src={mode === 'light' ? logoLight : logo} alt="" width={28} height={28} />
-          {!collapsed && <span>Meu Dinheiro</span>}
+          {!collapsed && (
+            <>
+              <span>Meu Dinheiro</span>
+              <span className="money-chip" data-variant="outline">
+                v{__APP_VERSION__}
+              </span>
+            </>
+          )}
         </Link>
         <div id="main-navigation" className="ui:flex ui:flex-col ui:gap-1">
           {NAV_ITEMS.map(({ label, path, icon: Icon }) => (

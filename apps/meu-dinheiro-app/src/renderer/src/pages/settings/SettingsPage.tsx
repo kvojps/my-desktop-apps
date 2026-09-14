@@ -22,6 +22,7 @@ import {
 } from '@/routes';
 import { formatCurrency } from '@/utils/format';
 import { useRegistryActions } from './hooks/useRegistryActions';
+import { AboutSection } from './components/AboutSection';
 import { AddMonthsSection } from './components/AddMonthsSection';
 import { BackupSection } from './components/BackupSection';
 import { BankAccountForm } from './components/BankAccountForm';
@@ -46,6 +47,7 @@ const SECTION_TITLES: Record<SettingsSection, string> = {
   'default-incomes': 'Entradas padrão',
   months: 'Adicionar Meses',
   backup: 'Backup',
+  about: 'Sobre',
 };
 
 /**
@@ -107,6 +109,7 @@ export function SettingsPage() {
     'default-incomes': navState(defaultIncomes, defaultIncomes.defaultIncomes.length),
     months: {},
     backup: {},
+    about: {},
   };
 
   const sections = SETTINGS_SECTIONS.map((id) => ({
@@ -299,6 +302,8 @@ export function SettingsPage() {
               onAskImport={() => setImportConfirmOpen(true)}
             />
           )}
+
+          {section === 'about' && <AboutSection titleId={titleId} />}
         </section>
       </div>
 
