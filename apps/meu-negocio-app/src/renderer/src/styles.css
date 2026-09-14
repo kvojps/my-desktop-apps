@@ -96,6 +96,12 @@
   .negocio-sidebar[data-collapsed='true'] .negocio-nav-item[aria-current='page']::before {
     left: 0;
   }
+  .negocio-content {
+    /* As grades MUI das telas usam `@container content`; este contrato não pode
+     se perder quando a lateral muda de implementação. */
+    container-name: content;
+    container-type: inline-size;
+  }
   .negocio-sidebar[data-collapsed='true'] .negocio-nav-item[data-tooltip]::after {
     position: fixed;
     z-index: 10;

@@ -94,7 +94,7 @@ export function Layout({ children }: { children: ReactNode }) {
         </div>
       </nav>
       <main className="ui:min-w-0 ui:flex-1 ui:overflow-y-auto ui:p-6">
-        <div className="ui:mx-auto ui:flex ui:min-h-full ui:max-w-[1440px] ui:flex-col">
+        <div className="negocio-content ui:mx-auto ui:flex ui:min-h-full ui:max-w-[1440px] ui:flex-col">
           {children}
         </div>
       </main>
