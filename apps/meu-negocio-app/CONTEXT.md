@@ -17,6 +17,11 @@ O total do pedido menos o valor já pago, nunca negativo. Pagamento acima do
 total não vira crédito: o saldo simplesmente zera.
 _Avoid_: valor em aberto, restante, dívida
 
+**Total já pago**:
+Valor acumulado pago por um pedido. Alterar esse total substitui o valor
+anterior; não representa uma nova parcela nem um histórico de pagamentos.
+_Avoid_: nova parcela, pagamento adicional
+
 **Faixa**:
 Agrupamento das contas a receber pela idade da venda: 0–15, 16–30, 31–60 e 60+
 dias. As quatro existem sempre, mesmo vazias — faixa zerada é informação, não
@@ -42,8 +47,6 @@ _Avoid_: saldo atual, snapshot
 
 **Escrituração de estoque**:
 Registro de quanto saiu de fato do estoque quando o pedido foi concluído, que
-não é a mesma coisa que a quantidade pedida no item. Quando o saldo não cobria
-o pedido, sai menos do que foi pedido — o estoque para em zero em vez de ficar
-negativo —, e é o que saiu que volta se a venda for reaberta, cancelada ou
-excluída. É controle interno: não faz parte do pedido que a tela manipula.
+determina o que volta se a venda for reaberta, cancelada ou excluída.
+É controle interno e não autoriza concluir um pedido com estoque insuficiente.
 _Avoid_: quantidade do item, baixa de estoque (é a ação, não o registro)
