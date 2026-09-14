@@ -3,10 +3,10 @@ import type { Product } from '@shared/types/product';
 import { Button } from '@/components/Button';
 import { Field, SelectInput, TextInput } from '@/components/Field';
 import { Modal } from '@/components/Modal';
-import { findOrderShortages } from '@/hooks/orders/orderShortages';
 import type { UseOrderFormReturn } from '@/hooks/orders/useOrderForm';
 import { todayInputValue } from '@/utils/date';
 import { formatCurrency } from '@/utils/format';
+import { findOrderShortages } from '../utils/orderShortages';
 
 interface OrderFormModalProps {
   formState: UseOrderFormReturn;
@@ -82,7 +82,7 @@ export function OrderFormModal({ formState, products }: OrderFormModalProps) {
         </div>
 
         <div className="negocio-items">
-          <div className="negocio-section-header">
+          <div className="negocio-row">
             <h3 className="negocio-section-title">Itens</h3>
             <Button onClick={addItem}>
               <Plus size={16} aria-hidden="true" /> Adicionar Item
@@ -189,7 +189,7 @@ export function OrderFormModal({ formState, products }: OrderFormModalProps) {
           )}
         </div>
 
-        <div className="negocio-section-header">
+        <div className="negocio-row">
           <label className="negocio-checkbox">
             <input type="checkbox" checked={!!manualEnabled} {...register('manualEnabled')} />
             Valor personalizado

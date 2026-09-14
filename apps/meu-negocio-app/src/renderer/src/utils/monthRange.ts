@@ -1,6 +1,4 @@
-// Caminho relativo, e não o alias `@/`: o módulo é coberto por `npm test`, e a
-// suíte roda fora do Vite, onde o alias do renderer não existe.
-import { monthKeyOf } from '../utils/date';
+import { monthKeyOf } from './date';
 
 export interface MonthOption {
   /** Chave `YYYY-MM`, que é também a ordem cronológica em ordem alfabética. */

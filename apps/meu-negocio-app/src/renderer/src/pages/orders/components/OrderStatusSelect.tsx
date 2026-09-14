@@ -4,7 +4,7 @@ import type { OrderStatus } from '@shared/types/order';
 import { ORDER_STATUS_COLOR, ORDER_STATUS_LABELS } from '@shared/types/order';
 import { StatusChip } from '@/components/StatusChip';
 import { ORDER_STATUS_ICON } from '@/components/StatusChip/statusIcons';
-import { useMenuPopup } from '@/hooks/useMenuPopup';
+import { popupPortalTarget, useMenuPopup } from '@/hooks/useAnchoredPopup';
 
 const STATUS_OPTIONS = Object.keys(ORDER_STATUS_LABELS) as OrderStatus[];
 
@@ -20,8 +20,7 @@ interface OrderStatusSelectProps {
  * menu, e é o mesmo `StatusChip` que o resto do app usa.
  */
 export function OrderStatusSelect({ value, onChange }: OrderStatusSelectProps) {
-  const { isOpen, setIsOpen, close, trigger, menu, menuId, handleKeyDown, portalTarget } =
-    useMenuPopup();
+  const { isOpen, setIsOpen, close, trigger, popup, popupId, handleKeyDown } = useMenuPopup();
 
   function handleSelect(next: OrderStatus) {
     close();
@@ -42,7 +41,7 @@ export function OrderStatusSelect({ value, onChange }: OrderStatusSelectProps) {
         }}
         ariaHasPopup="menu"
         ariaExpanded={isOpen}
-        ariaControls={isOpen ? menuId : undefined}
+        ariaControls={isOpen ? popupId : undefined}
         ariaLabel={`Status: ${ORDER_STATUS_LABELS[value]}. Clique para alterar`}
         label={
           <>
@@ -54,8 +53,8 @@ export function OrderStatusSelect({ value, onChange }: OrderStatusSelectProps) {
       {isOpen &&
         createPortal(
           <div
-            ref={menu}
-            id={menuId}
+            ref={popup}
+            id={popupId}
             className="negocio-menu"
             role="menu"
             aria-label="Alterar status do pedido"
@@ -78,7 +77,7 @@ export function OrderStatusSelect({ value, onChange }: OrderStatusSelectProps) {
               </button>
             ))}
           </div>,
-          portalTarget(),
+          popupPortalTarget(),
         )}
     </>
   );

@@ -1,10 +1,16 @@
 import { CalendarRange } from 'lucide-react';
-import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { Order } from '@shared/types/order';
 import { Field, SelectInput } from '@/components/Field';
 import type { OrderFilterState } from '@/hooks/orders/useOrders';
-import { buildMonthOptions, last3MonthsRange, monthRangeToISO, thisYearRange } from './monthRange';
+import { popupPortalTarget, useAnchoredPopup } from '@/hooks/useAnchoredPopup';
+import {
+  buildMonthOptions,
+  last3MonthsRange,
+  monthRangeToISO,
+  thisYearRange,
+} from '@/utils/monthRange';
 
 /** Os três recortes prontos, na ordem do mais restrito para o mais amplo. */
 type QuickRange = 'last3' | 'thisYear' | 'all';
@@ -43,10 +49,16 @@ export function MonthRangeFilter({
   const [fromOverride, setFromOverride] = useState('');
   const [toOverride, setToOverride] = useState('');
   const [defaultYearApplied, setDefaultYearApplied] = useState(false);
-  const [isCustomOpen, setIsCustomOpen] = useState(false);
-  const trigger = useRef<HTMLButtonElement>(null);
-  const popover = useRef<HTMLDivElement>(null);
-  const popoverId = useId();
+  // O popover é a mesma camada ancorada dos menus: posição na janela, fecha ao
+  // clicar fora ou rolar, e o primeiro campo recebe o foco ao abrir.
+  const {
+    isOpen: isCustomOpen,
+    setIsOpen: setIsCustomOpen,
+    close: closeCustom,
+    trigger,
+    popup,
+    popupId,
+  } = useAnchoredPopup({ focusSelector: 'select' });
 
   const monthOptions = useMemo(
     () =>
@@ -111,11 +123,6 @@ export function MonthRangeFilter({
     if (last3Range) applyRange(last3Range.from, last3Range.to);
   }
 
-  function closeCustom(returnFocus = true) {
-    setIsCustomOpen(false);
-    if (returnFocus) trigger.current?.focus();
-  }
-
   useEffect(() => {
     if (defaultToThisYear && !defaultYearApplied && monthOptions.length > 0) {
       handleQuickThisYear();
@@ -123,33 +130,6 @@ export function MonthRangeFilter({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [monthOptions, defaultYearApplied, defaultToThisYear]);
-
-  // O popover é um elemento posicionado na janela, e não uma camada nativa: ele
-  // nasce alinhado à direita do gatilho e recua quando não cabe.
-  useLayoutEffect(() => {
-    if (!isCustomOpen || !popover.current || !trigger.current) return;
-    const rect = trigger.current.getBoundingClientRect();
-    popover.current.style.top = `${Math.min(rect.bottom + 6, window.innerHeight - popover.current.offsetHeight - 8)}px`;
-    popover.current.style.left = `${Math.max(8, rect.right - popover.current.offsetWidth)}px`;
-    popover.current.querySelector<HTMLSelectElement>('select')?.focus();
-  }, [isCustomOpen]);
-
-  useEffect(() => {
-    if (!isCustomOpen) return;
-    const closeOnOutside = (event: PointerEvent) => {
-      const target = event.target as Node;
-      if (!popover.current?.contains(target) && !trigger.current?.contains(target)) {
-        closeCustom(false);
-      }
-    };
-    const closeOnScroll = () => closeCustom(false);
-    document.addEventListener('pointerdown', closeOnOutside);
-    document.addEventListener('scroll', closeOnScroll, true);
-    return () => {
-      document.removeEventListener('pointerdown', closeOnOutside);
-      document.removeEventListener('scroll', closeOnScroll, true);
-    };
-  }, [isCustomOpen]);
 
   return (
     <>
@@ -183,7 +163,7 @@ export function MonthRangeFilter({
           aria-pressed={activeQuick === null}
           aria-haspopup="dialog"
           aria-expanded={isCustomOpen}
-          aria-controls={isCustomOpen ? popoverId : undefined}
+          aria-controls={isCustomOpen ? popupId : undefined}
           onClick={() => setIsCustomOpen((open) => !open)}
         >
           <CalendarRange aria-hidden="true" />
@@ -193,8 +173,8 @@ export function MonthRangeFilter({
       {isCustomOpen &&
         createPortal(
           <div
-            ref={popover}
-            id={popoverId}
+            ref={popup}
+            id={popupId}
             className="negocio-popover"
             role="dialog"
             aria-label="Período personalizado"
@@ -232,7 +212,7 @@ export function MonthRangeFilter({
               </SelectInput>
             </Field>
           </div>,
-          document.body,
+          popupPortalTarget(),
         )}
     </>
   );

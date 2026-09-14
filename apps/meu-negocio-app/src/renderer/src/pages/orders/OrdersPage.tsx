@@ -165,17 +165,11 @@ export function OrdersPage() {
               title="Nenhum pedido corresponde aos filtros."
               description="Ajuste a busca, o status ou o período para ver os pedidos em aberto de novo."
               action={
-                <Button
-                  onClick={() =>
-                    setFilters({
-                      search: '',
-                      status: '',
-                      paymentStatus: '',
-                      dateFrom: '',
-                      dateTo: '',
-                    })
-                  }
-                >
+                // Só limpa busca e status: o intervalo de meses tem o próprio
+                // botão no cabeçalho, guarda a seleção em estado local e ficaria
+                // dessincronizado se zerado por fora — e o período é o escopo da
+                // tela, não um filtro da tabela.
+                <Button onClick={() => setFilters({ ...filters, search: '', status: '' })}>
                   Limpar filtros
                 </Button>
               }

@@ -13,8 +13,8 @@ import { Modal } from '@/components/Modal';
 import { StatusChip } from '@/components/StatusChip';
 import { PAYMENT_STATUS_ICON } from '@/components/StatusChip/statusIcons';
 import { useSnackbar } from '@/contexts/SnackbarContext';
-import { clampPaymentAmount } from '@/hooks/orders/paymentAmount';
 import { formatCurrency } from '@/utils/format';
+import { clampPaymentAmount } from '../utils/paymentAmount';
 
 interface PaymentModalProps {
   order: Order | null;

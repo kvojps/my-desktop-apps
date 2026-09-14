@@ -1,7 +1,7 @@
 import { Check, Edit, Eye, MoreVertical, RotateCcw, Trash2 } from 'lucide-react';
 import type { MouseEvent } from 'react';
 import { createPortal } from 'react-dom';
-import { useMenuPopup } from '@/hooks/useMenuPopup';
+import { popupPortalTarget, useMenuPopup } from '@/hooks/useAnchoredPopup';
 import { Button } from './Button';
 
 interface ActionsMenuProps {
@@ -25,8 +25,7 @@ export function ActionsMenu({
   ariaLabel = 'Ações',
   deleteLabel = 'Excluir',
 }: ActionsMenuProps) {
-  const { isOpen, setIsOpen, close, trigger, menu, menuId, handleKeyDown, portalTarget } =
-    useMenuPopup();
+  const { isOpen, setIsOpen, close, trigger, popup, popupId, handleKeyDown } = useMenuPopup();
 
   function run(action: () => void) {
     close();
@@ -41,7 +40,7 @@ export function ActionsMenu({
         aria-label={ariaLabel}
         aria-haspopup="menu"
         aria-expanded={isOpen}
-        aria-controls={isOpen ? menuId : undefined}
+        aria-controls={isOpen ? popupId : undefined}
         onClick={(event: MouseEvent<HTMLElement>) => {
           // A linha inteira costuma ser clicável; sem isto, abrir o menu
           // abriria também o detalhe do item.
@@ -54,8 +53,8 @@ export function ActionsMenu({
       {isOpen &&
         createPortal(
           <div
-            ref={menu}
-            id={menuId}
+            ref={popup}
+            id={popupId}
             className="negocio-menu"
             role="menu"
             aria-label={ariaLabel}
@@ -97,7 +96,7 @@ export function ActionsMenu({
               </button>
             )}
           </div>,
-          portalTarget(),
+          popupPortalTarget(),
         )}
     </>
   );

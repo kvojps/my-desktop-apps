@@ -32,6 +32,12 @@ branco sobre ele daria 1,83:1. A lateral mede 224px expandida e
 64px recolhida; o conteúdo conserva teto de 1440px, padding de 24px e rolagem
 independente. Raio de superfície é 12px; controles, 8px.
 
+A adaptação de layout é medida contra a faixa de conteúdo, não contra a janela:
+`.negocio-content` declara o container `content`, e a folha local usa os mesmos
+limiares do `contentQuery` do tema — **640px** para a faixa média e **1000px**
+para a larga. As grades escritas em CSS (a dos indicadores, por exemplo) leem
+esses dois números e não largura de janela.
+
 O modo inicial é injetado pelo preload e a fonte da verdade é `app_settings`;
 o processo principal aplica a preferência antes de criar a janela e atualiza o
 fundo de janelas já vivas. O cache de `localStorage` anterior foi removido.

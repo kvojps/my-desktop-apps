@@ -107,7 +107,7 @@ export function OrderViewModal({
             </table>
           </div>
 
-          <p className="negocio-section-header">
+          <p className="negocio-row">
             {viewTarget.manualTotal !== undefined && (
               <span className="negocio-caption">(valor personalizado)</span>
             )}

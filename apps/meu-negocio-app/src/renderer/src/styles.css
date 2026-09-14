@@ -795,14 +795,16 @@
     font-weight: 600;
     line-height: 20px;
   }
-  .negocio-section-header {
+  /* Linha que afasta as pontas: o título e o botão de uma seção, o rótulo e o
+     total de um rodapé. */
+  .negocio-row {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
   }
-  .negocio-section-header .negocio-field {
+  .negocio-row .negocio-field {
     width: 180px;
   }
   .negocio-stack {

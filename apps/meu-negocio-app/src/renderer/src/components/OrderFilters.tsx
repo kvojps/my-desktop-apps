@@ -36,8 +36,10 @@ export function OrderFilters({
       <Field label="Buscar">
         <div className="negocio-search">
           <Search size={16} aria-hidden="true" />
+          {/* Sem `aria-label`: o `Field` já embrulha o campo num `<label>`, e um
+              rótulo ARIA por cima faria o nome acessível deixar de ser o texto
+              que está na tela. */}
           <TextInput
-            aria-label="Buscar por cliente ou produto"
             placeholder="Cliente ou produto"
             value={filters.search}
             onChange={(e) => onChange({ ...filters, search: e.target.value })}
