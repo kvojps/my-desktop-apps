@@ -269,6 +269,13 @@
   .negocio-dialog[open] {
     display: flex;
     flex-direction: column;
+    /* `display: flex` substitui o display do UA; sem uma posição explícita a
+       centralização nativa deixa de ser consistente entre engines. */
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    margin: 0;
+    transform: translate(-50%, -50%);
   }
   .negocio-dialog::backdrop {
     background: rgb(0 0 0 / 50%);
