@@ -1,47 +1,13 @@
-import { DateRangeOutlined } from '@mui/icons-material';
-import {
-  FormControl,
-  InputLabel,
-  MenuItem,
-  Popover,
-  Select,
-  Stack,
-  ToggleButton,
-  ToggleButtonGroup,
-  Tooltip,
-} from '@mui/material';
-import { useEffect, useMemo, useState } from 'react';
+import { CalendarRange } from 'lucide-react';
+import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import type { Order } from '@shared/types/order';
+import { Field, SelectInput } from '@/components/Field';
 import type { OrderFilterState } from '@/hooks/orders/useOrders';
-
-interface MonthOption {
-  label: string;
-  value: string;
-}
+import { buildMonthOptions, last3MonthsRange, monthRangeToISO, thisYearRange } from './monthRange';
 
 /** Os três recortes prontos, na ordem do mais restrito para o mais amplo. */
 type QuickRange = 'last3' | 'thisYear' | 'all';
-
-function monthKey(year: number, month: number): string {
-  return `${year}-${String(month).padStart(2, '0')}`;
-}
-
-function formatMonthLabel(year: number, month: number): string {
-  const raw = new Date(year, month - 1, 1).toLocaleDateString('pt-BR', {
-    month: 'long',
-    year: 'numeric',
-  });
-  return raw.charAt(0).toUpperCase() + raw.slice(1);
-}
-
-function monthRangeToISO(fromKey: string, toKey: string): { from: string; to: string } {
-  const [fy, fm] = fromKey.split('-').map(Number);
-  const [ty, tm] = toKey.split('-').map(Number);
-  const from = `${fy}-${String(fm).padStart(2, '0')}-01`;
-  const lastDay = new Date(ty, tm, 0).getDate();
-  const to = `${ty}-${String(tm).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
-  return { from, to };
-}
 
 interface MonthRangeFilterProps {
   orders: Order[];
@@ -61,9 +27,9 @@ interface MonthRangeFilterProps {
  * `actions` do `PageHeader`, nunca na barra de filtros — ele governa a tela
  * inteira, e o cabeçalho é o lugar onde esse escopo já é declarado (§4).
  *
- * Os três recortes prontos são um `ToggleButtonGroup` e não `Chip`s: eles são
- * mutuamente exclusivos, e um grupo de toggle diz isso pela forma, enquanto
- * três chips clicáveis parecem três ações independentes. "De/Até" só aparece
+ * Os três recortes prontos são um grupo de alternância e não três botões
+ * soltos: eles são mutuamente exclusivos, e o grupo diz isso pela forma,
+ * enquanto três botões independentes parecem três ações. "De/Até" só aparece
  * num popover, para quem precisa de um recorte que os atalhos não dão — os
  * dois campos sempre visíveis custavam quase a largura de um card só para um
  * controle que na prática se usa pelos atalhos.
@@ -77,23 +43,19 @@ export function MonthRangeFilter({
   const [fromOverride, setFromOverride] = useState('');
   const [toOverride, setToOverride] = useState('');
   const [defaultYearApplied, setDefaultYearApplied] = useState(false);
-  const [anchor, setAnchor] = useState<HTMLElement | null>(null);
+  const [isCustomOpen, setIsCustomOpen] = useState(false);
+  const trigger = useRef<HTMLButtonElement>(null);
+  const popover = useRef<HTMLDivElement>(null);
+  const popoverId = useId();
 
-  const monthOptions = useMemo<MonthOption[]>(() => {
-    const keys = new Set<string>();
-    const now = new Date();
-    keys.add(monthKey(now.getFullYear(), now.getMonth() + 1));
-    for (const order of orders) {
-      const d = new Date(order.createdAt);
-      keys.add(monthKey(d.getFullYear(), d.getMonth() + 1));
-    }
-    return Array.from(keys)
-      .sort()
-      .map((key) => {
-        const [y, m] = key.split('-').map(Number);
-        return { label: formatMonthLabel(y, m), value: key };
-      });
-  }, [orders]);
+  const monthOptions = useMemo(
+    () =>
+      buildMonthOptions(
+        orders.map((order) => order.createdAt),
+        new Date(),
+      ),
+    [orders],
+  );
 
   const firstOption = monthOptions[0]?.value ?? '';
   const lastOption = monthOptions[monthOptions.length - 1]?.value ?? '';
@@ -101,25 +63,14 @@ export function MonthRangeFilter({
   const toValue = toOverride || lastOption;
   const isFiltered = fromValue !== firstOption || toValue !== lastOption;
 
-  const last3Range = useMemo(() => {
-    if (monthOptions.length === 0) return null;
-    const start = monthOptions[Math.max(0, monthOptions.length - 3)].value;
-    return { from: start, to: lastOption };
-  }, [monthOptions, lastOption]);
-
-  const thisYearRange = useMemo(() => {
-    const currentYear = new Date().getFullYear();
-    const yearOptions = monthOptions.filter((opt) => opt.value.startsWith(`${currentYear}`));
-    if (yearOptions.length === 0) return null;
-    return { from: yearOptions[0].value, to: yearOptions[yearOptions.length - 1].value };
-  }, [monthOptions]);
+  const last3Range = useMemo(() => last3MonthsRange(monthOptions), [monthOptions]);
+  const yearRange = useMemo(() => thisYearRange(monthOptions, new Date()), [monthOptions]);
 
   const isLast3Active = !!last3Range && fromValue === last3Range.from && toValue === last3Range.to;
-  const isThisYearActive =
-    !!thisYearRange && fromValue === thisYearRange.from && toValue === thisYearRange.to;
+  const isThisYearActive = !!yearRange && fromValue === yearRange.from && toValue === yearRange.to;
 
-  // Um intervalo escolhido à mão não é nenhum dos três: aí o grupo fica sem
-  // seleção, que é a leitura correta — nenhum atalho descreve o que está no ar.
+  // Um intervalo escolhido à mão não é nenhum dos três: aí quem fica marcado é o
+  // botão do popover — ele é a representação de "personalizado" no grupo.
   const activeQuick: QuickRange | null = isLast3Active
     ? 'last3'
     : isThisYearActive
@@ -147,18 +98,22 @@ export function MonthRangeFilter({
   }
 
   function handleQuickThisYear() {
-    if (!thisYearRange) return;
-    applyRange(thisYearRange.from, thisYearRange.to);
+    if (!yearRange) return;
+    applyRange(yearRange.from, yearRange.to);
   }
 
-  function handleQuickChange(next: QuickRange | 'custom' | null) {
-    // `null` é o clique no botão já selecionado. Desmarcar deixaria a tela sem
-    // recorte nenhum sem dizer qual passou a valer, então o clique é ignorado.
-    // `custom` abre o popover pelo próprio `onClick` do botão, não por aqui.
-    if (!next || next === 'custom') return;
+  function handleQuick(next: QuickRange) {
+    // Clicar no recorte já ativo não desmarca: a tela ficaria sem recorte nenhum
+    // sem dizer qual passou a valer.
+    if (next === activeQuick) return;
     if (next === 'all') return applyRange('', '');
     if (next === 'thisYear') return handleQuickThisYear();
     if (last3Range) applyRange(last3Range.from, last3Range.to);
+  }
+
+  function closeCustom(returnFocus = true) {
+    setIsCustomOpen(false);
+    if (returnFocus) trigger.current?.focus();
   }
 
   useEffect(() => {
@@ -169,61 +124,116 @@ export function MonthRangeFilter({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [monthOptions, defaultYearApplied, defaultToThisYear]);
 
+  // O popover é um elemento posicionado na janela, e não uma camada nativa: ele
+  // nasce alinhado à direita do gatilho e recua quando não cabe.
+  useLayoutEffect(() => {
+    if (!isCustomOpen || !popover.current || !trigger.current) return;
+    const rect = trigger.current.getBoundingClientRect();
+    popover.current.style.top = `${Math.min(rect.bottom + 6, window.innerHeight - popover.current.offsetHeight - 8)}px`;
+    popover.current.style.left = `${Math.max(8, rect.right - popover.current.offsetWidth)}px`;
+    popover.current.querySelector<HTMLSelectElement>('select')?.focus();
+  }, [isCustomOpen]);
+
+  useEffect(() => {
+    if (!isCustomOpen) return;
+    const closeOnOutside = (event: PointerEvent) => {
+      const target = event.target as Node;
+      if (!popover.current?.contains(target) && !trigger.current?.contains(target)) {
+        closeCustom(false);
+      }
+    };
+    const closeOnScroll = () => closeCustom(false);
+    document.addEventListener('pointerdown', closeOnOutside);
+    document.addEventListener('scroll', closeOnScroll, true);
+    return () => {
+      document.removeEventListener('pointerdown', closeOnOutside);
+      document.removeEventListener('scroll', closeOnScroll, true);
+    };
+  }, [isCustomOpen]);
+
   return (
     <>
-      <ToggleButtonGroup
-        exclusive
-        size="small"
-        // Sem atalho correspondente, quem fica marcado é o botão do popover —
-        // ele é a representação de "personalizado" dentro do grupo.
-        value={activeQuick ?? 'custom'}
-        onChange={(_event, next: QuickRange | 'custom' | null) => handleQuickChange(next)}
-        aria-label="Período exibido"
-      >
-        <ToggleButton value="last3">Últimos 3 meses</ToggleButton>
-        <ToggleButton value="thisYear">Este ano</ToggleButton>
-        <ToggleButton value="all">Tudo</ToggleButton>
-        <ToggleButton
-          value="custom"
-          aria-label="Período personalizado"
-          onClick={(e) => setAnchor(e.currentTarget)}
+      <div className="negocio-toggle-group" role="group" aria-label="Período exibido">
+        <button
+          type="button"
+          aria-pressed={activeQuick === 'last3'}
+          onClick={() => handleQuick('last3')}
         >
-          <Tooltip title="Período personalizado">
-            <DateRangeOutlined fontSize="small" />
-          </Tooltip>
-        </ToggleButton>
-      </ToggleButtonGroup>
+          Últimos 3 meses
+        </button>
+        <button
+          type="button"
+          aria-pressed={activeQuick === 'thisYear'}
+          onClick={() => handleQuick('thisYear')}
+        >
+          Este ano
+        </button>
+        <button
+          type="button"
+          aria-pressed={activeQuick === 'all'}
+          onClick={() => handleQuick('all')}
+        >
+          Tudo
+        </button>
+        <button
+          ref={trigger}
+          type="button"
+          title="Período personalizado"
+          aria-label="Período personalizado"
+          aria-pressed={activeQuick === null}
+          aria-haspopup="dialog"
+          aria-expanded={isCustomOpen}
+          aria-controls={isCustomOpen ? popoverId : undefined}
+          onClick={() => setIsCustomOpen((open) => !open)}
+        >
+          <CalendarRange aria-hidden="true" />
+        </button>
+      </div>
 
-      <Popover
-        open={!!anchor}
-        anchorEl={anchor}
-        onClose={() => setAnchor(null)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-      >
-        <Stack direction="row" spacing={2} sx={{ p: 2 }}>
-          <FormControl size="small" sx={{ minWidth: 180 }}>
-            <InputLabel>De</InputLabel>
-            <Select value={fromValue} label="De" onChange={(e) => handleFromChange(e.target.value)}>
-              {monthOptions.map((opt) => (
-                <MenuItem key={opt.value} value={opt.value}>
-                  {opt.label}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <FormControl size="small" sx={{ minWidth: 180 }}>
-            <InputLabel>Até</InputLabel>
-            <Select value={toValue} label="Até" onChange={(e) => handleToChange(e.target.value)}>
-              {monthOptions.map((opt) => (
-                <MenuItem key={opt.value} value={opt.value}>
-                  {opt.label}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </Stack>
-      </Popover>
+      {isCustomOpen &&
+        createPortal(
+          <div
+            ref={popover}
+            id={popoverId}
+            className="negocio-popover"
+            role="dialog"
+            aria-label="Período personalizado"
+            onKeyDown={(event) => {
+              if (event.key === 'Escape') {
+                event.preventDefault();
+                closeCustom();
+              }
+            }}
+            // Sair do popover pelo teclado o fecha. O gatilho é exceção: ele já
+            // alterna no próprio clique, e fechar aqui o reabriria em seguida.
+            onBlur={(event) => {
+              const next = event.relatedTarget as Node | null;
+              if (!next) return;
+              if (event.currentTarget.contains(next) || trigger.current?.contains(next)) return;
+              closeCustom(false);
+            }}
+          >
+            <Field label="De">
+              <SelectInput value={fromValue} onChange={(e) => handleFromChange(e.target.value)}>
+                {monthOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </SelectInput>
+            </Field>
+            <Field label="Até">
+              <SelectInput value={toValue} onChange={(e) => handleToChange(e.target.value)}>
+                {monthOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </SelectInput>
+            </Field>
+          </div>,
+          document.body,
+        )}
     </>
   );
 }

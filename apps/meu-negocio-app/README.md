@@ -32,11 +32,13 @@ Catálogo com nome, descrição, categoria, fornecedor, preço de custo, preço 
 
 Pedidos por cliente, com itens vindos do catálogo ou um total digitado à mão, percorrendo o fluxo `pendente` → `em andamento` → `concluído`, mais o `cancelado`. Um pedido concluído ou cancelado não pode ser editado diretamente — um concluído precisa ser reaberto primeiro, porque editar os itens de uma venda já baixada no estoque deixaria o saldo sem como voltar.
 
-Duas decisões que valem explicar sobre o estoque: ele só é baixado na conclusão, e reabrir ou cancelar devolve exatamente o que foi baixado — se o saldo não cobria o pedido inteiro na conclusão, a devolução não inventa unidades que nunca existiram. Excluir um pedido concluído também devolve o estoque, pelo mesmo motivo.
+Duas decisões que valem explicar sobre o estoque: ele só é baixado na conclusão, e **concluir exige estoque suficiente** — o pedido pode ser registrado e editado com saldo a descoberto, mas a conclusão é recusada com a lista do que falta, para o app nunca escriturar uma saída que não aconteceu. Reabrir ou cancelar devolve exatamente o que foi baixado, e não a quantidade do pedido: um produto apagado do catálogo entre a conclusão e a reabertura não tem saldo para onde voltar. Excluir um pedido concluído também devolve o estoque, pelo mesmo motivo.
 
 ### 1.5 Vendas
 
-Os pedidos concluídos vistos pelo lado do dinheiro: receita, lucro e situação de pagamento. O valor pago é registrado por pedido, então um pedido entregue e ainda não quitado continua visível como recebível em vez de sumir da conta.
+Os pedidos concluídos vistos pelo lado do dinheiro: receita, lucro e situação de pagamento. O pagamento é registrado por pedido como **Total já pago** — o campo guarda o acumulado, e não uma parcela: trocar R$ 100 por R$ 150 deixa R$ 150 pagos, não R$ 250. Assim um pedido entregue e ainda não quitado continua visível como recebível em vez de sumir da conta.
+
+Os indicadores do topo seguem o período escolhido no cabeçalho; a tabela segue também a busca e a situação de pagamento. Limpar os filtros da tabela preserva o período — os dois recortes são independentes de propósito, porque o período é o escopo da tela e a busca é uma pergunta dentro dele.
 
 ### 1.6 Configurações
 

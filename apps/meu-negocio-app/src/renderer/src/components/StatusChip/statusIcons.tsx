@@ -1,12 +1,4 @@
-import {
-  Block,
-  CheckCircle,
-  HourglassEmpty,
-  LocalShipping,
-  MoneyOff,
-  Paid,
-  Timelapse,
-} from '@mui/icons-material';
+import { Ban, BanknoteCheck, BanknoteX, CircleCheck, Hourglass, Timer, Truck } from 'lucide-react';
 import type { ReactElement } from 'react';
 import type { OrderStatus, PaymentStatus } from '@shared/types/order';
 
@@ -14,20 +6,18 @@ import type { OrderStatus, PaymentStatus } from '@shared/types/order';
  * O segundo canal dos chips de estado. Vive aqui, e não em `@shared/types`,
  * porque `shared/` é o contrato entre main e renderer e não importa React.
  *
- * O ícone acompanha um rótulo dentro do chip, então segue preenchido — a regra
- * de ícone `Outlined` vale para o ícone que **identifica** sozinho (§3).
+ * O tamanho é do CSS do chip (`.negocio-chip svg`), para nenhum ícone de estado
+ * poder sair do registro dos outros.
  */
-const SIZE = 14;
-
 export const ORDER_STATUS_ICON: Record<OrderStatus, ReactElement> = {
-  pending: <HourglassEmpty sx={{ fontSize: SIZE }} />,
-  in_progress: <LocalShipping sx={{ fontSize: SIZE }} />,
-  completed: <CheckCircle sx={{ fontSize: SIZE }} />,
-  cancelled: <Block sx={{ fontSize: SIZE }} />,
+  pending: <Hourglass aria-hidden="true" />,
+  in_progress: <Truck aria-hidden="true" />,
+  completed: <CircleCheck aria-hidden="true" />,
+  cancelled: <Ban aria-hidden="true" />,
 };
 
 export const PAYMENT_STATUS_ICON: Record<PaymentStatus, ReactElement> = {
-  paid: <Paid sx={{ fontSize: SIZE }} />,
-  partial: <Timelapse sx={{ fontSize: SIZE }} />,
-  unpaid: <MoneyOff sx={{ fontSize: SIZE }} />,
+  paid: <BanknoteCheck aria-hidden="true" />,
+  partial: <Timer aria-hidden="true" />,
+  unpaid: <BanknoteX aria-hidden="true" />,
 };

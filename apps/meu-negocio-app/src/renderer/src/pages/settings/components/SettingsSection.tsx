@@ -12,7 +12,8 @@ import { IconTile } from '@/components/IconTile';
 import type { TileAccent } from '@/components/IconTile';
 
 interface SettingsSectionProps {
-  icon: ComponentType<{ sx?: object }>;
+  /** Repassado ao `IconTile`, que aceita ícone do MUI ou do Lucide por `className`. */
+  icon: ComponentType<{ className?: string }>;
   /** Cor de identidade da seção. Seção que é operação, e não cadastro, fica
    *  neutra — é o que faz a cor das outras significar alguma coisa (§1.5). */
   accent?: TileAccent;

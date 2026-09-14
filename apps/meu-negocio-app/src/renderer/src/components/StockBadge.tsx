@@ -1,4 +1,4 @@
-import { ArrowDownward, RemoveShoppingCart } from '@mui/icons-material';
+import { ArrowDown, PackageX } from 'lucide-react';
 import { StatusChip } from '@/components/StatusChip';
 
 interface StockBadgeProps {
@@ -17,22 +17,12 @@ interface StockBadgeProps {
  */
 export function StockBadge({ stock, minStock }: StockBadgeProps) {
   if (stock <= 0) {
-    return (
-      <StatusChip
-        color="error"
-        icon={<RemoveShoppingCart sx={{ fontSize: 14 }} />}
-        label="Sem estoque"
-      />
-    );
+    return <StatusChip color="error" icon={<PackageX aria-hidden="true" />} label="Sem estoque" />;
   }
 
   if (stock <= minStock) {
     return (
-      <StatusChip
-        color="warning"
-        icon={<ArrowDownward sx={{ fontSize: 14 }} />}
-        label="Estoque baixo"
-      />
+      <StatusChip color="warning" icon={<ArrowDown aria-hidden="true" />} label="Estoque baixo" />
     );
   }
 

@@ -1,5 +1,4 @@
-import { Chip } from '@mui/material';
-import type { MouseEvent, ReactElement, ReactNode } from 'react';
+import type { MouseEvent, ReactElement, ReactNode, Ref } from 'react';
 
 interface StatusChipProps {
   label: ReactNode;
@@ -18,11 +17,15 @@ interface StatusChipProps {
   onClick?: (event: MouseEvent<HTMLElement>) => void;
   ariaLabel?: string;
   ariaHasPopup?: 'menu';
+  ariaExpanded?: boolean;
+  ariaControls?: string;
+  ref?: Ref<HTMLButtonElement>;
 }
 
 /**
- * Estado de um registro. É o único chip de estado do app — `Chip` cru colorido
- * por status é divergência, porque perde o ícone e o `contrastText` medido.
+ * Estado de um registro. É o único chip de estado do app — uma cápsula colorida
+ * escrita à mão é divergência, porque perde o ícone e o par de contraste medido
+ * do rótulo sobre o preenchimento (§1.8).
  */
 export function StatusChip({
   label,
@@ -31,16 +34,40 @@ export function StatusChip({
   onClick,
   ariaLabel,
   ariaHasPopup,
+  ariaExpanded,
+  ariaControls,
+  ref,
 }: StatusChipProps) {
+  const content = (
+    <>
+      {icon}
+      <span>{label}</span>
+    </>
+  );
+
+  // Chip clicável é um botão de verdade, e não um `span` com `onClick`: é o que
+  // o traz para a ordem de tabulação e faz Enter/Espaço funcionarem (§5.5).
+  if (onClick) {
+    return (
+      <button
+        ref={ref}
+        type="button"
+        className="negocio-chip"
+        data-color={color}
+        onClick={onClick}
+        aria-label={ariaLabel}
+        aria-haspopup={ariaHasPopup}
+        aria-expanded={ariaExpanded}
+        aria-controls={ariaControls}
+      >
+        {content}
+      </button>
+    );
+  }
+
   return (
-    <Chip
-      label={label}
-      color={color}
-      size="small"
-      icon={icon}
-      onClick={onClick}
-      aria-label={ariaLabel}
-      aria-haspopup={ariaHasPopup}
-    />
+    <span className="negocio-chip" data-color={color} aria-label={ariaLabel}>
+      {content}
+    </span>
   );
 }

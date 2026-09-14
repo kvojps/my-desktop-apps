@@ -1,10 +1,10 @@
-import { Check, ExpandMore } from '@mui/icons-material';
-import { Box, ListItemIcon, ListItemText, Menu, MenuItem } from '@mui/material';
-import { useState } from 'react';
+import { Check, ChevronDown } from 'lucide-react';
+import { createPortal } from 'react-dom';
 import type { OrderStatus } from '@shared/types/order';
 import { ORDER_STATUS_COLOR, ORDER_STATUS_LABELS } from '@shared/types/order';
 import { StatusChip } from '@/components/StatusChip';
 import { ORDER_STATUS_ICON } from '@/components/StatusChip/statusIcons';
+import { useMenuPopup } from '@/hooks/useMenuPopup';
 
 const STATUS_OPTIONS = Object.keys(ORDER_STATUS_LABELS) as OrderStatus[];
 
@@ -20,36 +20,66 @@ interface OrderStatusSelectProps {
  * menu, e é o mesmo `StatusChip` que o resto do app usa.
  */
 export function OrderStatusSelect({ value, onChange }: OrderStatusSelectProps) {
-  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
+  const { isOpen, setIsOpen, close, trigger, menu, menuId, handleKeyDown, portalTarget } =
+    useMenuPopup();
 
   function handleSelect(next: OrderStatus) {
-    setAnchorEl(null);
+    close();
     if (next !== value) onChange(next);
   }
 
   return (
     <>
       <StatusChip
+        ref={trigger}
         color={ORDER_STATUS_COLOR[value]}
         icon={ORDER_STATUS_ICON[value]}
-        onClick={(e) => setAnchorEl(e.currentTarget)}
+        onClick={(event) => {
+          // A linha da tabela é clicável: sem isto, mudar o status abriria
+          // também o detalhe do pedido.
+          event.stopPropagation();
+          setIsOpen((current) => !current);
+        }}
         ariaHasPopup="menu"
+        ariaExpanded={isOpen}
+        ariaControls={isOpen ? menuId : undefined}
         ariaLabel={`Status: ${ORDER_STATUS_LABELS[value]}. Clique para alterar`}
         label={
-          <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.25 }}>
+          <>
             {ORDER_STATUS_LABELS[value]}
-            <ExpandMore sx={{ fontSize: 16, mr: -0.5 }} />
-          </Box>
+            <ChevronDown aria-hidden="true" />
+          </>
         }
       />
-      <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={() => setAnchorEl(null)}>
-        {STATUS_OPTIONS.map((status) => (
-          <MenuItem key={status} selected={status === value} onClick={() => handleSelect(status)}>
-            <ListItemIcon>{status === value && <Check fontSize="small" />}</ListItemIcon>
-            <ListItemText>{ORDER_STATUS_LABELS[status]}</ListItemText>
-          </MenuItem>
-        ))}
-      </Menu>
+      {isOpen &&
+        createPortal(
+          <div
+            ref={menu}
+            id={menuId}
+            className="negocio-menu"
+            role="menu"
+            aria-label="Alterar status do pedido"
+            onKeyDown={handleKeyDown}
+          >
+            {STATUS_OPTIONS.map((status) => (
+              <button
+                key={status}
+                type="button"
+                role="menuitemradio"
+                aria-checked={status === value}
+                onClick={() => handleSelect(status)}
+              >
+                {/* O lugar da marca é fixo, com ou sem marca: sem isso o rótulo
+                    do item escolhido ficaria deslocado dos outros. */}
+                <span className="negocio-menu-mark">
+                  {status === value && <Check aria-hidden="true" />}
+                </span>
+                {ORDER_STATUS_LABELS[status]}
+              </button>
+            ))}
+          </div>,
+          portalTarget(),
+        )}
     </>
   );
 }

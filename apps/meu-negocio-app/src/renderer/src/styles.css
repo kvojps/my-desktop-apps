@@ -395,7 +395,7 @@
   .negocio-search .negocio-input {
     padding-left: 32px;
   }
-  .negocio-product-create {
+  .negocio-filters-action {
     margin-left: auto;
   }
   .negocio-filter-toggle {
@@ -458,6 +458,11 @@
     width: 16px;
     height: 16px;
   }
+  .negocio-menu-mark {
+    display: inline-flex;
+    flex-shrink: 0;
+    width: 16px;
+  }
   @container content (max-width: 560px) {
     .negocio-form-row {
       grid-template-columns: 1fr;
@@ -466,10 +471,26 @@
       width: 100%;
     }
   }
+  /* Colunas explícitas, e não `auto-fit`: com cinco ou seis cards o `auto-fit`
+     enchia a primeira linha e deixava um card órfão embaixo. Quem decide o
+     número é o `StatCardGrid`, que escreve `--negocio-stat-columns`. */
   .negocio-stat-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    grid-template-columns: 1fr;
     gap: 16px;
+  }
+  .negocio-stat-grid > * {
+    min-width: 0;
+  }
+  @container content (min-width: 640px) {
+    .negocio-stat-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @container content (min-width: 1000px) {
+    .negocio-stat-grid {
+      grid-template-columns: repeat(var(--negocio-stat-columns, 4), 1fr);
+    }
   }
   .negocio-stat {
     position: relative;
@@ -479,10 +500,13 @@
     border-radius: 12px;
     background: var(--negocio-paper);
   }
-  .negocio-stat > div {
+  .negocio-stat-value {
     display: flex;
     flex-direction: column;
     gap: 4px;
+    /* O ladrilho é posicionado e não ocupa espaço na linha: sem esta reserva um
+       valor longo passaria por baixo dele. */
+    padding-right: 54px;
   }
   .negocio-stat-label,
   .negocio-stat small {
@@ -494,21 +518,347 @@
     font-size: 24px;
     line-height: 32px;
   }
-  .negocio-stat strong[data-alert='true'] {
+  /* Só a condição pinta o valor; a identidade fica no ladrilho (§1.5). */
+  .negocio-stat strong[data-tone='alert'] {
     color: var(--negocio-danger);
   }
-  .negocio-stat > svg {
+  .negocio-stat strong[data-tone='positive'] {
+    color: var(--negocio-success);
+  }
+  .negocio-stat > .negocio-tile {
     position: absolute;
     top: 16px;
     right: 16px;
-    width: 22px;
-    height: 22px;
-    color: var(--negocio-primary);
+  }
+  .negocio-stat-foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
   }
   .negocio-stat small {
     display: block;
-    margin-top: 10px;
   }
+  .negocio-trend {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 18px;
+  }
+  .negocio-trend svg {
+    width: 14px;
+    height: 14px;
+  }
+  .negocio-trend[data-good='true'] {
+    color: var(--negocio-success);
+  }
+  .negocio-trend[data-good='false'] {
+    color: var(--negocio-danger);
+  }
+  /* Ladrilho quadrado de identidade (§3.1). Aceita ícone do MUI ou do Lucide:
+     quem manda no tamanho é o CSS, e `className` é a única prop que os dois
+     conjuntos têm em comum enquanto as duas bases convivem. */
+  .negocio-tile {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    background: var(--negocio-accent);
+    color: var(--negocio-muted-foreground);
+  }
+  .negocio-tile svg {
+    width: 20px;
+    height: 20px;
+    font-size: 20px;
+  }
+  .negocio-tile[data-accent] {
+    color: var(--negocio-on-fill);
+  }
+  .negocio-tile[data-accent='primary'] {
+    background: var(--negocio-primary);
+  }
+  .negocio-tile[data-accent='secondary'] {
+    background: var(--negocio-secondary);
+  }
+  .negocio-tile[data-accent='success'] {
+    background: var(--negocio-success);
+  }
+  .negocio-tile[data-accent='info'] {
+    background: var(--negocio-info);
+  }
+  .negocio-tile[data-accent='error'] {
+    background: var(--negocio-danger);
+  }
+  .negocio-tile[data-accent='warning'] {
+    background: var(--negocio-warning);
+    color: var(--negocio-on-warning);
+  }
+
+  /* Chip de estado. O rótulo sobre o preenchimento usa o par medido do modo
+     (§1.8); âmbar é o único com texto fixo, porque o preenchimento não muda. */
+  .negocio-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    max-width: 100%;
+    padding: 2px 8px;
+    border: 0;
+    border-radius: 11px;
+    background: var(--negocio-accent);
+    color: var(--negocio-foreground);
+    font: 500 12px/18px inherit;
+    white-space: nowrap;
+  }
+  .negocio-chip svg {
+    flex-shrink: 0;
+    width: 14px;
+    height: 14px;
+  }
+  .negocio-chip[data-color='success'] {
+    background: var(--negocio-success);
+    color: var(--negocio-on-fill);
+  }
+  .negocio-chip[data-color='error'] {
+    background: var(--negocio-danger);
+    color: var(--negocio-on-fill);
+  }
+  .negocio-chip[data-color='info'] {
+    background: var(--negocio-info);
+    color: var(--negocio-on-fill);
+  }
+  .negocio-chip[data-color='warning'] {
+    background: var(--negocio-warning);
+    color: var(--negocio-on-warning);
+  }
+  button.negocio-chip {
+    cursor: pointer;
+  }
+  button.negocio-chip:hover {
+    opacity: 0.86;
+  }
+
+  /* Grupo de recortes mutuamente exclusivos — a forma diz que só um vale. */
+  .negocio-toggle-group {
+    display: inline-flex;
+    overflow: hidden;
+    border: 1px solid var(--negocio-border);
+    border-radius: 8px;
+    background: var(--negocio-paper);
+  }
+  .negocio-toggle-group > button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 36px;
+    padding: 8px 12px;
+    border: 0;
+    border-left: 1px solid var(--negocio-border);
+    background: transparent;
+    color: var(--negocio-muted-foreground);
+    font: 500 14px/20px inherit;
+    cursor: pointer;
+  }
+  .negocio-toggle-group > button:first-child {
+    border-left: 0;
+  }
+  .negocio-toggle-group > button:hover {
+    background: var(--negocio-accent);
+  }
+  .negocio-toggle-group > button[aria-pressed='true'] {
+    background: var(--negocio-accent);
+    color: var(--negocio-foreground);
+    font-weight: 600;
+  }
+  .negocio-toggle-group svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .negocio-popover {
+    position: fixed;
+    z-index: 40;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    padding: 16px;
+    border: 1px solid var(--negocio-border);
+    border-radius: 12px;
+    background: var(--negocio-paper);
+    box-shadow: 0 4px 16px rgb(0 0 0 / 18%);
+    color: var(--negocio-foreground);
+  }
+  .negocio-popover .negocio-field {
+    width: 184px;
+  }
+
+  /* Aviso dentro do formulário. O âmbar fica na borda e no fundo; o texto é o
+     do documento, porque âmbar nunca é texto (§1.4). */
+  .negocio-alert {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 10px 12px;
+    border: 1px solid var(--negocio-warning);
+    border-radius: 8px;
+    background: rgb(250 178 25 / 12%);
+    color: var(--negocio-foreground);
+    font-size: 13px;
+    line-height: 20px;
+  }
+  .negocio-alert svg {
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    margin-top: 2px;
+  }
+
+  .negocio-checkbox {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 36px;
+    color: var(--negocio-foreground);
+    font-size: 14px;
+    line-height: 20px;
+    cursor: pointer;
+  }
+  .negocio-checkbox input {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--negocio-primary);
+    cursor: pointer;
+  }
+
+  /* Medidor de coluna: largura fixa para todas as barras começarem e terminarem
+     no mesmo ponto, a partir da borda esquerda (§2.1). */
+  .negocio-meter {
+    display: block;
+    overflow: hidden;
+    width: 110px;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--negocio-accent);
+  }
+  .negocio-meter > span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--negocio-primary);
+  }
+  .negocio-meter[data-color='success'] > span {
+    background: var(--negocio-success);
+  }
+  .negocio-meter[data-color='warning'] > span {
+    background: var(--negocio-warning);
+  }
+  .negocio-meter[data-color='error'] > span {
+    background: var(--negocio-danger);
+  }
+
+  .negocio-actions-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .negocio-payment {
+    min-width: 110px;
+  }
+  .negocio-page {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+  .negocio-cell-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+  .negocio-caption {
+    color: var(--negocio-muted-foreground);
+    font-size: 12px;
+    line-height: 18px;
+  }
+  .negocio-negative {
+    color: var(--negocio-danger);
+    font-weight: 600;
+  }
+  .negocio-section-title {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 20px;
+  }
+  .negocio-section-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .negocio-section-header .negocio-field {
+    width: 180px;
+  }
+  .negocio-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .negocio-detail {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 0;
+    font-size: 14px;
+    line-height: 20px;
+  }
+  .negocio-detail > div {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+  }
+  .negocio-detail dt {
+    font-weight: 600;
+  }
+  .negocio-detail dd {
+    margin: 0;
+  }
+  .negocio-total {
+    margin-left: auto;
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  /* Itens do pedido: cabeçalho e linhas na mesma grade, para as colunas nunca
+     saírem de registro. */
+  .negocio-items {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .negocio-item-row {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr) 96px 36px;
+    align-items: center;
+    gap: 8px;
+  }
+  .negocio-item-head {
+    color: var(--negocio-muted-foreground);
+    font-size: 12px;
+    line-height: 18px;
+  }
+  .negocio-item-row .negocio-input,
+  .negocio-item-row .negocio-select {
+    min-width: 0;
+  }
+
   .negocio-stat-skeleton {
     display: flex;
     flex-direction: column;

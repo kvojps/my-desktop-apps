@@ -1,4 +1,4 @@
-import { HourglassBottomOutlined, PaymentsOutlined, TrendingUpOutlined } from '@mui/icons-material';
+import { Banknote, Hourglass, TrendingUp } from 'lucide-react';
 import { useMemo } from 'react';
 import type { Order } from '@shared/types/order';
 import { getOrderBalanceDue, getOrderTotal } from '@shared/types/order';
@@ -26,7 +26,7 @@ export function SalesCards({ completedOrders, isLoading }: SalesCardsProps) {
         label: 'Total Vendido',
         value: formatCurrency(totalRevenue),
         sub: `${totalSales} venda${totalSales !== 1 ? 's' : ''}`,
-        icon: TrendingUpOutlined,
+        icon: TrendingUp,
         accent: 'primary',
       },
       {
@@ -36,7 +36,7 @@ export function SalesCards({ completedOrders, isLoading }: SalesCardsProps) {
           totalRevenue > 0
             ? `${formatPercent((totalPaid / totalRevenue) * 100)} do total`
             : 'sem vendas',
-        icon: PaymentsOutlined,
+        icon: Banknote,
         accent: 'info',
       },
       {
@@ -46,7 +46,7 @@ export function SalesCards({ completedOrders, isLoading }: SalesCardsProps) {
           pendingCount > 0
             ? `${pendingCount} pedido${pendingCount !== 1 ? 's' : ''} em aberto`
             : 'tudo recebido',
-        icon: HourglassBottomOutlined,
+        icon: Hourglass,
         // Só há o que cobrar quando sobra saldo; sem isso o card ficaria em
         // alerta permanente mesmo com tudo quitado.
         tone: totalBalanceDue > 0 ? 'alert' : 'neutral',

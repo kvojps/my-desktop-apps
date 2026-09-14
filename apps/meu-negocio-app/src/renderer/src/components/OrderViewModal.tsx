@@ -1,14 +1,3 @@
-import {
-  Button,
-  Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Typography,
-} from '@mui/material';
 import type { Order } from '@shared/types/order';
 import {
   ORDER_STATUS_COLOR,
@@ -19,6 +8,7 @@ import {
   getOrderPaymentStatus,
   getOrderTotal,
 } from '@shared/types/order';
+import { Button } from '@/components/Button';
 import { Modal } from '@/components/Modal';
 import { StatusChip } from '@/components/StatusChip';
 import { ORDER_STATUS_ICON, PAYMENT_STATUS_ICON } from '@/components/StatusChip/statusIcons';
@@ -31,92 +21,101 @@ interface OrderViewModalProps {
   title?: string;
 }
 
+/**
+ * O detalhe é o mesmo em Pedidos e em Vendas — só o título muda. As duas telas
+ * mostram o mesmo registro, e duplicar a leitura faria as duas divergirem.
+ */
 export function OrderViewModal({
   viewTarget,
   onClose,
   title = 'Detalhes do Pedido',
 }: OrderViewModalProps) {
+  const paymentStatus = viewTarget ? getOrderPaymentStatus(viewTarget) : 'unpaid';
+
   return (
     <Modal
       open={!!viewTarget}
       onClose={onClose}
       title={title}
       maxWidth="600px"
-      footer={
-        <Button onClick={onClose} color="inherit">
-          Fechar
-        </Button>
-      }
+      footer={<Button onClick={onClose}>Fechar</Button>}
     >
       {viewTarget && (
-        <Stack spacing={2}>
-          <Stack spacing={0.75}>
-            <Typography variant="body2">
-              <strong>Cliente:</strong> {viewTarget.customerName}
-            </Typography>
-            <Stack direction="row" alignItems="center" spacing={1}>
-              <Typography variant="body2" component="span">
-                <strong>Status:</strong>
-              </Typography>
-              <StatusChip
-                label={ORDER_STATUS_LABELS[viewTarget.status]}
-                color={ORDER_STATUS_COLOR[viewTarget.status]}
-                icon={ORDER_STATUS_ICON[viewTarget.status]}
-              />
-            </Stack>
-            <Typography variant="body2">
-              <strong>Data:</strong> {formatDate(viewTarget.createdAt)}
-            </Typography>
-            <Stack direction="row" alignItems="center" spacing={1}>
-              <Typography variant="body2" component="span">
-                <strong>Pagamento:</strong>
-              </Typography>
-              <StatusChip
-                label={PAYMENT_STATUS_LABELS[getOrderPaymentStatus(viewTarget)]}
-                color={PAYMENT_STATUS_COLOR[getOrderPaymentStatus(viewTarget)]}
-                icon={PAYMENT_STATUS_ICON[getOrderPaymentStatus(viewTarget)]}
-              />
-            </Stack>
-            {getOrderPaymentStatus(viewTarget) !== 'paid' && (
-              <Typography variant="body2">
-                <strong>Valor pago:</strong> {formatCurrency(viewTarget.amountPaid)} ·{' '}
-                <strong>Saldo restante:</strong> {formatCurrency(getOrderBalanceDue(viewTarget))}
-              </Typography>
+        <div className="negocio-stack">
+          <dl className="negocio-detail">
+            <div>
+              <dt>Cliente:</dt>
+              <dd>{viewTarget.customerName}</dd>
+            </div>
+            <div>
+              <dt>Status:</dt>
+              <dd>
+                <StatusChip
+                  label={ORDER_STATUS_LABELS[viewTarget.status]}
+                  color={ORDER_STATUS_COLOR[viewTarget.status]}
+                  icon={ORDER_STATUS_ICON[viewTarget.status]}
+                />
+              </dd>
+            </div>
+            <div>
+              <dt>Data:</dt>
+              <dd>{formatDate(viewTarget.createdAt)}</dd>
+            </div>
+            <div>
+              <dt>Pagamento:</dt>
+              <dd>
+                <StatusChip
+                  label={PAYMENT_STATUS_LABELS[paymentStatus]}
+                  color={PAYMENT_STATUS_COLOR[paymentStatus]}
+                  icon={PAYMENT_STATUS_ICON[paymentStatus]}
+                />
+              </dd>
+            </div>
+            {/* Quitado não tem saldo a mostrar: a linha só apareceria para
+                repetir "R$ 0,00 restantes". */}
+            {paymentStatus !== 'paid' && (
+              <div>
+                <dt>Total já pago:</dt>
+                <dd>
+                  {formatCurrency(viewTarget.amountPaid)} · saldo restante{' '}
+                  {formatCurrency(getOrderBalanceDue(viewTarget))}
+                </dd>
+              </div>
             )}
-          </Stack>
+          </dl>
 
-          <TableContainer>
-            <Table size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell>Produto</TableCell>
-                  <TableCell>Qtd</TableCell>
-                  <TableCell>Preço Unit.</TableCell>
-                  <TableCell>Subtotal</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
+          <div className="negocio-table-scroll">
+            <table className="negocio-table">
+              <thead>
+                <tr>
+                  <th scope="col">Produto</th>
+                  <th scope="col">Qtd</th>
+                  <th scope="col">Preço Unit.</th>
+                  <th scope="col">Subtotal</th>
+                </tr>
+              </thead>
+              <tbody>
                 {viewTarget.items.map((item) => (
-                  <TableRow key={item.id}>
-                    <TableCell>{item.productName}</TableCell>
-                    <TableCell>{item.quantity}</TableCell>
-                    <TableCell>{formatCurrency(item.unitPrice)}</TableCell>
-                    <TableCell>{formatCurrency(item.quantity * item.unitPrice)}</TableCell>
-                  </TableRow>
+                  <tr key={item.id}>
+                    <td>{item.productName}</td>
+                    <td>{item.quantity}</td>
+                    <td>{formatCurrency(item.unitPrice)}</td>
+                    <td>{formatCurrency(item.quantity * item.unitPrice)}</td>
+                  </tr>
                 ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+              </tbody>
+            </table>
+          </div>
 
-          <Typography variant="subtitle1">
+          <p className="negocio-section-header">
             {viewTarget.manualTotal !== undefined && (
-              <Typography component="span" variant="caption" color="text.secondary" sx={{ mr: 1 }}>
-                (valor personalizado)
-              </Typography>
+              <span className="negocio-caption">(valor personalizado)</span>
             )}
-            Total: {formatCurrency(getOrderTotal(viewTarget))}
-          </Typography>
-        </Stack>
+            <span className="negocio-total">
+              Total: {formatCurrency(getOrderTotal(viewTarget))}
+            </span>
+          </p>
+        </div>
       )}
     </Modal>
   );

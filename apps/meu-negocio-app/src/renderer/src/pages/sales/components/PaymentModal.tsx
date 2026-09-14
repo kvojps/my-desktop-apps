@@ -1,4 +1,3 @@
-import { Button, Stack, TextField, Typography } from '@mui/material';
 import { useEffect, useState } from 'react';
 import type { BaseSyntheticEvent } from 'react';
 import type { Order } from '@shared/types/order';
@@ -8,10 +7,13 @@ import {
   getOrderPaymentStatus,
   getOrderTotal,
 } from '@shared/types/order';
+import { Button } from '@/components/Button';
+import { Field, TextInput } from '@/components/Field';
 import { Modal } from '@/components/Modal';
 import { StatusChip } from '@/components/StatusChip';
 import { PAYMENT_STATUS_ICON } from '@/components/StatusChip/statusIcons';
 import { useSnackbar } from '@/contexts/SnackbarContext';
+import { clampPaymentAmount } from '@/hooks/orders/paymentAmount';
 import { formatCurrency } from '@/utils/format';
 
 interface PaymentModalProps {
@@ -32,8 +34,9 @@ export function PaymentModal({ order, onClose, onSave }: PaymentModalProps) {
   if (!order) return null;
 
   const total = getOrderTotal(order);
-  const parsedAmount = Math.min(Math.max(Number(amount) || 0, 0), total);
+  const parsedAmount = clampPaymentAmount(amount, total);
   const balanceDue = Math.max(total - parsedAmount, 0);
+  const status = getOrderPaymentStatus(order);
 
   async function handleSave(event?: BaseSyntheticEvent) {
     event?.preventDefault();
@@ -55,61 +58,64 @@ export function PaymentModal({ order, onClose, onSave }: PaymentModalProps) {
       open
       onClose={onClose}
       title="Registrar Pagamento"
-      maxWidth="420px"
+      maxWidth="440px"
       onSubmit={handleSave}
       footer={
         <>
-          <Button onClick={onClose} disabled={isSaving} color="inherit">
+          <Button onClick={onClose} disabled={isSaving}>
             Cancelar
           </Button>
-          <Button type="submit" disabled={isSaving} variant="contained">
+          <Button type="submit" disabled={isSaving} variant="primary">
             {isSaving ? 'Salvando...' : 'Salvar'}
           </Button>
         </>
       }
     >
-      <Stack spacing={2}>
-        <Stack spacing={0.5}>
-          <Typography variant="body2">
-            <strong>Cliente:</strong> {order.customerName}
-          </Typography>
-          <Typography variant="body2">
-            <strong>Total:</strong> {formatCurrency(total)}
-          </Typography>
-          <Stack direction="row" alignItems="center" spacing={1}>
-            <Typography variant="body2" component="span">
-              <strong>Status:</strong>
-            </Typography>
-            <StatusChip
-              label={PAYMENT_STATUS_LABELS[getOrderPaymentStatus(order)]}
-              color={PAYMENT_STATUS_COLOR[getOrderPaymentStatus(order)]}
-              icon={PAYMENT_STATUS_ICON[getOrderPaymentStatus(order)]}
-            />
-          </Stack>
-        </Stack>
+      <div className="negocio-form">
+        <dl className="negocio-detail">
+          <div>
+            <dt>Cliente:</dt>
+            <dd>{order.customerName}</dd>
+          </div>
+          <div>
+            <dt>Total:</dt>
+            <dd>{formatCurrency(total)}</dd>
+          </div>
+          <div>
+            <dt>Status:</dt>
+            <dd>
+              <StatusChip
+                label={PAYMENT_STATUS_LABELS[status]}
+                color={PAYMENT_STATUS_COLOR[status]}
+                icon={PAYMENT_STATUS_ICON[status]}
+              />
+            </dd>
+          </div>
+        </dl>
 
-        <TextField
-          label="Valor pago"
-          type="number"
-          slotProps={{ htmlInput: { min: 0, max: total, step: '0.01' } }}
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-          fullWidth
-        />
+        {/* O campo é o acumulado, não uma parcela: quem já pagou R$ 100 e digita
+            150 fica com R$ 150 pagos, e não com R$ 250. O rótulo precisa dizer
+            isso, porque o nome antigo ("Valor pago") comportava as duas
+            leituras e a errada custa dinheiro. */}
+        <Field
+          label="Total já pago"
+          note={`Substitui o valor já registrado. Saldo restante: ${formatCurrency(balanceDue)}`}
+        >
+          <TextInput
+            type="number"
+            min="0"
+            max={total}
+            step="0.01"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+          />
+        </Field>
 
-        <Typography variant="body2" color="text.secondary">
-          Saldo restante: {formatCurrency(balanceDue)}
-        </Typography>
-
-        <Stack direction="row" spacing={1}>
-          <Button size="small" color="inherit" onClick={() => setAmount(String(total))}>
-            Marcar como pago total
-          </Button>
-          <Button size="small" color="inherit" onClick={() => setAmount('0')}>
-            Marcar como não pago
-          </Button>
-        </Stack>
-      </Stack>
+        <div className="negocio-actions-row">
+          <Button onClick={() => setAmount(String(total))}>Marcar como pago total</Button>
+          <Button onClick={() => setAmount('0')}>Marcar como não pago</Button>
+        </div>
+      </div>
     </Modal>
   );
 }

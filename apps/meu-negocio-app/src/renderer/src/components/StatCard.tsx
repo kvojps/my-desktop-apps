@@ -1,9 +1,7 @@
-import { ArrowDownward, ArrowUpward } from '@mui/icons-material';
-import { Box, Card, CardContent, Skeleton, Stack, Tooltip, Typography } from '@mui/material';
-import type { ComponentType, ReactNode } from 'react';
-import { IconTile, TILE_SIZE } from '@/components/IconTile';
+import { ArrowDown, ArrowUp } from 'lucide-react';
+import type { CSSProperties, ComponentType, ReactNode } from 'react';
+import { IconTile } from '@/components/IconTile';
 import type { TileAccent } from '@/components/IconTile';
-import { CONTROL_RADIUS, contentQuery } from '@/theme';
 
 /**
  * Duas cores convivem no card, com papéis separados — foi misturá-las que
@@ -30,6 +28,11 @@ export type StatTone = 'neutral' | 'positive' | 'alert';
  */
 export type StatAccent = TileAccent;
 
+/**
+ * Nomes de cor do tema MUI, ainda consumidos pelo Dashboard enquanto ele não é
+ * migrado. O card local não usa mais este mapa: quem pinta o valor é o
+ * `data-tone` do CSS.
+ */
 export const TONE_COLOR: Record<StatTone, string> = {
   neutral: 'text.primary',
   positive: 'success.main',
@@ -39,7 +42,7 @@ export const TONE_COLOR: Record<StatTone, string> = {
 export interface StatTrend {
   /** Variação percentual sobre o período de comparação. */
   pct: number;
-  /** Rótulo do período comparado, exibido no tooltip. */
+  /** Rótulo do período comparado, exibido na dica. */
   comparedTo: string;
   /**
    * Se subir é bom. Estoque baixo subindo é ruim, receita subindo é boa — sem
@@ -52,7 +55,7 @@ export interface StatCardProps {
   label: string;
   value: string;
   sub?: string;
-  icon: ComponentType<{ sx?: object }>;
+  icon: ComponentType<{ className?: string }>;
   accent?: StatAccent;
   tone?: StatTone;
   trend?: StatTrend;
@@ -60,20 +63,24 @@ export interface StatCardProps {
 
 export function TrendBadge({ pct, comparedTo, increaseIsGood = true }: StatTrend) {
   const isIncrease = pct >= 0;
-  const Icon = isIncrease ? ArrowUpward : ArrowDownward;
+  const Icon = isIncrease ? ArrowUp : ArrowDown;
   const isGood = isIncrease === increaseIsGood;
-  const color = isGood ? 'success.main' : 'error.main';
   const direction = isIncrease ? 'acima' : 'abaixo';
+  const description = `${Math.abs(pct).toFixed(0)}% ${direction} de ${comparedTo}`;
 
   return (
-    <Tooltip title={`${Math.abs(pct).toFixed(0)}% ${direction} de ${comparedTo}`}>
-      <Stack direction="row" alignItems="center" spacing={0.25} component="span">
-        <Icon sx={{ fontSize: 14, color }} />
-        <Typography variant="caption" sx={{ color, fontWeight: 600 }}>
-          {Math.abs(pct).toFixed(0)}%
-        </Typography>
-      </Stack>
-    </Tooltip>
+    // `role="img"` com rótulo: só assim a seta e o número são lidos como uma
+    // coisa só ("18% acima de julho") em vez de "18%" sem referência nenhuma.
+    <span
+      className="negocio-trend"
+      data-good={isGood}
+      role="img"
+      aria-label={description}
+      title={description}
+    >
+      <Icon aria-hidden="true" />
+      {Math.abs(pct).toFixed(0)}%
+    </span>
   );
 }
 
@@ -81,75 +88,41 @@ export function StatCard({
   label,
   value,
   sub,
-  icon: Icon,
+  icon,
   accent,
   tone = 'neutral',
   trend,
 }: StatCardProps) {
   // Em alerta a identidade cede lugar ao aviso: não faz sentido um card gritar
   // "repor estoque" com um ladrilho azul de faturamento ao lado do número.
-  const tileColor = tone === 'alert' ? 'error' : accent;
+  const tileAccent = tone === 'alert' ? 'error' : accent;
 
   return (
-    <Card variant="outlined">
-      <CardContent>
-        <Stack direction="row" alignItems="flex-start" justifyContent="space-between" spacing={1}>
-          <Stack spacing={0.25} sx={{ minWidth: 0 }}>
-            <Typography variant="body2" color="text.secondary">
-              {label}
-            </Typography>
-            <Typography variant="h5" sx={{ color: TONE_COLOR[tone] }}>
-              {value}
-            </Typography>
-          </Stack>
-
-          <IconTile icon={Icon} accent={tileColor} />
-        </Stack>
-
-        {(sub || trend) && (
-          <Stack
-            direction="row"
-            alignItems="center"
-            spacing={1}
-            flexWrap="wrap"
-            useFlexGap
-            sx={{ mt: 0.5 }}
-          >
-            {trend && <TrendBadge {...trend} />}
-            {sub && (
-              // `text.disabled` daria 2.68:1 sobre o papel claro, e a legenda
-              // carrega valor em reais ("R$ ... a receber"), não enfeite.
-              <Typography variant="caption" color="text.secondary">
-                {sub}
-              </Typography>
-            )}
-          </Stack>
-        )}
-      </CardContent>
-    </Card>
+    <section className="negocio-stat">
+      <div className="negocio-stat-value">
+        <span className="negocio-stat-label">{label}</span>
+        <strong data-tone={tone}>{value}</strong>
+      </div>
+      <IconTile icon={icon} accent={tileAccent} />
+      {(sub || trend) && (
+        <div className="negocio-stat-foot">
+          {trend && <TrendBadge {...trend} />}
+          {/* A legenda carrega valor em reais ("R$ ... a receber"), não enfeite:
+              vai em texto secundário, que passa em AA nos dois modos (§1.4). */}
+          {sub && <small>{sub}</small>}
+        </div>
+      )}
+    </section>
   );
 }
 
 /** Ocupa o mesmo espaço do card real, para a página não pular quando os dados chegam. */
 export function StatCardSkeleton() {
   return (
-    <Card variant="outlined">
-      <CardContent>
-        <Stack direction="row" alignItems="flex-start" justifyContent="space-between" spacing={1}>
-          <Stack spacing={0.25} sx={{ flex: 1 }}>
-            <Skeleton variant="text" width="65%" />
-            <Skeleton variant="text" width="80%" sx={{ fontSize: '1.5rem' }} />
-          </Stack>
-          <Skeleton
-            variant="rounded"
-            width={TILE_SIZE}
-            height={TILE_SIZE}
-            sx={{ flexShrink: 0, borderRadius: `${CONTROL_RADIUS}px` }}
-          />
-        </Stack>
-        <Skeleton variant="text" width="45%" sx={{ mt: 0.5 }} />
-      </CardContent>
-    </Card>
+    <div className="negocio-stat negocio-stat-skeleton">
+      <span className="negocio-skeleton" />
+      <span className="negocio-skeleton" />
+    </div>
   );
 }
 
@@ -181,8 +154,8 @@ function resolveWideColumns(count: number): number {
  * sozinho embaixo.
  *
  * A medida é a da faixa de conteúdo, não a da janela: o rail, o padding e a
- * barra de rolagem cobram ~128px, e decidir por breakpoint do MUI erra sempre
- * no sentido otimista — três colunas quando cabem duas.
+ * barra de rolagem cobram ~128px, e decidir por largura de janela erra sempre
+ * no sentido otimista — três colunas quando cabem duas (§2.2).
  */
 export function StatCardGrid({ count, children }: { count: number; children: ReactNode }) {
   // Quatro é o teto: na faixa larga (1152px) cinco cards dariam 216px cada, e um
@@ -190,18 +163,11 @@ export function StatCardGrid({ count, children }: { count: number; children: Rea
   const wideColumns = count <= GRID_MAX_COLUMNS ? count : resolveWideColumns(count);
 
   return (
-    <Box
-      sx={{
-        display: 'grid',
-        gap: 2,
-        // `1fr` é `minmax(auto, 1fr)`: o conteúdo ainda pode empurrar a coluna.
-        '& > *': { minWidth: 0 },
-        gridTemplateColumns: '1fr',
-        [contentQuery.medium]: { gridTemplateColumns: 'repeat(2, 1fr)' },
-        [contentQuery.wide]: { gridTemplateColumns: `repeat(${wideColumns}, 1fr)` },
-      }}
+    <div
+      className="negocio-stat-grid"
+      style={{ '--negocio-stat-columns': wideColumns } as CSSProperties}
     >
       {children}
-    </Box>
+    </div>
   );
 }

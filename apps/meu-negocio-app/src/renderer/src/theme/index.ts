@@ -22,7 +22,15 @@ export function getThemeVariables(mode: ThemeMode): CSSProperties {
     '--negocio-focus': light ? '#2771CA' : '#3987e5',
     '--negocio-primary': light ? '#2771CA' : '#3987e5',
     '--negocio-danger': light ? '#CF3939' : '#D85B5B',
+    '--negocio-success': light ? '#0a7d0a' : '#0ca30c',
+    '--negocio-info': light ? '#0F7C91' : '#1190A9',
+    '--negocio-secondary': light ? '#4a3aa7' : '#9085e9',
     '--negocio-warning': '#fab219',
+    // O rótulo sobre preenchimento colorido (§1.8). Âmbar é a exceção e tem o
+    // seu: como preenchimento ele é o mesmo nos dois modos, e branco sobre ele
+    // daria 1.83:1 — por isso `--negocio-on-warning` não acompanha o modo.
+    '--negocio-on-fill': light ? '#FFFFFF' : 'rgba(0, 0, 0, 0.87)',
+    '--negocio-on-warning': 'rgba(0, 0, 0, 0.87)',
   } as CSSProperties;
 }
 

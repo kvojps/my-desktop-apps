@@ -161,7 +161,7 @@ export function ProductsPage() {
           lowStockCount={lowStockCount}
           onChange={setFilters}
         >
-          <Button variant="primary" onClick={form.openNew} className="negocio-product-create">
+          <Button variant="primary" onClick={form.openNew} className="negocio-filters-action">
             <Plus size={18} aria-hidden="true" /> Novo produto
           </Button>
         </ProductFilters>

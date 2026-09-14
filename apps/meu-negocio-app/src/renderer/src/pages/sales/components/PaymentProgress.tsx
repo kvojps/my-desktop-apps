@@ -1,4 +1,3 @@
-import { LinearProgress, Stack, Typography } from '@mui/material';
 import type { Order } from '@shared/types/order';
 import {
   PAYMENT_STATUS_COLOR,
@@ -10,8 +9,6 @@ import {
 import { StatusChip } from '@/components/StatusChip';
 import { PAYMENT_STATUS_ICON } from '@/components/StatusChip/statusIcons';
 import { formatCurrency } from '@/utils/format';
-
-const BAR_WIDTH = 110;
 
 /**
  * O chip sozinho dizia apenas "Parcial" — mesmo rótulo para quem pagou 10% e
@@ -25,30 +22,29 @@ export function PaymentProgress({ order }: { order: Order }) {
   const paidPct = total > 0 ? Math.min(100, (order.amountPaid / total) * 100) : 0;
 
   return (
-    // O medidor vai por último, depois do rótulo e do valor que falta. É a
-    // largura fixa que faz todas as barras da coluna começarem e terminarem no
-    // mesmo ponto, a partir da borda esquerda (§2.1).
-    //
-    // alignItems evita que o Stack em coluna estique o chip até a largura da
-    // barra — um chip de largura total deixa de parecer um chip.
-    <Stack spacing={0.5} alignItems="flex-start" sx={{ minWidth: BAR_WIDTH }}>
+    // O medidor vai por último, depois do rótulo e do valor que falta, e tem
+    // largura fixa: é ela que faz todas as barras da coluna começarem e
+    // terminarem no mesmo ponto, a partir da borda esquerda (§2.1).
+    <div className="negocio-cell-stack negocio-payment">
       <StatusChip
         label={PAYMENT_STATUS_LABELS[status]}
         color={PAYMENT_STATUS_COLOR[status]}
         icon={PAYMENT_STATUS_ICON[status]}
       />
       {balanceDue > 0 && (
-        <Typography variant="caption" color="text.secondary">
-          faltam {formatCurrency(balanceDue)}
-        </Typography>
+        <span className="negocio-caption">faltam {formatCurrency(balanceDue)}</span>
       )}
-      <LinearProgress
-        variant="determinate"
-        value={paidPct}
-        color={PAYMENT_STATUS_COLOR[status]}
+      <span
+        className="negocio-meter"
+        data-color={PAYMENT_STATUS_COLOR[status]}
+        role="progressbar"
         aria-label={`${Math.round(paidPct)}% pago`}
-        sx={{ width: BAR_WIDTH, height: 4, borderRadius: 2 }}
-      />
-    </Stack>
+        aria-valuenow={Math.round(paidPct)}
+        aria-valuemin={0}
+        aria-valuemax={100}
+      >
+        <span style={{ width: `${paidPct}%` }} />
+      </span>
+    </div>
   );
 }

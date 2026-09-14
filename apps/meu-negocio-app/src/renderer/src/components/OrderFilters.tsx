@@ -1,7 +1,7 @@
-import { Search } from '@mui/icons-material';
-import { InputAdornment, MenuItem, Stack, TextField, Tooltip, Typography } from '@mui/material';
+import { Search } from 'lucide-react';
 import type { OrderStatus, PaymentStatus } from '@shared/types/order';
 import { ORDER_STATUS_LABELS, PAYMENT_STATUS_LABELS } from '@shared/types/order';
+import { Field, SelectInput, TextInput } from '@/components/Field';
 import type { OrderFilterState } from '@/hooks/orders/useOrders';
 
 const ALL_STATUS_OPTIONS: OrderStatus[] = ['pending', 'in_progress', 'completed', 'cancelled'];
@@ -13,7 +13,6 @@ interface OrderFiltersProps {
   onChange: (filters: OrderFilterState) => void;
   hideStatuses?: OrderStatus[];
   hideStatusFilter?: boolean;
-  hideSearch?: boolean;
   showPaymentFilter?: boolean;
   children?: React.ReactNode;
 }
@@ -23,7 +22,6 @@ export function OrderFilters({
   onChange,
   hideStatuses,
   hideStatusFilter,
-  hideSearch,
   showPaymentFilter,
   children,
 }: OrderFiltersProps) {
@@ -32,124 +30,51 @@ export function OrderFilters({
     : ALL_STATUS_OPTIONS;
 
   return (
-    // Sem superfície própria: a tabela logo abaixo já é um `Paper` com borda, e
+    // Sem superfície própria: a tabela logo abaixo já é um painel com borda, e
     // dois retângulos empilhados leem como duas seções quando são uma (§4).
-    <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap" useFlexGap>
-      {!hideSearch && (
-        <Tooltip title="Buscar por cliente ou produto...">
-          <TextField
-            size="small"
-            placeholder="Buscar por cliente ou produto..."
+    <div className="negocio-filters">
+      <Field label="Buscar">
+        <div className="negocio-search">
+          <Search size={16} aria-hidden="true" />
+          <TextInput
+            aria-label="Buscar por cliente ou produto"
+            placeholder="Cliente ou produto"
             value={filters.search}
             onChange={(e) => onChange({ ...filters, search: e.target.value })}
-            sx={{
-              minWidth: 220,
-              maxWidth: 320,
-              '& .MuiInputBase-input': {
-                fontSize: '0.875rem',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-              },
-            }}
-            slotProps={{
-              input: {
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <Search sx={{ fontSize: 16 }} />
-                  </InputAdornment>
-                ),
-              },
-            }}
           />
-        </Tooltip>
-      )}
+        </div>
+      </Field>
       {!hideStatusFilter && (
-        <TextField
-          select
-          size="small"
-          value={filters.status}
-          onChange={(e) => onChange({ ...filters, status: e.target.value })}
-          sx={{ minWidth: 180, maxWidth: 260, '& .MuiInputBase-input': { fontSize: '0.875rem' } }}
-          slotProps={{
-            select: {
-              displayEmpty: true,
-              renderValue: (value) =>
-                value ? (
-                  <Typography
-                    component="span"
-                    variant="body2"
-                    noWrap
-                    title={ORDER_STATUS_LABELS[value as OrderStatus]}
-                    sx={{ display: 'block' }}
-                  >
-                    {ORDER_STATUS_LABELS[value as OrderStatus]}
-                  </Typography>
-                ) : (
-                  <Typography
-                    component="span"
-                    variant="body2"
-                    color="text.secondary"
-                    noWrap
-                    sx={{ display: 'block' }}
-                  >
-                    Todos os status
-                  </Typography>
-                ),
-            },
-          }}
-        >
-          <MenuItem value="">Todos os status</MenuItem>
-          {statusOptions.map((s) => (
-            <MenuItem key={s} value={s}>
-              {ORDER_STATUS_LABELS[s]}
-            </MenuItem>
-          ))}
-        </TextField>
+        <Field label="Status">
+          <SelectInput
+            value={filters.status}
+            onChange={(e) => onChange({ ...filters, status: e.target.value })}
+          >
+            <option value="">Todos os status</option>
+            {statusOptions.map((s) => (
+              <option key={s} value={s}>
+                {ORDER_STATUS_LABELS[s]}
+              </option>
+            ))}
+          </SelectInput>
+        </Field>
       )}
       {showPaymentFilter && (
-        <TextField
-          select
-          size="small"
-          value={filters.paymentStatus}
-          onChange={(e) => onChange({ ...filters, paymentStatus: e.target.value })}
-          sx={{ minWidth: 180, maxWidth: 260, '& .MuiInputBase-input': { fontSize: '0.875rem' } }}
-          slotProps={{
-            select: {
-              displayEmpty: true,
-              renderValue: (value) =>
-                value ? (
-                  <Typography
-                    component="span"
-                    variant="body2"
-                    noWrap
-                    title={PAYMENT_STATUS_LABELS[value as PaymentStatus]}
-                    sx={{ display: 'block' }}
-                  >
-                    {PAYMENT_STATUS_LABELS[value as PaymentStatus]}
-                  </Typography>
-                ) : (
-                  <Typography
-                    component="span"
-                    variant="body2"
-                    color="text.secondary"
-                    noWrap
-                    sx={{ display: 'block' }}
-                  >
-                    Todos os pagamentos
-                  </Typography>
-                ),
-            },
-          }}
-        >
-          <MenuItem value="">Todos os pagamentos</MenuItem>
-          {ALL_PAYMENT_STATUS_OPTIONS.map((s) => (
-            <MenuItem key={s} value={s}>
-              {PAYMENT_STATUS_LABELS[s]}
-            </MenuItem>
-          ))}
-        </TextField>
+        <Field label="Pagamento">
+          <SelectInput
+            value={filters.paymentStatus}
+            onChange={(e) => onChange({ ...filters, paymentStatus: e.target.value })}
+          >
+            <option value="">Todos os pagamentos</option>
+            {ALL_PAYMENT_STATUS_OPTIONS.map((s) => (
+              <option key={s} value={s}>
+                {PAYMENT_STATUS_LABELS[s]}
+              </option>
+            ))}
+          </SelectInput>
+        </Field>
       )}
       {children}
-    </Stack>
+    </div>
   );
 }

@@ -1,9 +1,9 @@
-import { Add, FilterAltOutlined, ReceiptLongOutlined } from '@mui/icons-material';
-import { Button, Stack } from '@mui/material';
+import { Filter, Plus, ReceiptText } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 import type { Order, OrderStatus } from '@shared/types/order';
 import { getOrderTotal } from '@shared/types/order';
 import { ActionsMenu } from '@/components/ActionsMenu';
+import { Button } from '@/components/Button';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { DataTable } from '@/components/DataTable';
 import type { Column } from '@/components/DataTable';
@@ -108,9 +108,9 @@ export function OrdersPage() {
   }
 
   return (
-    <Stack spacing={3}>
+    <div className="negocio-page">
       <PageHeader
-        icon={<ReceiptLongOutlined />}
+        icon={<ReceiptText />}
         title="Pedidos"
         subtitle="Registro e acompanhamento de pedidos"
         actions={
@@ -129,8 +129,8 @@ export function OrdersPage() {
 
       {orders.length > 0 && (
         <OrderFilters filters={filters} onChange={setFilters} hideStatuses={['completed']}>
-          <Button variant="contained" startIcon={<Add />} onClick={form.open} sx={{ ml: 'auto' }}>
-            Novo Pedido
+          <Button variant="primary" onClick={form.open} className="negocio-filters-action">
+            <Plus size={18} aria-hidden="true" /> Novo Pedido
           </Button>
         </OrderFilters>
       )}
@@ -161,7 +161,7 @@ export function OrdersPage() {
         empty={
           hasOpenOrders ? (
             <EmptyState
-              icon={<FilterAltOutlined sx={{ fontSize: 40 }} />}
+              icon={<Filter size={40} />}
               title="Nenhum pedido corresponde aos filtros."
               description="Ajuste a busca, o status ou o período para ver os pedidos em aberto de novo."
               action={
@@ -182,12 +182,12 @@ export function OrdersPage() {
             />
           ) : (
             <EmptyState
-              icon={<ReceiptLongOutlined sx={{ fontSize: 48 }} />}
+              icon={<ReceiptText size={48} />}
               title="Nenhum pedido em aberto."
               description="Registre um pedido por cliente e acompanhe o fluxo pendente → em andamento → concluído. As vendas já concluídas ficam na tela de Vendas."
               action={
-                <Button variant="contained" startIcon={<Add />} onClick={form.open}>
-                  Novo Pedido
+                <Button variant="primary" onClick={form.open}>
+                  <Plus size={18} aria-hidden="true" /> Novo Pedido
                 </Button>
               }
             />
@@ -217,6 +217,6 @@ export function OrdersPage() {
             />
           );
         })()}
-    </Stack>
+    </div>
   );
 }

@@ -1,10 +1,10 @@
-import { FilterAltOutlined, SellOutlined } from '@mui/icons-material';
-import { Button, Stack, Typography } from '@mui/material';
+import { Filter, WalletCards } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { Order } from '@shared/types/order';
 import { getOrderProfit, getOrderTotal } from '@shared/types/order';
 import { ActionsMenu } from '@/components/ActionsMenu';
+import { Button } from '@/components/Button';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { DataTable } from '@/components/DataTable';
 import type { Column } from '@/components/DataTable';
@@ -101,20 +101,19 @@ export function SalesPage() {
           const profit = getOrderProfit(o);
           const total = getOrderTotal(o);
           return (
-            <Stack>
-              <Typography
-                variant="body2"
-                color={profit < 0 ? 'error.main' : 'text.primary'}
-                sx={{ fontWeight: profit < 0 ? 600 : 400 }}
-              >
+            <div className="negocio-cell-stack">
+              {/* Lucro negativo é venda no prejuízo: o único caso da coluna que
+                  pede alarme. Numa coluna, só a condição que pede atenção é
+                  pintada (§1.5). */}
+              <span className={profit < 0 ? 'negocio-negative' : undefined}>
                 {formatCurrency(profit)}
-              </Typography>
+              </span>
               {total > 0 && (
-                <Typography variant="caption" color="text.secondary">
+                <span className="negocio-caption">
                   {formatPercent((profit / total) * 100)} de margem
-                </Typography>
+                </span>
               )}
-            </Stack>
+            </div>
           );
         },
       },
@@ -142,9 +141,9 @@ export function SalesPage() {
   }
 
   return (
-    <Stack spacing={3}>
+    <div className="negocio-page">
       <PageHeader
-        icon={<SellOutlined />}
+        icon={<WalletCards />}
         title="Vendas"
         subtitle="Indicadores e histórico de pedidos concluídos"
         actions={
@@ -183,7 +182,7 @@ export function SalesPage() {
         empty={
           hasAnySale ? (
             <EmptyState
-              icon={<FilterAltOutlined sx={{ fontSize: 40 }} />}
+              icon={<Filter size={40} />}
               title="Nenhuma venda corresponde aos filtros."
               description="Ajuste a busca, a situação de pagamento ou o período para ver as vendas de novo."
               action={
@@ -197,11 +196,11 @@ export function SalesPage() {
             />
           ) : (
             <EmptyState
-              icon={<SellOutlined sx={{ fontSize: 48 }} />}
+              icon={<WalletCards size={48} />}
               title="Nenhuma venda concluída ainda."
               description="Um pedido vira venda quando você o marca como Concluído — é nesse momento que o estoque é baixado e o valor entra no caixa."
               action={
-                <Button variant="contained" onClick={() => navigate(ROUTES.ORDERS)}>
+                <Button variant="primary" onClick={() => navigate(ROUTES.ORDERS)}>
                   Ir para Pedidos
                 </Button>
               }
@@ -240,6 +239,6 @@ export function SalesPage() {
             />
           );
         })()}
-    </Stack>
+    </div>
   );
 }

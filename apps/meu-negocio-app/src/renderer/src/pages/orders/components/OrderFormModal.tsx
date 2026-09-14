@@ -1,24 +1,12 @@
-import { Close } from '@mui/icons-material';
-import {
-  Alert,
-  Box,
-  Button,
-  Checkbox,
-  FormControlLabel,
-  IconButton,
-  MenuItem,
-  Stack,
-  TextField,
-  Typography,
-} from '@mui/material';
+import { Plus, TriangleAlert, X } from 'lucide-react';
 import type { Product } from '@shared/types/product';
+import { Button } from '@/components/Button';
+import { Field, SelectInput, TextInput } from '@/components/Field';
 import { Modal } from '@/components/Modal';
+import { findOrderShortages } from '@/hooks/orders/orderShortages';
 import type { UseOrderFormReturn } from '@/hooks/orders/useOrderForm';
 import { todayInputValue } from '@/utils/date';
 import { formatCurrency } from '@/utils/format';
-
-/** Cabeçalho e linhas compartilham a mesma grade, para as colunas nunca saírem de registro. */
-const ITEM_COLUMNS = 'minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr) 96px 32px';
 
 interface OrderFormModalProps {
   formState: UseOrderFormReturn;
@@ -47,188 +35,186 @@ export function OrderFormModal({ formState, products }: OrderFormModalProps) {
   const items = watch('items');
   const manualEnabled = watch('manualEnabled');
 
-  // Soma por produto, já que o mesmo produto pode estar em mais de uma linha.
-  const requestedByProduct = new Map<string, number>();
-  for (const item of items ?? []) {
-    if (!item?.productId) continue;
-    const current = requestedByProduct.get(item.productId) ?? 0;
-    requestedByProduct.set(item.productId, current + (Number(item.quantity) || 0));
-  }
-
-  const shortages = [...requestedByProduct]
-    .map(([productId, requested]) => ({
-      product: products.find((p) => p.id === productId),
-      requested,
-    }))
-    .filter((entry) => entry.product && entry.requested > entry.product.stock)
-    .map(
-      ({ product, requested }) =>
-        `${product!.name} (pedido ${requested}, disponível ${product!.stock})`,
-    );
+  const shortages = findOrderShortages(items ?? [], products);
 
   return (
     <Modal
       open={isOpen}
       onClose={close}
       title={isEditing ? 'Editar Pedido' : 'Novo Pedido'}
-      maxWidth="600px"
+      maxWidth="640px"
       onSubmit={onSubmit}
       footer={
         <>
-          <Button onClick={close} disabled={isSaving} color="inherit">
+          <Button onClick={close} disabled={isSaving}>
             Cancelar
           </Button>
-          <Button type="submit" disabled={isSaving} variant="contained">
+          <Button type="submit" disabled={isSaving} variant="primary">
             {isSaving ? 'Salvando...' : isEditing ? 'Salvar Alterações' : 'Criar Pedido'}
           </Button>
         </>
       }
     >
-      <Stack spacing={3}>
-        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-          <TextField
-            label="Cliente"
-            required
-            error={!!errors.customer}
-            helperText={errors.customer?.message}
-            placeholder="Nome do cliente"
-            sx={{ flex: 2 }}
-            {...register('customer')}
-          />
+      <div className="negocio-form">
+        <div className="negocio-form-row">
+          <Field label="Cliente" invalid={!!errors.customer} note={errors.customer?.message}>
+            <TextInput
+              required
+              placeholder="Nome do cliente"
+              aria-invalid={!!errors.customer}
+              {...register('customer')}
+            />
+          </Field>
 
-          <TextField
+          <Field
             label="Data do pedido"
-            type="date"
-            required
-            error={!!errors.orderDate}
-            helperText={errors.orderDate?.message ?? 'Use para lançar pedidos de dias anteriores'}
-            slotProps={{ inputLabel: { shrink: true }, htmlInput: { max: todayInputValue() } }}
-            sx={{ flex: 1 }}
-            {...register('orderDate')}
-          />
-        </Stack>
+            invalid={!!errors.orderDate}
+            note={errors.orderDate?.message ?? 'Use para lançar pedidos de dias anteriores'}
+          >
+            <TextInput
+              required
+              type="date"
+              max={todayInputValue()}
+              aria-invalid={!!errors.orderDate}
+              {...register('orderDate')}
+            />
+          </Field>
+        </div>
 
-        <Stack spacing={1.5}>
-          <Stack direction="row" alignItems="center" justifyContent="space-between">
-            <Typography variant="subtitle1">Itens</Typography>
-            <Button size="small" onClick={addItem}>
-              + Adicionar Item
+        <div className="negocio-items">
+          <div className="negocio-section-header">
+            <h3 className="negocio-section-title">Itens</h3>
+            <Button onClick={addItem}>
+              <Plus size={16} aria-hidden="true" /> Adicionar Item
             </Button>
-          </Stack>
+          </div>
 
-          {/* Quantidade e preço eram duas caixas numéricas nuas, sem rótulo nem
-              placeholder: não havia como saber qual era qual sem testar. O
-              cabeçalho nomeia as colunas uma vez só, em vez de repetir um label
-              dentro de cada linha. */}
-          <Box sx={{ display: 'grid', gridTemplateColumns: ITEM_COLUMNS, gap: 1 }}>
-            <Typography variant="caption" color="text.secondary">
-              Produto
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              Qtd.
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              Preço unit.
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              Subtotal
-            </Typography>
+          {/* Quantidade e preço eram duas caixas numéricas nuas: não havia como
+              saber qual era qual sem testar. O cabeçalho nomeia as colunas para
+              quem vê; o `aria-label` de cada campo repete o nome com o número da
+              linha, que é o que identifica a linha para quem usa teclado. */}
+          <div className="negocio-item-row negocio-item-head" aria-hidden="true">
+            <span>Produto</span>
+            <span>Qtd.</span>
+            <span>Preço unit.</span>
+            <span>Subtotal</span>
             <span />
-          </Box>
+          </div>
 
           {fields.map((field, index) => {
             const item = items[index];
             const itemErrors = errors.items?.[index];
+            const messages = [
+              itemErrors?.productId?.message,
+              itemErrors?.quantity?.message,
+              itemErrors?.unitPrice?.message,
+            ].filter(Boolean);
+            const noteId = messages.length > 0 ? `${field.id}-erro` : undefined;
+            const position = index + 1;
+
             return (
-              <Box
-                key={field.id}
-                sx={{
-                  display: 'grid',
-                  gridTemplateColumns: ITEM_COLUMNS,
-                  gap: 1,
-                  alignItems: 'center',
-                }}
-              >
-                <TextField
-                  select
-                  error={!!itemErrors?.productId}
-                  value={item?.productId ?? ''}
-                  onChange={(e) => selectProduct(index, e.target.value)}
-                  slotProps={{
-                    htmlInput: { 'aria-label': 'Produto' },
-                    // O formulário ainda usa o Select do MUI, mas o Modal local
-                    // é um `<dialog>` nativo: o portal precisa nascer dentro da
-                    // camada superior do diálogo, não no body atrás dela.
-                    select: {
-                      MenuProps: { container: () => document.querySelector('dialog[open]') },
-                    },
-                  }}
-                >
-                  <MenuItem value="">Selecionar produto...</MenuItem>
-                  {products.map((p) => (
-                    <MenuItem key={p.id} value={p.id}>
-                      {p.name} — {formatCurrency(p.salePrice)} · {p.stock} em estoque
-                    </MenuItem>
-                  ))}
-                </TextField>
-                <TextField
-                  error={!!itemErrors?.quantity}
-                  type="number"
-                  slotProps={{ htmlInput: { min: '1', step: '1', 'aria-label': 'Quantidade' } }}
-                  {...register(`items.${index}.quantity`)}
-                />
-                <TextField
-                  error={!!itemErrors?.unitPrice}
-                  type="number"
-                  slotProps={{
-                    htmlInput: { min: '0', step: '0.01', 'aria-label': 'Preço unitário' },
-                  }}
-                  {...register(`items.${index}.unitPrice`)}
-                />
-                <Typography variant="body2">
-                  {formatCurrency((Number(item?.quantity) || 0) * (Number(item?.unitPrice) || 0))}
-                </Typography>
-                <IconButton
-                  onClick={() => removeItem(index)}
-                  disabled={fields.length <= 1}
-                  size="small"
-                  aria-label="Remover item"
-                >
-                  <Close fontSize="small" />
-                </IconButton>
-              </Box>
+              <div key={field.id} role="group" aria-label={`Item ${position}`}>
+                <div className="negocio-item-row">
+                  <SelectInput
+                    aria-label={`Produto do item ${position}`}
+                    aria-invalid={!!itemErrors?.productId}
+                    aria-describedby={noteId}
+                    value={item?.productId ?? ''}
+                    onChange={(e) => selectProduct(index, e.target.value)}
+                  >
+                    <option value="">Selecionar produto...</option>
+                    {products.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.name} — {formatCurrency(p.salePrice)} · {p.stock} em estoque
+                      </option>
+                    ))}
+                  </SelectInput>
+                  <TextInput
+                    type="number"
+                    min="1"
+                    step="1"
+                    aria-label={`Quantidade do item ${position}`}
+                    aria-invalid={!!itemErrors?.quantity}
+                    aria-describedby={noteId}
+                    {...register(`items.${index}.quantity`)}
+                  />
+                  <TextInput
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    aria-label={`Preço unitário do item ${position}`}
+                    aria-invalid={!!itemErrors?.unitPrice}
+                    aria-describedby={noteId}
+                    {...register(`items.${index}.unitPrice`)}
+                  />
+                  <span>
+                    {formatCurrency((Number(item?.quantity) || 0) * (Number(item?.unitPrice) || 0))}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    onClick={() => removeItem(index)}
+                    // O pedido precisa ter pelo menos um item; remover o último
+                    // deixaria um formulário que não pode ser salvo.
+                    disabled={fields.length <= 1}
+                    aria-label={`Remover item ${position}`}
+                  >
+                    <X size={16} aria-hidden="true" />
+                  </Button>
+                </div>
+                {noteId && (
+                  <span id={noteId} className="negocio-field-note" data-invalid="true">
+                    {messages.join(' · ')}
+                  </span>
+                )}
+              </div>
             );
           })}
 
-          {shortages.length > 0 && (
-            <Alert severity="warning">
-              O estoque não cobre este pedido: {shortages.join('; ')}. Você pode registrá-lo assim
-              mesmo, mas só conseguirá concluí-lo depois de repor o estoque.
-            </Alert>
+          {errors.items?.message && (
+            <span className="negocio-field-note" data-invalid="true">
+              {errors.items.message}
+            </span>
           )}
-        </Stack>
 
-        <Stack direction="row" alignItems="center" spacing={2} flexWrap="wrap">
-          <FormControlLabel
-            control={<Checkbox checked={!!manualEnabled} {...register('manualEnabled')} />}
-            label="Valor personalizado"
-          />
+          {shortages.length > 0 && (
+            // O pedido pode ser registrado sem saldo; o que o estoque bloqueia é
+            // a conclusão. O aviso diz isso na hora de digitar, e não depois.
+            <p className="negocio-alert" role="status">
+              <TriangleAlert aria-hidden="true" />
+              <span>
+                O estoque não cobre este pedido: {shortages.join('; ')}. Você pode registrá-lo assim
+                mesmo, mas só conseguirá concluí-lo depois de repor o estoque.
+              </span>
+            </p>
+          )}
+        </div>
+
+        <div className="negocio-section-header">
+          <label className="negocio-checkbox">
+            <input type="checkbox" checked={!!manualEnabled} {...register('manualEnabled')} />
+            Valor personalizado
+          </label>
 
           {manualEnabled && (
-            <TextField
-              error={!!errors.manualTotal}
-              type="number"
-              slotProps={{ htmlInput: { min: '0', step: '0.01' } }}
-              sx={{ maxWidth: 160 }}
-              {...register('manualTotal')}
-            />
+            <Field
+              label="Total personalizado"
+              invalid={!!errors.manualTotal}
+              note={errors.manualTotal?.message}
+            >
+              <TextInput
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder="0,00"
+                aria-invalid={!!errors.manualTotal}
+                {...register('manualTotal')}
+              />
+            </Field>
           )}
 
-          <Typography sx={{ ml: 'auto' }} variant="subtitle1">
-            Total: {formatCurrency(displayTotal)}
-          </Typography>
-        </Stack>
-      </Stack>
+          <span className="negocio-total">Total: {formatCurrency(displayTotal)}</span>
+        </div>
+      </div>
     </Modal>
   );
 }
