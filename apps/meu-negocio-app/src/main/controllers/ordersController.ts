@@ -23,9 +23,7 @@ import {
  * `entity → response` na saída.
  *
  * `setStatus` e `delete` devolvem um envelope (pedido + produtos com estoque
- * mexido); o mapper dele vive em `responses/order.response.ts`, que importa o
- * `productToResponse` do outro domínio — a pasta existe justamente para um
- * controller não precisar importar o outro.
+ * mexido); o mapper dele vive em `responses/order.response.ts`.
  */
 export function registerOrdersController(orders: OrdersService): void {
   handle(IPC_CHANNELS.ordersGetAll, (): Order[] => orders.list().map(orderToResponse));

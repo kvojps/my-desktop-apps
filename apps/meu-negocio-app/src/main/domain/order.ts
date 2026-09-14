@@ -1,12 +1,18 @@
 /**
  * O vocabulário de vendas do processo principal.
  *
- * `OrderEntity` e `OrderItemEntity` são estruturalmente quase idênticos a
- * `Order`/`OrderItem` de `@shared/types/order`, e o porquê do sufixo `Entity`
- * está em `domain/product.ts`. A diferença real é `OrderItemEntity.stockApplied`:
- * é a escrituração de estoque (`CONTEXT.md`) do item, e fica fora do `OrderItem`
- * que atravessa o IPC de propósito — com a entidade separada do response, essa
- * exclusão vira estrutura, não comentário.
+ * O sufixo `Entity` existe porque a forma do domínio e o contrato que
+ * atravessa o IPC são peças diferentes, mesmo quando hoje têm os mesmos
+ * campos: uma é o vocabulário do processo principal, a outra é o que o
+ * renderer recebe, e nada garante que continuem iguais. Sem nomes diferentes,
+ * o TypeScript não pegaria a troca de uma pela outra num mapper que lida com
+ * as duas ao mesmo tempo.
+ *
+ * `OrderEntity` e `OrderItemEntity` são a prova viva disso: `Order`/`OrderItem`
+ * de `@shared/types/order` quase batem, mas `OrderItemEntity.stockApplied` não
+ * tem par do outro lado — é a escrituração de estoque (`CONTEXT.md`) do item, e
+ * fica fora do `OrderItem` que atravessa o IPC de propósito. Com a entidade
+ * separada do response, essa exclusão vira estrutura, não comentário.
  */
 export type OrderStatusEntity = 'pending' | 'in_progress' | 'completed' | 'cancelled';
 

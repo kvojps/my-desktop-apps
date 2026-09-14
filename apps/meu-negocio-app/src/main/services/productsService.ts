@@ -1,5 +1,4 @@
 import type { Product } from '@shared/types/product';
-import type { ProductEntity } from '../domain/product';
 import type { Repositories } from '../infra/database';
 import { AppError } from '../utils/errors/AppError';
 
@@ -10,15 +9,15 @@ import { AppError } from '../utils/errors/AppError';
  */
 export function makeProductsService(repos: Repositories) {
   return {
-    list(): ProductEntity[] {
+    list(): Product[] {
       return repos.products.list();
     },
 
-    create(data: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>): ProductEntity {
+    create(data: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>): Product {
       return repos.products.create(data);
     },
 
-    update(id: string, data: Partial<Product>): ProductEntity {
+    update(id: string, data: Partial<Product>): Product {
       const product = repos.products.update(id, data);
       if (!product) throw new AppError(404, `Produto não encontrado: ${id}`);
       return product;

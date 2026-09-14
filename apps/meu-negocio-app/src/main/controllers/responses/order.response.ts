@@ -8,7 +8,6 @@ import type {
   DeleteOrderResult as DeleteOrderResultEntity,
   SetOrderStatusResult as SetOrderStatusResultEntity,
 } from '../../services/ordersService';
-import { productToResponse } from './product.response';
 
 /**
  * `entity → response` de venda (README §2.5). Um mapper por nó que é **objeto** —
@@ -52,17 +51,16 @@ export function orderToResponse(entity: OrderEntity): Order {
 
 /**
  * Os envelopes que `setStatus`/`delete` devolvem: o pedido mais os produtos cujo
- * estoque a transição mexeu. São nós que são objeto e atravessam o IPC, então
- * têm mapper próprio (README §2.5) — o `updatedProducts` do lado da entidade é
- * `ProductEntity[]`, o do response é `Product[]`. É aqui que o
- * `productToResponse` de outro domínio entra, na pasta que existe para isso.
+ * estoque a transição mexeu. `updatedProducts` já é `Product[]` dos dois lados —
+ * `Product` não tem entidade própria — e atravessa direto; só `order` passa por
+ * `orderToResponse`.
  */
 export function setOrderStatusResultToResponse(
   result: SetOrderStatusResultEntity,
 ): SetOrderStatusResultResponse {
   return {
     order: orderToResponse(result.order),
-    updatedProducts: result.updatedProducts.map(productToResponse),
+    updatedProducts: result.updatedProducts,
   };
 }
 
@@ -70,6 +68,6 @@ export function deleteOrderResultToResponse(
   result: DeleteOrderResultEntity,
 ): DeleteOrderResultResponse {
   return {
-    updatedProducts: result.updatedProducts.map(productToResponse),
+    updatedProducts: result.updatedProducts,
   };
 }

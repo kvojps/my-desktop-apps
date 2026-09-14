@@ -2,7 +2,7 @@
  * `theme` não tem entidade rica a modelar: o que as camadas trocam é a
  * preferência de modo, e é só isso que este arquivo nomeia. Espelha o
  * `domain/settings.ts` do `git-dlog`; o porquê do sufixo `Entity` está em
- * `domain/product.ts`.
+ * `domain/order.ts`.
  */
 export type ThemeModeEntity = 'light' | 'dark';
 

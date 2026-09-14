@@ -1,7 +1,6 @@
 import type Database from 'better-sqlite3';
 import { randomUUID } from 'node:crypto';
 import type { Product } from '@shared/types/product';
-import type { ProductEntity } from '../../../domain/product';
 
 interface ProductRow {
   id: string;
@@ -17,7 +16,7 @@ interface ProductRow {
   updated_at: string;
 }
 
-function rowToProduct(row: ProductRow): ProductEntity {
+function rowToProduct(row: ProductRow): Product {
   return {
     id: row.id,
     name: row.name,
@@ -34,13 +33,13 @@ function rowToProduct(row: ProductRow): ProductEntity {
 }
 
 export function makeProductsRepository(db: Database.Database) {
-  function findById(id: string): ProductEntity | null {
+  function findById(id: string): Product | null {
     const row = db.prepare('SELECT * FROM products WHERE id = ?').get(id) as ProductRow | undefined;
     return row ? rowToProduct(row) : null;
   }
 
   return {
-    list(): ProductEntity[] {
+    list(): Product[] {
       const rows = db
         .prepare('SELECT * FROM products ORDER BY created_at ASC')
         .all() as ProductRow[];
@@ -49,9 +48,9 @@ export function makeProductsRepository(db: Database.Database) {
 
     findById,
 
-    create(data: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>): ProductEntity {
+    create(data: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>): Product {
       const now = new Date().toISOString();
-      const product: ProductEntity = {
+      const product: Product = {
         ...data,
         id: randomUUID(),
         createdAt: now,
@@ -66,11 +65,11 @@ export function makeProductsRepository(db: Database.Database) {
       return product;
     },
 
-    update(id: string, data: Partial<Product>): ProductEntity | null {
+    update(id: string, data: Partial<Product>): Product | null {
       const existing = findById(id);
       if (!existing) return null;
 
-      const updated: ProductEntity = {
+      const updated: Product = {
         ...existing,
         ...data,
         id: existing.id,
@@ -86,7 +85,7 @@ export function makeProductsRepository(db: Database.Database) {
       return updated;
     },
 
-    delete(id: string): ProductEntity | null {
+    delete(id: string): Product | null {
       const existing = findById(id);
       if (!existing) return null;
 

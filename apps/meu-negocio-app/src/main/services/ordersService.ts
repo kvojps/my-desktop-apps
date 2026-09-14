@@ -1,16 +1,16 @@
+import type { Product } from '@shared/types/product';
 import type { CreateOrderData, UpdateOrderData } from '@shared/types/order';
 import type { OrderEntity, OrderStatusEntity } from '../domain/order';
-import type { ProductEntity } from '../domain/product';
 import type { Repositories } from '../infra/database';
 import { AppError } from '../utils/errors/AppError';
 
 export interface SetOrderStatusResult {
   order: OrderEntity;
-  updatedProducts: ProductEntity[];
+  updatedProducts: Product[];
 }
 
 export interface DeleteOrderResult {
-  updatedProducts: ProductEntity[];
+  updatedProducts: Product[];
 }
 
 /**
@@ -54,7 +54,7 @@ export function makeOrdersService(repos: Repositories) {
   function moveProductStock(
     productId: string,
     delta: number,
-  ): { product: ProductEntity; appliedDelta: number } | null {
+  ): { product: Product; appliedDelta: number } | null {
     const existing = repos.products.findById(productId);
     if (!existing) return null;
 
@@ -68,8 +68,8 @@ export function makeOrdersService(repos: Repositories) {
    * Baixa do estoque a quantidade de cada item e registra quanto saiu de fato
    * — que é menos que o pedido quando o saldo não cobria.
    */
-  function deductStock(order: OrderEntity): ProductEntity[] {
-    const updated: ProductEntity[] = [];
+  function deductStock(order: OrderEntity): Product[] {
+    const updated: Product[] = [];
     for (const item of order.items) {
       const moved = moveProductStock(item.productId, -item.quantity);
       if (moved) updated.push(moved.product);
@@ -82,8 +82,8 @@ export function makeOrdersService(repos: Repositories) {
    * Devolve ao estoque exatamente o que a conclusão tirou. Serve para reabrir,
    * cancelar ou excluir uma venda.
    */
-  function restoreStock(order: OrderEntity): ProductEntity[] {
-    const updated: ProductEntity[] = [];
+  function restoreStock(order: OrderEntity): Product[] {
+    const updated: Product[] = [];
     for (const item of order.items) {
       const moved = moveProductStock(item.productId, item.stockApplied);
       if (moved) updated.push(moved.product);
@@ -140,7 +140,7 @@ export function makeOrdersService(repos: Repositories) {
       const existing = requireOrder(id);
 
       return repos.transaction(() => {
-        const updatedProducts: ProductEntity[] = [];
+        const updatedProducts: Product[] = [];
         const wasCompleted = existing.status === 'completed';
         const isNowCompleted = newStatus === 'completed';
 
@@ -181,7 +181,7 @@ export function makeOrdersService(repos: Repositories) {
       const existing = requireOrder(id);
 
       return repos.transaction(() => {
-        const updatedProducts: ProductEntity[] = [];
+        const updatedProducts: Product[] = [];
         if (existing.status === 'completed') {
           updatedProducts.push(...restoreStock(existing));
         }
