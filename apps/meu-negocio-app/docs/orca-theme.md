@@ -84,12 +84,29 @@ nenhum, é texto (§1.4). Publicados como `--negocio-tile-<accent>` e
 **de texto** do valor, medidos sobre papel e sobre a linha em hover. O botão
 primário é neutro (preto/branco); o azul fica no foco e nos ladrilhos.
 
-## Dimensões
+## Tipografia
 
-Geist empacotada em 400/500/600/700, fallback de sistema; corpo 14px/20px com
-dígitos tabulares. Erros técnicos em
-`ui-monospace, SFMono-Regular, Menlo, Consolas, monospace`. Lucide 18px nos
-controles, 48px nos estados de página e 40px nos de seção.
+Geist empacotada em 400/500/600/700, fallback `system-ui, sans-serif`; dígitos
+tabulares no corpo inteiro. A escala é esta, e é a lista completa — um
+`font-size` fora dela é bug do código:
+
+| Papel                                  | Tamanho/linha | Peso |
+| -------------------------------------- | ------------- | ---- |
+| Legenda, nota de campo, rótulo de card | 12px/18px     | 400  |
+| Corpo, célula, botão, campo, chip      | 14px/20px     | 400  |
+| Rótulo de campo, botão, chip           | 14px/20px     | 500  |
+| Título de diálogo e de seção           | 16px/24px     | 600  |
+| Título de tela, valor de indicador     | 20px/28px     | 600  |
+| Título de estado (erro, página)        | 24px/32px     | 600  |
+
+Não há peso 700 nem `letterSpacing`. Erros técnicos usam
+`ui-monospace, SFMono-Regular, Menlo, Consolas, monospace` em 12px/18px.
+Enquanto o MUI coexiste, o tema dele lê a mesma escala (`fontSize: 14`,
+`h5` 20/28, `h6` 16/24, `caption` 12/18) para Dashboard e Configurações não
+terem outra régua. Lucide 18px nos controles, 24px no cabeçalho de tela,
+48px nos estados de página e 40px nos de seção.
+
+## Dimensões
 
 Superfície 10px, controle 6px; escala de espaçamento 4/8/12/16/24/32/48/64px.
 Lateral expandida por padrão: 224px; recolhida: 64px; padding 12px, gap 4px,

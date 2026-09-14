@@ -17,6 +17,7 @@ e escuro e preservação funcional, na sequência aprovada em Q8.
 - [ ] Preservar formato de backup e contratos existentes; manter feedback e bloqueio de ações concorrentes durante operações.
 - [ ] Manter tema no rodapé da lateral com identificação acessível, conforme exceção local aprovada.
 - [ ] Verificável por máquina: `grep -rl "@mui" apps/meu-negocio-app/src/renderer/src/pages/settings` retorna vazio; citar o resultado em Comments antes de marcar os critérios acima.
+- [ ] Tipografia na escala documentada em `docs/orca-theme.md` (12/18, 14/20, 16/24, 20/28, 24/32; pesos 400/500/600): verificável por `grep -n "font-size" apps/meu-negocio-app/src/renderer/src/styles.css` sem valor fora da lista e sem `fontSize`/`variant` de MUI nas telas migradas.
 
 ## Validação enxuta
 

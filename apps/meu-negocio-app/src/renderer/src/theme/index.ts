@@ -189,16 +189,25 @@ const getDesignTokens = (mode: PaletteMode): ThemeOptions => {
       action: { hover: color.accent, selected: color.accent },
       background: { default: color.content, paper: color.paper },
     },
+    // A mesma escala da base local (docs/orca-theme.md): corpo 14/20, título
+    // de seção 16/24, título de tela e valor 20/28, estado 24/32, legenda
+    // 12/18; pesos 400/500/600, sem 700 nem letterSpacing. Enquanto o MUI
+    // coexiste, Dashboard e Configurações não podem ter outra régua.
     typography: {
       fontFamily: '"Geist", system-ui, sans-serif',
-      h4: { fontWeight: 700, letterSpacing: -0.5 },
-      h5: { fontWeight: 700, letterSpacing: -0.3 },
-      h6: { fontWeight: 600 },
-      subtitle1: { fontWeight: 500 },
-      button: { fontWeight: 600, textTransform: 'none' },
+      fontSize: 14,
+      h4: { fontSize: 24, lineHeight: '32px', fontWeight: 600, letterSpacing: 0 },
+      h5: { fontSize: 20, lineHeight: '28px', fontWeight: 600, letterSpacing: 0 },
+      h6: { fontSize: 16, lineHeight: '24px', fontWeight: 600 },
+      subtitle1: { fontSize: 14, lineHeight: '20px', fontWeight: 500 },
+      body1: { fontSize: 14, lineHeight: '20px' },
+      body2: { fontSize: 14, lineHeight: '20px' },
+      caption: { fontSize: 12, lineHeight: '18px' },
+      button: { fontSize: 14, lineHeight: '20px', fontWeight: 500, textTransform: 'none' },
       mono: {
         fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
-        fontSize: '0.8125rem',
+        fontSize: 12,
+        lineHeight: '18px',
         wordBreak: 'break-all',
       },
     },

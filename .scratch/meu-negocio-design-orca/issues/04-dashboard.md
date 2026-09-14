@@ -17,6 +17,7 @@ e escuro e preservação funcional, na sequência aprovada em Q8.
 - [ ] Centralizar cores e medidas de gráficos no tema local; medir contraste nas superfícies reais e respeitar movimento reduzido nas séries Recharts.
 - [ ] Adaptar grade ao conteúdo e altura disponível; skeleton reserva a caixa real e espaço insuficiente permite rolagem sem comprimir informação.
 - [ ] Verificável por máquina: `grep -rl "@mui" apps/meu-negocio-app/src/renderer/src/pages/dashboard apps/meu-negocio-app/src/renderer/src/theme/chartTheme.ts` retorna vazio; citar o resultado em Comments antes de marcar os critérios acima.
+- [ ] Tipografia na escala documentada em `docs/orca-theme.md` (12/18, 14/20, 16/24, 20/28, 24/32; pesos 400/500/600): verificável por `grep -n "font-size" apps/meu-negocio-app/src/renderer/src/styles.css` sem valor fora da lista e sem `fontSize`/`variant` de MUI nas telas migradas.
 
 ## Validação enxuta
 

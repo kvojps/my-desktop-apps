@@ -100,3 +100,10 @@ identidade preservada, campos com borda visível, e Dashboard/Configurações
 sublinhados de âncora (logo da lateral e link-botão da rota inexistente)
 apareceram na captura e foram corrigidos. Ficam por conferir manualmente
 redimensionamento, janela mínima e teclado; o item permanece desmarcado.
+
+Tipografia, 2026-09-14: a escala não tinha sido documentada e o CSS local
+tinha três valores soltos (valor do indicador 24px, aviso 13px, total 15px),
+enquanto o tema MUI da coexistência mantinha `h5` 700 com `letterSpacing` e
+corpo 16px. A escala foi registrada em `docs/orca-theme.md`, os três valores
+entraram nela e o tema MUI passou a ler a mesma régua; as issues 04–06 ganharam
+o critério verificável correspondente.

@@ -547,8 +547,9 @@
     line-height: 18px;
   }
   .negocio-stat strong {
-    font-size: 24px;
-    line-height: 32px;
+    font-size: 20px;
+    line-height: 28px;
+    font-weight: 600;
   }
   /* Só a condição pinta o valor; a identidade fica no ladrilho (§1.5). */
   .negocio-stat strong[data-tone='alert'] {
@@ -744,7 +745,7 @@
     border-radius: 6px;
     background: rgb(250 178 25 / 12%);
     color: var(--negocio-foreground);
-    font-size: 13px;
+    font-size: 14px;
     line-height: 20px;
   }
   .negocio-alert svg {
@@ -870,7 +871,8 @@
   }
   .negocio-total {
     margin-left: auto;
-    font-size: 15px;
+    font-size: 14px;
+    line-height: 20px;
     font-weight: 600;
   }
 
