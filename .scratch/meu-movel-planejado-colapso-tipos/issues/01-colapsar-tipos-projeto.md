@@ -1,4 +1,4 @@
-Status: todo
+Status: done
 
 # 01: Colapsar tipos de Projeto (Project)
 
@@ -13,26 +13,26 @@ por leitura direta dos dois arquivos.
 
 ## Checklist
 
-- [ ] Apagar `main/domain/project.ts`; `ProjectEntity` deixa de existir.
-- [ ] Apagar `main/controllers/responses/project.response.ts`
+- [x] Apagar `main/domain/project.ts`; `ProjectEntity` deixa de existir.
+- [x] Apagar `main/controllers/responses/project.response.ts`
       (`projectToResponse` era cópia 1:1 pura, confirmada por leitura).
-- [ ] `infra/database/repositories/projectsRepository.ts`: `rowToProject` e
+- [x] `infra/database/repositories/projectsRepository.ts`: `rowToProject` e
       todos os métodos (`list`, `findById`, `create`, `update`,
       `updateCuttingParams`) devolvem `Project` (de `@shared/types/
       project`) direto. A conversão snake_case→camelCase de `rowToProject`
       não muda.
-- [ ] `services/projectsService.ts`: import de `ProjectEntity` trocado por
+- [x] `services/projectsService.ts`: import de `ProjectEntity` trocado por
       `Project`; todas as assinaturas (`list`, `get`, `create`, `update`,
       `updateCuttingParams`) ajustadas.
-- [ ] `services/piecesService.ts`: `assertFits(project: ProjectEntity, ...)`
+- [x] `services/piecesService.ts`: `assertFits(project: ProjectEntity, ...)`
       passa a receber `Project` — é o único outro consumidor de
       `ProjectEntity` além dos arquivos apagados e do próprio
       `projectsService.ts`.
-- [ ] `controllers/projectsController.ts`: remover o import e as quatro
+- [x] `controllers/projectsController.ts`: remover o import e as quatro
       chamadas de `projectToResponse` — o retorno do service já é `Project`.
-- [ ] `npm run typecheck` — limpo, sem erros.
-- [ ] `npm run lint` — sem erros novos.
-- [ ] `npm test` — suíte de lógica pura, sem regressão.
+- [x] `npm run typecheck` — limpo, sem erros.
+- [x] `npm run lint` — sem erros novos.
+- [x] `npm test` — suíte de lógica pura, sem regressão.
 - [ ] QA manual (`npm run dev:movel`): criar um projeto, renomear, trocar o
       material, editar kerf/refile, excluir. **Pendente até execução** —
       sandbox sem driver de UI Electron.

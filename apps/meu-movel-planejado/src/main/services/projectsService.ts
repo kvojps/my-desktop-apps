@@ -1,5 +1,4 @@
-import type { CuttingParamsInput, ProjectInput } from '@shared/types/project';
-import type { ProjectEntity } from '../domain/project';
+import type { CuttingParamsInput, Project, ProjectInput } from '@shared/types/project';
 import type { Repositories } from '../infra/database';
 import { AppError } from '../utils/errors/AppError';
 
@@ -13,7 +12,7 @@ const PROJECT_GONE = 'Este projeto não existe mais.';
  */
 export function makeProjectsService(repos: Repositories) {
   return {
-    list(): ProjectEntity[] {
+    list(): Project[] {
       return repos.projects.list();
     },
 
@@ -22,22 +21,22 @@ export function makeProjectsService(repos: Repositories) {
      * mais" (uma tela com saída de volta) de "o banco falhou" (um erro). Era o
      * comentário de `projectsRepository.getProjectOrThrow`, preservado.
      */
-    get(id: string): ProjectEntity | null {
+    get(id: string): Project | null {
       return repos.projects.findById(id);
     },
 
     /** O repositório aplica `DEFAULT_KERF_TENTHS_MM`/`DEFAULT_TRIM_TENTHS_MM`. */
-    create(data: ProjectInput): ProjectEntity {
+    create(data: ProjectInput): Project {
       return repos.projects.create(data);
     },
 
-    update(id: string, data: ProjectInput): ProjectEntity {
+    update(id: string, data: ProjectInput): Project {
       const updated = repos.projects.update(id, data);
       if (!updated) throw new AppError(404, PROJECT_GONE);
       return updated;
     },
 
-    updateCuttingParams(id: string, data: CuttingParamsInput): ProjectEntity {
+    updateCuttingParams(id: string, data: CuttingParamsInput): Project {
       const updated = repos.projects.updateCuttingParams(id, data);
       if (!updated) throw new AppError(404, PROJECT_GONE);
       return updated;

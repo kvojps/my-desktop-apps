@@ -1,7 +1,7 @@
 import { PIECE_DOES_NOT_FIT_MESSAGE, fitsAnySheet } from '@shared/nesting/fit';
 import type { PieceInput } from '@shared/types/piece';
+import type { Project } from '@shared/types/project';
 import type { PieceEntity } from '../domain/piece';
-import type { ProjectEntity } from '../domain/project';
 import type { Repositories } from '../infra/database';
 import { AppError } from '../utils/errors/AppError';
 
@@ -28,7 +28,7 @@ export function makePiecesService(repos: Repositories) {
    * (é `create` que o traduz em 404, antes da transação — o `findById` que a
    * régua precisaria é o mesmo, decisão 17 da spec).
    */
-  function assertFits(project: ProjectEntity, data: PieceInput): void {
+  function assertFits(project: Project, data: PieceInput): void {
     if (fitsAnySheet(data, repos.sheets.listForProject(project.id), project)) return;
     // 422 e não 404: o dado é que não serve, e `classifyError` o traduz em
     // `invalid-input`, o único código cuja mensagem chega inteira à tela.

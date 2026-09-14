@@ -69,7 +69,7 @@ export interface PackableSheetEntity extends RectangleBatch {
 }
 
 /**
- * Kerf e refile entram como número, e não como `ProjectEntity`: são a geometria
+ * Kerf e refile entram como número, e não como `Project`: são a geometria
  * do corte, e é só dela que o empacotamento depende.
  */
 export interface CuttingPlanInputEntity {
