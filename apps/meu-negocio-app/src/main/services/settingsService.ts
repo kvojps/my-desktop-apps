@@ -1,6 +1,7 @@
 import type { AppInfo } from '@shared/types/appInfo';
 import type { CompanySettings } from '@shared/types/settings';
-import { THEME_MODE_KEY, type ThemeModeEntity } from '../domain/theme';
+import type { ThemeMode } from '@shared/types/theme';
+import { THEME_MODE_KEY } from '../domain/theme';
 import type { Repositories } from '../infra/database';
 import type { AppInfoGateway } from '../infra/gateways/system/appInfo';
 import type { ThemeModeGateway } from '../infra/gateways/system/themeMode';
@@ -38,12 +39,12 @@ export function makeSettingsService(
      * O modo em vigor nesta sessão. Depois do boot é o que a moldura nativa já
      * tem aplicado — não relê o banco, pelo motivo em `themeMode.currentMode`.
      */
-    getThemeMode(): ThemeModeEntity {
+    getThemeMode(): ThemeMode {
       return themeMode.currentMode();
     },
 
     /** Persiste a escolha e aplica: a janela e a moldura nativa acompanham. */
-    saveThemeMode(mode: ThemeModeEntity): void {
+    saveThemeMode(mode: ThemeMode): void {
       repos.appSettings.setAppSetting(THEME_MODE_KEY, mode);
       themeMode.apply(mode);
     },

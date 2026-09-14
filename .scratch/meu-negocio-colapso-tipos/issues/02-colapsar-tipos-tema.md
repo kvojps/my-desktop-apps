@@ -1,4 +1,4 @@
-Status: ready-for-agent
+Status: done (QA manual pendente — ver checklist)
 
 # Colapsar tipos de Modo de tema
 
@@ -27,26 +27,29 @@ mais precisa mudar ali.
 
 ## Checklist
 
-- [ ] Em `main/domain/theme.ts`: remover `type ThemeModeEntity = 'light' |
+- [x] Em `main/domain/theme.ts`: remover `type ThemeModeEntity = 'light' |
       'dark'`; `isThemeModeEntity`/`resolveThemeMode` passam a usar
       `ThemeMode` de `@shared/types/theme` como parâmetro/retorno.
-- [ ] Avaliar renomear `isThemeModeEntity` → `isThemeMode` (o tipo que a
+- [x] Avaliar renomear `isThemeModeEntity` → `isThemeMode` (o tipo que a
       função testa deixou de ter sufixo `Entity`), citando o precedente do
       `git-dlog` (`isThemeMode`, sem sufixo, no mesmo papel). Se renomeado,
-      atualizar `main/index.ts` (único outro importador).
-- [ ] `main/infra/gateways/system/themeMode.ts`: `ThemeModeGateway`,
+      atualizar `main/index.ts` (único outro importador). Renomeado;
+      `main/index.ts` não importava a função diretamente, então nada mudou
+      ali além do tipo.
+- [x] `main/infra/gateways/system/themeMode.ts`: `ThemeModeGateway`,
       `ThemeModeSystemGateway`, `BACKGROUND`, `apply`, `currentMode`,
       `windowBackgroundFor` trocam `ThemeModeEntity` por `ThemeMode`.
-- [ ] `main/services/settingsService.ts`: `getThemeMode`/`saveThemeMode`
+- [x] `main/services/settingsService.ts`: `getThemeMode`/`saveThemeMode`
       trocam `ThemeModeEntity` por `ThemeMode`.
-- [ ] `main/index.ts`: `createWindow(mode: ThemeModeEntity)` e o import
+- [x] `main/index.ts`: `createWindow(mode: ThemeModeEntity)` e o import
       trocam para `ThemeMode` de `@shared/types/theme`; `THEME_MODE_KEY` e
       `resolveThemeMode` continuam importados de `./domain/theme`.
-- [ ] Confirmar que `main/controllers/settingsController.ts` não precisa de
+- [x] Confirmar que `main/controllers/settingsController.ts` não precisa de
       nenhuma mudança (já importa `ThemeMode` de `@shared/types/theme`).
-- [ ] `npm run typecheck`.
-- [ ] `npm run lint`.
-- [ ] `npm test`.
+      Confirmado, arquivo intocado.
+- [x] `npm run typecheck`.
+- [x] `npm run lint`.
+- [x] `npm test`.
 - [ ] QA manual (`npm run dev:negocio`): alternar tema claro/escuro na tela
       de Configurações e reabrir o app confirmando que a preferência
       persiste. **Pendente** — sandbox sem driver de UI Electron.

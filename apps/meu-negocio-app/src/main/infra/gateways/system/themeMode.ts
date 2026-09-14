@@ -1,8 +1,8 @@
+import type { ThemeMode } from '@shared/types/theme';
 import { BrowserWindow, nativeTheme } from 'electron';
-import type { ThemeModeEntity } from '../../../domain/theme';
 
 /** Igual a `background.default` do tema do renderer, por modo. */
-const BACKGROUND: Record<ThemeModeEntity, string> = {
+const BACKGROUND: Record<ThemeMode, string> = {
   light: '#F4F6FB',
   dark: '#10131C',
 };
@@ -14,9 +14,9 @@ const BACKGROUND: Record<ThemeModeEntity, string> = {
  */
 export interface ThemeModeGateway {
   /** Aplica o modo à moldura nativa e às janelas vivas. */
-  apply(mode: ThemeModeEntity): void;
+  apply(mode: ThemeMode): void;
   /** O modo em vigor nesta sessão, lido da moldura nativa já aplicada. */
-  currentMode(): ThemeModeEntity;
+  currentMode(): ThemeMode;
 }
 
 /**
@@ -26,7 +26,7 @@ export interface ThemeModeGateway {
  */
 export interface ThemeModeSystemGateway extends ThemeModeGateway {
   /** A cor de fundo da janela, para quem a constrói. */
-  windowBackgroundFor(mode: ThemeModeEntity): string;
+  windowBackgroundFor(mode: ThemeMode): string;
   systemPrefersDark(): boolean;
 }
 
@@ -40,7 +40,7 @@ export const themeMode: ThemeModeSystemGateway = {
    * usuário alterna o tema: `backgroundColor` é fixado na construção da janela
    * e não acompanharia a troca sozinho.
    */
-  apply(mode: ThemeModeEntity): void {
+  apply(mode: ThemeMode): void {
     nativeTheme.themeSource = mode;
     for (const window of BrowserWindow.getAllWindows()) {
       window.setBackgroundColor(BACKGROUND[mode]);
@@ -53,11 +53,11 @@ export const themeMode: ThemeModeSystemGateway = {
    * — sem uma segunda cópia de estado para dessincronizar. Só responde certo
    * depois do primeiro `apply` (o do bootstrap).
    */
-  currentMode(): ThemeModeEntity {
+  currentMode(): ThemeMode {
     return nativeTheme.themeSource === 'dark' ? 'dark' : 'light';
   },
 
-  windowBackgroundFor(mode: ThemeModeEntity): string {
+  windowBackgroundFor(mode: ThemeMode): string {
     return BACKGROUND[mode];
   },
 

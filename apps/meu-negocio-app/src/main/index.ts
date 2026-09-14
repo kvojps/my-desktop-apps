@@ -1,9 +1,10 @@
 import { BrowserWindow, app, dialog, shell } from 'electron';
 import path from 'node:path';
 import { APP_ERROR_DESCRIPTIONS } from '@shared/errors/appError';
+import type { ThemeMode } from '@shared/types/theme';
 import icon from '../../resources/icon.png?asset';
 import { registerIpcHandlers } from './controllers/registerIpc';
-import { THEME_MODE_KEY, type ThemeModeEntity, resolveThemeMode } from './domain/theme';
+import { THEME_MODE_KEY, resolveThemeMode } from './domain/theme';
 import { initDb } from './infra/database/connection';
 import { makeAppSettingsRepository } from './infra/database/repositories/appSettingsRepository';
 import { themeMode } from './infra/gateways/system/themeMode';
@@ -13,7 +14,7 @@ import { classifyError } from './utils/errors/toIpcError';
 // mudar este nome deixa o banco de dados dos usuários órfão.
 app.setName('meu-negocio-app');
 
-function createWindow(mode: ThemeModeEntity) {
+function createWindow(mode: ThemeMode) {
   const mainWindow = new BrowserWindow({
     width: 1280,
     height: 800,
