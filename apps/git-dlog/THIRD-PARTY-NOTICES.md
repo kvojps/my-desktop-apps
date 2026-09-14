@@ -1,4 +1,4 @@
-# Avisos de terceiros — git-dlog 2.0.0
+# Avisos de terceiros — git-dlog 1.0.0-beta
 
 Gerado por `scripts/generate-third-party-notices.mjs`; não editar à mão.
 Reúne 55 pacotes distribuídos junto com o aplicativo. O código
