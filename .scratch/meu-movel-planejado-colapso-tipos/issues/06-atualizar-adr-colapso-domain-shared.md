@@ -1,4 +1,4 @@
-Status: todo
+Status: done
 
 # 06: Atualizar ADR-0005 com a auditoria do meu-movel-planejado
 
@@ -35,18 +35,18 @@ escrito com mais um caso real. Não criar ADR separado.
 
 ## Checklist
 
-- [ ] Atualizada a passagem do ADR-0005 que citava `meu-movel-planejado`
+- [x] Atualizada a passagem do ADR-0005 que citava `meu-movel-planejado`
       como pendente de auditoria — removido da lista de apps pendentes
       (a seção "O caso que esta regra não cobre" e o parágrafo final que
       nomeia `sheet.ts`/`project.ts`/`plan.ts`/`piece.ts`).
-- [ ] Acrescentada a seção "Auditoria do `meu-movel-planejado`",
+- [x] Acrescentada a seção "Auditoria do `meu-movel-planejado`",
       registrando as cinco áreas colapsadas.
-- [ ] Registrada a exceção de `theme.ts` como confirmação do critério já
+- [x] Registrada a exceção de `theme.ts` como confirmação do critério já
       existente (mesmo papel de `isThemeMode` no `git-dlog`/
       `meu-negocio-app`).
-- [ ] Registrado o caso novo do `PlanInput` como terceiro tipo de exceção,
+- [x] Registrado o caso novo do `PlanInput` como terceiro tipo de exceção,
       com frase própria explicando a diferença em relação a
       `stock_applied` e a `Month`/`isThemeMode`.
-- [ ] Confirmado que `CONTEXT.md` do meu-movel-planejado não precisa de
+- [x] Confirmado que `CONTEXT.md` do meu-movel-planejado não precisa de
       nenhuma mudança — colapso estrutural, vocabulário de domínio não
       muda.

@@ -106,16 +106,9 @@ de tornar normativo; pelo mesmo princípio do ADR-0002 ("a divergência é do
 código, nunca do documento"), essa divergência é aceita como fila de
 migração, não como bug a corrigir na hora deste ADR.
 
-`meu-negocio-app` e `meu-movel-planejado` ficam fora desta rodada. O
-`meu-negocio-app` porque já não qualifica — `stock_applied` acima. O outro
-porque tem pares `Entity`/`Shared` hoje comentados como "estruturalmente
-idênticos" (`apps/meu-movel-planejado/src/main/domain/sheet.ts`,
-`apps/meu-movel-planejado/src/main/domain/project.ts`,
-`apps/meu-movel-planejado/src/main/domain/plan.ts` e
-`apps/meu-movel-planejado/src/main/domain/piece.ts`) que ainda não foram
-auditados um a um sob este critério — fica para uma rodada futura, entidade
-por entidade, e até lá também não conta como bug: a auditoria em si é o
-trabalho pendente, não uma escolha de manter a duplicação.
+`meu-negocio-app` fica fora desta rodada porque já não qualifica —
+`stock_applied` acima. `meu-movel-planejado` foi auditado e colapsado numa
+rodada posterior — ver "Auditoria do `meu-movel-planejado`" abaixo.
 
 ## Auditoria do `git-dlog` (rodada seguinte a este ADR)
 
@@ -172,3 +165,45 @@ o critério já escrito confirmado por mais um caso real, no mesmo papel de
 estrutural (`domain/` ↔ `shared/types/`), e o vocabulário de domínio que o
 `CONTEXT.md` fixa — Conta a receber, Saldo devedor, Faixa, Escrituração de
 estoque — não muda com ele.
+
+## Auditoria do `meu-movel-planejado`
+
+O `meu-movel-planejado` foi auditado e colapsado por completo
+(`.scratch/meu-movel-planejado-colapso-tipos/issues/01` a `05`): Projeto, Peça,
+Chapa, a árvore de Plano de corte (o `Plan` inteiro, nó a nó) e `ThemeMode`
+colapsaram no critério deste ADR — todos hoje vivem só em `shared/types/`, e
+`domain/sheet.ts`, `domain/project.ts` e `domain/piece.ts` foram apagados por
+completo.
+
+Duas exceções confirmam o critério em vez de contradizê-lo — uma repete um
+papel já registrado neste ADR, a outra é um terceiro tipo de exceção:
+
+- `isThemeMode`/`resolveThemeMode` (`apps/meu-movel-planejado/src/main/domain/theme.ts`)
+  não colapsam: mesmo papel de `isThemeMode`/`resolveThemeMode` no `git-dlog`
+  e de `domain/theme.ts` no `meu-negocio-app` — lógica real de domínio (a
+  segunda resolve a preferência do sistema operacional quando não há escolha
+  gravada, e é lida pelo bootstrap do main antes de existir camada IPC), não
+  cópia pura de tipo. `domain/theme.ts` continua existindo só por causa
+  delas, mesmo com `ThemeModeEntity` colapsado.
+- `PlanInput` (`apps/meu-movel-planejado/src/main/domain/plan.ts`) não
+  colapsa, mas também não é o caso de `stock_applied` nem o de
+  `isThemeMode`: é um terceiro tipo de exceção. Não é campo interno que
+  precisa ficar de fora do IPC (não há campo nenhum sendo filtrado — `Plan`
+  colapsou inteiro), nem função de domínio com lógica real (é só um alias de
+  tipo, `Omit<Plan, 'id' | 'projectId' | 'generatedAt'>`). `PlanInput` *foi*
+  tipo de contrato, com par em `shared/types/plan.ts`, até um ticket anterior
+  mover a geração do plano de corte para o main; hoje é construído só dentro
+  dele, por `planSnapshot.toPlanInput`, e consumido só por
+  `plansRepository.replaceForProject` — nunca atravessa o IPC como está, e
+  por isso não tem mais par no shared. A diferença para `stock_applied` é a
+  origem: aqui não é um campo sensível sendo filtrado, é um tipo que deixou
+  de ser contrato por decisão de produto (a geração migrou de camada), e o
+  que sobrou é a forma que o main usa internamente antes de o banco atribuir
+  os três campos que faltam (`id`, `projectId`, `generatedAt`). Vale registrar
+  como padrão: outra entidade colapsada, neste ou em outro app, pode repetir
+  esse caso — um tipo de contrato que perde o par no shared não por
+  filtragem, mas porque a fronteira que ele atravessava deixou de existir.
+
+`CONTEXT.md` do `meu-movel-planejado` não precisa de nenhuma mudança: o
+colapso é estrutural (`domain/` ↔ `shared/types/`), e o vocabulário de
+domínio que o `CONTEXT.md` fixa não muda com ele.
