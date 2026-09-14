@@ -54,8 +54,8 @@ import { type FitHeuristic, type Rect, createFreeList, findFit, occupy } from '.
 
 /**
  * A peça como o empacotador a lê: o retângulo, a quantidade e a identidade que
- * volta em cada colocação. Não é `PieceEntity` porque função pura não tem o que
- * fazer com `projectId` nem com carimbo de tempo — mas `PieceEntity` a
+ * volta em cada colocação. Não é `Piece` porque função pura não tem o que
+ * fazer com `projectId` nem com carimbo de tempo — mas `Piece` a
  * satisfaz, e o service passa o que já tem em mãos.
  */
 export interface PackablePieceEntity extends RectangleBatch {
@@ -141,10 +141,10 @@ export interface NestingDeficitEntity {
 }
 
 /**
- * O plano de corte inteiro, como o empacotador o devolve. Difere de `PlanEntity`
- * de `domain/plan.ts`: as colocações e chapas daqui carregam `pieceId`/`sheetId`,
- * e é `planSnapshot` quem os descarta — "plano é snapshot, não derivação"
- * (README §2.5).
+ * O plano de corte inteiro, como o empacotador o devolve. Difere de `Plan` de
+ * `@shared/types/plan`: as colocações e chapas daqui carregam
+ * `pieceId`/`sheetId`, e é `planSnapshot` quem os descarta — "plano é
+ * snapshot, não derivação" (README §2.5).
  */
 export interface CuttingPlanEntity {
   sheets: NestingSheetEntity[];

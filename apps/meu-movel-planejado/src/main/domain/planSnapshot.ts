@@ -10,8 +10,9 @@
  * é ela que decide o que o plano deixa de saber. Não tem React nem Electron
  * dentro.
  */
+import type { PlanPlacement, PlanShortfall } from '@shared/types/plan';
 import type { CuttingPlanEntity, CuttingPlanInputEntity, NestingShortfallEntity } from './nesting';
-import type { PlacementEntity, PlanInput, ShortfallEntity } from './plan';
+import type { PlanInput } from './plan';
 
 /**
  * O plano pronto para gravar. Recebe também a entrada do empacotamento porque
@@ -34,7 +35,7 @@ export function toPlanInput(
       lengthTenthsMm: sheet.lengthTenthsMm,
       widthTenthsMm: sheet.widthTenthsMm,
       utilization: sheet.utilization,
-      placements: sheet.placements.map((placement): PlacementEntity => ({
+      placements: sheet.placements.map((placement): PlanPlacement => ({
         // Peça que já não existe no projeto continua sem rótulo, e não com um
         // texto de erro: o desenho mostra a medida quando o rótulo é vazio.
         label: labels.get(placement.pieceId) ?? '',
@@ -59,7 +60,7 @@ export function toPlanInput(
 }
 
 /** O lote de fora sem o `pieceId`, que é a identidade que o snapshot descarta. */
-function toShortfall(piece: NestingShortfallEntity): ShortfallEntity {
+function toShortfall(piece: NestingShortfallEntity): PlanShortfall {
   return {
     label: piece.label,
     lengthTenthsMm: piece.lengthTenthsMm,

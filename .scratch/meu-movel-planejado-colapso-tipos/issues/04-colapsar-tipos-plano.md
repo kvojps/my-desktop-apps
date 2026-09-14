@@ -1,4 +1,4 @@
-Status: todo
+Status: done
 
 # 04: Colapsar tipos da árvore de Plano de corte (Plan)
 
@@ -24,11 +24,11 @@ atravessa o IPC hoje (ver spec, seção Solution).
 
 ## Checklist
 
-- [ ] Apagar `main/controllers/responses/plan.response.ts` (os cinco
+- [x] Apagar `main/controllers/responses/plan.response.ts` (os cinco
       mappers — `placementToResponse`, `plannedSheetToResponse`,
       `shortfallToResponse`, `deficitToResponse`, `planToResponse` — eram
       cópia 1:1 pura, confirmada por leitura).
-- [ ] `infra/database/repositories/plansRepository.ts`: `rowToPlan`,
+- [x] `infra/database/repositories/plansRepository.ts`: `rowToPlan`,
       `rowToPlacement`, `rowToShortfall`, `rowToDeficit`,
       `listPlannedSheets`, `listPlacements`, `listShortfalls` e os métodos
       `findByProject`/`replaceForProject` passam a devolver `Plan` e as
@@ -37,7 +37,7 @@ atravessa o IPC hoje (ver spec, seção Solution).
       `domain/plan.ts`). `PlanRow`, `PlannedSheetRow`, `PlacementRow`,
       `ShortfallRow` (fronteira do banco) não mudam, nem a conversão
       `rotated` (0/1→boolean) em `rowToPlacement`.
-- [ ] `domain/plan.ts`: apagar `PlanEntity`, `PlannedSheetEntity`,
+- [x] `domain/plan.ts`: apagar `PlanEntity`, `PlannedSheetEntity`,
       `PlacementEntity`, `ShortfallEntity`, `DeficitEntity`. O arquivo fica
       só com `export type PlanInput = Omit<Plan, 'id' | 'projectId' |
       'generatedAt'>`, importando `Plan` de `@shared/types/plan`. Reescrever
@@ -45,17 +45,17 @@ atravessa o IPC hoje (ver spec, seção Solution).
       (era contrato até um ticket anterior mover a geração para o main;
       hoje `PlanInput` só é construído dentro do main e nunca atravessa o
       IPC como está).
-- [ ] `domain/planSnapshot.ts` (`toPlanInput`, `toShortfall`): ajustar os
+- [x] `domain/planSnapshot.ts` (`toPlanInput`, `toShortfall`): ajustar os
       imports de `PlacementEntity`/`ShortfallEntity`/`PlanInput` — os dois
       primeiros passam a vir de `@shared/types/plan` (como `PlanPlacement`/
       `PlanShortfall`), o terceiro continua vindo de `domain/plan.ts`. A
       lógica da função (descartar `pieceId`/`sheetId`, copiar o rótulo) não
       muda.
-- [ ] `services/plansService.ts`: import de `PlanEntity` trocado por
+- [x] `services/plansService.ts`: import de `PlanEntity` trocado por
       `Plan`; `get`/`generate` ajustados.
-- [ ] `controllers/plansController.ts`: remover o import e as duas chamadas
+- [x] `controllers/plansController.ts`: remover o import e as duas chamadas
       de `planToResponse` — o retorno do service já é `Plan`.
-- [ ] `domain/nesting.ts`: nenhum import muda — confirmado que o arquivo
+- [x] `domain/nesting.ts`: nenhum import muda — confirmado que o arquivo
       não importa `PieceEntity`/`SheetEntity`/`ProjectEntity`/`PlanEntity`,
       só os cita em comentário (para explicar por que o empacotador usa o
       vocabulário próprio `Packable*`/`Nesting*`, com `pieceId`/`sheetId`,
@@ -66,12 +66,12 @@ atravessa o IPC hoje (ver spec, seção Solution).
       `NestingPlacementEntity`, `NestingShortfallEntity`,
       `NestingDeficitEntity`, `PackablePieceEntity`, `PackableSheetEntity`)
       **não colapsam** — fora de escopo, ver spec.
-- [ ] Confirmar que `domain/nesting.test.ts` e `domain/planSnapshot.test.ts`
+- [x] Confirmar que `domain/nesting.test.ts` e `domain/planSnapshot.test.ts`
       não precisam de nenhuma mudança — nenhum dos dois importa os cinco
       tipos colapsados nesta issue.
-- [ ] `npm run typecheck` — limpo, sem erros.
-- [ ] `npm run lint` — sem erros novos.
-- [ ] `npm test` — suíte de lógica pura, incluindo `nesting.test.ts` e
+- [x] `npm run typecheck` — limpo, sem erros.
+- [x] `npm run lint` — sem erros novos.
+- [x] `npm test` — suíte de lógica pura, incluindo `nesting.test.ts` e
       `planSnapshot.test.ts`, sem regressão.
 - [ ] QA manual (`npm run dev:movel`): gerar um plano, ver a prancheta
       (peças no lugar, sobra hachurada, aproveitamento), navegar entre

@@ -1,6 +1,6 @@
 import type { ExportResult } from '@shared/ipc/api';
+import type { Plan } from '@shared/types/plan';
 import { type CuttingPlanInputEntity, packCuttingPlan } from '../domain/nesting';
-import type { PlanEntity } from '../domain/plan';
 import { planExportFileName } from '../domain/planExportFileName';
 import { toPlanInput } from '../domain/planSnapshot';
 import type { Repositories } from '../infra/database';
@@ -99,7 +99,7 @@ export function makePlansService(
      * O plano vigente do projeto. `null` quando ninguém mandou gerar — é o
      * estado normal de um projeto novo, não 404.
      */
-    get(projectId: string): PlanEntity | null {
+    get(projectId: string): Plan | null {
       return repos.plans.findByProject(projectId);
     },
 
@@ -118,7 +118,7 @@ export function makePlansService(
      * que a tela sabe que um plano ficou para trás, e relê-lo depois marcaria
      * como atual um plano gerado sobre uma versão anterior do projeto.
      */
-    generate(projectId: string): PlanEntity {
+    generate(projectId: string): Plan {
       const project = repos.projects.findById(projectId);
       if (!project) throw new AppError(404, PROJECT_GONE);
 
