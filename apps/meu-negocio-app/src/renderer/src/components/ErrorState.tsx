@@ -1,8 +1,8 @@
-import { ErrorOutline, FolderOpen, Restore } from '@mui/icons-material';
-import { Box, Button, Stack, Typography } from '@mui/material';
+import { CircleAlert, FolderOpen, RotateCcw } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { APP_ERROR_DESCRIPTIONS, decodeAppError } from '@shared/errors/appError';
 import { api } from '@/api/client';
+import { Button } from '@/components/Button';
 import { useSnackbar } from '@/contexts/SnackbarContext';
 
 interface ErrorStateProps {
@@ -62,41 +62,30 @@ export function ErrorState({ title, error, onRetry, dense }: ErrorStateProps) {
   }
 
   return (
-    <Box sx={{ textAlign: 'center', mt: dense ? 0 : 8, mx: 'auto', maxWidth: 560 }}>
-      <ErrorOutline sx={{ fontSize: dense ? 40 : 48, color: 'error.main', mb: 1 }} />
-      <Typography ref={headingRef} tabIndex={-1} variant={dense ? 'h6' : 'h5'} gutterBottom>
+    <section className="negocio-error" data-dense={!!dense} role="alert">
+      <CircleAlert size={dense ? 40 : 48} className="negocio-error-icon" aria-hidden="true" />
+      <h2 ref={headingRef} tabIndex={-1}>
         {title}
-      </Typography>
-      <Typography color="text.secondary" sx={{ mb: 2 }}>
-        {APP_ERROR_DESCRIPTIONS[code]}
-      </Typography>
-
-      <Stack direction="row" spacing={1} justifyContent="center" flexWrap="wrap" useFlexGap>
-        <Button variant="contained" onClick={onRetry}>
+      </h2>
+      <p>{APP_ERROR_DESCRIPTIONS[code]}</p>
+      <div className="negocio-state-actions">
+        <Button variant="primary" onClick={onRetry}>
           Tentar novamente
         </Button>
         {canRestore && (
-          <Button
-            variant="outlined"
-            startIcon={<Restore />}
-            onClick={handleRestore}
-            disabled={restoring}
-          >
-            Restaurar backup
+          <Button onClick={handleRestore} disabled={restoring}>
+            <RotateCcw size={18} aria-hidden="true" />
+            {restoring ? 'Restaurando...' : 'Restaurar backup'}
           </Button>
         )}
         {canOpenFolder && (
-          <Button variant="outlined" startIcon={<FolderOpen />} onClick={handleOpenFolder}>
+          <Button onClick={handleOpenFolder}>
+            <FolderOpen size={18} aria-hidden="true" />
             Abrir pasta de dados
           </Button>
         )}
-      </Stack>
-
-      {/* Mensagem técnica: `mono` porque é texto de máquina, e `text.secondary`
-          porque é conteúdo — `text.disabled` daria 2.68:1 sobre o papel claro. */}
-      <Typography variant="mono" color="text.secondary" sx={{ display: 'block', mt: 3 }}>
-        {message}
-      </Typography>
-    </Box>
+      </div>
+      <p className="negocio-error-detail">{message}</p>
+    </section>
   );
 }

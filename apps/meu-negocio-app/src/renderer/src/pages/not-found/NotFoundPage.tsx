@@ -1,5 +1,4 @@
-import { TravelExploreOutlined } from '@mui/icons-material';
-import { Button } from '@mui/material';
+import { Compass } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { EmptyState } from '@/components/EmptyState';
 import { ROUTES } from '@/routes';
@@ -13,13 +12,13 @@ import { ROUTES } from '@/routes';
 export function NotFoundPage() {
   return (
     <EmptyState
-      icon={<TravelExploreOutlined sx={{ fontSize: 48 }} />}
+      icon={<Compass size={48} />}
       title="Página não encontrada."
       description="O endereço acessado não existe ou foi movido."
       action={
-        <Button component={Link} to={ROUTES.DASHBOARD} variant="contained">
+        <Link to={ROUTES.DASHBOARD} className="negocio-button negocio-button-primary">
           Voltar para o Dashboard
-        </Button>
+        </Link>
       }
     />
   );

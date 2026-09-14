@@ -1,10 +1,10 @@
-import type { ThemeMode } from '@shared/types/theme';
 import { BrowserWindow, nativeTheme } from 'electron';
+import type { ThemeMode } from '@shared/types/theme';
 
-/** Igual a `background.default` do tema do renderer, por modo. */
+/** Igual ao token `background` da base local (docs/orca-theme.md), por modo. */
 const BACKGROUND: Record<ThemeMode, string> = {
-  light: '#F4F6FB',
-  dark: '#10131C',
+  light: '#ffffff',
+  dark: '#0a0a0a',
 };
 
 /**

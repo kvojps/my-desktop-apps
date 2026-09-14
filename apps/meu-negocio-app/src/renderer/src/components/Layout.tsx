@@ -38,7 +38,7 @@ export function Layout({ children }: { children: ReactNode }) {
       >
         <Link
           to={ROUTES.DASHBOARD}
-          className="ui:mb-4 ui:flex ui:h-9 ui:items-center ui:gap-2 ui:px-1 ui:text-sm ui:font-semibold ui:text-foreground"
+          className="ui:mb-4 ui:flex ui:h-9 ui:items-center ui:gap-2 ui:px-1 ui:text-sm ui:font-semibold ui:text-foreground ui:no-underline"
           aria-label="Meu Negócio — Dashboard"
           title="Meu Negócio"
         >
@@ -93,7 +93,7 @@ export function Layout({ children }: { children: ReactNode }) {
           </button>
         </div>
       </nav>
-      <main className="ui:min-w-0 ui:flex-1 ui:overflow-y-auto ui:p-6">
+      <main className="negocio-main ui:min-w-0 ui:flex-1 ui:overflow-y-auto ui:p-6">
         <div className="negocio-content ui:mx-auto ui:flex ui:min-h-full ui:max-w-[1440px] ui:flex-col">
           {children}
         </div>

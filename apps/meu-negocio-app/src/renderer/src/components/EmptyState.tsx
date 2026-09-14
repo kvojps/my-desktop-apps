@@ -1,5 +1,4 @@
-import { Box, Stack, Typography } from '@mui/material';
-import { ReactNode } from 'react';
+import type { ReactNode } from 'react';
 
 interface EmptyStateProps {
   /** Ícone da própria tela — reforça que a lista está vazia de propósito. */
@@ -22,25 +21,18 @@ interface EmptyStateProps {
  * - filtro não achou nada → ícone de filtro, diz que é o filtro, ação de limpar;
  * - falhou ao carregar → não é vazio, é erro: use `ErrorState`.
  *
- * O ícone tem duas medidas e quem escolhe é a chamada, pela extensão do que está
- * vazio: 48 quando a página inteira está vazia, 40 numa seção ou numa tabela
- * dentro de uma página que tem outro conteúdo.
+ * O ícone vai em texto secundário: ícone de estado é conteúdo, não controle
+ * desabilitado, e `text.disabled` falha contraste (§1.4).
  */
 export function EmptyState({ icon, title, description, action }: EmptyStateProps) {
   return (
-    <Stack alignItems="center" spacing={1.5} sx={{ py: 6, px: 2, textAlign: 'center' }}>
-      {/* `text.disabled` falha contraste: ícone de estado é conteúdo, não
-          controle desabilitado. */}
-      <Box sx={{ display: 'flex', color: 'text.secondary' }}>{icon}</Box>
-      <Typography variant="body2" color="text.secondary">
-        {title}
-      </Typography>
-      {description && (
-        <Typography variant="caption" color="text.secondary" sx={{ maxWidth: 420 }}>
-          {description}
-        </Typography>
-      )}
+    <section className="negocio-empty">
+      <div className="negocio-state-icon" aria-hidden="true">
+        {icon}
+      </div>
+      <p>{title}</p>
+      {description && <p className="negocio-description">{description}</p>}
       {action}
-    </Stack>
+    </section>
   );
 }

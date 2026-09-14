@@ -1,4 +1,3 @@
-import { Stack, Typography } from '@mui/material';
 import { Filter, Package, Plus } from 'lucide-react';
 import { useMemo } from 'react';
 import type { Product } from '@shared/types/product';
@@ -94,28 +93,20 @@ export function ProductsPage() {
           if (margin === undefined) {
             // Valor ausente é conteúdo, não controle desabilitado: vai em
             // `text.secondary`, que passa em AA nos dois modos (§1.4).
-            return (
-              <Typography variant="body2" color="text.secondary">
-                —
-              </Typography>
-            );
+            return <span className="ui:text-muted-foreground">—</span>;
           }
           return (
-            <Stack>
-              <Typography
-                variant="body2"
-                // Margem negativa é venda no prejuízo: o único caso da tabela
-                // que pede alarme. Numa coluna, só a condição que pede atenção
-                // é pintada (§1.5).
-                color={margin < 0 ? 'error.main' : 'text.primary'}
-                sx={{ fontWeight: margin < 0 ? 600 : 400 }}
-              >
+            <div className="negocio-cell-stack">
+              {/* Margem negativa é venda no prejuízo: o único caso da tabela
+                  que pede alarme. Numa coluna, só a condição que pede atenção
+                  é pintada (§1.5). */}
+              <span className={margin < 0 ? 'negocio-negative' : undefined}>
                 {formatPercent(margin)}
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
+              </span>
+              <span className="negocio-caption">
                 {formatCurrency(getProductUnitProfit(p))} / un
-              </Typography>
-            </Stack>
+              </span>
+            </div>
           );
         },
       },
@@ -124,10 +115,10 @@ export function ProductsPage() {
         label: 'Estoque',
         sortable: true,
         render: (p: Product) => (
-          <Stack direction="row" spacing={1} alignItems="center">
-            <Typography variant="body2">{p.stock}</Typography>
+          <div className="ui:flex ui:items-center ui:gap-2">
+            <span>{p.stock}</span>
             <StockBadge stock={p.stock} minStock={p.minStock} />
-          </Stack>
+          </div>
         ),
       },
     ],
@@ -145,7 +136,7 @@ export function ProductsPage() {
   const hasProducts = products.length > 0;
 
   return (
-    <Stack spacing={3}>
+    <div className="negocio-page">
       <PageHeader
         icon={<Package />}
         title="Produtos"
@@ -238,6 +229,6 @@ export function ProductsPage() {
             />
           );
         })()}
-    </Stack>
+    </div>
   );
 }

@@ -4,8 +4,11 @@
 @import 'tailwindcss/utilities.css' layer(utilities) prefix(ui);
 @source './';
 
+/* Só o apelido Tailwind dos tokens que `theme/index.ts` publica; o valor mora
+   lá e a tabela que o documenta, em docs/orca-theme.md. */
 @theme inline {
   --color-background: var(--negocio-background);
+  --color-content: var(--negocio-content);
   --color-paper: var(--negocio-paper);
   --color-sidebar: var(--negocio-sidebar);
   --color-foreground: var(--negocio-foreground);
@@ -13,6 +16,13 @@
   --color-border: var(--negocio-border);
   --color-accent: var(--negocio-accent);
   --color-primary: var(--negocio-primary);
+  --color-on-primary: var(--negocio-on-primary);
+  --color-danger: var(--negocio-danger);
+  --color-positive: var(--negocio-positive);
+  --radius-md: 6px;
+  --radius-lg: 10px;
+  --font-sans: var(--negocio-font);
+  --font-mono: var(--negocio-mono);
 }
 
 @layer components {
@@ -29,8 +39,14 @@
     min-height: 100vh;
     background: var(--negocio-background);
     color: var(--negocio-foreground);
-    font-family: 'Geist', 'Roboto', 'Helvetica', 'Arial', sans-serif;
+    font-family: var(--negocio-font);
+    font-size: 14px;
+    line-height: 20px;
     font-variant-numeric: tabular-nums;
+    -webkit-font-smoothing: antialiased;
+    /* O polegar acompanha o modo; a trilha é a faixa de conteúdo, que é a
+       superfície que rola. */
+    scrollbar-color: var(--negocio-scrollbar) var(--negocio-content);
   }
 
   *,
@@ -65,7 +81,7 @@
     align-items: center;
     gap: 10px;
     border: 0;
-    border-radius: 8px;
+    border-radius: 6px;
     background: transparent;
     color: var(--negocio-muted-foreground);
     font: 500 14px/20px inherit;
@@ -95,6 +111,10 @@
   }
   .negocio-sidebar[data-collapsed='true'] .negocio-nav-item[aria-current='page']::before {
     left: 0;
+  }
+  .negocio-main {
+    /* A faixa recuada sobre a qual os painéis flutuam (docs/orca-theme.md). */
+    background: var(--negocio-content);
   }
   .negocio-content {
     /* As grades MUI das telas usam `@container content`; este contrato não pode
@@ -137,10 +157,12 @@
     min-height: 36px;
     padding: 8px 12px;
     border: 1px solid var(--negocio-border);
-    border-radius: 8px;
+    border-radius: 6px;
     background: var(--negocio-paper);
     color: var(--negocio-foreground);
     font: 500 14px/20px inherit;
+    /* Sem Preflight, um `<a>` vestido de botão chega sublinhado. */
+    text-decoration: none;
     cursor: pointer;
   }
   .negocio-button:hover:not(:disabled),
@@ -150,12 +172,20 @@
   .negocio-button-primary {
     border-color: var(--negocio-primary);
     background: var(--negocio-primary);
-    color: #fff;
+    color: var(--negocio-on-primary);
     font-weight: 600;
   }
+  /* O primário é neutro e não tem um hover mais escuro que caiba nos dois
+     modos; quem responde ao cursor é o sublinhado. */
+  .negocio-button-primary:hover:not(:disabled) {
+    background: var(--negocio-primary);
+    text-decoration: underline;
+  }
+  /* A ação destrutiva pinta o primário de `danger`: condição, não identidade (§1.5). */
   .negocio-button-primary[data-tone='danger'] {
     border-color: var(--negocio-danger);
     background: var(--negocio-danger);
+    color: var(--negocio-on-danger);
   }
   .negocio-button-ghost {
     min-width: 36px;
@@ -170,7 +200,7 @@
   .negocio-panel {
     overflow: hidden;
     border: 1px solid var(--negocio-border);
-    border-radius: 12px;
+    border-radius: 10px;
     background: var(--negocio-paper);
   }
   .negocio-table-scroll {
@@ -260,7 +290,7 @@
     max-height: calc(100vh - 48px);
     padding: 0;
     border: 1px solid var(--negocio-border);
-    border-radius: 12px;
+    border-radius: 10px;
     background: var(--negocio-paper);
     color: var(--negocio-foreground);
     box-shadow: 0 12px 32px rgb(0 0 0 / 24%);
@@ -349,8 +379,10 @@
     width: 100%;
     min-height: 36px;
     padding: 8px 10px;
-    border: 1px solid var(--negocio-border);
-    border-radius: 8px;
+    /* Borda de campo não é decorativa: num diálogo o campo tem o fundo do
+       papel, e ela é o único sinal de onde se digita — 3:1 de objeto gráfico. */
+    border: 1px solid var(--negocio-field-border);
+    border-radius: 6px;
     background: var(--negocio-paper);
     color: var(--negocio-foreground);
     /* Inputs e textareas não herdam a fonte do documento de forma consistente
@@ -405,7 +437,7 @@
     min-height: 36px;
     padding: 8px 10px;
     border: 1px solid var(--negocio-border);
-    border-radius: 8px;
+    border-radius: 6px;
     background: var(--negocio-paper);
     color: var(--negocio-foreground);
     font: 500 14px/20px inherit;
@@ -419,7 +451,7 @@
     padding: 1px 6px;
     border-radius: 10px;
     background: var(--negocio-warning);
-    color: rgba(0, 0, 0, 0.87);
+    color: var(--negocio-on-warning);
     font-size: 12px;
   }
   .negocio-menu {
@@ -428,7 +460,7 @@
     min-width: 184px;
     padding: 4px;
     border: 1px solid var(--negocio-border);
-    border-radius: 8px;
+    border-radius: 6px;
     background: var(--negocio-paper);
     box-shadow: 0 4px 16px rgb(0 0 0 / 18%);
     color: var(--negocio-foreground);
@@ -497,7 +529,7 @@
     min-height: 112px;
     padding: 16px;
     border: 1px solid var(--negocio-border);
-    border-radius: 12px;
+    border-radius: 10px;
     background: var(--negocio-paper);
   }
   .negocio-stat-value {
@@ -523,7 +555,7 @@
     color: var(--negocio-danger);
   }
   .negocio-stat strong[data-tone='positive'] {
-    color: var(--negocio-success);
+    color: var(--negocio-positive);
   }
   .negocio-stat > .negocio-tile {
     position: absolute;
@@ -553,7 +585,7 @@
     height: 14px;
   }
   .negocio-trend[data-good='true'] {
-    color: var(--negocio-success);
+    color: var(--negocio-positive);
   }
   .negocio-trend[data-good='false'] {
     color: var(--negocio-danger);
@@ -568,7 +600,7 @@
     justify-content: center;
     width: 38px;
     height: 38px;
-    border-radius: 8px;
+    border-radius: 6px;
     background: var(--negocio-accent);
     color: var(--negocio-muted-foreground);
   }
@@ -577,27 +609,31 @@
     height: 20px;
     font-size: 20px;
   }
-  .negocio-tile[data-accent] {
-    color: var(--negocio-on-fill);
-  }
+  /* A identidade lê os tokens `--negocio-tile-*`, não o `primary` do botão:
+     o botão primário é neutro, o ladrilho "primary" continua azul. */
   .negocio-tile[data-accent='primary'] {
-    background: var(--negocio-primary);
+    background: var(--negocio-tile-primary);
+    color: var(--negocio-tile-primary-label);
   }
   .negocio-tile[data-accent='secondary'] {
-    background: var(--negocio-secondary);
+    background: var(--negocio-tile-secondary);
+    color: var(--negocio-tile-secondary-label);
   }
   .negocio-tile[data-accent='success'] {
-    background: var(--negocio-success);
+    background: var(--negocio-tile-success);
+    color: var(--negocio-tile-success-label);
   }
   .negocio-tile[data-accent='info'] {
-    background: var(--negocio-info);
+    background: var(--negocio-tile-info);
+    color: var(--negocio-tile-info-label);
   }
   .negocio-tile[data-accent='error'] {
-    background: var(--negocio-danger);
+    background: var(--negocio-tile-error);
+    color: var(--negocio-tile-error-label);
   }
   .negocio-tile[data-accent='warning'] {
-    background: var(--negocio-warning);
-    color: var(--negocio-on-warning);
+    background: var(--negocio-tile-warning);
+    color: var(--negocio-tile-warning-label);
   }
 
   /* Chip de estado. O rótulo sobre o preenchimento usa o par medido do modo
@@ -621,20 +657,20 @@
     height: 14px;
   }
   .negocio-chip[data-color='success'] {
-    background: var(--negocio-success);
-    color: var(--negocio-on-fill);
+    background: var(--negocio-tile-success);
+    color: var(--negocio-tile-success-label);
   }
   .negocio-chip[data-color='error'] {
-    background: var(--negocio-danger);
-    color: var(--negocio-on-fill);
+    background: var(--negocio-tile-error);
+    color: var(--negocio-tile-error-label);
   }
   .negocio-chip[data-color='info'] {
-    background: var(--negocio-info);
-    color: var(--negocio-on-fill);
+    background: var(--negocio-tile-info);
+    color: var(--negocio-tile-info-label);
   }
   .negocio-chip[data-color='warning'] {
-    background: var(--negocio-warning);
-    color: var(--negocio-on-warning);
+    background: var(--negocio-tile-warning);
+    color: var(--negocio-tile-warning-label);
   }
   button.negocio-chip {
     cursor: pointer;
@@ -648,7 +684,7 @@
     display: inline-flex;
     overflow: hidden;
     border: 1px solid var(--negocio-border);
-    border-radius: 8px;
+    border-radius: 6px;
     background: var(--negocio-paper);
   }
   .negocio-toggle-group > button {
@@ -688,7 +724,7 @@
     gap: 16px;
     padding: 16px;
     border: 1px solid var(--negocio-border);
-    border-radius: 12px;
+    border-radius: 10px;
     background: var(--negocio-paper);
     box-shadow: 0 4px 16px rgb(0 0 0 / 18%);
     color: var(--negocio-foreground);
@@ -705,7 +741,7 @@
     gap: 8px;
     padding: 10px 12px;
     border: 1px solid var(--negocio-warning);
-    border-radius: 8px;
+    border-radius: 6px;
     background: rgb(250 178 25 / 12%);
     color: var(--negocio-foreground);
     font-size: 13px;
@@ -749,16 +785,16 @@
     display: block;
     height: 100%;
     border-radius: inherit;
-    background: var(--negocio-primary);
+    background: var(--negocio-tile-primary);
   }
   .negocio-meter[data-color='success'] > span {
-    background: var(--negocio-success);
+    background: var(--negocio-tile-success);
   }
   .negocio-meter[data-color='warning'] > span {
-    background: var(--negocio-warning);
+    background: var(--negocio-tile-warning);
   }
   .negocio-meter[data-color='error'] > span {
-    background: var(--negocio-danger);
+    background: var(--negocio-tile-error);
   }
 
   .negocio-actions-row {
@@ -872,5 +908,132 @@
   .negocio-stat-skeleton .negocio-skeleton:last-child {
     width: 75%;
     height: 24px;
+  }
+
+  /* Cabeçalho de tela: sem margem própria, o vão é do `.negocio-page` (§3.1). */
+  .negocio-page-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .negocio-page-heading {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+  }
+  .negocio-page-heading > svg {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    font-size: 24px;
+    color: var(--negocio-muted-foreground);
+  }
+  .negocio-page-header h1 {
+    margin: 0;
+    font-size: 20px;
+    line-height: 28px;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .negocio-page-header p {
+    margin: 2px 0 0;
+    color: var(--negocio-muted-foreground);
+  }
+
+  /* Estados transversais (docs/orca-theme.md): vazio, erro e notificação. */
+  .negocio-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 48px 16px;
+    text-align: center;
+  }
+  .negocio-empty p {
+    margin: 0;
+    color: var(--negocio-muted-foreground);
+  }
+  .negocio-state-icon {
+    display: flex;
+    color: var(--negocio-muted-foreground);
+  }
+  .negocio-description {
+    max-width: 420px;
+    font-size: 12px;
+    line-height: 18px;
+  }
+  .negocio-error {
+    max-width: 560px;
+    margin: 64px auto 0;
+    padding: 24px;
+    text-align: center;
+  }
+  .negocio-error[data-dense='true'] {
+    margin-top: 0;
+  }
+  .negocio-error h2 {
+    margin: 8px 0;
+    font-size: 24px;
+    line-height: 32px;
+    font-weight: 600;
+  }
+  .negocio-error[data-dense='true'] h2 {
+    font-size: 20px;
+    line-height: 28px;
+  }
+  .negocio-error p {
+    margin: 0 0 16px;
+    color: var(--negocio-muted-foreground);
+  }
+  .negocio-error-icon {
+    color: var(--negocio-danger);
+  }
+  .negocio-state-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+  }
+  /* Mensagem técnica: mono porque é texto de máquina, secundário porque é conteúdo. */
+  .negocio-error .negocio-error-detail {
+    margin: 24px 0 0;
+    font: 12px/18px var(--negocio-mono);
+    overflow-wrap: anywhere;
+  }
+  .negocio-snackbar {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    z-index: 1500;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: max-content;
+    max-width: min(560px, calc(100vw - 48px));
+    padding: 16px;
+    border: 1px solid var(--negocio-border);
+    border-radius: 10px;
+    background: var(--negocio-paper);
+    color: var(--negocio-foreground);
+    box-shadow: 0 4px 16px rgb(0 0 0 / 18%);
+    transform: translateX(-50%);
+  }
+  .negocio-snackbar-message {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .negocio-snackbar-message svg {
+    flex-shrink: 0;
+  }
+  .negocio-snackbar > button {
+    flex-shrink: 0;
   }
 }
