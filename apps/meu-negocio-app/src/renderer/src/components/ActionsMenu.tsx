@@ -1,6 +1,15 @@
-import { Check, DeleteOutline, Edit, MoreVert, Replay, Visibility } from '@mui/icons-material';
-import { IconButton, ListItemIcon, ListItemText, Menu, MenuItem } from '@mui/material';
-import { MouseEvent, useState } from 'react';
+import { Check, Edit, Eye, MoreVertical, RotateCcw, Trash2 } from 'lucide-react';
+import {
+  type KeyboardEvent,
+  type MouseEvent,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
+import { createPortal } from 'react-dom';
+import { Button } from './Button';
 
 interface ActionsMenuProps {
   onView?: () => void;
@@ -23,74 +32,126 @@ export function ActionsMenu({
   ariaLabel = 'Ações',
   deleteLabel = 'Excluir',
 }: ActionsMenuProps) {
-  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
-  const open = Boolean(anchorEl);
+  const [open, setOpen] = useState(false);
+  const trigger = useRef<HTMLButtonElement>(null);
+  const menu = useRef<HTMLDivElement>(null);
+  const menuId = useId();
 
-  function close() {
-    setAnchorEl(null);
+  function close(returnFocus = true) {
+    setOpen(false);
+    if (returnFocus) trigger.current?.focus();
   }
 
   function run(action: () => void) {
-    action();
     close();
+    action();
+  }
+
+  useLayoutEffect(() => {
+    if (!open || !menu.current || !trigger.current) return;
+    const rect = trigger.current.getBoundingClientRect();
+    menu.current.style.top = `${Math.min(rect.bottom + 6, window.innerHeight - menu.current.offsetHeight - 8)}px`;
+    menu.current.style.left = `${Math.max(8, rect.right - menu.current.offsetWidth)}px`;
+    menu.current.querySelector<HTMLButtonElement>('button')?.focus();
+  }, [open]);
+  useEffect(() => {
+    if (!open) return;
+    const closeOnOutside = (event: PointerEvent) => {
+      const target = event.target as Node;
+      if (!menu.current?.contains(target) && !trigger.current?.contains(target)) close();
+    };
+    const closeOnScroll = () => close();
+    document.addEventListener('pointerdown', closeOnOutside);
+    document.addEventListener('scroll', closeOnScroll, true);
+    return () => {
+      document.removeEventListener('pointerdown', closeOnOutside);
+      document.removeEventListener('scroll', closeOnScroll, true);
+    };
+  }, [open]);
+  function handleKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    const buttons = Array.from(menu.current?.querySelectorAll('button') ?? []);
+    const index = buttons.indexOf(document.activeElement as HTMLButtonElement);
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      close();
+    } else if (event.key === 'Tab') close(false);
+    else if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      event.preventDefault();
+      buttons[
+        (index + (event.key === 'ArrowDown' ? 1 : -1) + buttons.length) % buttons.length
+      ]?.focus();
+    } else if (event.key === 'Home' || event.key === 'End') {
+      event.preventDefault();
+      buttons[event.key === 'Home' ? 0 : buttons.length - 1]?.focus();
+    }
   }
 
   return (
     <>
-      <IconButton
-        size="small"
+      <Button
+        ref={trigger}
+        variant="ghost"
         aria-label={ariaLabel}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-controls={open ? menuId : undefined}
         onClick={(event: MouseEvent<HTMLElement>) => {
           // A linha inteira costuma ser clicável; sem isto, abrir o menu
           // abriria também o detalhe do item.
           event.stopPropagation();
-          setAnchorEl(event.currentTarget);
+          setOpen((current) => !current);
         }}
       >
-        <MoreVert />
-      </IconButton>
-      <Menu anchorEl={anchorEl} open={open} onClose={close} onClick={(e) => e.stopPropagation()}>
-        {onView && (
-          <MenuItem onClick={() => run(onView)}>
-            <ListItemIcon>
-              <Visibility sx={{ fontSize: 16 }} />
-            </ListItemIcon>
-            <ListItemText>Ver</ListItemText>
-          </MenuItem>
+        <MoreVertical size={18} aria-hidden="true" />
+      </Button>
+      {open &&
+        createPortal(
+          <div
+            ref={menu}
+            id={menuId}
+            className="negocio-menu"
+            role="menu"
+            aria-label={ariaLabel}
+            onKeyDown={handleKeyDown}
+          >
+            {onView && (
+              <button type="button" role="menuitem" onClick={() => run(onView)}>
+                <Eye aria-hidden="true" />
+                Ver
+              </button>
+            )}
+            {onEdit && (
+              <button type="button" role="menuitem" onClick={() => run(onEdit)}>
+                <Edit aria-hidden="true" />
+                Editar
+              </button>
+            )}
+            {onPayment && (
+              <button type="button" role="menuitem" onClick={() => run(onPayment)}>
+                <Check aria-hidden="true" />
+                Registrar pagamento
+              </button>
+            )}
+            {onReopen && (
+              <button type="button" role="menuitem" onClick={() => run(onReopen)}>
+                <RotateCcw aria-hidden="true" />
+                Reabrir pedido
+              </button>
+            )}
+            {onDelete && (
+              <button
+                type="button"
+                role="menuitem"
+                data-danger="true"
+                onClick={() => run(onDelete)}
+              >
+                <Trash2 aria-hidden="true" />
+                {deleteLabel}
+              </button>
+            )}
+          </div>,
+          document.querySelector('dialog[open]') ?? document.body,
         )}
-        {onEdit && (
-          <MenuItem onClick={() => run(onEdit)}>
-            <ListItemIcon>
-              <Edit sx={{ fontSize: 16 }} />
-            </ListItemIcon>
-            <ListItemText>Editar</ListItemText>
-          </MenuItem>
-        )}
-        {onPayment && (
-          <MenuItem onClick={() => run(onPayment)}>
-            <ListItemIcon>
-              <Check sx={{ fontSize: 16 }} />
-            </ListItemIcon>
-            <ListItemText>Registrar pagamento</ListItemText>
-          </MenuItem>
-        )}
-        {onReopen && (
-          <MenuItem onClick={() => run(onReopen)}>
-            <ListItemIcon>
-              <Replay sx={{ fontSize: 16 }} />
-            </ListItemIcon>
-            <ListItemText>Reabrir pedido</ListItemText>
-          </MenuItem>
-        )}
-        {onDelete && (
-          <MenuItem onClick={() => run(onDelete)} sx={{ color: 'error.main' }}>
-            <ListItemIcon sx={{ color: 'error.main' }}>
-              <DeleteOutline sx={{ fontSize: 16 }} />
-            </ListItemIcon>
-            <ListItemText>{deleteLabel}</ListItemText>
-          </MenuItem>
-        )}
-      </Menu>
     </>
   );
 }

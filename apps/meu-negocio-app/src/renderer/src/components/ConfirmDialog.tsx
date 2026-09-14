@@ -1,12 +1,5 @@
-import {
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-} from '@mui/material';
-import { ReactNode } from 'react';
+import { type ReactNode, useEffect, useId, useRef } from 'react';
+import { Button } from './Button';
 
 interface ConfirmDialogProps {
   open: boolean;
@@ -31,20 +24,61 @@ export function ConfirmDialog({
   onClose,
   onConfirm,
 }: ConfirmDialogProps) {
+  const dialog = useRef<HTMLDialogElement>(null);
+  const cancel = useRef<HTMLButtonElement>(null);
+  const opener = useRef<HTMLElement | null>(null);
+  const titleId = useId();
+  const messageId = useId();
+  useEffect(() => {
+    const element = dialog.current;
+    if (!element) return;
+    if (open && !element.open) {
+      opener.current =
+        document.activeElement instanceof HTMLElement ? document.activeElement : null;
+      element.showModal();
+      cancel.current?.focus();
+    }
+    if (!open && element.open) element.close();
+    return () => {
+      if (element.open) element.close();
+      opener.current?.focus();
+    };
+  }, [open]);
   return (
-    <Dialog open={open} onClose={() => !loading && onClose()}>
-      <DialogTitle>{title}</DialogTitle>
-      <DialogContent>
-        <DialogContentText>{message}</DialogContentText>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose} disabled={loading}>
+    <dialog
+      ref={dialog}
+      className="negocio-dialog"
+      aria-labelledby={titleId}
+      aria-describedby={messageId}
+      onCancel={(event) => {
+        event.preventDefault();
+        if (!loading) onClose();
+      }}
+      onClick={(event) => {
+        if (!loading && event.target === event.currentTarget) onClose();
+      }}
+    >
+      <div className="negocio-dialog-header">
+        <h2 id={titleId}>{title}</h2>
+      </div>
+      <div className="negocio-dialog-body">
+        <p id={messageId} className="negocio-dialog-message">
+          {message}
+        </p>
+      </div>
+      <div className="negocio-dialog-footer">
+        <Button ref={cancel} onClick={onClose} disabled={loading}>
           Cancelar
         </Button>
-        <Button onClick={onConfirm} color={confirmColor} variant="contained" disabled={loading}>
+        <Button
+          variant="primary"
+          tone={confirmColor === 'error' ? 'danger' : 'neutral'}
+          onClick={onConfirm}
+          disabled={loading}
+        >
           {loading ? (loadingLabel ?? `${confirmLabel}...`) : confirmLabel}
         </Button>
-      </DialogActions>
-    </Dialog>
+      </div>
+    </dialog>
   );
 }

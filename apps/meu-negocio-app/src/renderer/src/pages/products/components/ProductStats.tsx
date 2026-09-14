@@ -1,14 +1,7 @@
-import {
-  Inventory2Outlined,
-  PercentOutlined,
-  SellOutlined,
-  WarningAmberOutlined,
-} from '@mui/icons-material';
+import { Boxes, Percent, TriangleAlert, WalletCards } from 'lucide-react';
 import { useMemo } from 'react';
 import type { Product } from '@shared/types/product';
 import { getProductMargin, getProductStockValue } from '@shared/types/product';
-import { StatCard, StatCardGrid, StatCardSkeleton } from '@/components/StatCard';
-import type { StatCardProps } from '@/components/StatCard';
 import { formatCurrency, formatPercent } from '@/utils/format';
 
 const CARD_COUNT = 4;
@@ -19,7 +12,7 @@ interface ProductStatsProps {
 }
 
 export function ProductStats({ products, isLoading }: ProductStatsProps) {
-  const cards: StatCardProps[] = useMemo(() => {
+  const cards = useMemo(() => {
     const stockValue = products.reduce((sum, p) => sum + getProductStockValue(p), 0);
     const potentialRevenue = products.reduce((sum, p) => sum + p.salePrice * p.stock, 0);
     const lowStockCount = products.filter((p) => p.stock <= p.minStock).length;
@@ -37,22 +30,19 @@ export function ProductStats({ products, isLoading }: ProductStatsProps) {
         label: 'Produtos',
         value: String(products.length),
         sub: 'itens no catálogo',
-        icon: Inventory2Outlined,
-        accent: 'primary',
+        icon: Boxes,
       },
       {
         label: 'Valor em Estoque',
         value: formatCurrency(stockValue),
         sub: 'a preço de custo',
-        icon: SellOutlined,
-        accent: 'info',
+        icon: WalletCards,
       },
       {
         label: 'Margem Média',
         value: avgMargin === undefined ? '—' : formatPercent(avgMargin),
         sub: avgMargin === undefined ? 'sem itens precificados' : 'ponderada pelo estoque',
-        icon: PercentOutlined,
-        accent: 'success',
+        icon: Percent,
       },
       {
         label: 'Estoque Baixo',
@@ -61,27 +51,37 @@ export function ProductStats({ products, isLoading }: ProductStatsProps) {
           potentialRevenue > 0
             ? `${formatCurrency(potentialRevenue)} de venda potencial`
             : 'nada em estoque',
-        icon: WarningAmberOutlined,
-        tone: lowStockCount > 0 ? 'alert' : 'neutral',
+        icon: TriangleAlert,
+        alert: lowStockCount > 0,
       },
     ];
   }, [products]);
 
   if (isLoading) {
     return (
-      <StatCardGrid count={CARD_COUNT}>
+      <div className="negocio-stat-grid">
         {Array.from({ length: CARD_COUNT }, (_, i) => (
-          <StatCardSkeleton key={i} />
+          <div className="negocio-stat negocio-stat-skeleton" key={i}>
+            <span className="negocio-skeleton" />
+            <span className="negocio-skeleton" />
+          </div>
         ))}
-      </StatCardGrid>
+      </div>
     );
   }
 
   return (
-    <StatCardGrid count={cards.length}>
-      {cards.map((card) => (
-        <StatCard key={card.label} {...card} />
+    <div className="negocio-stat-grid">
+      {cards.map(({ icon: Icon, alert, ...card }) => (
+        <section key={card.label} className="negocio-stat">
+          <div>
+            <span className="negocio-stat-label">{card.label}</span>
+            <strong data-alert={alert}>{card.value}</strong>
+          </div>
+          <Icon aria-hidden="true" />
+          <small>{card.sub}</small>
+        </section>
       ))}
-    </StatCardGrid>
+    </div>
   );
 }

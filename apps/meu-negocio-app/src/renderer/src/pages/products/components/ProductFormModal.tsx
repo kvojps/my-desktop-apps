@@ -1,4 +1,5 @@
-import { Button, Stack, TextField } from '@mui/material';
+import { Button } from '@/components/Button';
+import { Field, TextArea, TextInput } from '@/components/Field';
 import { Modal } from '@/components/Modal';
 import type { UseProductFormReturn } from '@/hooks/products/useProductForm';
 
@@ -24,103 +25,89 @@ export function ProductFormModal({ formState }: ProductFormModalProps) {
       onSubmit={onSubmit}
       footer={
         <>
-          <Button onClick={close} disabled={isSaving} color="inherit">
+          <Button onClick={close} disabled={isSaving}>
             Cancelar
           </Button>
-          <Button type="submit" disabled={isSaving} variant="contained">
+          <Button type="submit" disabled={isSaving} variant="primary">
             {isSaving ? 'Salvando...' : editingId ? 'Salvar' : 'Criar'}
           </Button>
         </>
       }
     >
-      <Stack spacing={2}>
-        <TextField
-          label="Nome"
-          required
-          error={!!errors.name}
-          helperText={errors.name?.message}
-          placeholder="Nome do produto"
-          fullWidth
-          {...register('name')}
-        />
-
-        <TextField
-          label="Descrição"
-          placeholder="Descrição do produto (opcional)"
-          multiline
-          rows={3}
-          fullWidth
-          {...register('description')}
-        />
-
-        <Stack direction="row" spacing={2}>
-          <TextField
-            label="Categoria"
+      <div className="negocio-form">
+        <Field label="Nome" invalid={!!errors.name} note={errors.name?.message}>
+          <TextInput
             required
-            error={!!errors.category}
-            helperText={errors.category?.message}
-            placeholder="Ex: Vestuário"
-            fullWidth
-            {...register('category')}
+            placeholder="Nome do produto"
+            aria-invalid={!!errors.name}
+            {...register('name')}
           />
-
-          <TextField
-            label="Fornecedor"
-            placeholder="Nome do fornecedor"
-            fullWidth
-            {...register('supplier')}
-          />
-        </Stack>
-
-        <Stack direction="row" spacing={2}>
-          <TextField
-            label="Preço de Custo"
-            required
-            error={!!errors.costPrice}
-            helperText={errors.costPrice?.message}
-            placeholder="0,00"
-            type="number"
-            slotProps={{ htmlInput: { step: '0.01', min: '0' } }}
-            fullWidth
-            {...register('costPrice')}
-          />
-
-          <TextField
-            label="Preço de Venda"
-            required
-            error={!!errors.salePrice}
-            helperText={errors.salePrice?.message}
-            placeholder="0,00"
-            type="number"
-            slotProps={{ htmlInput: { step: '0.01', min: '0' } }}
-            fullWidth
-            {...register('salePrice')}
-          />
-        </Stack>
-
-        <Stack direction="row" spacing={2}>
-          <TextField
-            label="Estoque"
-            required
-            error={!!errors.stock}
-            helperText={errors.stock?.message}
-            placeholder="0"
-            type="number"
-            slotProps={{ htmlInput: { step: '1', min: '0' } }}
-            fullWidth
-            {...register('stock')}
-          />
-
-          <TextField
-            label="Estoque Mínimo"
-            placeholder="0"
-            type="number"
-            slotProps={{ htmlInput: { step: '1', min: '0' } }}
-            fullWidth
-            {...register('minStock')}
-          />
-        </Stack>
-      </Stack>
+        </Field>
+        <Field label="Descrição">
+          <TextArea placeholder="Descrição do produto (opcional)" {...register('description')} />
+        </Field>
+        <div className="negocio-form-row">
+          <Field label="Categoria" invalid={!!errors.category} note={errors.category?.message}>
+            <TextInput
+              required
+              placeholder="Ex: Vestuário"
+              aria-invalid={!!errors.category}
+              {...register('category')}
+            />
+          </Field>
+          <Field label="Fornecedor">
+            <TextInput placeholder="Nome do fornecedor" {...register('supplier')} />
+          </Field>
+        </div>
+        <div className="negocio-form-row">
+          <Field
+            label="Preço de custo"
+            invalid={!!errors.costPrice}
+            note={errors.costPrice?.message}
+          >
+            <TextInput
+              required
+              type="number"
+              min="0"
+              step="0.01"
+              placeholder="0,00"
+              aria-invalid={!!errors.costPrice}
+              {...register('costPrice')}
+            />
+          </Field>
+          <Field
+            label="Preço de venda"
+            invalid={!!errors.salePrice}
+            note={errors.salePrice?.message}
+          >
+            <TextInput
+              required
+              type="number"
+              min="0"
+              step="0.01"
+              placeholder="0,00"
+              aria-invalid={!!errors.salePrice}
+              {...register('salePrice')}
+            />
+          </Field>
+        </div>
+        <div className="negocio-form-row">
+          <Field label="Estoque" invalid={!!errors.stock} note={errors.stock?.message}>
+            <TextInput
+              required
+              type="number"
+              min="0"
+              step="1"
+              placeholder="0"
+              aria-invalid={!!errors.stock}
+              {...register('stock')}
+            />
+          </Field>
+          <Field label="Estoque mínimo">
+            <TextInput type="number" min="0" step="1" placeholder="0" {...register('minStock')} />
+          </Field>
+        </div>
+      </div>
     </Modal>
   );
 }

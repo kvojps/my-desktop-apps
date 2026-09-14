@@ -1,9 +1,10 @@
-import { Add, FilterAltOutlined, Inventory2Outlined } from '@mui/icons-material';
-import { Button, Stack, Typography } from '@mui/material';
+import { Stack, Typography } from '@mui/material';
+import { Filter, Package, Plus } from 'lucide-react';
 import { useMemo } from 'react';
 import type { Product } from '@shared/types/product';
 import { getProductMargin, getProductUnitProfit } from '@shared/types/product';
 import { ActionsMenu } from '@/components/ActionsMenu';
+import { Button } from '@/components/Button';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { DataTable } from '@/components/DataTable';
 import type { Column } from '@/components/DataTable';
@@ -146,7 +147,7 @@ export function ProductsPage() {
   return (
     <Stack spacing={3}>
       <PageHeader
-        icon={<Inventory2Outlined />}
+        icon={<Package />}
         title="Produtos"
         subtitle="Cadastro e controle de estoque do seu catálogo"
       />
@@ -160,13 +161,8 @@ export function ProductsPage() {
           lowStockCount={lowStockCount}
           onChange={setFilters}
         >
-          <Button
-            variant="contained"
-            startIcon={<Add />}
-            onClick={form.openNew}
-            sx={{ ml: 'auto' }}
-          >
-            Novo Produto
+          <Button variant="primary" onClick={form.openNew} className="negocio-product-create">
+            <Plus size={18} aria-hidden="true" /> Novo produto
           </Button>
         </ProductFilters>
       )}
@@ -196,7 +192,7 @@ export function ProductsPage() {
           // e oferecia "Limpar filtros" — mas o inverso também podia acontecer.
           hasProducts ? (
             <EmptyState
-              icon={<FilterAltOutlined sx={{ fontSize: 40 }} />}
+              icon={<Filter size={40} />}
               title="Nenhum produto corresponde aos filtros."
               description="Ajuste a busca, a categoria ou o filtro de estoque baixo para ver o catálogo de novo."
               action={
@@ -209,12 +205,12 @@ export function ProductsPage() {
             />
           ) : (
             <EmptyState
-              icon={<Inventory2Outlined sx={{ fontSize: 48 }} />}
+              icon={<Package size={48} />}
               title="Seu catálogo ainda está vazio."
               description="Cadastre os produtos com preço de custo, preço de venda e estoque — é deles que saem a margem, o capital parado e os alertas de reposição."
               action={
-                <Button variant="contained" startIcon={<Add />} onClick={form.openNew}>
-                  Novo Produto
+                <Button variant="primary" onClick={form.openNew}>
+                  <Plus size={18} aria-hidden="true" /> Novo produto
                 </Button>
               }
             />

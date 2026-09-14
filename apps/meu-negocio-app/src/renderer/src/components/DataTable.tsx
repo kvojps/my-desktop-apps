@@ -1,16 +1,4 @@
-import {
-  Box,
-  Paper,
-  Skeleton,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TableSortLabel,
-  Typography,
-} from '@mui/material';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import type { KeyboardEvent, ReactNode } from 'react';
 import { Pagination } from '@/components/Pagination';
 
@@ -93,49 +81,47 @@ export function DataTable<T>({
     // piscar um "nenhum registro" que não é verdade ainda.
     if (isLoading) {
       return Array.from({ length: SKELETON_ROWS }, (_, row) => (
-        <TableRow key={`skeleton-${row}`}>
+        <tr key={`skeleton-${row}`}>
           {Array.from({ length: colSpan }, (_, col) => (
-            <TableCell key={col}>
-              <Skeleton variant="text" width={col === 0 ? '60%' : '40%'} />
-            </TableCell>
+            <td key={col}>
+              <span className="negocio-skeleton" style={{ width: col === 0 ? '60%' : '40%' }} />
+            </td>
           ))}
-        </TableRow>
+        </tr>
       ));
     }
 
     if (totalCount === 0) {
       return (
-        <TableRow>
-          <TableCell colSpan={colSpan} sx={{ borderBottom: 0 }}>
+        <tr>
+          <td colSpan={colSpan} className="negocio-cell-empty">
             {empty}
-          </TableCell>
-        </TableRow>
+          </td>
+        </tr>
       );
     }
 
     return items.map((item) => (
-      <TableRow
+      <tr
         key={getRowKey(item)}
-        hover
         role={onRowClick ? 'button' : undefined}
         tabIndex={onRowClick ? 0 : undefined}
         aria-label={onRowClick ? getRowLabel?.(item) : undefined}
         onClick={onRowClick ? () => onRowClick(item) : undefined}
         onKeyDown={onRowClick ? (event) => handleRowKeyDown(event, item) : undefined}
-        sx={onRowClick ? { cursor: 'pointer' } : undefined}
       >
         {columns.map((col) => (
-          <TableCell key={col.key}>{col.render(item)}</TableCell>
+          <td key={col.key}>{col.render(item)}</td>
         ))}
         {renderActions && (
           // A ação da linha não pode disparar o clique da linha: "Ver" abriria o
           // detalhe do pedido e o menu de ações ao mesmo tempo. É o par de mouse
           // da guarda de teclado acima.
-          <TableCell align="right" onClick={(event) => event.stopPropagation()}>
+          <td className="negocio-cell-actions" onClick={(event) => event.stopPropagation()}>
             {renderActions(item)}
-          </TableCell>
+          </td>
         )}
-      </TableRow>
+      </tr>
     ));
   }
 
@@ -144,46 +130,60 @@ export function DataTable<T>({
   // régua superior do rodapé.
   const body = (
     <>
-      <TableContainer>
-        <Table size="small">
-          <TableHead>
-            <TableRow>
+      <div className="negocio-table-scroll">
+        <table className="negocio-table">
+          <thead>
+            <tr>
               {columns.map((col) => (
-                <TableCell
+                <th
                   key={col.key}
-                  sortDirection={col.sortable && sort?.key === col.key ? sort.direction : false}
+                  scope="col"
+                  aria-sort={
+                    sort?.key === col.key
+                      ? sort.direction === 'asc'
+                        ? 'ascending'
+                        : 'descending'
+                      : undefined
+                  }
                 >
                   {col.sortable ? (
-                    <TableSortLabel
-                      active={sort?.key === col.key}
-                      direction={sort?.key === col.key ? sort.direction : 'asc'}
+                    <button
+                      type="button"
+                      className="negocio-sort"
+                      data-active={sort?.key === col.key}
                       onClick={() => onToggleSort?.(col.key)}
                     >
                       {col.label}
-                    </TableSortLabel>
+                      {sort?.key === col.key && sort.direction === 'asc' ? (
+                        <ChevronUp aria-hidden="true" />
+                      ) : (
+                        <ChevronDown aria-hidden="true" />
+                      )}
+                    </button>
                   ) : (
                     col.label
                   )}
-                </TableCell>
+                </th>
               ))}
-              {renderActions && <TableCell align="right">Ações</TableCell>}
-            </TableRow>
-          </TableHead>
-          <TableBody>{renderBody()}</TableBody>
-        </Table>
-      </TableContainer>
-
-      <Box sx={{ px: 2, py: 1.5, borderTop: 1, borderColor: 'divider' }}>
-        <Typography variant="body2" color="text.secondary">
-          {isLoading ? (
-            <Skeleton variant="text" width={180} />
-          ) : totalCount > 0 ? (
-            `Mostrando ${start + 1}–${start + items.length} de ${totalCount} ${footerLabel}`
-          ) : (
-            `Mostrando 0 de 0 ${footerLabel}`
-          )}
-        </Typography>
-      </Box>
+              {renderActions && (
+                <th scope="col" className="negocio-cell-actions">
+                  Ações
+                </th>
+              )}
+            </tr>
+          </thead>
+          <tbody>{renderBody()}</tbody>
+        </table>
+      </div>
+      <div className="negocio-table-footer">
+        {isLoading ? (
+          <span className="negocio-skeleton" style={{ width: 180 }} />
+        ) : totalCount > 0 ? (
+          `Mostrando ${start + 1}–${start + items.length} de ${totalCount} ${footerLabel}`
+        ) : (
+          `Mostrando 0 de 0 ${footerLabel}`
+        )}
+      </div>
 
       {!isLoading && pagination && (
         <Pagination
@@ -195,5 +195,9 @@ export function DataTable<T>({
     </>
   );
 
-  return flush ? <Box>{body}</Box> : <Paper variant="outlined">{body}</Paper>;
+  return (
+    <div className={flush ? 'negocio-table-flush' : 'negocio-panel negocio-table-panel'}>
+      {body}
+    </div>
+  );
 }

@@ -1,6 +1,6 @@
-import { Close } from '@mui/icons-material';
-import { Dialog, DialogActions, DialogContent, DialogTitle, IconButton } from '@mui/material';
-import type { BaseSyntheticEvent, ReactNode } from 'react';
+import { X } from 'lucide-react';
+import { type BaseSyntheticEvent, type ReactNode, useEffect, useId, useRef } from 'react';
+import { Button } from './Button';
 
 interface ModalProps {
   open: boolean;
@@ -30,26 +30,66 @@ export function Modal({
   maxWidth = '540px',
   onSubmit,
 }: ModalProps) {
+  const dialog = useRef<HTMLDialogElement>(null);
+  const opener = useRef<HTMLElement | null>(null);
+  const titleId = useId();
+  useEffect(() => {
+    const element = dialog.current;
+    if (!element) return;
+    if (open && !element.open) {
+      opener.current =
+        document.activeElement instanceof HTMLElement ? document.activeElement : null;
+      element.showModal();
+      element
+        .querySelector<HTMLElement>(
+          '.negocio-dialog-body input:not([type="hidden"]), .negocio-dialog-body select, .negocio-dialog-body textarea, .negocio-dialog-body button, .negocio-dialog-footer button',
+        )
+        ?.focus();
+    }
+    if (!open && element.open) element.close();
+    return () => {
+      if (element.open) element.close();
+      opener.current?.focus();
+    };
+  }, [open]);
+  const content = (
+    <>
+      <div className="negocio-dialog-header">
+        <h2 id={titleId}>{title}</h2>
+        <Button variant="ghost" aria-label="Fechar" onClick={onClose}>
+          <X size={18} aria-hidden="true" />
+        </Button>
+      </div>
+      <div className="negocio-dialog-body">{children}</div>
+      {footer && <div className="negocio-dialog-footer">{footer}</div>}
+    </>
+  );
   return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      maxWidth={false}
-      fullWidth
-      slotProps={{
-        paper: onSubmit ? { component: 'form', onSubmit, sx: { maxWidth } } : { sx: { maxWidth } },
+    <dialog
+      ref={dialog}
+      className="negocio-dialog"
+      aria-labelledby={titleId}
+      style={{ width: `min(${maxWidth}, calc(100vw - 48px))` }}
+      onCancel={(event) => {
+        event.preventDefault();
+        onClose();
+      }}
+      onClick={(event) => {
+        if (event.target === event.currentTarget) onClose();
       }}
     >
-      <DialogTitle
-        sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2 }}
-      >
-        {title}
-        <IconButton onClick={onClose} aria-label="Fechar" size="small">
-          <Close fontSize="small" />
-        </IconButton>
-      </DialogTitle>
-      <DialogContent dividers>{children}</DialogContent>
-      {footer && <DialogActions>{footer}</DialogActions>}
-    </Dialog>
+      {onSubmit ? (
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            onSubmit(event);
+          }}
+        >
+          {content}
+        </form>
+      ) : (
+        content
+      )}
+    </dialog>
   );
 }

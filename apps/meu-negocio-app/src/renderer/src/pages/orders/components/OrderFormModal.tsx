@@ -154,7 +154,15 @@ export function OrderFormModal({ formState, products }: OrderFormModalProps) {
                   error={!!itemErrors?.productId}
                   value={item?.productId ?? ''}
                   onChange={(e) => selectProduct(index, e.target.value)}
-                  slotProps={{ htmlInput: { 'aria-label': 'Produto' } }}
+                  slotProps={{
+                    htmlInput: { 'aria-label': 'Produto' },
+                    // O formulário ainda usa o Select do MUI, mas o Modal local
+                    // é um `<dialog>` nativo: o portal precisa nascer dentro da
+                    // camada superior do diálogo, não no body atrás dela.
+                    select: {
+                      MenuProps: { container: () => document.querySelector('dialog[open]') },
+                    },
+                  }}
                 >
                   <MenuItem value="">Selecionar produto...</MenuItem>
                   {products.map((p) => (
