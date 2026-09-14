@@ -1,4 +1,4 @@
-Status: ready-for-agent
+Status: done
 
 # Atualizar ADR-0005 com a auditoria do meu-negocio-app
 
@@ -28,11 +28,11 @@ Não criar ADR separado.
 
 ## Checklist
 
-- [ ] Acrescentada a seção "Auditoria do `meu-negocio-app`" ao final do
+- [x] Acrescentada a seção "Auditoria do `meu-negocio-app`" ao final do
       ADR-0005, registrando Produto e Modo de tema como colapsados.
-- [ ] Confirmado, na nova seção, que `OrderItemEntity.stockApplied` continua
+- [x] Confirmado, na nova seção, que `OrderItemEntity.stockApplied` continua
       sendo o caso que o critério não cobre — a seção existente sobre
       `stock_applied` não é apagada nem contradita, só passa a valer para
       `Order` especificamente, não para o app inteiro.
-- [ ] Confirmado que `CONTEXT.md` do `meu-negocio-app` não precisa de
+- [x] Confirmado que `CONTEXT.md` do `meu-negocio-app` não precisa de
       nenhuma mudança — colapso estrutural, vocabulário de domínio não muda.

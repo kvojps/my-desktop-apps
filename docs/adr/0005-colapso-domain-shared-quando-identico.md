@@ -141,3 +141,34 @@ reais do `git-dlog`:
   papel de `Month`/`MonthEntity` no `meu-dinheiro-app`. Por isso
   `domain/settings.ts` continua existindo, mesmo com `ThemeModeEntity`
   colapsado.
+
+## Auditoria do `meu-negocio-app`
+
+Produto e Modo de tema foram auditados e colapsados
+(`.scratch/meu-negocio-colapso-tipos/issues/01` e `02`): `ProductEntity`
+(`main/domain/product.ts`) e `ThemeModeEntity` (`main/domain/theme.ts`) eram
+cópia estrutural pura do `Product` e do `ThemeMode` de `shared/types/` e hoje
+vivem só lá. `domain/product.ts` foi apagado por completo — não guardava
+nenhuma função de domínio, só o tipo e o comentário sobre o sufixo `Entity`,
+movido para `domain/order.ts`. `domain/theme.ts` continua existindo: só o
+alias de tipo colapsou, `isThemeMode`/`resolveThemeMode` seguem como funções
+de domínio de verdade, mesmo papel de `domain/settings.ts` no `git-dlog`.
+
+Isso reconfirma, com um caso real, que a granularidade certa do critério é por
+entidade, não por app: a seção anterior ("O caso que esta regra não cobre:
+`stock_applied`") tratou o `meu-negocio-app` inteiro como fora do piloto, mas
+foi escrita antes de a auditoria do `git-dlog` (acima) provar que app nenhum
+qualifica ou desqualifica em bloco. Com Produto e Modo de tema colapsados,
+`stock_applied` deixa de ser "o motivo de o `meu-negocio-app` ficar fora" e
+passa a valer só para `Order`: `OrderItemEntity.stockApplied`
+(`main/domain/order.ts`) continua carregando a baixa de estoque já aplicada
+ao item, que não deve atravessar o IPC, e `OrderEntity`/`OrderItem` continuam
+divergindo exatamente nesse campo — não colapsam. Não é uma decisão nova, só
+o critério já escrito confirmado por mais um caso real, no mesmo papel de
+`EncryptedGithubTokenEntity` e de `isThemeMode`/`resolveThemeMode` no
+`git-dlog`.
+
+`CONTEXT.md` do `meu-negocio-app` não precisa de nenhuma mudança: o colapso é
+estrutural (`domain/` ↔ `shared/types/`), e o vocabulário de domínio que o
+`CONTEXT.md` fixa — Conta a receber, Saldo devedor, Faixa, Escrituração de
+estoque — não muda com ele.
