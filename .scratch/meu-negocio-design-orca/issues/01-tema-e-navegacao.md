@@ -1,4 +1,4 @@
-Status: open
+Status: resolved
 Type: task
 Blocked by: Nenhuma
 
@@ -44,7 +44,7 @@ Validação aprovada: `npm run typecheck`, `npm run lint` (dois avisos
 preexistentes de dependências em `OrdersContext` e `ProductsContext`), `npm test`
 (33 arquivos, 311 testes) e `npm run build -w meu-negocio-app`.
 
-Limitação pendente para resolver a issue: a abertura manual do Electron,
-navegação visual, redimensionamento e conferência da moldura nativa não foram
-executados neste ambiente. O Status permanece aberto exclusivamente por essa
-validação manual.
+Limitação aceita ao resolver a issue: a abertura manual do Electron, navegação
+visual, redimensionamento e conferência da moldura nativa não foram executados
+neste ambiente. O usuário aceitou encerrar a issue com essa validação manual
+como pendência conhecida em 2026-09-14.
