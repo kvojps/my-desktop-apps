@@ -353,7 +353,18 @@
     border-radius: 8px;
     background: var(--negocio-paper);
     color: var(--negocio-foreground);
-    font: 14px/20px inherit;
+    /* Inputs e textareas não herdam a fonte do documento de forma consistente
+       entre engines; a declaração curta anterior deixava o textarea no padrão
+       do navegador. */
+    font-family: inherit;
+    font-size: 14px;
+    line-height: 20px;
+  }
+  .negocio-input::placeholder,
+  .negocio-textarea::placeholder {
+    color: var(--negocio-muted-foreground);
+    font: inherit;
+    opacity: 1;
   }
   .negocio-textarea {
     resize: vertical;
