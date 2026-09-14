@@ -2,21 +2,16 @@ import { CssBaseline, PaletteMode, ThemeProvider } from '@mui/material';
 import { ReactNode, useMemo, useState } from 'react';
 import { api } from '@/api/client';
 import { ThemeModeContext } from './themeModeContext';
-import { getAppTheme } from './index';
+import { getAppTheme, getThemeVariables } from './index';
 
 /**
  * Cache do renderer, não a fonte da verdade — essa é o banco, porque o processo
  * main precisa do modo para pintar a janela antes de existir renderer. Só serve
  * de reserva para quando o valor injetado não chega (preload indisponível).
  */
-const STORAGE_KEY = 'meu-negocio-theme-mode';
-
 function getInitialMode(): PaletteMode {
   const injected = api.initialThemeMode();
   if (injected) return injected;
-
-  const cached = localStorage.getItem(STORAGE_KEY);
-  if (cached === 'light' || cached === 'dark') return cached;
 
   return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 }
@@ -27,7 +22,6 @@ export function ThemeModeProvider({ children }: { children: ReactNode }) {
   const toggleMode = () => {
     setMode((prev) => {
       const next = prev === 'light' ? 'dark' : 'light';
-      localStorage.setItem(STORAGE_KEY, next);
       // Sem `showError`: este provider mora fora do `App`, e portanto fora do
       // `SnackbarProvider`. Se a gravação falhar, a sessão mantém o modo novo e
       // o próximo boot volta ao antigo — um banco que não escreve vai aparecer
@@ -43,7 +37,9 @@ export function ThemeModeProvider({ children }: { children: ReactNode }) {
     <ThemeModeContext.Provider value={{ mode, toggleMode }}>
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        {children}
+        <div data-theme={mode} style={getThemeVariables(mode)}>
+          {children}
+        </div>
       </ThemeProvider>
     </ThemeModeContext.Provider>
   );

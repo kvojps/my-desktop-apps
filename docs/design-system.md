@@ -170,6 +170,20 @@ alinhamento de tabelas, segundo canal além da cor, teclado/foco, movimento redu
 carregamento, erro/vazio e tema persistido no banco e aplicado à janela.
 Valores medidos no tema antigo não comprovam contraste no novo.
 
+## Transição em andamento: Meu Negócio
+
+A [spec aprovada](../.scratch/meu-negocio-design-orca/spec.md) e o
+[ADR local](../apps/meu-negocio-app/docs/adr/0001-migracao-visual-orca.md)
+autorizam a migração incremental do Meu Negócio para Tailwind sem Preflight,
+componentes locais, Geist e Lucide, com MUI/Emotion coexistindo até a retirada
+planejada. Esta exceção é estritamente local: não cria app canônico, não altera
+a independência dos apps e não autoriza migração implícita de nenhum outro.
+Os valores usados pela nova base estão em
+[tokens locais](../apps/meu-negocio-app/docs/orca-theme.md), registrados antes
+da alteração da interface. Tema continua pertencendo ao banco e precisa pintar
+a janela antes do renderer; foco, teclado, redução de movimento, feedback e
+contraste nos dois modos seguem obrigatórios em cada etapa.
+
 Este documento descreve o padrão visual comum aos apps do monorepo. Ele existe porque os
 apps deliberadamente **não compartilham código** (ver README, §2): sem um pacote
 `ui` para carregar a norma, é o texto que precisa carregá-la.

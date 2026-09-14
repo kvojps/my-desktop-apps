@@ -1,6 +1,6 @@
 import { ErrorOutline, FolderOpen, Restore } from '@mui/icons-material';
 import { Box, Button, Stack, Typography } from '@mui/material';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { APP_ERROR_DESCRIPTIONS, decodeAppError } from '@shared/errors/appError';
 import { api } from '@/api/client';
 import { useSnackbar } from '@/contexts/SnackbarContext';
@@ -27,6 +27,11 @@ export function ErrorState({ title, error, onRetry, dense }: ErrorStateProps) {
   const { code, message } = decodeAppError(error);
   const { showSnackbar, showError } = useSnackbar();
   const [restoring, setRestoring] = useState(false);
+  const headingRef = useRef<HTMLHeadingElement>(null);
+
+  // Quando uma carga falha, anunciar o título é mais útil que deixar o foco no
+  // controle que disparou a navegação para uma área agora indisponível.
+  useEffect(() => headingRef.current?.focus(), []);
 
   const canRestore = code === 'db-corrupted' || code === 'db-unavailable' || code === 'unknown';
   const canOpenFolder = code !== 'not-found' && code !== 'invalid-input';
@@ -59,7 +64,7 @@ export function ErrorState({ title, error, onRetry, dense }: ErrorStateProps) {
   return (
     <Box sx={{ textAlign: 'center', mt: dense ? 0 : 8, mx: 'auto', maxWidth: 560 }}>
       <ErrorOutline sx={{ fontSize: dense ? 40 : 48, color: 'error.main', mb: 1 }} />
-      <Typography variant={dense ? 'h6' : 'h5'} gutterBottom>
+      <Typography ref={headingRef} tabIndex={-1} variant={dense ? 'h6' : 'h5'} gutterBottom>
         {title}
       </Typography>
       <Typography color="text.secondary" sx={{ mb: 2 }}>

@@ -29,7 +29,9 @@ interface EmptyStateProps {
 export function EmptyState({ icon, title, description, action }: EmptyStateProps) {
   return (
     <Stack alignItems="center" spacing={1.5} sx={{ py: 6, px: 2, textAlign: 'center' }}>
-      <Box sx={{ display: 'flex', color: 'text.disabled' }}>{icon}</Box>
+      {/* `text.disabled` falha contraste: ícone de estado é conteúdo, não
+          controle desabilitado. */}
+      <Box sx={{ display: 'flex', color: 'text.secondary' }}>{icon}</Box>
       <Typography variant="body2" color="text.secondary">
         {title}
       </Typography>

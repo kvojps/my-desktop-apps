@@ -1,11 +1,125 @@
-html,
-body,
-#root {
-  height: 100%;
-  margin: 0;
-  width: 100%;
+/* Tailwind sem Preflight: a base que MUI oferecia permanece explícita. */
+@layer theme, components, utilities;
+@import 'tailwindcss/theme.css' layer(theme) prefix(ui);
+@import 'tailwindcss/utilities.css' layer(utilities) prefix(ui);
+@source './';
+
+@theme inline {
+  --color-background: var(--negocio-background);
+  --color-paper: var(--negocio-paper);
+  --color-sidebar: var(--negocio-sidebar);
+  --color-foreground: var(--negocio-foreground);
+  --color-muted-foreground: var(--negocio-muted-foreground);
+  --color-border: var(--negocio-border);
+  --color-accent: var(--negocio-accent);
+  --color-primary: var(--negocio-primary);
 }
 
-body {
-  min-height: 100vh;
+@layer components {
+  html,
+  body,
+  #root,
+  #root > div {
+    height: 100%;
+    margin: 0;
+    width: 100%;
+  }
+
+  body {
+    min-height: 100vh;
+    background: var(--negocio-background);
+    color: var(--negocio-foreground);
+    font-family: 'Geist', 'Roboto', 'Helvetica', 'Arial', sans-serif;
+    font-variant-numeric: tabular-nums;
+  }
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+  *:focus-visible {
+    outline: 2px solid var(--negocio-focus);
+    outline-offset: 2px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+  .negocio-sidebar {
+    width: 224px;
+    border-right: 1px solid var(--negocio-border);
+    transition: width 150ms ease;
+  }
+  .negocio-sidebar[data-collapsed='true'] {
+    width: 64px;
+  }
+  .negocio-nav-item {
+    position: relative;
+    display: flex;
+    min-height: 36px;
+    align-items: center;
+    gap: 10px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--negocio-muted-foreground);
+    font: 500 14px/20px inherit;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .negocio-nav-item:hover,
+  .negocio-nav-item[aria-current='page'] {
+    background: var(--negocio-accent);
+    color: var(--negocio-foreground);
+  }
+  .negocio-nav-item[aria-current='page'] {
+    font-weight: 600;
+  }
+  .negocio-nav-item[aria-current='page']::before {
+    position: absolute;
+    left: -12px;
+    width: 3px;
+    height: 18px;
+    border-radius: 0 4px 4px 0;
+    background: var(--negocio-primary);
+    content: '';
+  }
+  .negocio-sidebar[data-collapsed='true'] .negocio-nav-item {
+    justify-content: center;
+    padding-inline: 0;
+  }
+  .negocio-sidebar[data-collapsed='true'] .negocio-nav-item[aria-current='page']::before {
+    left: 0;
+  }
+  .negocio-sidebar[data-collapsed='true'] .negocio-nav-item[data-tooltip]::after {
+    position: fixed;
+    z-index: 10;
+    margin-left: 64px;
+    padding: 6px 8px;
+    border: 1px solid var(--negocio-border);
+    border-radius: 6px;
+    background: var(--negocio-paper);
+    color: var(--negocio-foreground);
+    content: attr(data-tooltip);
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 16px;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(-4px);
+    transition:
+      opacity 100ms ease,
+      transform 100ms ease;
+    white-space: nowrap;
+  }
+  .negocio-sidebar[data-collapsed='true'] .negocio-nav-item[data-tooltip]:hover::after,
+  .negocio-sidebar[data-collapsed='true'] .negocio-nav-item[data-tooltip]:focus-visible::after {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }

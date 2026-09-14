@@ -177,9 +177,14 @@ mais MUI, Emotion, Material Icons nem Inter. Implementado não é o mesmo que
 validado: o que foi exercitado no Electron, e o que não foi, está registrado
 etapa por etapa nas issues da migração, com as limitações do ambiente.
 As prescrições de biblioteca, ícones e tema abaixo admitem a substituição local
-conforme a [exceção normativa](docs/design-system.md). Meu Negócio e Meu Móvel
-Planejado mantêm MUI e Material Icons — a migração de um app não vale para os
-outros, e nenhum deles é canônico. Não há compartilhamento de código.
+conforme a [exceção normativa](docs/design-system.md). Meu Negócio iniciou a
+sua migração incremental aprovada para Tailwind sem Preflight, Geist, Lucide e
+componentes locais; MUI e Emotion coexistem temporariamente, e os valores locais
+foram registrados em
+[`apps/meu-negocio-app/docs/orca-theme.md`](apps/meu-negocio-app/docs/orca-theme.md)
+antes da alteração de UI. Meu Móvel Planejado mantém MUI e Material Icons. Uma
+migração local não vale para os outros, nenhum app é canônico e não há
+compartilhamento de código.
 
 A organização é **horizontal no topo e vertical dentro de `pages/<tela>/`**: as
 pastas do topo são as camadas do renderer, e dentro da tela valem as mesmas —

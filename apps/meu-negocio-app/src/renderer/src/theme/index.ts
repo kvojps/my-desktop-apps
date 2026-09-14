@@ -1,11 +1,30 @@
 import { PaletteMode, ThemeOptions, createTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import type { CSSProperties } from 'react';
+import type { ThemeMode } from '@shared/types/theme';
 
 /** Raio das superfícies (cards, papers, diálogos). */
 export const SURFACE_RADIUS = 12;
 /** Raio dos controles (botões, inputs, toggles), um degrau abaixo das superfícies. */
 export const CONTROL_RADIUS = 8;
+
+/** Tokens da base Orca local; valores e contraste em docs/orca-theme.md. */
+export function getThemeVariables(mode: ThemeMode): CSSProperties {
+  const light = mode === 'light';
+  return {
+    '--negocio-background': light ? '#F4F6FB' : '#10131C',
+    '--negocio-paper': light ? '#FFFFFF' : '#181C27',
+    '--negocio-sidebar': light ? '#FFFFFF' : '#181C27',
+    '--negocio-foreground': light ? 'rgba(0, 0, 0, 0.87)' : '#FFFFFF',
+    '--negocio-muted-foreground': light ? 'rgba(0, 0, 0, 0.6)' : 'rgba(255, 255, 255, 0.7)',
+    '--negocio-border': light ? '#E4E8F1' : '#2A2F3D',
+    '--negocio-accent': light ? 'rgba(39, 113, 202, 0.08)' : 'rgba(57, 135, 229, 0.18)',
+    '--negocio-focus': light ? '#2771CA' : '#3987e5',
+    '--negocio-primary': light ? '#2771CA' : '#3987e5',
+    '--negocio-danger': light ? '#CF3939' : '#D85B5B',
+    '--negocio-warning': '#fab219',
+  } as CSSProperties;
+}
 
 /**
  * Consultas sobre a faixa de conteúdo (o container nomeado em `Layout`), e não
