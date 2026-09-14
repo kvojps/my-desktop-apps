@@ -1,4 +1,4 @@
-Status: todo
+Status: done
 
 # 05: Colapsar `ThemeModeEntity` (theme.ts continua existindo)
 
@@ -16,28 +16,27 @@ domínio, usada no bootstrap do main antes de existir camada IPC).
 
 ## Checklist
 
-- [ ] Em `domain/theme.ts`: removido `export type ThemeModeEntity = 'light'
+- [x] Em `domain/theme.ts`: removido `export type ThemeModeEntity = 'light'
       | 'dark'`.
-- [ ] `isThemeModeEntity` renomeada para `isThemeMode` (o sufixo `Entity`
+- [x] `isThemeModeEntity` renomeada para `isThemeMode` (o sufixo `Entity`
       deixa de fazer sentido: ela passa a guardar o tipo shared, não mais
       um tipo de domínio). `resolveThemeMode` mantém o nome. As duas
       passam a usar `ThemeMode` importado de `@shared/types/theme`.
-- [ ] `infra/database/repositories/settingsRepository.ts`: confirmar se usa
-      `ThemeModeEntity` (a tabela é chave-valor genérica, `get`/`set`
-      trabalham com `string` — se não houver uso direto do tipo, nenhuma
-      mudança aqui).
-- [ ] `infra/gateways/system/themeMode.ts`: `Record<ThemeModeEntity,
+- [x] `infra/database/repositories/settingsRepository.ts`: confirmado que
+      não usa `ThemeModeEntity` (a tabela é chave-valor genérica, `get`/`set`
+      trabalham com `string`) — nenhuma mudança necessária.
+- [x] `infra/gateways/system/themeMode.ts`: `Record<ThemeModeEntity,
       string>` e as assinaturas de `ThemeModeGateway`/
       `ThemeModeSystemGateway` (`apply`, `currentMode`,
       `windowBackgroundFor`) trocam `ThemeModeEntity` por `ThemeMode`.
-- [ ] `services/settingsService.ts`: import de `ThemeModeEntity` trocado
+- [x] `services/settingsService.ts`: import de `ThemeModeEntity` trocado
       por `ThemeMode`; `setThemeMode` ajustado.
-- [ ] `main/index.ts`: `createWindow(mode: ThemeModeEntity)` e o import de
+- [x] `main/index.ts`: `createWindow(mode: ThemeModeEntity)` e o import de
       `domain/theme.ts` trocam para `ThemeMode` (uso no bootstrap antes da
       camada IPC — `resolveThemeMode` continua sendo chamada de lá).
-- [ ] `npm run typecheck` — limpo, sem erros.
-- [ ] `npm run lint` — sem erros novos.
-- [ ] `npm test` — suíte de lógica pura, sem regressão.
+- [x] `npm run typecheck` — limpo, sem erros.
+- [x] `npm run lint` — sem erros novos.
+- [x] `npm test` — suíte de lógica pura, sem regressão.
 - [ ] QA manual (`npm run dev:movel`): alternar entre tema claro/escuro,
       reiniciar o app e confirmar que a preferência persiste, e que a
       moldura nativa acompanha a troca. **Pendente até execução** —

@@ -1,4 +1,5 @@
-import { THEME_MODE_KEY, type ThemeModeEntity } from '../domain/theme';
+import type { ThemeMode } from '@shared/types/theme';
+import { THEME_MODE_KEY } from '../domain/theme';
 import type { Repositories } from '../infra/database';
 import type { ThemeModeGateway } from '../infra/gateways/system/themeMode';
 
@@ -21,7 +22,7 @@ export function makeSettingsService(repos: Repositories, themeMode: ThemeModeGat
      * Persiste a escolha e aplica: a janela e a moldura nativa acompanham. É o
      * que a closure do `index.ts` fazia.
      */
-    setThemeMode(mode: ThemeModeEntity): void {
+    setThemeMode(mode: ThemeMode): void {
       repos.settings.set(THEME_MODE_KEY, mode);
       themeMode.apply(mode);
     },

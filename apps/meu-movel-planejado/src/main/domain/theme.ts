@@ -1,10 +1,4 @@
-/**
- * `theme` não tem entidade rica a modelar: o que as camadas trocam é a
- * preferência de modo, e é só isso que este arquivo nomeia. Espelha o
- * `domain/theme.ts` do `meu-negocio-app` e do `meu-dinheiro-app`; o porquê do
- * sufixo `Entity` está em `domain/project.ts`.
- */
-export type ThemeModeEntity = 'light' | 'dark';
+import type { ThemeMode } from '@shared/types/theme';
 
 /** A chave sob a qual a preferência de tema fica guardada em `settings`. */
 export const THEME_MODE_KEY = 'theme.mode';
@@ -13,7 +7,7 @@ export const THEME_MODE_KEY = 'theme.mode';
  * O que está guardado é texto livre: nada impede que a chave do tema traga um
  * valor de uma versão antiga do app, ou escrito à mão no arquivo do banco.
  */
-export function isThemeModeEntity(value: string | null): value is ThemeModeEntity {
+export function isThemeMode(value: string | null): value is ThemeMode {
   return value === 'light' || value === 'dark';
 }
 
@@ -33,6 +27,6 @@ export function isThemeModeEntity(value: string | null): value is ThemeModeEntit
 export function resolveThemeMode(
   stored: string | null,
   systemPrefersDark: boolean,
-): ThemeModeEntity {
-  return isThemeModeEntity(stored) ? stored : systemPrefersDark ? 'dark' : 'light';
+): ThemeMode {
+  return isThemeMode(stored) ? stored : systemPrefersDark ? 'dark' : 'light';
 }
