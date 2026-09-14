@@ -1,5 +1,5 @@
 import { CircleAlert, CircleCheck, Info, TriangleAlert, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Button } from '@/components/Button';
 import type { SnackbarState } from '@/contexts/SnackbarContext';
 
@@ -26,6 +26,20 @@ const SEVERITIES = {
 export function AppSnackbar({ snackbar, open, onClose, onExited }: AppSnackbarProps) {
   const [hovered, setHovered] = useState(false);
   const [focused, setFocused] = useState(false);
+  const element = useRef<HTMLDivElement>(null);
+
+  // O aviso é um `popover` manual: só a camada superior fica acima de um
+  // `<dialog>` modal, e é ali que o erro de salvar precisa aparecer — o
+  // formulário continua aberto com os dados digitados, e um aviso atrás do
+  // véu do diálogo é um aviso que ninguém vê.
+  useLayoutEffect(() => {
+    const node = element.current;
+    if (!node || !open || !snackbar) return;
+    node.showPopover();
+    return () => {
+      if (node.isConnected && node.matches(':popover-open')) node.hidePopover();
+    };
+  }, [open, snackbar]);
 
   // Sem transição não há "exited" a esperar: fechar já libera a fila. O timer
   // reinicia a cada mensagem (`key`) — sem isso a segunda da fila herdaria o
@@ -55,6 +69,8 @@ export function AppSnackbar({ snackbar, open, onClose, onExited }: AppSnackbarPr
 
   return (
     <div
+      ref={element}
+      popover="manual"
       className="negocio-snackbar"
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}

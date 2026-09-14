@@ -122,12 +122,15 @@ export function useOrderConfirm(
           showSnackbar('Status do pedido atualizado.');
           break;
       }
-
-      setConfirmTarget(null);
     } catch (err) {
       showError(err, 'Erro ao atualizar o pedido.');
     } finally {
+      // Fecha nos dois desfechos. Uma confirmação não guarda nada que valha
+      // preservar — ao contrário do formulário, que fica aberto com os dados
+      // digitados —, e o erro (estoque insuficiente, por exemplo) é lido na
+      // lista, não por cima de uma pergunta que já foi respondida.
       setIsPending(false);
+      setConfirmTarget(null);
     }
   }
 

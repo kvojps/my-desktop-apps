@@ -1007,12 +1007,17 @@
     font: 12px/18px var(--negocio-mono);
     overflow-wrap: anywhere;
   }
+  /* `popover` manual: o agente de usuário lhe dá `inset: 0`, margem automática,
+     moldura e fundo de sistema — tudo declarado de novo aqui. */
   .negocio-snackbar {
     position: fixed;
+    inset: auto;
     bottom: 24px;
     left: 50%;
     z-index: 1500;
     display: flex;
+    margin: 0;
+    overflow: visible;
     align-items: center;
     gap: 12px;
     width: max-content;

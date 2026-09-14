@@ -33,20 +33,25 @@ export function ThemeModeProvider({ children }: { children: ReactNode }) {
 
   const theme = useMemo(() => getAppTheme(mode), [mode]);
 
-  // `color-scheme` é o que faz o próprio Chromium pintar barra de rolagem,
-  // campo nativo e `<option>` no modo certo — nenhuma regra CSS nossa alcança
-  // essas superfícies, e o `<select>` nativo do formulário de pedido depende disso.
+  // Os tokens vão em `<html>`, e não num `div` do React: menu de ações, menu
+  // de status e popover de período saem em portal para o `body`, e num `div`
+  // as variáveis não os alcançariam — o menu nascia sem fundo. `color-scheme`
+  // vai junto porque é o que faz o próprio Chromium pintar barra de rolagem,
+  // campo nativo e `<option>` no modo certo.
   useLayoutEffect(() => {
-    document.documentElement.style.colorScheme = mode;
+    const root = document.documentElement;
+    for (const [key, value] of Object.entries(getThemeVariables(mode))) {
+      root.style.setProperty(key, value as string);
+    }
+    root.style.colorScheme = mode;
+    root.dataset.theme = mode;
   }, [mode]);
 
   return (
     <ThemeModeContext.Provider value={{ mode, toggleMode }}>
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <div data-theme={mode} style={getThemeVariables(mode)}>
-          {children}
-        </div>
+        <div>{children}</div>
       </ThemeProvider>
     </ThemeModeContext.Provider>
   );

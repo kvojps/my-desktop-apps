@@ -25,11 +25,12 @@ export function useProductConfirm(deleteProduct: (id: string) => Promise<void>) 
     try {
       await deleteProduct(deleteTarget.id);
       showSnackbar(`Produto "${deleteTarget.name}" excluído.`, 'info');
-      setDeleteTarget(null);
     } catch (err) {
       showError(err, 'Erro ao excluir o produto.');
     } finally {
+      // Fecha nos dois desfechos: o erro é lido na lista, não por cima da pergunta.
       setIsDeleting(false);
+      setDeleteTarget(null);
     }
   }
 

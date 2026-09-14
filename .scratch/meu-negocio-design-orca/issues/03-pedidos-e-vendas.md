@@ -72,3 +72,14 @@ resolvida com essa pendência registrada, como nas etapas 01 e 02.
 Conferência de 2026-09-14, ao reabrir a issue 01: `grep -rl "@mui"` em
 `pages/orders/`, `pages/sales/` e nos componentes compartilhados desta etapa
 retorna vazio. O que ainda importa MUI é o escopo das issues 04–06.
+
+Dois defeitos relatados pelo usuário em 2026-09-14 e corrigidos: (1) os menus
+de ações e de status nasciam sem fundo, porque saíam em portal para o `body`
+enquanto as variáveis `--negocio-*` moravam num `div` do React — agora o
+provider as publica em `<html>`; (2) ao falhar a troca de status (estoque
+insuficiente), a confirmação ficava aberta e o aviso de erro era desenhado
+atrás da camada superior do `<dialog>`, então parecia que nada acontecia — a
+notificação virou `popover` manual, que fica acima de qualquer diálogo, e as
+confirmações de pedido e de produto fecham também no erro. Conferido no
+Electron com o fluxo real: produto sem estoque, pedido, concluir, recusa
+visível na lista com a confirmação fechada.

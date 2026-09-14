@@ -138,7 +138,15 @@ para a larga.
 
 O modo inicial é injetado pelo preload e a fonte da verdade é `app_settings`;
 o processo principal aplica a preferência antes de criar a janela, pinta o
-fundo com `background` e atualiza janelas já vivas. O provider também publica
-`color-scheme`, que é o que faz o Chromium pintar barra de rolagem, campo
-nativo e `<option>` no modo certo. O cache de `localStorage` anterior foi
-removido.
+fundo com `background` e atualiza janelas já vivas. O provider publica as
+variáveis e o `color-scheme` em `<html>`, e não num `div` do React: menu de
+ações, menu de status e popover de período saem em portal para o `body`, e num
+`div` as variáveis não os alcançariam. `color-scheme` é o que faz o Chromium
+pintar barra de rolagem, campo nativo e `<option>` no modo certo. O cache de
+`localStorage` anterior foi removido.
+
+A notificação é um `popover` manual: só a camada superior fica acima de um
+`<dialog>` modal, e é ali que o erro de salvar precisa aparecer enquanto o
+formulário continua aberto com os dados digitados. As confirmações fecham nos
+dois desfechos — uma pergunta já respondida não guarda nada que valha
+preservar, e o erro é lido na lista.
