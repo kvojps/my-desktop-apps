@@ -8,10 +8,10 @@
  * de `plan.ts`, então o prefixo `Plan` de `PlanPlacement`/`PlanShortfall` só
  * repetiria o arquivo. `PlanSheet` vira `PlannedSheetEntity`, e não
  * `PlanSheetEntity`: é a "chapa planejada" do glossário, o resultado — distinta
- * da `SheetEntity` disponível de `domain/sheet.ts`, e o nome carrega essa
+ * da `Sheet` disponível de `@shared/types/sheet`, e o nome carrega essa
  * diferença.
  *
- * Nada aqui aponta para `PieceEntity` nem para `SheetEntity`: o plano copia
+ * Nada aqui aponta para `Piece` nem para `Sheet`: o plano copia
  * rótulo e medida. Uma peça excluída depois da geração não pode apagar a folha
  * que já está na bancada — e a identidade que o empacotador usa internamente
  * (`pieceId`, `sheetId`) não sobrevive à gravação de propósito (ticket 07).

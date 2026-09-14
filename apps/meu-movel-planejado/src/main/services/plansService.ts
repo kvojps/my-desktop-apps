@@ -123,7 +123,7 @@ export function makePlansService(
       if (!project) throw new AppError(404, PROJECT_GONE);
 
       // Só a geometria do corte entra: o empacotamento não depende do resto do
-      // projeto, e `PieceEntity`/`SheetEntity` já satisfazem o que ele lê.
+      // projeto, e `Piece`/`Sheet` já satisfazem o que ele lê.
       const input: CuttingPlanInputEntity = {
         pieces: repos.pieces.listForProject(projectId),
         sheets: repos.sheets.listForProject(projectId),

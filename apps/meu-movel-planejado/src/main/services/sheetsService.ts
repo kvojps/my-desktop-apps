@@ -1,5 +1,4 @@
-import type { SheetInput } from '@shared/types/sheet';
-import type { SheetEntity } from '../domain/sheet';
+import type { Sheet, SheetInput } from '@shared/types/sheet';
 import type { Repositories } from '../infra/database';
 import { AppError } from '../utils/errors/AppError';
 
@@ -17,18 +16,18 @@ const SHEET_GONE = 'Esta chapa não existe mais.';
  */
 export function makeSheetsService(repos: Repositories) {
   return {
-    list(projectId: string): SheetEntity[] {
+    list(projectId: string): Sheet[] {
       return repos.sheets.listForProject(projectId);
     },
 
-    create(projectId: string, data: SheetInput): SheetEntity {
+    create(projectId: string, data: SheetInput): Sheet {
       return repos.transaction(() => {
         if (!repos.projects.touch(projectId)) throw new AppError(404, PROJECT_GONE);
         return repos.sheets.create(projectId, data);
       });
     },
 
-    update(id: string, data: SheetInput): SheetEntity {
+    update(id: string, data: SheetInput): Sheet {
       const current = repos.sheets.findById(id);
       if (!current) throw new AppError(404, SHEET_GONE);
       return repos.transaction(() => {
