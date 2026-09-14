@@ -28,16 +28,27 @@ README será alinhado na documentação da implementação.
 Q8 confirmada em 2026-09-14: entendimento consolidado e sequência das seis
 etapas aprovados. Entrevista encerrada; spec aprovada e issues abertas.
 
+Correção em 2026-09-14, após as issues 01–03: os tokens locais tinham copiado
+a paleta MUI e os estados transversais não haviam sido migrados, então a base
+nova não se via. O usuário escolheu a paleta neutra (mesma revisão do Orca que
+o Meu Dinheiro extraiu; botão primário neutro, azul só em foco e ladrilhos,
+raios 10/6). Registrado em `apps/meu-negocio-app/docs/orca-theme.md` e na
+[issue 01](issues/01-tema-e-navegacao.md), reaberta e fechada de novo.
+Na mesma data, as issues 04–06 ganharam critérios verificáveis por grep,
+a 06 ganhou a conferência cruzada de tokens e a pendência de dicas por teclado,
+e os itens manuais abertos em 01–03 passaram a apontar para a revisão final da
+06, que os cobre.
+
 ## Plano de execução
 
-| Issue | Escopo | Bloqueada por |
-| ----- | ------ | ------------- |
-| [01](issues/01-tema-e-navegacao.md) | Base, tema e navegação | Nenhuma |
-| [02](issues/02-produtos.md) | Produtos, tabelas e formulários | 01 |
-| [03](issues/03-pedidos-e-vendas.md) | Pedidos e Vendas | 02 |
-| [04](issues/04-dashboard.md) | Dashboard e gráficos | 03 |
-| [05](issues/05-configuracoes.md) | Configurações | 04 |
-| [06](issues/06-concluir-migracao.md) | Retirada de MUI e fechamento | 05 |
+| Issue                                | Escopo                          | Bloqueada por |
+| ------------------------------------ | ------------------------------- | ------------- |
+| [01](issues/01-tema-e-navegacao.md)  | Base, tema e navegação          | Nenhuma       |
+| [02](issues/02-produtos.md)          | Produtos, tabelas e formulários | 01            |
+| [03](issues/03-pedidos-e-vendas.md)  | Pedidos e Vendas                | 02            |
+| [04](issues/04-dashboard.md)         | Dashboard e gráficos            | 03            |
+| [05](issues/05-configuracoes.md)     | Configurações                   | 04            |
+| [06](issues/06-concluir-migracao.md) | Retirada de MUI e fechamento    | 05            |
 
 ## Fog
 

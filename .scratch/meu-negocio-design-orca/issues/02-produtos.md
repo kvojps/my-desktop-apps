@@ -21,7 +21,7 @@ e escuro e preservação funcional, na sequência aprovada em Q8.
 
 - [x] Executar `npm run typecheck`, `npm run lint`, `npm test` e
       `npm run build -w meu-negocio-app`.
-- [ ] Criar e editar um produto com dados descartáveis; conferir filtro vazio, margem indefinida e operação dos campos/menu pelo teclado.
+- [ ] Criar e editar um produto com dados descartáveis; conferir filtro vazio, margem indefinida e operação dos campos/menu pelo teclado. _(coberto pela revisão final da [issue 06](06-concluir-migracao.md); marcar aqui quando ela executar.)_
 - [x] Registrar em Comments resultados e limitações, atualizar Status e marcar
       somente os itens resolvidos. Sem pasta de evidências, capturas obrigatórias
       ou matriz completa de combinações.
@@ -48,3 +48,9 @@ preexistentes em `OrdersContext` e `ProductsContext`), `npm test` (33 arquivos,
 Electron — criar/editar produto, filtro vazio, margem e teclado — permanece
 pendente porque este ambiente não abriu a aplicação; está registrada como
 limitação conhecida e não impede a resolução por orientação do usuário.
+
+Conferência de 2026-09-14, ao reabrir a issue 01: `grep -rl "@mui"` em
+`pages/products/` e nos componentes desta etapa retorna vazio; o resto de
+`Stack`/`Typography` que ainda embrulhava `ProductsPage` saiu nessa correção.
+"Dicas" ficaram como `title` nativo e dica por CSS na lateral, que não chegam
+ao teclado; a pendência foi registrada como critério da issue 06.

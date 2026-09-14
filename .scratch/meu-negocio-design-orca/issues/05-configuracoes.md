@@ -16,15 +16,16 @@ e escuro e preservação funcional, na sequência aprovada em Q8.
 - [ ] Migrar formulário da empresa, exportação, confirmação de restauração, versão e caminho copiável do banco.
 - [ ] Preservar formato de backup e contratos existentes; manter feedback e bloqueio de ações concorrentes durante operações.
 - [ ] Manter tema no rodapé da lateral com identificação acessível, conforme exceção local aprovada.
+- [ ] Verificável por máquina: `grep -rl "@mui" apps/meu-negocio-app/src/renderer/src/pages/settings` retorna vazio; citar o resultado em Comments antes de marcar os critérios acima.
 
 ## Validação enxuta
 
 - [ ] Executar `npm run typecheck`, `npm run lint`, `npm test` e
-  `npm run build -w meu-negocio-app`.
+      `npm run build -w meu-negocio-app`.
 - [ ] Editar empresa e trocar seção sem perder campos; exportar/restaurar dados descartáveis e conferir resultado, registrando eventual limitação do diálogo nativo.
 - [ ] Registrar em Comments resultados e limitações, atualizar Status e marcar
-  somente os itens resolvidos. Sem pasta de evidências, capturas obrigatórias
-  ou matriz completa de combinações.
+      somente os itens resolvidos. Sem pasta de evidências, capturas obrigatórias
+      ou matriz completa de combinações.
 
 ## Comments
 
