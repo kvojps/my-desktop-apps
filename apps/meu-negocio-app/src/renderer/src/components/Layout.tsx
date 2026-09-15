@@ -47,7 +47,14 @@ export function Layout({ children }: { children: ReactNode }) {
             aria-label="Meu Negócio — Dashboard"
           >
             <img src={logo} alt="" width={28} height={28} />
-            {!collapsed && <span>Meu Negócio</span>}
+            {!collapsed && (
+              <>
+                <span>Meu Negócio</span>
+                <span className="negocio-chip" data-variant="outline">
+                  v{__APP_VERSION__}
+                </span>
+              </>
+            )}
           </Link>
         </Tooltip>
         <div id="main-navigation" className="ui:flex ui:flex-col ui:gap-1">

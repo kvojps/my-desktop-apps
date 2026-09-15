@@ -708,6 +708,14 @@
     background: var(--negocio-tile-warning);
     color: var(--negocio-tile-warning-label);
   }
+  /* Contorno sem preenchimento: a versão ao lado da marca é referência, não
+     estado, e o rótulo apagado sobre a lateral é o mesmo par dos itens de
+     navegação em repouso. */
+  .negocio-chip[data-variant='outline'] {
+    border: 1px solid var(--negocio-border);
+    background: transparent;
+    color: var(--negocio-muted-foreground);
+  }
   button.negocio-chip {
     cursor: pointer;
   }

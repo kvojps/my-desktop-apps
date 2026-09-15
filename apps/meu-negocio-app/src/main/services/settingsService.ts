@@ -11,7 +11,7 @@ import type { ThemeModeGateway } from '../infra/gateways/system/themeMode';
  * build (`app:getInfo`).
  *
  * Os gateways chegam por parâmetro, não por import: `themeMode` fala Electron
- * (`nativeTheme`, `BrowserWindow`) e `appInfo` fala `app.getVersion()` — o
+ * (`nativeTheme`, `BrowserWindow`) e `appInfo` fala o caminho do banco em disco — o
  * service que os importasse direto os conheceria por transitividade, que é o que
  * a camada existe para impedir (README §2.2). Mesmo motivo dos gateways de
  * `system/` no `git-dlog`.
@@ -30,9 +30,9 @@ export function makeSettingsService(
       return repos.settings.updateSettings(data);
     },
 
-    /** Versão e caminho do banco — o que a tela de Configurações exibe. */
+    /** Caminho do banco em disco — o que a seção Sobre exibe e copia. */
     getAppInfo(): AppInfo {
-      return { version: appInfo.version(), dbPath: appInfo.dbPath() };
+      return { dbPath: appInfo.dbPath() };
     },
 
     /**

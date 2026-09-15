@@ -5,6 +5,7 @@ declare global {
   interface Window {
     api: ElectronApi;
   }
+  const __APP_VERSION__: string;
 }
 
 export {};
