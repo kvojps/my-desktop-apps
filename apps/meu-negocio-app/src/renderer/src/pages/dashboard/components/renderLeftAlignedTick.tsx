@@ -1,4 +1,5 @@
 import { TICK_LEFT_PADDING } from '@/pages/dashboard/hooks/useTextMeasure';
+import { CHART_FONT_SIZE } from '@/theme/chartTheme';
 
 /**
  * O tick do `YAxis` de categoria, alinhado à esquerda do eixo em vez de encostado
@@ -18,7 +19,14 @@ export function renderLeftAlignedTick(
 ) {
   const { y, payload } = props;
   return (
-    <text x={TICK_LEFT_PADDING} y={y} dy={4} textAnchor="start" fontSize={12} fill={fill}>
+    <text
+      x={TICK_LEFT_PADDING}
+      y={y}
+      dy={4}
+      textAnchor="start"
+      fontSize={CHART_FONT_SIZE}
+      fill={fill}
+    >
       {payload?.value}
     </text>
   );

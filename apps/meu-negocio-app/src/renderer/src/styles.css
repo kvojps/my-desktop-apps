@@ -811,6 +811,11 @@
     flex-direction: column;
     gap: 24px;
   }
+  /* Tela de leitura que preenche a faixa de conteúdo (Dashboard): reclama a
+     altura inteira do `Layout` para a grade repartir entre as seções. */
+  .negocio-page-fill {
+    flex: 1;
+  }
   .negocio-cell-stack {
     display: flex;
     flex-direction: column;
@@ -945,6 +950,179 @@
   .negocio-page-header p {
     margin: 2px 0 0;
     color: var(--negocio-muted-foreground);
+  }
+
+  /* Dashboard ------------------------------------------------------------ */
+
+  /* Uma grade só para as três seções: `grid-auto-rows: 1fr` reparte a altura
+     que sobra do cabeçalho; o mínimo automático de cada linha continua sendo o
+     conteúdo, então em janela baixa a grade cresce e a página rola, em vez de
+     espremer os gráficos. `min-width: 0` é o que impede o `ResponsiveContainer`
+     de realimentar a própria largura e engordar o card a cada quadro (§7). */
+  .negocio-dashboard-grid {
+    display: grid;
+    flex: 1;
+    grid-template-columns: 1fr;
+    grid-auto-rows: 1fr;
+    gap: 24px;
+  }
+  .negocio-dashboard-grid > * {
+    min-width: 0;
+  }
+  /* A medida é a da faixa de conteúdo, não a da janela (§2.2). */
+  @container content (min-width: 1000px) {
+    .negocio-dashboard-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    /* O gráfico de meses é o assunto da tela: fica com a linha inteira. */
+    .negocio-dashboard-grid > :first-child {
+      grid-column: 1 / -1;
+    }
+  }
+  .negocio-section {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 16px;
+    border: 1px solid var(--negocio-border);
+    border-radius: 10px;
+    background: var(--negocio-paper);
+  }
+  .negocio-section-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px 16px;
+  }
+  .negocio-section-heading {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+  .negocio-section-title-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 16px;
+  }
+  .negocio-section-title-row h2 {
+    margin: 0;
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 600;
+  }
+  .negocio-section-heading .negocio-caption {
+    margin: 0;
+  }
+  /* A caixa elástica da seção: gráfico, tabela, esqueleto e vazio ocupam a
+     mesma caixa. O piso mora em `theme/chartTheme.ts` e entra inline, para a
+     medida nomeada da §5.3 ter uma fonte só. */
+  .negocio-section-body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+  }
+  /* O estado vazio não estica: fica no meio da caixa que sobrou, e não colado
+     no cabeçalho com um vão embaixo. */
+  .negocio-section-body > .negocio-empty {
+    margin-block: auto;
+  }
+  /* A rolagem é da caixa do gráfico e só dela: abaixo do piso de largura o
+     desenho para de encolher e é a caixa que rola, com cabeçalho, tags e
+     seletor parados onde estão. */
+  .negocio-chart-scroll {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+  .negocio-chart {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-height: 0;
+  }
+  .negocio-chart > .recharts-responsive-container {
+    flex: 1;
+    min-height: 0;
+  }
+  .negocio-chart-skeleton {
+    flex: 1;
+    height: auto;
+    border-radius: 6px;
+  }
+  .negocio-tags {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 16px;
+  }
+  .negocio-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    line-height: 20px;
+  }
+  /* O quadrado lê os tokens de série, medidos contra o papel a 3:1 — não os
+     do ladrilho, cujo âmbar não passa no claro sem o rótulo por cima. */
+  .negocio-tag-swatch {
+    flex-shrink: 0;
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+    background: var(--negocio-series-primary);
+  }
+  .negocio-tag-swatch[data-accent='secondary'] {
+    background: var(--negocio-series-secondary);
+  }
+  .negocio-tag-swatch[data-accent='success'] {
+    background: var(--negocio-series-success);
+  }
+  .negocio-tag-swatch[data-accent='info'] {
+    background: var(--negocio-series-info);
+  }
+  .negocio-tag-swatch[data-accent='warning'] {
+    background: var(--negocio-series-warning);
+  }
+  .negocio-tag-swatch[data-accent='error'] {
+    background: var(--negocio-series-error);
+  }
+  .negocio-tag-label {
+    color: var(--negocio-muted-foreground);
+  }
+  .negocio-tag strong,
+  .negocio-tag-margin {
+    font-weight: 600;
+  }
+  .negocio-tag-margin {
+    display: inline-flex;
+    align-items: center;
+  }
+  .negocio-tag-margin svg {
+    width: 14px;
+    height: 14px;
+  }
+  /* Só a condição pinta o valor (§1.5), com os pares de texto medidos. */
+  .negocio-tag [data-tone='alert'] {
+    color: var(--negocio-danger);
+  }
+  .negocio-tag [data-tone='positive'] {
+    color: var(--negocio-positive);
+  }
+  /* Texto só para tecnologia assistiva: a legenda da tabela de leitura, cujo
+     título visível é o da seção. */
+  .negocio-sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
   }
 
   /* Estados transversais (docs/orca-theme.md): vazio, erro e notificação. */

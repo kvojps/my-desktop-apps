@@ -84,6 +84,42 @@ nenhum, é texto (§1.4). Publicados como `--negocio-tile-<accent>` e
 **de texto** do valor, medidos sobre papel e sobre a linha em hover. O botão
 primário é neutro (preto/branco); o azul fica no foco e nos ladrilhos.
 
+### Gráficos
+
+O Recharts desenha fora do alcance do CSS: eixo, grade, tooltip e séries
+recebem cor por prop, e o módulo `theme/chartTheme.ts` é o único lugar que as
+resolve (§1.7). Série é objeto gráfico sobre o **papel** — o limiar é 3:1
+contra ele, e as medições abaixo são sobre `#ffffff` e `#171717`:
+
+| Série                                     | Claro     | Escuro    | Contraste sobre o papel |
+| ----------------------------------------- | --------- | --------- | ----------------------- |
+| primary (faturamento, ranking, 0–30 dias) | `#2771ca` | `#3987e5` | 4,88:1 / 4,93:1         |
+| success (lucro)                           | `#0a7d0a` | `#0ca30c` | 5,32:1 / 5,34:1         |
+| secondary (tag)                           | `#4a3aa7` | `#9085e9` | 8,56:1 / 5,73:1         |
+| info (tag)                                | `#0f7c91` | `#1190a9` | 4,87:1 / 4,77:1         |
+| warning (31–60 dias)                      | `#b26f00` | `#fab219` | 4,06:1 / 9,77:1         |
+| error (60+ dias)                          | `#cf3939` | `#d85b5b` | 4,89:1 / 4,75:1         |
+
+O âmbar é o único acento cuja série difere do ladrilho: `#fab219` mede
+**1,83:1** sobre o papel claro. No ladrilho isso não importa, porque o que se
+mede nele é o rótulo por cima; a barra não tem rótulo por cima — ela é o
+objeto. Publicado como `--negocio-series-<accent>`, e é o que pinta também o
+quadrado das tags de cabeçalho do Dashboard, desenhado direto sobre o papel.
+
+O que o Recharts escreve como texto segue as regras de texto: tick e eixo em
+`muted-foreground` (5,74:1 / 6,94:1 sobre o papel), grade em `border`, tooltip
+sobre `paper` com borda e texto em `foreground` mesmo quando a série tem cor.
+O valor na ponta da barra de Cobranças é `foreground`, `danger` só no degrau de
+60+ dias com saldo, e `muted` na faixa zerada. Medidas nomeadas: piso de altura
+160px (a altura real é a da linha da grade, e o esqueleto ocupa a mesma caixa)
+e piso de largura 360px, abaixo do qual rola só a caixa do gráfico. Texto do
+SVG em 12px, o mesmo da legenda. Movimento reduzido é respeitado série a série
+por `isAnimationActive`, lido por assinatura de `prefers-reduced-motion`,
+porque o bloco de CSS não alcança a interpolação em JavaScript do Recharts.
+O gráfico é imagem com nome acessível (`role="img"`), com a camada de
+acessibilidade do Recharts desligada; o caminho de teclado para os mesmos
+números é a alternativa em tabela de cada bloco.
+
 ## Tipografia
 
 Geist empacotada em 400/500/600/700, fallback `system-ui, sans-serif`; dígitos
@@ -98,13 +134,16 @@ tabulares no corpo inteiro. A escala é esta, e é a lista completa — um
 | Título de diálogo e de seção           | 16px/24px     | 600  |
 | Título de tela, valor de indicador     | 20px/28px     | 600  |
 | Título de estado (erro, página)        | 24px/32px     | 600  |
+| Valor de tag, valor negativo em célula | 14px/20px     | 600  |
+| Tendência, valor na ponta da barra     | 12px/18px     | 600  |
 
 Não há peso 700 nem `letterSpacing`. Erros técnicos usam
 `ui-monospace, SFMono-Regular, Menlo, Consolas, monospace` em 12px/18px.
 Enquanto o MUI coexiste, o tema dele lê a mesma escala (`fontSize: 14`,
 `h5` 20/28, `h6` 16/24, `caption` 12/18) para Dashboard e Configurações não
-terem outra régua. Lucide 18px nos controles, 24px no cabeçalho de tela,
-48px nos estados de página e 40px nos de seção.
+terem outra régua. Lucide 18px nos controles, 16px no grupo de alternância, 14px na seta de
+tendência e de margem, 24px no cabeçalho de tela, 48px nos estados de página e
+40px nos de seção.
 
 ## Dimensões
 
@@ -115,7 +154,15 @@ com nomes acessíveis e dicas quando recolhida. Conteúdo com padding 24px, teto
 1440px e rolagem independente; janela mínima 960 × 640.
 
 Cabeçalho de tela: título 20px/28px peso 600, subtítulo 14px/20px em `muted`,
-ícone em `muted`, sem margem própria. Painel de 10px com borda de 1px; ladrilho
+ícone em `muted`, sem margem própria. Seção do Dashboard: painel de 16px de
+padding, título 16px/24px, tags de 14px/20px com quadrado de 10px e raio 3px,
+seletor Gráfico/Tabela no mesmo grupo de alternância do período; grade de uma
+coluna, duas a partir de 1000px de conteúdo com a primeira seção na linha
+inteira, e `grid-auto-rows: 1fr` repartindo a altura que sobra. A alternativa
+em tabela de um gráfico é a **tabela de leitura** (`ReadingTable`): as mesmas
+células e o mesmo cabeçalho da tabela de lista, sem superfície própria,
+paginação, ordenação, ações ou rodapé de contagem — ela mora dentro da seção e
+lê poucas linhas; o `DataTable` continua sendo a única tabela de trabalho. Painel de 10px com borda de 1px; ladrilho
 de 38px; card de indicador com padding 16px; tabela com célula 8px × 12px,
 cabeçalho sobre `accent` e régua de 1px entre linhas — sem zebra, que dependia
 do azul do tema antigo. Chip 11px de raio, 12px/18px, peso 500. Diálogo nativo

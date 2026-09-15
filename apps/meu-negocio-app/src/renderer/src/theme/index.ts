@@ -33,6 +33,23 @@ const WHITE = '#ffffff';
 const BLACK_87 = 'rgba(0, 0, 0, 0.87)';
 
 /**
+ * A mesma matiz de identidade quando ela é **série de gráfico** ou o quadrado
+ * de uma tag, desenhada direto sobre o papel: ali o que vale é o 3:1 de objeto
+ * gráfico contra a superfície (§1.7), e o âmbar do ladrilho não passa no claro
+ * (1,83:1 sobre `#ffffff`). O ladrilho não tem esse problema porque o que se
+ * mede nele é o rótulo por cima; a barra não tem rótulo por cima — ela é o
+ * objeto. Só o âmbar precisa de par; os outros cinco já passam nos dois papéis.
+ * Medições em docs/orca-theme.md.
+ */
+/** O mesmo vocabulário de acentos, lido pela tabela de série e não pela do ladrilho. */
+export type SeriesAccent = TileAccent;
+
+const SERIES_FILL: Record<SeriesAccent, { light: string; dark: string }> = {
+  ...TILE_FILL,
+  warning: { light: '#b26f00', dark: '#fab219' },
+};
+
+/**
  * O rótulo por cima de cada preenchimento, **declarado** e não medido: cor de
  * estado do tema tem par por modo e contraste conhecido (§1.8). Âmbar é preto
  * nos dois modos porque é claro nos dois.
@@ -46,9 +63,14 @@ const TILE_LABEL: Record<TileAccent, { light: string; dark: string }> = {
   error: { light: WHITE, dark: BLACK_87 },
 };
 
-/** O preenchimento de um acento resolvido, para quem desenha fora do CSS (Recharts). */
+/** O preenchimento de um acento resolvido, para quem desenha fora do CSS. */
 export function tileFill(accent: TileAccent, mode: ThemeMode): string {
   return TILE_FILL[accent][mode];
+}
+
+/** A cor de série do acento — o que o Recharts pinta sobre o papel. */
+export function seriesFill(accent: SeriesAccent, mode: ThemeMode): string {
+  return SERIES_FILL[accent][mode];
 }
 
 /**
@@ -94,6 +116,7 @@ export function getThemeVariables(mode: ThemeMode): CSSProperties {
   for (const accent of Object.keys(TILE_FILL) as TileAccent[]) {
     tiles[`--negocio-tile-${accent}`] = TILE_FILL[accent][mode];
     tiles[`--negocio-tile-${accent}-label`] = TILE_LABEL[accent][mode];
+    tiles[`--negocio-series-${accent}`] = SERIES_FILL[accent][mode];
   }
   return {
     '--negocio-background': color.background,

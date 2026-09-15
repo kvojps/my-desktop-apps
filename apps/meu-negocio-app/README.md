@@ -20,9 +20,15 @@ O app tem cinco telas: **Dashboard** (a inicial, com o resumo do período), **Pr
 
 ### 1.2 Dashboard
 
-Visão geral do período: receita e lucro por mês, produtos mais vendidos, distribuição dos pedidos por status, alertas de estoque baixo e as vendas mais recentes. O filtro de meses vale para todos os cards da tela, com **uma exceção deliberada**: **Contas a Receber** mostra sempre a posição de hoje, sobre o histórico inteiro. Um saldo devido não pertence ao mês em que a venda aconteceu — ele existe até ser pago —, e filtrar por período esconderia justamente a conta mais velha, que é a que importa. O card diz isso no próprio subtítulo.
+Visão geral do período em três blocos, cada um com os indicadores no cabeçalho e um seletor **Gráfico/Tabela** que mostra os mesmos dados de duas formas — a tabela é o caminho pelo teclado e traz o que no gráfico só aparece na dica, como a contagem de contas por faixa:
 
-As contas a receber aparecem agrupadas por **faixa de dias desde a venda** (0–15, 16–30, 31–60 e 60+), com o valor de cada faixa em barra e a contagem de contas no tooltip. As quatro faixas aparecem sempre, zeradas inclusive: "nada acima de 60 dias" é informação. Repare que a faixa mede **idade da venda, não atraso** — o app não tem data de vencimento, então nenhuma conta está formalmente atrasada; a cor de alerta em 60+ dias é convenção sobre quanto tempo é tempo demais. Para ver as contas uma a uma, o caminho é a tela de **Vendas**.
+- **Faturamento e Lucro por Mês** — faturamento, lucro com a margem e pedidos pendentes; o gráfico compara os meses do período e a tabela lista mês, faturamento, lucro e margem.
+- **Vendas** — total de vendas, ticket médio e produtos com estoque baixo; o gráfico é o ranking dos cinco produtos mais vendidos por quantidade.
+- **Cobranças** — total a receber e contas em aberto, por faixa de dias desde a venda.
+
+O filtro de meses vale para os dois primeiros blocos, com **uma exceção deliberada**: **Cobranças** mostra sempre a posição de hoje, sobre o histórico inteiro. Um saldo devido não pertence ao mês em que a venda aconteceu — ele existe até ser pago —, e filtrar por período esconderia justamente a conta mais velha, que é a que importa. O bloco diz isso no próprio subtítulo.
+
+As contas a receber aparecem agrupadas por **faixa de dias desde a venda** (0–15, 16–30, 31–60 e 60+), com o valor de cada faixa em barra e a contagem de contas na dica e na tabela. As quatro faixas aparecem sempre, zeradas inclusive: "nada acima de 60 dias" é informação. Repare que a faixa mede **idade da venda, não atraso** — o app não tem data de vencimento, então nenhuma conta está formalmente atrasada; a cor de alerta em 60+ dias é convenção sobre quanto tempo é tempo demais. Para ver as contas uma a uma, o caminho é a tela de **Vendas**.
 
 ### 1.3 Produtos
 

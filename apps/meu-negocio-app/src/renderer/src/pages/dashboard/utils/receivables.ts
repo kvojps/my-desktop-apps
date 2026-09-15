@@ -28,6 +28,11 @@ function bucketOf(days: number): AgingBucket {
   return '60+';
 }
 
+/** "1 conta" / "N contas": a contagem de uma faixa ou do total. */
+export function formatCount(count: number): string {
+  return count === 1 ? '1 conta' : `${count} contas`;
+}
+
 export interface BucketRow {
   bucket: AgingBucket;
   label: string;

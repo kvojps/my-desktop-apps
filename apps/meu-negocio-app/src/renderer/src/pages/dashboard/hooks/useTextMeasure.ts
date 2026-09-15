@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { CHART_FONT_SIZE } from '@/theme/chartTheme';
 
 /**
  * O Recharts não mede o texto que ele mesmo desenha: nem o tick do eixo de
@@ -56,8 +57,8 @@ function getMeasureNode(): HTMLSpanElement {
       visibility: 'hidden',
       whiteSpace: 'pre',
       pointerEvents: 'none',
-      fontFamily: 'Inter, Roboto, Helvetica, Arial, sans-serif',
-      fontSize: '12px',
+      // Só o tamanho: a família vem do `body` (Geist), como no `<text>` do SVG.
+      fontSize: `${CHART_FONT_SIZE}px`,
     });
     document.body.appendChild(measureNode);
   }
@@ -109,7 +110,7 @@ export interface TextMeasure {
 }
 
 /**
- * A Inter é empacotada e carrega de forma assíncrona, então o primeiro render
+ * A Geist é empacotada e carrega de forma assíncrona, então o primeiro render
  * mede na fonte de fallback e erra — no caso medido, ~8% para menos, o bastante
  * para cortar o último dígito de "R$ 8.400,00".
  *

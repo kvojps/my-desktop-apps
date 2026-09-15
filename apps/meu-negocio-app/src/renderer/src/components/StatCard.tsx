@@ -28,17 +28,6 @@ export type StatTone = 'neutral' | 'positive' | 'alert';
  */
 export type StatAccent = TileAccent;
 
-/**
- * Nomes de cor do tema MUI, ainda consumidos pelo Dashboard enquanto ele não é
- * migrado. O card local não usa mais este mapa: quem pinta o valor é o
- * `data-tone` do CSS.
- */
-export const TONE_COLOR: Record<StatTone, string> = {
-  neutral: 'text.primary',
-  positive: 'success.main',
-  alert: 'error.main',
-};
-
 export interface StatTrend {
   /** Variação percentual sobre o período de comparação. */
   pct: number;

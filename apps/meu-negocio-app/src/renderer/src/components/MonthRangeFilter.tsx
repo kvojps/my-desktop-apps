@@ -123,13 +123,17 @@ export function MonthRangeFilter({
     if (last3Range) applyRange(last3Range.from, last3Range.to);
   }
 
+  // Só depois de existir pedido: as opções sempre incluem o mês corrente, então
+  // com a lista ainda vazia "Este ano" colapsava para o mês de hoje e ficava
+  // assim quando os pedidos chegavam — o Dashboard abria com um recorte
+  // "personalizado" de um mês só, sem ninguém ter escolhido nada.
   useEffect(() => {
-    if (defaultToThisYear && !defaultYearApplied && monthOptions.length > 0) {
+    if (defaultToThisYear && !defaultYearApplied && orders.length > 0) {
       handleQuickThisYear();
       setDefaultYearApplied(true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [monthOptions, defaultYearApplied, defaultToThisYear]);
+  }, [orders, defaultYearApplied, defaultToThisYear]);
 
   return (
     <>
