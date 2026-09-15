@@ -19,9 +19,8 @@ antigo não comprovam contraste no novo (design system); os pares abaixo são os
 já medidos pelo Meu Dinheiro sobre as mesmas superfícies neutras.
 
 Tailwind v4 usa prefixo `ui`, sem Preflight; componentes locais coexistem com
-MUI/Emotion até a issue 06. O tema do MUI, enquanto existe, lê estes mesmos
-valores para as telas ainda não migradas (Dashboard, Configurações) não
-contradizerem as migradas.
+MUI/Emotion até a issue 06. Desde a issue 05 nenhuma tela lê o tema do MUI:
+ele fica instalado, com estes mesmos valores, só até a retirada.
 
 ## Tokens locais
 
@@ -137,13 +136,17 @@ tabulares no corpo inteiro. A escala é esta, e é a lista completa — um
 | Valor de tag, valor negativo em célula | 14px/20px     | 600  |
 | Tendência, valor na ponta da barra     | 12px/18px     | 600  |
 
-Não há peso 700 nem `letterSpacing`. Erros técnicos usam
+Não há peso 700 nem `letterSpacing`. Na folha, tamanho, linha e peso vão em
+longhands com `font-family: inherit`: o shorthand `font` não aceita `inherit`
+como família, e o Chromium descarta a declaração inteira — foi assim que botões
+e abas passaram meses em Arial 13,33px sem o grep de `font-size` acusar nada.
+Erros técnicos usam
 `ui-monospace, SFMono-Regular, Menlo, Consolas, monospace` em 12px/18px.
 Enquanto o MUI coexiste, o tema dele lê a mesma escala (`fontSize: 14`,
-`h5` 20/28, `h6` 16/24, `caption` 12/18) para Dashboard e Configurações não
-terem outra régua. Lucide 18px nos controles, 16px no grupo de alternância, 14px na seta de
-tendência e de margem, 24px no cabeçalho de tela, 48px nos estados de página e
-40px nos de seção.
+`h5` 20/28, `h6` 16/24, `caption` 12/18), embora nenhuma tela o consuma mais.
+Lucide 18px nos controles, 16px no grupo de alternância e nas abas de
+Configurações, 14px na seta de tendência e de margem, 24px no cabeçalho de
+tela, 48px nos estados de página e 40px nos de seção.
 
 ## Dimensões
 
@@ -180,6 +183,36 @@ A adaptação de layout é medida contra a faixa de conteúdo, não contra a jan
 `.negocio-content` declara o container `content`, e a folha local usa os mesmos
 limiares do `contentQuery` do tema — **640px** para a faixa média e **1000px**
 para a larga.
+
+### Configurações
+
+A tela segue o arquétipo de assuntos independentes da §4.1 do design system,
+mas **não** o acordeão: a composição aprovada na spec (Q4–Q7) é uma navegação
+interna entre Empresa, Backup e Sobre, com **uma seção visível por vez**. A
+navegação é uma lista de abas (`tablist`/`tab`/`tabpanel`, só a aba ativa na
+ordem de tabulação, setas nas duas direções, `Home`/`End`) e é a mesma lista
+nos dois arranjos: coluna de 208px à esquerda do painel a partir de **1000px**
+de conteúdo, seletor compacto em cima dele abaixo disso — botões de 36px em
+fileira, com borda e cantos de 6px nas pontas. Por ser o mesmo elemento nos
+dois casos, a seleção sobrevive ao redimensionamento sem estado extra.
+
+Os três painéis ficam **montados** e escondidos com `hidden`: o formulário da
+empresa guarda o que foi digitado ao trocar de seção. O painel é a mesma
+superfície da seção do Dashboard (16px de padding, borda de 1px, raio 10px),
+com ladrilho, título 16px/24px e a linha de explicação em `muted`. Cada seção
+carrega e falha por conta própria (§5.3) com `ErrorState` denso, e a falha
+também aparece na aba, como glifo em `danger` mais o texto "falhou ao
+carregar" no nome acessível — o que substitui a regra "a seção que falhou se
+abre sozinha", que não tem sentido sem acordeão. A empresa é a única seção com
+cor de identidade (§1.5). Versão e caminho do banco vão em mono 12px/18px,
+selecionáveis, e o caminho tem botão de copiar; a operação de backup em
+andamento troca o rótulo do botão e bloqueia as duas ações.
+
+**O alternador de tema não aparece em Configurações.** O design system (§4.1)
+o repete ali como grupo "Claro/Escuro" para dizer em que modo o app está; aqui
+a exceção aprovada (Q4) o mantém só no rodapé da lateral, e o nome do controle
+já diz o modo atual ("Tema escuro. Ativar tema claro"), com o rótulo visível
+quando a lateral está aberta e a dica quando recolhida.
 
 ## Tema e janela
 

@@ -184,6 +184,12 @@ da alteração da interface. Tema continua pertencendo ao banco e precisa pintar
 a janela antes do renderer; foco, teclado, redução de movimento, feedback e
 contraste nos dois modos seguem obrigatórios em cada etapa.
 
+Duas divergências da §4.1 fazem parte da exceção, aprovadas na spec (Q4–Q7) e
+detalhadas nos tokens locais: Configurações usa **navegação interna por
+abas**, uma seção visível por vez, em vez do acordeão, e **o alternador de
+tema fica só no rodapé da lateral**, com o modo atual no nome do controle, em
+vez de se repetir na tela de Configurações.
+
 Este documento descreve o padrão visual comum aos apps do monorepo. Ele existe porque os
 apps deliberadamente **não compartilham código** (ver README, §2): sem um pacote
 `ui` para carregar a norma, é o texto que precisa carregá-la.

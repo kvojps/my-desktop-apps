@@ -1,5 +1,6 @@
-import { Box, Button, Stack, TextField } from '@mui/material';
+import { Button } from '@/components/Button';
 import { ErrorState } from '@/components/ErrorState';
+import { Field, TextArea, TextInput } from '@/components/Field';
 import type { UseSettingsReturn } from '@/hooks/settings/useSettings';
 
 interface CompanyFormProps {
@@ -27,60 +28,55 @@ export function CompanyForm({ formState }: CompanyFormProps) {
     );
   }
 
+  // Enquanto carrega, os campos ficam no lugar e desabilitados: têm a forma do
+  // conteúdo real, e o formulário não pode ser editado antes de o que está no
+  // banco chegar (§5.3).
   return (
-    <Box component="form" onSubmit={onSubmit} noValidate>
-      <Stack spacing={2}>
-        <TextField
-          label="Nome da empresa"
+    <form className="negocio-form" onSubmit={onSubmit} noValidate>
+      <Field label="Nome da empresa" invalid={!!errors.name} note={errors.name?.message}>
+        <TextInput
           required
-          error={!!errors.name}
-          helperText={errors.name?.message}
           placeholder="Ex: Ateliê da Ana"
           disabled={isLoading}
-          fullWidth
+          aria-invalid={!!errors.name}
           {...register('name')}
         />
+      </Field>
 
-        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-          <TextField
-            label="CNPJ ou CPF"
-            error={!!errors.cnpj}
-            helperText={errors.cnpj?.message}
+      <div className="negocio-form-row">
+        <Field label="CNPJ ou CPF" invalid={!!errors.cnpj} note={errors.cnpj?.message}>
+          <TextInput
             placeholder="00.000.000/0000-00"
             disabled={isLoading}
-            fullWidth
+            aria-invalid={!!errors.cnpj}
             {...register('cnpj')}
           />
-
-          <TextField
-            label="Telefone"
-            error={!!errors.phone}
-            helperText={errors.phone?.message}
+        </Field>
+        <Field label="Telefone" invalid={!!errors.phone} note={errors.phone?.message}>
+          <TextInput
             placeholder="(11) 91234-5678"
             disabled={isLoading}
-            fullWidth
+            aria-invalid={!!errors.phone}
             {...register('phone')}
           />
-        </Stack>
+        </Field>
+      </div>
 
-        <TextField
-          label="Endereço"
-          error={!!errors.address}
-          helperText={errors.address?.message}
-          placeholder="Rua, número, bairro, cidade e estado"
-          multiline
+      <Field label="Endereço" invalid={!!errors.address} note={errors.address?.message}>
+        <TextArea
           rows={2}
+          placeholder="Rua, número, bairro, cidade e estado"
           disabled={isLoading}
-          fullWidth
+          aria-invalid={!!errors.address}
           {...register('address')}
         />
+      </Field>
 
-        <Stack direction="row" justifyContent="flex-end">
-          <Button type="submit" variant="contained" disabled={isLoading || isSaving || !isDirty}>
-            {isSaving ? 'Salvando...' : 'Salvar'}
-          </Button>
-        </Stack>
-      </Stack>
-    </Box>
+      <div className="negocio-form-actions">
+        <Button type="submit" variant="primary" disabled={isLoading || isSaving || !isDirty}>
+          {isSaving ? 'Salvando...' : 'Salvar'}
+        </Button>
+      </div>
+    </form>
   );
 }

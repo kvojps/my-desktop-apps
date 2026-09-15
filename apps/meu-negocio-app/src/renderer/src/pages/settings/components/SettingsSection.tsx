@@ -1,69 +1,43 @@
-import { ExpandMore } from '@mui/icons-material';
-import {
-  Accordion,
-  AccordionDetails,
-  AccordionSummary,
-  Box,
-  Stack,
-  Typography,
-} from '@mui/material';
-import { type ComponentType, type ReactNode, useEffect, useState } from 'react';
+import type { ReactNode } from 'react';
 import { IconTile } from '@/components/IconTile';
-import type { TileAccent } from '@/components/IconTile';
+import { SECTIONS, type SectionId, sectionIds } from '../sections';
 
 interface SettingsSectionProps {
-  /** Repassado ao `IconTile`, que aceita ícone do MUI ou do Lucide por `className`. */
-  icon: ComponentType<{ className?: string }>;
-  /** Cor de identidade da seção. Seção que é operação, e não cadastro, fica
-   *  neutra — é o que faz a cor das outras significar alguma coisa (§1.5). */
-  accent?: TileAccent;
-  title: string;
-  description: string;
-  /** A seção nasce aberta. Reservado ao conteúdo principal da página. */
-  defaultExpanded?: boolean;
-  /**
-   * A seção falhou ao carregar. Cada seção falha por conta própria (§5.3), mas
-   * um erro atrás de acordeão fechado não é um erro visível: quando ele
-   * aparece, a seção se abre sozinha. Fechar de novo continua sendo do usuário.
-   */
-  hasError?: boolean;
+  idBase: string;
+  id: SectionId;
+  /** A seção visível. As outras continuam montadas, só escondidas. */
+  active: boolean;
   children: ReactNode;
 }
 
 /**
- * Uma seção de Configurações: ladrilho, título e uma linha de explicação no
- * cabeçalho, conteúdo no painel. O cabeçalho é o que se lê com a seção fechada,
- * então é ele que precisa dizer o que tem dentro.
+ * O painel de uma seção de Configurações: ladrilho, título e a linha de
+ * explicação no cabeçalho, conteúdo embaixo. É o `tabpanel` da aba de mesmo
+ * id — a aba o nomeia, ele aponta de volta para ela.
+ *
+ * Escondido com `hidden`, não desmontado: o formulário da empresa guarda o
+ * que foi digitado, a rolagem e o erro de cada seção ficam onde estavam, e a
+ * troca de seção é só trocar o que está à vista.
  */
-export function SettingsSection({
-  icon,
-  accent,
-  title,
-  description,
-  defaultExpanded = false,
-  hasError = false,
-  children,
-}: SettingsSectionProps) {
-  const [expanded, setExpanded] = useState(defaultExpanded);
-
-  useEffect(() => {
-    if (hasError) setExpanded(true);
-  }, [hasError]);
-
+export function SettingsSection({ idBase, id, active, children }: SettingsSectionProps) {
+  const { title, description, icon, accent } = SECTIONS[id];
+  const ids = sectionIds(idBase, id);
   return (
-    <Accordion expanded={expanded} onChange={(_, open) => setExpanded(open)}>
-      <AccordionSummary expandIcon={<ExpandMore />}>
-        <Stack direction="row" spacing={2} alignItems="center" sx={{ width: '100%', pr: 1 }}>
-          <IconTile icon={icon} accent={accent} />
-          <Box sx={{ minWidth: 0 }}>
-            <Typography variant="h6">{title}</Typography>
-            <Typography variant="body2" color="text.secondary">
-              {description}
-            </Typography>
-          </Box>
-        </Stack>
-      </AccordionSummary>
-      <AccordionDetails>{children}</AccordionDetails>
-    </Accordion>
+    <section
+      className="negocio-section"
+      role="tabpanel"
+      id={ids.panel}
+      aria-labelledby={ids.tab}
+      hidden={!active}
+    >
+      <div className="negocio-settings-head">
+        <IconTile icon={icon} accent={accent} />
+        <div className="ui:min-w-0">
+          <h2>{title}</h2>
+          <p>{description}</p>
+        </div>
+      </div>
+      {children}
+    </section>
   );
 }

@@ -48,4 +48,4 @@ Os indicadores do topo seguem o período escolhido no cabeçalho; a tabela segue
 
 ### 1.6 Configurações
 
-Dados da empresa (nome, CNPJ, telefone, endereço), backup e restauração em `.json`, e a versão do app com o caminho do banco em disco.
+Dados da empresa (nome, CNPJ, telefone, endereço), backup e restauração em `.json`, e a versão do app com o caminho do banco em disco. As três seções — Empresa, Backup e Sobre — ficam numa navegação interna, uma visível por vez; o tema claro/escuro é trocado no rodapé da lateral, não aqui.

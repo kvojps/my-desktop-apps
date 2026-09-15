@@ -84,7 +84,10 @@
     border-radius: 6px;
     background: transparent;
     color: var(--negocio-muted-foreground);
-    font: 500 14px/20px inherit;
+    font-family: inherit;
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 500;
     text-decoration: none;
     cursor: pointer;
   }
@@ -160,7 +163,10 @@
     border-radius: 6px;
     background: var(--negocio-paper);
     color: var(--negocio-foreground);
-    font: 500 14px/20px inherit;
+    font-family: inherit;
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 500;
     /* Sem Preflight, um `<a>` vestido de botão chega sublinhado. */
     text-decoration: none;
     cursor: pointer;
@@ -332,6 +338,7 @@
     margin: 0;
     font-size: 16px;
     line-height: 24px;
+    font-weight: 600;
   }
   .negocio-dialog-body {
     flex: 1;
@@ -352,6 +359,14 @@
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 16px;
+  }
+  /* Rodapé de um formulário fora de diálogo: a ação à direita, como no rodapé
+     do `Modal`. */
+  .negocio-form-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
   }
   .negocio-field {
     display: flex;
@@ -440,7 +455,10 @@
     border-radius: 6px;
     background: var(--negocio-paper);
     color: var(--negocio-foreground);
-    font: 500 14px/20px inherit;
+    font-family: inherit;
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 500;
     cursor: pointer;
   }
   .negocio-filter-toggle[aria-pressed='true'],
@@ -476,7 +494,9 @@
     border-radius: 6px;
     background: transparent;
     color: inherit;
-    font: 14px/20px inherit;
+    font-family: inherit;
+    font-size: 14px;
+    line-height: 20px;
     text-align: left;
     cursor: pointer;
   }
@@ -649,7 +669,10 @@
     border-radius: 11px;
     background: var(--negocio-accent);
     color: var(--negocio-foreground);
-    font: 500 12px/18px inherit;
+    font-family: inherit;
+    font-size: 12px;
+    line-height: 18px;
+    font-weight: 500;
     white-space: nowrap;
   }
   .negocio-chip svg {
@@ -698,7 +721,10 @@
     border-left: 1px solid var(--negocio-border);
     background: transparent;
     color: var(--negocio-muted-foreground);
-    font: 500 14px/20px inherit;
+    font-family: inherit;
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 500;
     cursor: pointer;
   }
   .negocio-toggle-group > button:first-child {
@@ -1123,6 +1149,153 @@
     overflow: hidden;
     clip: rect(0 0 0 0);
     white-space: nowrap;
+  }
+
+  /* Configurações --------------------------------------------------------- */
+
+  /* Navegação interna e uma seção por vez. Na faixa estreita o seletor
+     compacto fica em cima do painel; a partir de 1000px de conteúdo vira a
+     coluna à esquerda. É a mesma lista de abas nos dois casos (§2.2). */
+  .negocio-settings {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  .negocio-settings > .negocio-section {
+    align-self: stretch;
+  }
+  /* `display: flex` do painel vence o `[hidden]` do agente de usuário; a
+     seção escondida precisa dizer de novo que não aparece. */
+  .negocio-section[hidden] {
+    display: none;
+  }
+  .negocio-settings-nav {
+    display: flex;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+  .negocio-settings-tab {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 8px;
+    min-height: 36px;
+    padding: 8px 12px;
+    border: 1px solid var(--negocio-border);
+    border-left-width: 0;
+    background: var(--negocio-paper);
+    color: var(--negocio-muted-foreground);
+    font-family: inherit;
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 500;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+  .negocio-settings-tab:first-child {
+    border-left-width: 1px;
+    border-radius: 6px 0 0 6px;
+  }
+  .negocio-settings-tab:last-child {
+    border-radius: 0 6px 6px 0;
+  }
+  .negocio-settings-tab:hover {
+    background: var(--negocio-accent);
+  }
+  /* Seleção por tingido e por peso: cor nunca é o único canal (§1.7). */
+  .negocio-settings-tab[aria-selected='true'] {
+    background: var(--negocio-accent);
+    color: var(--negocio-foreground);
+    font-weight: 600;
+  }
+  .negocio-settings-tab svg {
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+  }
+  /* A falha da seção, vista de fora: glifo em `danger` mais o texto só para
+     leitor de tela que a aba carrega no nome. */
+  .negocio-settings-tab-alert {
+    color: var(--negocio-danger);
+  }
+  @container content (min-width: 1000px) {
+    .negocio-settings {
+      display: grid;
+      grid-template-columns: 208px minmax(0, 1fr);
+      align-items: start;
+      gap: 24px;
+    }
+    .negocio-settings-nav {
+      flex-direction: column;
+      gap: 4px;
+      overflow: visible;
+    }
+    .negocio-settings-tab {
+      border: 0;
+      border-radius: 6px;
+      background: transparent;
+    }
+    .negocio-settings-tab:first-child,
+    .negocio-settings-tab:last-child {
+      border-radius: 6px;
+    }
+    /* A grade põe cada painel numa linha própria; o escondido não ocupa a sua
+       porque `display: none` o tira do fluxo da grade. */
+    .negocio-settings > .negocio-section {
+      grid-column: 2;
+      grid-row: 1;
+    }
+  }
+  .negocio-settings-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .negocio-settings-head h2 {
+    margin: 0;
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 600;
+  }
+  .negocio-settings-head p {
+    margin: 2px 0 0;
+    color: var(--negocio-muted-foreground);
+  }
+  /* Versão e caminho do banco: rótulo em legenda, valor em mono e selecionável
+     (§6) — ele existe para ser conferido e copiado. */
+  .negocio-info {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin: 0;
+  }
+  .negocio-info > div {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .negocio-info dt {
+    color: var(--negocio-muted-foreground);
+    font-size: 12px;
+    line-height: 18px;
+  }
+  .negocio-info dd {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 36px;
+    margin: 0;
+  }
+  .negocio-info code {
+    font: 12px/18px var(--negocio-mono);
+    overflow-wrap: anywhere;
+    user-select: text;
+  }
+  /* O esqueleto ocupa a linha do rótulo (18px) e a do valor. */
+  .negocio-info dt > .negocio-skeleton {
+    height: 12px;
+    margin-block: 3px;
   }
 
   /* Estados transversais (docs/orca-theme.md): vazio, erro e notificação. */
