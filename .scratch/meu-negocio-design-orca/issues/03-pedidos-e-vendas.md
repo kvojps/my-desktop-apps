@@ -21,7 +21,7 @@ e escuro e preservação funcional, na sequência aprovada em Q8.
 
 - [x] Executar `npm run typecheck`, `npm run lint`, `npm test` e
       `npm run build -w meu-negocio-app`.
-- [ ] Com dados descartáveis, concluir e reabrir um pedido, conferir recusa por estoque insuficiente e atualizar Total já pago de R$ 100 para R$ 150, confirmando acumulado de R$ 150. _(coberto pela revisão final da [issue 06](06-concluir-migracao.md); marcar aqui quando ela executar.)_
+- [x] Com dados descartáveis, concluir e reabrir um pedido, conferir recusa por estoque insuficiente e atualizar Total já pago de R$ 100 para R$ 150, confirmando acumulado de R$ 150. _(executado na revisão final da [issue 06](06-concluir-migracao.md), em 2026-09-14: concluir pelo chip de status baixou o estoque de 5 para 3; o pedido do produto sem estoque foi recusado com o aviso de estoque insuficiente na fila de notificações, confirmação fechada e pedido ainda pendente; reabrir em Vendas devolveu o estoque a 5; Total já pago gravado em R$ 100 e depois em R$ 150, com o campo reabrindo em 100 e o acumulado final em R$ 150.)_
 - [x] Registrar em Comments resultados e limitações, atualizar Status e marcar
       somente os itens resolvidos. Sem pasta de evidências, capturas obrigatórias
       ou matriz completa de combinações.

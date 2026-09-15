@@ -177,14 +177,16 @@ mais MUI, Emotion, Material Icons nem Inter. Implementado não é o mesmo que
 validado: o que foi exercitado no Electron, e o que não foi, está registrado
 etapa por etapa nas issues da migração, com as limitações do ambiente.
 As prescrições de biblioteca, ícones e tema abaixo admitem a substituição local
-conforme a [exceção normativa](docs/design-system.md). Meu Negócio iniciou a
-sua migração incremental aprovada para Tailwind sem Preflight, Geist, Lucide e
-componentes locais; MUI e Emotion coexistem temporariamente, e os valores locais
+conforme a [exceção normativa](docs/design-system.md). Meu Negócio também
+**concluiu** a sua
+[migração incremental aprovada](.scratch/meu-negocio-design-orca/spec.md) para
+Tailwind sem Preflight, Geist, Lucide e componentes locais: os valores locais
 foram registrados em
 [`apps/meu-negocio-app/docs/orca-theme.md`](apps/meu-negocio-app/docs/orca-theme.md)
-antes da alteração de UI. Meu Móvel Planejado mantém MUI e Material Icons. Uma
-migração local não vale para os outros, nenhum app é canônico e não há
-compartilhamento de código.
+antes da alteração de UI e são conferidos por teste, e o app não declara mais
+MUI, Emotion, Material Icons nem Inter. Meu Móvel Planejado mantém MUI e
+Material Icons. Uma migração local não vale para os outros, nenhum app é
+canônico e não há compartilhamento de código.
 
 A organização é **horizontal no topo e vertical dentro de `pages/<tela>/`**: as
 pastas do topo são as camadas do renderer, e dentro da tela valem as mesmas —
@@ -232,10 +234,10 @@ src/renderer/src/
   domínio em silêncio, e decidir o que atravessa o IPC é do `main`
   ([ADR-0003](docs/adr/0003-logica-de-dominio-no-main.md)).
 - **`assets/`** — o logo do app, e só. Ícone é `@mui/icons-material` (Lucide no
-  Git Dlog e no Meu Dinheiro); imagem que
+  Git Dlog, no Meu Dinheiro e no Meu Negócio); imagem que
   a tela gera não mora aqui.
-- **`theme/`** — o tema MUI e o provider do modo claro/escuro; no Git Dlog e no
-  Meu Dinheiro, as variáveis CSS locais e o provider do modo. O Meu Dinheiro não
+- **`theme/`** — o tema MUI e o provider do modo claro/escuro; no Git Dlog, no
+  Meu Dinheiro e no Meu Negócio, as variáveis CSS locais e o provider do modo. O Meu Dinheiro não
   tem o `index.ts` do esquema acima: sem tema de biblioteca a montar, os tokens
   ficam em `orca.ts`, o estilo de gráfico em `chartTheme.ts` e a conta de rótulo
   em `labelOn.ts`, cada um importado de onde mora. Cor que se calcula
@@ -276,8 +278,8 @@ src/renderer/src/
   `showError` para erro vindo do IPC, numa fila de uma mensagem por vez. Falha ao
   carregar uma tela usa `components/ErrorState`, que oferece tentar de novo e
   abrir a pasta de dados. O texto exibido sai sempre de `describeAppError`.
-- **Ícones** — `@mui/icons-material`; no Git Dlog e no Meu Dinheiro,
-  `lucide-react`. Não há conjunto de SVG próprio.
+- **Ícones** — `@mui/icons-material`; no Git Dlog, no Meu Dinheiro e no Meu
+  Negócio, `lucide-react`. Não há conjunto de SVG próprio.
 
 Quatro regras valem em qualquer uma dessas pastas:
 

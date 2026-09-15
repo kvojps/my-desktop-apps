@@ -8,7 +8,7 @@ interface ModalProps {
   title: string;
   children: ReactNode;
   footer?: ReactNode;
-  /** Largura em CSS, não breakpoint do MUI. */
+  /** Largura em CSS. */
   maxWidth?: string;
   /**
    * Torna o papel do diálogo um `<form>`, o que faz o Enter submeter e permite

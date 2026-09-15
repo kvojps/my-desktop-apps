@@ -9,9 +9,8 @@ export type TileAccent = 'primary' | 'secondary' | 'success' | 'info' | 'warning
 
 interface IconTileProps {
   /**
-   * `className` é a única prop que os ícones do Lucide e os do MUI têm em comum,
-   * e as duas bases convivem até a retirada do MUI. Quem manda no tamanho é o
-   * CSS do ladrilho, então nenhuma chamada precisa repetir a medida.
+   * Só `className`: quem manda no tamanho é o CSS do ladrilho, então nenhuma
+   * chamada precisa repetir a medida do ícone.
    */
   icon: ComponentType<{ className?: string }>;
   /** Sem accent o ladrilho fica neutro. */

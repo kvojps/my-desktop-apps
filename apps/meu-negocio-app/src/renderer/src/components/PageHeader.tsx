@@ -15,8 +15,9 @@ interface PageHeaderProps {
 /**
  * Topo de toda tela: ícone, título, subtítulo e ações. Sem margem própria — o
  * espaçamento vertical é do `.negocio-page`, como entre todas as outras seções
- * (§3.1). O ícone pode ser Lucide ou MUI enquanto as duas bases convivem: quem
- * manda no tamanho e na cor é o CSS do cabeçalho.
+ * (§3.1). Quem manda no tamanho e na cor do ícone é o CSS do cabeçalho. O
+ * título quebra linha quando falta espaço: um `title` nativo sobre a reticência
+ * seria informação que só o mouse alcança.
  */
 export function PageHeader({ icon, title, subtitle, actions }: PageHeaderProps) {
   return (
@@ -24,7 +25,7 @@ export function PageHeader({ icon, title, subtitle, actions }: PageHeaderProps) 
       <div className="negocio-page-heading">
         {icon}
         <div className="ui:min-w-0">
-          <h1 title={title}>{title}</h1>
+          <h1>{title}</h1>
           {subtitle && <p>{subtitle}</p>}
         </div>
       </div>

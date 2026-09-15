@@ -2,6 +2,7 @@ import { ArrowDown, ArrowUp } from 'lucide-react';
 import type { CSSProperties, ComponentType, ReactNode } from 'react';
 import { IconTile } from '@/components/IconTile';
 import type { TileAccent } from '@/components/IconTile';
+import { Tooltip } from '@/components/Tooltip';
 
 /**
  * Duas cores convivem no card, com papéis separados — foi misturá-las que
@@ -60,16 +61,20 @@ export function TrendBadge({ pct, comparedTo, increaseIsGood = true }: StatTrend
   return (
     // `role="img"` com rótulo: só assim a seta e o número são lidos como uma
     // coisa só ("18% acima de julho") em vez de "18%" sem referência nenhuma.
-    <span
-      className="negocio-trend"
-      data-good={isGood}
-      role="img"
-      aria-label={description}
-      title={description}
-    >
-      <Icon aria-hidden="true" />
-      {Math.abs(pct).toFixed(0)}%
-    </span>
+    // O período comparado só existe aqui, então o selo entra na ordem de
+    // tabulação: a dica que o mostra precisa chegar ao teclado.
+    <Tooltip title={description}>
+      <span
+        className="negocio-trend"
+        data-good={isGood}
+        role="img"
+        aria-label={description}
+        tabIndex={0}
+      >
+        <Icon aria-hidden="true" />
+        {Math.abs(pct).toFixed(0)}%
+      </span>
+    </Tooltip>
   );
 }
 

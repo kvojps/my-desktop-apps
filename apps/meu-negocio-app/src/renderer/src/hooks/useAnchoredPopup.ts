@@ -1,4 +1,5 @@
 import { type KeyboardEvent, useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
+import { placeOverlay } from '@/utils/overlay';
 
 /**
  * O menu ou o popover nasce dentro do diálogo quando há um aberto: um `<dialog>`
@@ -20,7 +21,8 @@ interface AnchoredPopupOptions {
  *
  * A posição é `fixed` porque a camada nasce dentro de uma célula com `overflow`,
  * onde uma camada absoluta seria cortada — e é medida uma vez, na abertura, o
- * que é a razão de rolar fechar em vez de acompanhar.
+ * que é a razão de rolar fechar em vez de acompanhar. A conta é a mesma da
+ * dica (`utils/overlay.ts`), abaixo e alinhada à direita do gatilho.
  */
 export function useAnchoredPopup({ focusSelector }: AnchoredPopupOptions) {
   const [isOpen, setIsOpen] = useState(false);
@@ -35,9 +37,7 @@ export function useAnchoredPopup({ focusSelector }: AnchoredPopupOptions) {
 
   useLayoutEffect(() => {
     if (!isOpen || !popup.current || !trigger.current) return;
-    const rect = trigger.current.getBoundingClientRect();
-    popup.current.style.top = `${Math.min(rect.bottom + 6, window.innerHeight - popup.current.offsetHeight - 8)}px`;
-    popup.current.style.left = `${Math.max(8, rect.right - popup.current.offsetWidth)}px`;
+    placeOverlay(popup.current, trigger.current.getBoundingClientRect(), 'below-end');
     popup.current.querySelector<HTMLElement>(focusSelector)?.focus();
     // `focusSelector` é constante por chamada; incluí-lo só reabriria a conta.
     // eslint-disable-next-line react-hooks/exhaustive-deps

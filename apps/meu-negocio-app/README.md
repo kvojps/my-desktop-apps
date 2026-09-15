@@ -16,7 +16,7 @@ O app tem cinco telas: **Dashboard** (a inicial, com o resumo do período), **Pr
 2. Em **Pedidos**, registre um pedido por cliente com itens vindos do catálogo (ou um total digitado à mão) e acompanhe o fluxo `pendente` → `em andamento` → `concluído`.
 3. Ao concluir um pedido, o estoque dos itens é baixado na hora — é esse o momento em que o pedido vira venda de fato.
 4. Volte para **Vendas** para registrar o quanto já foi pago de cada pedido concluído e acompanhar o que ainda está em aberto.
-5. O **Dashboard** resume o período: receita, lucro, produtos mais vendidos e alertas de estoque baixo.
+5. O **Dashboard** resume o período: faturamento e lucro por mês, produtos mais vendidos, alertas de estoque baixo e, fora do período, as cobranças em aberto.
 
 ### 1.2 Dashboard
 

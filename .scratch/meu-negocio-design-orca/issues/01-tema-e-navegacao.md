@@ -21,7 +21,7 @@ e escuro e preservação funcional, na sequência aprovada em Q8.
 
 - [x] Executar `npm run typecheck`, `npm run lint`, `npm test` e
       `npm run build -w meu-negocio-app`.
-- [ ] Abrir o app, navegar e alternar o tema; conferir início e redimensionamento no Electron e convivência com telas MUI. _(coberto pela revisão final da [issue 06](06-concluir-migracao.md); marcar aqui quando ela executar.)_
+- [x] Abrir o app, navegar e alternar o tema; conferir início e redimensionamento no Electron e convivência com telas MUI. _(executado na revisão final da [issue 06](06-concluir-migracao.md), em 2026-09-14: navegação pelas cinco rotas nos dois temas, alternância pelo rodapé persistida em `app_settings` e pintando `<html>`/janela, viewport 960×640 e 1280×800 com lateral aberta e recolhida; a convivência com telas MUI deixou de existir, porque o MUI foi retirado.)_
 - [x] Registrar em Comments resultados e limitações, atualizar Status e marcar
       somente os itens resolvidos. Sem pasta de evidências, capturas obrigatórias
       ou matriz completa de combinações.

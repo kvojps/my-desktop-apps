@@ -1,11 +1,6 @@
 import { BrowserWindow, nativeTheme } from 'electron';
 import type { ThemeMode } from '@shared/types/theme';
-
-/** Igual ao token `background` da base local (docs/orca-theme.md), por modo. */
-const BACKGROUND: Record<ThemeMode, string> = {
-  light: '#ffffff',
-  dark: '#0a0a0a',
-};
+import { WINDOW_BACKGROUND } from '../../../domain/theme';
 
 /**
  * O que o `settingsService` precisa do tema, e só isso — um duble de teste
@@ -43,7 +38,7 @@ export const themeMode: ThemeModeSystemGateway = {
   apply(mode: ThemeMode): void {
     nativeTheme.themeSource = mode;
     for (const window of BrowserWindow.getAllWindows()) {
-      window.setBackgroundColor(BACKGROUND[mode]);
+      window.setBackgroundColor(WINDOW_BACKGROUND[mode]);
     }
   },
 
@@ -58,7 +53,7 @@ export const themeMode: ThemeModeSystemGateway = {
   },
 
   windowBackgroundFor(mode: ThemeMode): string {
-    return BACKGROUND[mode];
+    return WINDOW_BACKGROUND[mode];
   },
 
   /**

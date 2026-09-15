@@ -11,12 +11,12 @@ Ainda falta a validação visual manual final no Electron; até ela ocorrer, est
 seção registra a direção implementada, não uma aprovação para migrar outros apps.
 
 Esta transição não cria um pacote compartilhado nem migra implicitamente os
-demais apps. Meu Negócio e Meu Móvel Planejado seguem as regras MUI e Material
-Icons deste documento até receberem uma migração planejada. Meu Dinheiro fez a
-sua, descrita abaixo — dois apps migrados não somam uma norma nova, e nenhum dos
-dois é o app canônico: a norma é este documento. Cada migração deve registrar
-seus valores locais antes de mudar código; a independência de código entre apps
-permanece vigente.
+demais apps. Meu Móvel Planejado segue as regras MUI e Material Icons deste
+documento até receber uma migração planejada. Meu Dinheiro e Meu Negócio
+fizeram as suas, descritas abaixo — três apps migrados não somam uma norma
+nova, e nenhum deles é o app canônico: a norma é este documento. Cada migração
+deve registrar seus valores locais antes de mudar código; a independência de
+código entre apps permanece vigente.
 
 ## Transição implementada: Meu Dinheiro
 
@@ -170,25 +170,41 @@ alinhamento de tabelas, segundo canal além da cor, teclado/foco, movimento redu
 carregamento, erro/vazio e tema persistido no banco e aplicado à janela.
 Valores medidos no tema antigo não comprovam contraste no novo.
 
-## Transição em andamento: Meu Negócio
+## Transição implementada: Meu Negócio
 
 A [spec aprovada](../.scratch/meu-negocio-design-orca/spec.md) e o
 [ADR local](../apps/meu-negocio-app/docs/adr/0001-migracao-visual-orca.md)
-autorizam a migração incremental do Meu Negócio para Tailwind sem Preflight,
-componentes locais, Geist e Lucide, com MUI/Emotion coexistindo até a retirada
-planejada. Esta exceção é estritamente local: não cria app canônico, não altera
-a independência dos apps e não autoriza migração implícita de nenhum outro.
-Os valores usados pela nova base estão em
-[tokens locais](../apps/meu-negocio-app/docs/orca-theme.md), registrados antes
-da alteração da interface. Tema continua pertencendo ao banco e precisa pintar
-a janela antes do renderer; foco, teclado, redução de movimento, feedback e
-contraste nos dois modos seguem obrigatórios em cada etapa.
+autorizaram a migração incremental do Meu Negócio para Tailwind sem Preflight,
+componentes locais, Geist e Lucide, com claro e escuro em cada etapa. Esta
+exceção é estritamente local: não cria app canônico, não altera a
+independência dos apps e não autoriza migração implícita de nenhum outro.
+
+As seis etapas estão implementadas, e desde a issue 06 o app **não declara
+mais** MUI, Emotion, Material Icons nem Inter: as cinco telas, os diálogos, os
+gráficos, os estados transversais e a base do documento — caixa herdada, fonte
+e métrica do corpo, dígitos tabulares, anel de foco do documento e o
+desligamento de movimento — saem de `styles.css` e de `theme/index.ts`. Os
+valores estão nos [tokens locais](../apps/meu-negocio-app/docs/orca-theme.md),
+registrados antes da alteração da interface e **conferidos por teste** contra o
+que o renderer publica e contra o fundo que o processo main pinta na janela —
+a conferência cruzada que faltou na issue 01 e deixou a paleta antiga passar
+por Orca. Tema continua pertencendo ao banco e pinta a janela antes do
+renderer; foco, teclado, redução de movimento, feedback e contraste nos dois
+modos foram exigidos em cada etapa. Implementado não é validado: cada issue
+registra o que foi exercitado no Electron e o que não foi, com as limitações
+do ambiente.
 
 Duas divergências da §4.1 fazem parte da exceção, aprovadas na spec (Q4–Q7) e
 detalhadas nos tokens locais: Configurações usa **navegação interna por
 abas**, uma seção visível por vez, em vez do acordeão, e **o alternador de
 tema fica só no rodapé da lateral**, com o modo atual no nome do controle, em
-vez de se repetir na tela de Configurações.
+vez de se repetir na tela de Configurações. Da retirada saem mais duas
+decisões, medidas aqui e válidas aqui: **a dica é desenhada em portal e
+aparece no foco além do hover** — o `title` nativo que a substituía não
+existia para o teclado, e a dica nunca é a única fonte do texto, que mora no
+nome acessível do gatilho —, e **`contentQuery` não foi recriado**: nesta base
+não há layout escrito em JS, as consultas de contêiner vivem na folha e os
+limiares estão nomeados nos tokens locais, como na base do Meu Dinheiro.
 
 Este documento descreve o padrão visual comum aos apps do monorepo. Ele existe porque os
 apps deliberadamente **não compartilham código** (ver README, §2): sem um pacote

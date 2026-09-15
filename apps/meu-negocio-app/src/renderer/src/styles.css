@@ -1,4 +1,4 @@
-/* Tailwind sem Preflight: a base que MUI oferecia permanece explícita. */
+/* Tailwind sem Preflight: o que um reset diz é dito aqui, na base do documento. */
 @layer theme, components, utilities;
 @import 'tailwindcss/theme.css' layer(theme) prefix(ui);
 @import 'tailwindcss/utilities.css' layer(utilities) prefix(ui);
@@ -26,10 +26,22 @@
 }
 
 @layer components {
+  /* A base do documento (docs/orca-theme.md). Tailwind entra sem Preflight e
+     não há mais reset de biblioteca por baixo: sem `box-sizing` herdado, toda
+     caixa com padding e largura declarados juntos passaria a medir a soma dos
+     dois. */
+  html {
+    box-sizing: border-box;
+    -webkit-text-size-adjust: 100%;
+  }
+  *,
+  *::before,
+  *::after {
+    box-sizing: inherit;
+  }
   html,
   body,
-  #root,
-  #root > div {
+  #root {
     height: 100%;
     margin: 0;
     width: 100%;
@@ -42,22 +54,27 @@
     font-family: var(--negocio-font);
     font-size: 14px;
     line-height: 20px;
+    /* O app é quase todo número: valores em real, quantidades e datas
+       empilhados em tabelas. Dígitos de largura fixa alinham sozinhos. */
     font-variant-numeric: tabular-nums;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     /* O polegar acompanha o modo; a trilha é a faixa de conteúdo, que é a
        superfície que rola. */
     scrollbar-color: var(--negocio-scrollbar) var(--negocio-content);
   }
 
-  *,
-  *::before,
-  *::after {
-    box-sizing: border-box;
-  }
+  /* O anel de foco vale para o documento, e não só para as superfícies
+     nomeadas: menu, popover e dica saem em portal, fora da árvore da página,
+     e uma regra escopada os deixaria sem anel (§5.5). `:focus-visible` e não
+     `:focus`: o anel no clique do mouse é ruído. */
   *:focus-visible {
     outline: 2px solid var(--negocio-focus);
     outline-offset: 2px;
   }
+  /* O interruptor geral de movimento: alcança a transição da lateral e
+     qualquer animação futura. O que ele não alcança é o Recharts, que
+     interpola em JavaScript e respeita a preferência por `chartTheme`. */
   @media (prefers-reduced-motion: reduce) {
     *,
     *::before,
@@ -120,36 +137,32 @@
     background: var(--negocio-content);
   }
   .negocio-content {
-    /* As grades MUI das telas usam `@container content`; este contrato não pode
-     se perder quando a lateral muda de implementação. */
+    /* As grades das telas medem contra `@container content`, não contra a
+       janela (§2.2); este contrato não pode se perder quando a lateral muda
+       de implementação. */
     container-name: content;
     container-type: inline-size;
   }
-  .negocio-sidebar[data-collapsed='true'] .negocio-nav-item[data-tooltip]::after {
+  /* Dica em portal, acima da camada dos menus (40) e abaixo da notificação
+     (1500). Visível no hover e no foco; o texto mora no nome acessível do
+     gatilho, e a bolha é só desenho. */
+  .negocio-tip-bubble {
     position: fixed;
-    z-index: 10;
-    margin-left: 64px;
+    z-index: 50;
+    width: max-content;
+    max-width: 260px;
     padding: 6px 8px;
     border: 1px solid var(--negocio-border);
     border-radius: 6px;
     background: var(--negocio-paper);
     color: var(--negocio-foreground);
-    content: attr(data-tooltip);
+    box-shadow: 0 4px 16px rgb(0 0 0 / 18%);
     font-size: 12px;
+    line-height: 18px;
     font-weight: 500;
-    line-height: 16px;
-    opacity: 0;
+    text-align: left;
+    white-space: normal;
     pointer-events: none;
-    transform: translateX(-4px);
-    transition:
-      opacity 100ms ease,
-      transform 100ms ease;
-    white-space: nowrap;
-  }
-  .negocio-sidebar[data-collapsed='true'] .negocio-nav-item[data-tooltip]:hover::after,
-  .negocio-sidebar[data-collapsed='true'] .negocio-nav-item[data-tooltip]:focus-visible::after {
-    opacity: 1;
-    transform: translateX(0);
   }
 
   .negocio-button {
@@ -611,9 +624,8 @@
   .negocio-trend[data-good='false'] {
     color: var(--negocio-danger);
   }
-  /* Ladrilho quadrado de identidade (§3.1). Aceita ícone do MUI ou do Lucide:
-     quem manda no tamanho é o CSS, e `className` é a única prop que os dois
-     conjuntos têm em comum enquanto as duas bases convivem. */
+  /* Ladrilho quadrado de identidade (§3.1). Quem manda no tamanho do ícone é
+     o CSS, e nenhuma chamada precisa repetir a medida. */
   .negocio-tile {
     display: inline-flex;
     flex-shrink: 0;
@@ -969,9 +981,6 @@
     font-size: 20px;
     line-height: 28px;
     font-weight: 600;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
   }
   .negocio-page-header p {
     margin: 2px 0 0;

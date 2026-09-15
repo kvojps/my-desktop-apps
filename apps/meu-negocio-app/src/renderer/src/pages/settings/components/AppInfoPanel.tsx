@@ -1,6 +1,7 @@
 import { Copy } from 'lucide-react';
 import { Button } from '@/components/Button';
 import { ErrorState } from '@/components/ErrorState';
+import { Tooltip } from '@/components/Tooltip';
 import { useSnackbar } from '@/contexts/SnackbarContext';
 import type { UseAppInfoReturn } from '@/hooks/settings/useAppInfo';
 
@@ -74,14 +75,15 @@ export function AppInfoPanel({ info: { info, isLoading, error, retry } }: AppInf
         <dt>Banco de dados</dt>
         <dd>
           <code>{info.dbPath}</code>
-          <Button
-            variant="ghost"
-            aria-label="Copiar caminho do banco de dados"
-            title="Copiar caminho"
-            onClick={() => copyDbPath(info.dbPath)}
-          >
-            <Copy size={18} aria-hidden="true" />
-          </Button>
+          <Tooltip title="Copiar caminho">
+            <Button
+              variant="ghost"
+              aria-label="Copiar caminho do banco de dados"
+              onClick={() => copyDbPath(info.dbPath)}
+            >
+              <Copy size={18} aria-hidden="true" />
+            </Button>
+          </Tooltip>
         </dd>
       </div>
     </dl>

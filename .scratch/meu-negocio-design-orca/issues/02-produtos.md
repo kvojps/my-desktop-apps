@@ -21,7 +21,7 @@ e escuro e preservação funcional, na sequência aprovada em Q8.
 
 - [x] Executar `npm run typecheck`, `npm run lint`, `npm test` e
       `npm run build -w meu-negocio-app`.
-- [ ] Criar e editar um produto com dados descartáveis; conferir filtro vazio, margem indefinida e operação dos campos/menu pelo teclado. _(coberto pela revisão final da [issue 06](06-concluir-migracao.md); marcar aqui quando ela executar.)_
+- [x] Criar e editar um produto com dados descartáveis; conferir filtro vazio, margem indefinida e operação dos campos/menu pelo teclado. _(executado na revisão final da [issue 06](06-concluir-migracao.md), em 2026-09-14, inteiramente pelo teclado: Tab até "Novo produto", Enter abre com foco no nome, oito campos por Tab, Enter salva e fecha; Tab até o menu da linha, Enter abre com foco em Editar, Enter abre preenchido, nome trocado e Enter salva; margem "—" no produto sem preço de venda e estado vazio com busca sem resultado.)_
 - [x] Registrar em Comments resultados e limitações, atualizar Status e marcar
       somente os itens resolvidos. Sem pasta de evidências, capturas obrigatórias
       ou matriz completa de combinações.

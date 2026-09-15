@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { Order } from '@shared/types/order';
 import { Field, SelectInput } from '@/components/Field';
+import { Tooltip } from '@/components/Tooltip';
 import type { OrderFilterState } from '@/hooks/orders/useOrders';
 import { popupPortalTarget, useAnchoredPopup } from '@/hooks/useAnchoredPopup';
 import {
@@ -159,19 +160,20 @@ export function MonthRangeFilter({
         >
           Tudo
         </button>
-        <button
-          ref={trigger}
-          type="button"
-          title="Período personalizado"
-          aria-label="Período personalizado"
-          aria-pressed={activeQuick === null}
-          aria-haspopup="dialog"
-          aria-expanded={isCustomOpen}
-          aria-controls={isCustomOpen ? popupId : undefined}
-          onClick={() => setIsCustomOpen((open) => !open)}
-        >
-          <CalendarRange aria-hidden="true" />
-        </button>
+        <Tooltip title="Período personalizado">
+          <button
+            ref={trigger}
+            type="button"
+            aria-label="Período personalizado"
+            aria-pressed={activeQuick === null}
+            aria-haspopup="dialog"
+            aria-expanded={isCustomOpen}
+            aria-controls={isCustomOpen ? popupId : undefined}
+            onClick={() => setIsCustomOpen((open) => !open)}
+          >
+            <CalendarRange aria-hidden="true" />
+          </button>
+        </Tooltip>
       </div>
 
       {isCustomOpen &&

@@ -1,23 +1,31 @@
-import { CssBaseline, PaletteMode, ThemeProvider } from '@mui/material';
-import { ReactNode, useLayoutEffect, useMemo, useState } from 'react';
+import { ReactNode, useLayoutEffect, useState } from 'react';
+import type { ThemeMode } from '@shared/types/theme';
 import { api } from '@/api/client';
 import { ThemeModeContext } from './themeModeContext';
-import { getAppTheme, getThemeVariables } from './index';
+import { getThemeVariables } from './index';
 
 /**
  * Cache do renderer, não a fonte da verdade — essa é o banco, porque o processo
  * main precisa do modo para pintar a janela antes de existir renderer. Só serve
  * de reserva para quando o valor injetado não chega (preload indisponível).
  */
-function getInitialMode(): PaletteMode {
+function getInitialMode(): ThemeMode {
   const injected = api.initialThemeMode();
   if (injected) return injected;
 
   return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 }
 
+/**
+ * Publica o modo de duas formas, porque ele tem dois consumidores de natureza
+ * diferente: as variáveis `--negocio-*`, que a folha lê, e o `color-scheme`,
+ * que é o que faz o próprio Chromium pintar barra de rolagem, campo nativo e
+ * `<option>` no modo certo — nenhuma regra CSS nossa alcança essas superfícies.
+ * Não há mais tema de biblioteca nem reset por baixo: a base do documento é
+ * declarada em `styles.css` (docs/orca-theme.md).
+ */
 export function ThemeModeProvider({ children }: { children: ReactNode }) {
-  const [mode, setMode] = useState<PaletteMode>(getInitialMode);
+  const [mode, setMode] = useState<ThemeMode>(getInitialMode);
 
   const toggleMode = () => {
     setMode((prev) => {
@@ -31,13 +39,9 @@ export function ThemeModeProvider({ children }: { children: ReactNode }) {
     });
   };
 
-  const theme = useMemo(() => getAppTheme(mode), [mode]);
-
   // Os tokens vão em `<html>`, e não num `div` do React: menu de ações, menu
-  // de status e popover de período saem em portal para o `body`, e num `div`
-  // as variáveis não os alcançariam — o menu nascia sem fundo. `color-scheme`
-  // vai junto porque é o que faz o próprio Chromium pintar barra de rolagem,
-  // campo nativo e `<option>` no modo certo.
+  // de status, popover de período e dica saem em portal para o `body`, e num
+  // `div` as variáveis não os alcançariam — o menu nascia sem fundo.
   useLayoutEffect(() => {
     const root = document.documentElement;
     for (const [key, value] of Object.entries(getThemeVariables(mode))) {
@@ -48,11 +52,6 @@ export function ThemeModeProvider({ children }: { children: ReactNode }) {
   }, [mode]);
 
   return (
-    <ThemeModeContext.Provider value={{ mode, toggleMode }}>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <div>{children}</div>
-      </ThemeProvider>
-    </ThemeModeContext.Provider>
+    <ThemeModeContext.Provider value={{ mode, toggleMode }}>{children}</ThemeModeContext.Provider>
   );
 }

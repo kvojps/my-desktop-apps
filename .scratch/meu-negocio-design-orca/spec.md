@@ -9,9 +9,12 @@ Preflight, componentes locais, Geist e Lucide, substituindo MUI/Emotion.
 O plano cobre Dashboard, Produtos, Pedidos, Vendas, Configurações, diálogos,
 estados transversais e tema da janela, em etapas utilizáveis.
 
-Esta atividade produz o plano e as issues; não implementa a interface.
-O entendimento consolidado e a sequência das seis etapas foram confirmados
-pelo usuário em Q8, em 2026-09-14. A implementação ainda não começou.
+Esta atividade produziu o plano e as issues. O entendimento consolidado e a
+sequência das seis etapas foram confirmados pelo usuário em Q8, em 2026-09-14,
+e as seis issues foram implementadas e resolvidas na mesma data: o app não
+declara mais MUI, Emotion, Material Icons nem Inter, e a seção do design
+system passou a "implementada". O que foi exercitado no Electron, e o que não
+foi, está registrado issue a issue.
 
 ## Decisões confirmadas
 
@@ -38,8 +41,8 @@ e persistência do tema no banco continuam obrigatórios.
 ## Aprovação
 
 Q1–Q8 confirmadas, sem decisões de planejamento pendentes. Ver
-[mapa da entrevista](map.md). As issues estão abertas para execução na ordem
-aprovada, respeitando suas dependências.
+[mapa da entrevista](map.md). As seis issues foram executadas na ordem
+aprovada e estão resolvidas.
 
 ## Interface aprovada — Q4–Q7
 

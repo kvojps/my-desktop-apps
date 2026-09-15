@@ -37,7 +37,8 @@ raios 10/6). Registrado em `apps/meu-negocio-app/docs/orca-theme.md` e na
 Na mesma data, as issues 04–06 ganharam critérios verificáveis por grep,
 a 06 ganhou a conferência cruzada de tokens e a pendência de dicas por teclado,
 e os itens manuais abertos em 01–03 passaram a apontar para a revisão final da
-06, que os cobre.
+06, que os cobre. A issue 06 executou essa revisão e marcou os itens nas três
+issues de origem; a conferência de tokens virou teste.
 
 ## Plano de execução
 
@@ -53,7 +54,8 @@ e os itens manuais abertos em 01–03 passaram a apontar para a revisão final d
 ## Fog
 
 Nenhuma decisão de planejamento pendente. As seis issues de implementação
-continuam abertas; a issue 01 está desbloqueada.
+estão resolvidas (2026-09-14); a retirada do MUI está feita e a seção do
+design system passou a "implementada".
 
 ## Inventário inicial
 
