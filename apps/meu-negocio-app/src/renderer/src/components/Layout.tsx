@@ -11,7 +11,8 @@ import {
 } from 'lucide-react';
 import { type ReactNode, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import logo from '@/assets/logo-128x128.png';
+import logoLight from '@/assets/logo-light.png';
+import logo from '@/assets/logo.png';
 import { Tooltip } from '@/components/Tooltip';
 import { useThemeMode } from '@/hooks/useThemeMode';
 import { ROUTES } from '@/routes';
@@ -46,7 +47,13 @@ export function Layout({ children }: { children: ReactNode }) {
             className="ui:mb-4 ui:flex ui:h-9 ui:items-center ui:gap-2 ui:px-1 ui:text-sm ui:font-semibold ui:text-foreground ui:no-underline"
             aria-label="Meu Negócio — Dashboard"
           >
-            <img src={logo} alt="" width={28} height={28} />
+            <img
+              src={mode === 'light' ? logoLight : logo}
+              className="ui:shrink-0 ui:rounded-md"
+              alt=""
+              width={28}
+              height={28}
+            />
             {!collapsed && (
               <>
                 <span>Meu Negócio</span>

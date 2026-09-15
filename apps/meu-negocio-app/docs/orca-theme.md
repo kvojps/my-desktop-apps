@@ -161,6 +161,11 @@ controles de pelo menos 36px, logo 28px. Rodapé contém tema e recolhimento,
 com nomes acessíveis e dicas quando recolhida. Conteúdo com padding 24px, teto
 1440px e rolagem independente; janela mínima 960 × 640.
 
+A logo da lateral é uma sacola de compras em contorno azul com detalhe circular
+amarelo, seguindo a família visual das marcas Meu Dinheiro e Git Dlog.
+Ela acompanha o tema: fundo claro (`logo-light.png`) ou escuro (`logo.png`).
+A imagem mantém 28 × 28px sem encolher, com cantos de 6px.
+
 Dica (`Tooltip`): 12px/18px peso 500, até 260px, sobre `paper` com borda
 `border` e a mesma sombra do menu, em portal com posição fixa e `z-index` 50 —
 acima dos menus (40) e abaixo da notificação (1500) —, e dentro do diálogo
